@@ -21,6 +21,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - M0.3: probe checks S2, S8 and S10 (`Checks_Roster.lua`): field statistics of `C_Club.GetMemberInfo` for the whole guild (counts only, online and offline, `discordInfo` shape, `bnetAccountId` sharing, realm parts of names), own BattleTag shape and `/aacp btag friend` on a volunteer, account-wide SavedVariables stamps across characters and realms.
 - M0.4: probe checks S3 and S4 (`Checks_Recipes.lua`): the native guild recipe directory (`/aacp recipes guild`, API presence by namespace, `GUILD_RECIPE_KNOWN_BY_MEMBERS` timing, getters described by shape) and the own recipe scan with the profession window open and closed (`/aacp recipes own|open|auto`, counts and milliseconds).
 - M0.5: probe checks S5 and S6 (`Checks_Messaging.lua`): test-prefix addon messages on GUILD, OFFICER and WHISPER (`/aacp ping|pong|burst|msgsize|whisper|msgs`) with result codes, own-echo latency, received runs with missing counts, and lockdown snapshots (`/aacp snapshot`, plus automatic logs on restriction, encounter and combat events).
+- M0.6: probe check S7 (`Checks_Group.lua`): party and raid scans (`/aacp group`, `watch`) counting readable and secret `UnitGUID`, `UnitIsInMyGuild`, `GetRaidRosterInfo` fields, guild-roster GUID matches and scan cost, with `GROUP_ROSTER_UPDATE` gaps and delayed re-scans, and boss start and end.
 
 ### Repository
 

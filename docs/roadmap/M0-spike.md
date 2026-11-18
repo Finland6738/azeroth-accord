@@ -59,7 +59,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: in a party, a raid and an instance: `UnitGUID` of each unit, `UnitIsInMyGuild`, `GetRaidRosterInfo`, `issecretvalue` on the results, `GROUP_ROSTER_UPDATE` timing.
 - Done when:
-  - [ ] S7 answered.
+  - [ ] S7 answered. *(in game)*
+  - [x] Offline: the check, `/aacp group` and the event timing exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.7 — Guild bank and performance (S9, S11)

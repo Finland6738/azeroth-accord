@@ -38,6 +38,8 @@ Run the installer again after every update of the probe, then `/reload`. The res
 | `/aacp snapshot <label>` | S5: stores the lockdown state (chat messaging lockdown, addon restrictions, combat, instance, encounter, battleground) and the result of one test GUILD send, tagged with your label |
 | `/aacp msgs` | S5/S6: prints the sent, result-code and received counters |
 | `/aacp whisper <name>` | S6: sends one addon WHISPER to a character; the name is used once and never stored |
+| `/aacp group [<label>]` | S7: scans the current party or raid (counts only: readable and secret GUIDs, `UnitIsInMyGuild`, `GetRaidRosterInfo` fields, milliseconds) and stores it under your label |
+| `/aacp group watch on\|off` | S7: scans automatically 0, 1 and 3 seconds after every group roster change and at boss start and end (on after `/aacp run S7`) |
 | `/aacp reset` | Clears the stored results and logs |
 
 Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build, time}` where `result` is `pass`, `fail`, `info` or `todo`. A check that is not implemented yet records "not implemented yet". Later steps add more commands; the usage line printed by `/aacp help` always lists the ones your version has.
@@ -51,6 +53,7 @@ Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build,
 | M0.3 | S2, S8, S10 | `Checks_Roster.lua` |
 | M0.4 | S3, S4 | `Checks_Recipes.lua` |
 | M0.5 | S5, S6 | `Checks_Messaging.lua` |
+| M0.6 | S7 | `Checks_Group.lua` |
 
 ## M0.1: what to do in game
 
@@ -124,3 +127,14 @@ The probe registers and sends **only** the test prefix `AzAcP`, never `AzAccord`
 6. `/aacp run S5`, then `/aacp export` on both clients and send the texts back.
 
 **S6, addon WHISPER between guildmates.** With `/aacp pong on` on the receiving client: sender runs `/aacp whisper <character name>` of a guildmate (online, same faction). Check the result code, then `/aacp msgs` on the receiver ("received: WHISPER other"). Repeat with a **low-level** character as sender and as receiver (a fresh level 1 in the guild is ideal) and with a guildmate on a connected realm if you have one. Then `/aacp run S6` and `/aacp export`.
+
+## M0.6: what to do in game (S7, group and raid)
+
+No name and no GUID is stored: only counts (readable and secret GUIDs, guild flags) and the shape of the returned fields. Secret values are tested with `issecretvalue` and never compared or printed. Ideally do it with **guildmates in the group** (some of them in the guild, one not, if possible).
+
+1. Solo, `/aacp run S7`: it scans yourself, lists missing functions (`GetRaidRosterInfo`, `IsInRaid`, ... are not in the Forever dump, so the probe checks them at run time) and turns the automatic watching ON.
+2. **Party** (2–5 players, with guildmates): `/aacp group party`. Check the numbers: how many GUIDs are readable, how many `UnitIsInMyGuild` are true, how many group members match a guild-roster GUID. While players join and leave, the `S7 group` log records `GROUP_ROSTER_UPDATE` with the gap between events and the state 0, 1 and 3 seconds later (how long until the data is valid).
+3. **Raid** (convert the party to a raid, or join one): `/aacp group raid`: same, plus `GetRaidRosterInfo` rows, field shape and cost in milliseconds for a big raid.
+4. **Instance** (dungeon or raid, not Mythic+ unless you do it): `/aacp group dungeon` on entering, and again right after a boss pull and after the kill (watching also logs `ENCOUNTER_START` / `ENCOUNTER_END` by itself). Are the GUIDs or `UnitIsInMyGuild` secret there?
+5. If you can, repeat inside a battleground and during a Mythic+ run (`/aacp group bg`, `/aacp group mplus`).
+6. `/aacp export` and send it back (the `S7 group` log has every scan).
