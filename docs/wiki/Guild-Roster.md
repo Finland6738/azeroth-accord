@@ -8,7 +8,11 @@ The **Roster** view is a table of every member: name, level, class, rank, zone, 
 
 Click a name to open the **member card**. It lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. Turn on *Group by account* to see one row per player with the alts underneath.
 
-For members without the addon, a public note written as `alt: <name>` or `main: <name>` is shown as a hint.
+A character that is not in the guild appears too, marked *not in guild*. The main is the one the player chose, otherwise the highest-level character.
+
+For members without the addon, a public guild note written as `main: <name>` (my main is that character) or `alt: <name>` (that character is my alt) is shown as a hint, labelled *declared in the note*. A member who has the addon is never moved by a note.
+
+The grouping cannot be faked: two characters count as one player only if **both** list each other, so listing someone else's character changes nothing.
 
 ## Contacts
 

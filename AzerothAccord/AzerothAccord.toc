@@ -29,6 +29,7 @@ Net\Transport.lua
 Net\Store.lua
 Net\Sync.lua
 Data\Roster.lua
+Data\Accounts.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

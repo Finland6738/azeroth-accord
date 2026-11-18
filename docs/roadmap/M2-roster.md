@@ -16,7 +16,7 @@
 - Spec: SPEC-05 §3; ADR 0006
 - Scope: `Data/Accounts.lua`: token, character list per realm, main, sharing (always on), merge, note hints `alt:` / `main:`, stale characters.
 - Done when:
-  - [ ] Alts of two simulated accounts are grouped on a third client; a forged list is refused.
+  - [x] Alts of two simulated accounts are grouped on a third client; a forged list is refused.
 
 ### M2.3 — Roster table
 - Branch: `step/m2-3-roster-table`

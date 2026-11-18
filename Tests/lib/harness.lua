@@ -156,6 +156,8 @@ function H.boot(opts)
 	-- traffic counts stay exact); the simulator switches it on for its clients (Sim.new option `sync`).
 	local addonObject = E.AzerothAccord
 	if addonObject and addonObject.Sync then addonObject.Sync.AUTO = H.autoSync == true end
+	-- Likewise Data/Accounts.lua publishes the character's own record by itself after login (Sim.new option `accounts`).
+	if addonObject and addonObject.Accounts then addonObject.Accounts.AUTO = H.autoAccounts == true end
 
 	for name, text in pairs(opts.saved or {}) do E[name] = deserialize(text) end
 

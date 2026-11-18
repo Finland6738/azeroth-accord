@@ -433,6 +433,15 @@ function Player.BattleTag()
 	return nil
 end
 
+-- What the client knows of a player by GUID (GetPlayerInfoByGUID): { name, realm, classFile, level }, or nil when it does
+-- not answer (an unknown GUID, a character the client has never seen, a missing API) [verify: ACC-04 relies on it].
+function Player.InfoByGUID(guid)
+	if type(guid) ~= "string" then return nil end
+	local values = readable("GetPlayerInfoByGUID", guid)
+	if not values or not str(values[6]) then return nil end
+	return { name = values[6], realm = str(values[7]), classFile = str(values[2]), level = num(values[8]) }
+end
+
 -- Playable classes the client knows: { { id, name, file }, ... } sorted by id, or nil when the API gives nothing.
 function Compat.Classes()
 	local count = first("GetNumClasses")
@@ -833,6 +842,7 @@ local CAPS = {
 	{ "player.UnitGUID", "player", "UnitGUID", call = true, args = { "player" } },
 	{ "player.UnitFactionGroup", "player", "UnitFactionGroup", call = true, args = { "player" } },
 	{ "player.UnitClass", "player", "UnitClass", call = true, args = { "player" } },
+	{ "player.GetPlayerInfoByGUID", "player", "GetPlayerInfoByGUID", note = "[verify] ACC-04: does it answer for characters not seen lately?" },
 	{ "player.GetNormalizedRealmName", "player", "GetNormalizedRealmName", call = true },
 	{ "player.BNet_GetBattleTagSelf", "player", "BNet_GetBattleTagSelf", note = "[verify S8]" },
 	{ "player.BNGetInfo", "player", "BNGetInfo" },

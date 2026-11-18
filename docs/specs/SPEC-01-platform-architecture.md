@@ -49,7 +49,7 @@ I moduli si parlano solo attraverso `Bus` e le interfacce pubbliche; nessun modu
 
 | Variabile | Ambito | Contenuto |
 |---|---|---|
-| `AzerothAccordDB` | account | `schemaVersion`, `token` (token dell'account, 16 byte casuali in Base64, creato una volta), `chars[<reame>][<GUID>]` (personaggi per reame), `guilds[<chiave>]` (dati per gilda: roster arricchito, record ricevuti, libro dei like, co-play, banca, richieste), `settings` |
+| `AzerothAccordDB` | account | `schemaVersion`, `token` (token dell'account, 16 byte casuali in Base64, creato una volta), `chars[<reame>][<GUID>]` (personaggi per reame: nome, classe, livello, gilda, `added`, `seen`, `answered`), `mains[<reame>]` (il main scelto), `guilds[<chiave>]` (dati per gilda: roster arricchito, record ricevuti, libro dei like, co-play, banca, richieste), `settings` |
 | `AzerothAccordCharDB` | personaggio | `schemaVersion`, `ui`: ultima vista, colonne, ordinamento, posizione e dimensione della finestra |
 
 La chiave di gilda è `<reame>/<nome della gilda>`, con il reame della gilda (sui reami connessi) senza spazi, trattini o apostrofi; i dati di una gilda si raggiungono solo con `GuildKey:Data()`, così due gilde non si mescolano mai e i dati di una gilda lasciata restano intatti. Ogni variabile ha un `schemaVersion`: le migrazioni girano all'`ADDON_LOADED`, i valori non validi tornano al predefinito (e `/accord debug` lo dice), una versione più nuova di quella dell'addon apre i dati in sola lettura ([ADR 0011](../adr/0011-embedded-ace3-savedvariables-and-schema-versions.md)).

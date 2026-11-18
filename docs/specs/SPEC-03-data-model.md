@@ -9,8 +9,8 @@ Un record **per personaggio**: `id` = GUID del personaggio, scritto solo da lui 
 | Campo | Tipo | Note |
 |---|---|---|
 | `token` | stringa casuale di 16 byte (Base64) | creato una volta per account, mai cambiato |
-| `chars` | lista di `{guid, name, realm, classID, level, inGuild}` | tutti i personaggi dell'account entrati con l'addon su questo reame |
-| `main` | GUID | scelto dal giocatore; predefinito: livello più alto, poi più tempo giocato |
+| `chars` | lista di `{guid, name, realm, classID, level, inGuild}` | tutti i personaggi dell'account entrati con l'addon su questo reame (e quelli visti nella stessa gilda su un altro), al massimo 40; `inGuild` dice se sono nel roster |
+| `main` | GUID | scelto dal giocatore; predefinito: livello più alto, poi il personaggio aggiunto per primo |
 | `addonVersion` | stringa | per la diagnostica |
 
 Autore valido: il personaggio stesso (`id` = `author`), che deve comparire in `chars`. Due personaggi sono dello **stesso account** solo se il record di ciascuno elenca l'altro (elenco reciproco, [SPEC-02 §6](SPEC-02-network-protocol.md#6-fiducia-e-integrità)): il `token` viaggia in chiaro e si potrebbe copiare, quindi serve solo a raggruppare, mai a provare.

@@ -1,7 +1,7 @@
 -- Config: SavedVariables, schema versions, defaults, validation and migrations (SPEC-01 §4, ADR 0011). Lua 5.1.
 -- Adapted from Azeroth Guild Finder (Core/Config.lua), same owner, GPL-3.0 (ADR 0018).
 --
---   AzerothAccordDB      (account)   = { schemaVersion, token, chars[realm][guid], guilds[guildKey], settings }
+--   AzerothAccordDB      (account)   = { schemaVersion, token, chars[realm][guid], mains[realm], guilds[guildKey], settings }
 --   AzerothAccordCharDB  (character) = { schemaVersion, ui }
 --
 -- Load() runs on ADDON_LOADED (from Init's OnInitialize): defaults are merged without overwriting anything, old data
@@ -44,7 +44,8 @@ Config.defaults = {
 	account = {
 		schemaVersion = Config.SCHEMA_VERSION,
 		token = "",          -- the account token (SPEC-03 §1): 16 random bytes in Base64, created once, never changed
-		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, seen } }: Data/Accounts.lua (M2)
+		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, seen, added, answered } }: Data/Accounts.lua
+		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
 		settings = {},
 	},
@@ -64,6 +65,7 @@ Config.rules = {
 	["account.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["account.token"] = { type = "string", pattern = "^[A-Za-z0-9+/][A-Za-z0-9+/]*=*$", minLen = 24, maxLen = 24 },
 	["account.chars"] = { type = "table" },
+	["account.mains"] = { type = "table" },
 	["account.guilds"] = { type = "table" },
 	["account.settings"] = { type = "table" },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },

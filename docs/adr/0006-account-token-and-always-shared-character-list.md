@@ -23,6 +23,10 @@ The owner wants to click a character and see **all the characters of the same Ba
 
 The token travels in clear inside the shared data, so a modified client could copy another member's token. The token is therefore used only to group characters for display, never as a proof. Each character publishes **its own** account record (one record per character, written only by it), and two characters count as the same account only when each one's record lists the other (mutual listing). A client that lists somebody else's character as its alt gains nothing: that character's own record does not list it back. This is how NET-10 ("a character of the same account") is checked in `Net/Store.lua`.
 
+## Implementation note (M2.2)
+
+`Data/Accounts.lua` builds the groups as the connected components of the mutual-listing graph. A character outside the guild cannot publish a record, so it is shown as *claimed* by the members who list it (never as proven); a guild member listed without listing back is ignored. A group whose members publish different tokens is flagged. The note hints (`main: <name>`, `alt: <name>`) only group members who have no record of their own. Stale characters (ACC-04) are dropped only after `GetPlayerInfoByGUID` has answered for some other character of the account, so that an alt that is not played for months is never lost by mistake.
+
 ## Consequences
 
 - Positive: alts grouped without any typing, also across characters not in the guild.

@@ -9,7 +9,9 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 | The officer who records your like | That the like came from you, at the moment it is delivered; it is then stored under a code that members cannot read |
 | Officers only | Bank tabs reserved to officers |
 
-The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking.
+The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking. There is no switch to turn this off.
+
+The character list holds, for each of your characters on the realm (inside the guild or not): name, class, level, whether it is in the guild, and which one is your main. A character you delete or rename is cleaned up by itself after 30 days, once the game confirms it no longer knows it.
 
 ## Nobody can write your data
 
