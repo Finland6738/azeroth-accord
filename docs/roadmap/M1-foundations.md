@@ -9,7 +9,7 @@
 - Spec: SPEC-01 §1, §3; ADR 0011
 - Scope: `AzerothAccord/` (TOC 16001, SavedVariables, AddOn Compartment), `embeds.xml`, `Bindings.xml`, `Locale/enUS.lua` and `itIT.lua`, `Core/Init.lua` with the Forever check and `/accord help`; `.pkgmeta`, `.luarc.json`, `tools/fetch_libs.py`, `tools/install_addon.py`, `tools/check_addon.py`, `tools/check_package.py`; release workflow.
 - Done when:
-  - [ ] `check_docs.py` checks the TOC and the package; the addon folder installs with the script.
+  - [x] `check_docs.py` checks the TOC and the package; the addon folder installs with the script.
 - Tests: TOC and embeds checks.
 - Real client: loads without errors.
 

@@ -1,0 +1,19 @@
+## Interface: 16001
+## Title: Azeroth Accord
+## Notes: Guild life on WoW Forever: an Accord tab in the guild window. Client-only, data shared only inside the guild.
+## Notes-itIT: La vita di gilda su WoW Forever: una scheda Accord nella finestra della gilda. Solo client, dati condivisi solo nella gilda.
+## Author: Finland6738
+## Version: @project-version@
+## SavedVariables: AzerothAccordDB
+## SavedVariablesPerCharacter: AzerothAccordCharDB
+## AddonCompartmentFunc: AzerothAccord_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: AzerothAccord_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: AzerothAccord_OnAddonCompartmentLeave
+## IconTexture: Interface\Icons\INV_Shirt_GuildTabard_01
+## X-Website: https://github.com/Finland6738/azeroth-accord
+## X-License: GPL-3.0
+
+embeds.xml
+Locale\enUS.lua
+Locale\itIT.lua
+Core\Init.lua

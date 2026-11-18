@@ -2,7 +2,7 @@
 
 **Una finestra della Gilda più ricca per World of Warcraft: Forever.** Azeroth Accord aggiunge alla finestra della Gilda una scheda **Accord** con ciò che manca al pannello del gioco: roster esteso con professioni e ricette, tutti i personaggi dello stesso account, contatti Battle.net e Discord, like tra compagni, un indice sociale che mostra se la gilda gioca insieme o si divide in gruppetti, e la banca di gilda con richieste di prelievo, deposito e donazioni.
 
-> **Stato: fase di progettazione.** Specifiche, decisioni e roadmap sono scritte; lo sviluppo parte dallo spike in gioco (M0). Non c'è ancora un download.
+> **Stato: in sviluppo (milestone M1, fondamenta).** La sonda in gioco di M0 è scritta e aspetta i risultati del proprietario; lo scheletro dell'addon si costruisce un passo alla volta. Non c'è ancora un download: la prima versione di prova, `v0.1.0`, arriva alla fine di M1.
 
 [English](README.md) · [Roadmap](ROADMAP.md) · [Specifiche](docs/specs/README.md) · [Decisioni](docs/adr/README.md) · [Manuale (inglese)](docs/wiki/Home.md)
 

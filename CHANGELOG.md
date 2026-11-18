@@ -14,6 +14,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Development roadmap in `docs/roadmap/`: M0 spike to M6 release (50 steps) with branch, dependencies, scope, acceptance criteria, tests, docs and real-client checks, plus the V2 backlog.
 
+### Addon
+
+- M1.1: the addon skeleton `AzerothAccord/` (TOC 16001 with `AzerothAccordDB` / `AzerothAccordCharDB` and the AddOn Compartment, `embeds.xml` with Ace3, LibDataBroker and LibDBIcon, `Bindings.xml`, English and Italian locales, `Core/Init.lua` with the Forever check and `/accord` / `/acc` with `help`, `debug` and the view commands); `.pkgmeta`, `.luarc.json`, `tools/fetch_libs.py`, `tools/install_addon.py`, `tools/check_addon.py`, `tools/check_package.py` and the release workflow, adapted from Azeroth Guild Finder ([ADR 0018](docs/adr/0018-reuse-azeroth-guild-finder-foundations.md)); `docs/RELEASING.md`.
+
 ### Spike
 
 - M0.1: the probe addon skeleton `tools/probe/AzAc_Probe/` (TOC 16001, check registry S1–S11 as stubs, `/aacp list|run|export|reset`, export frame, `AzAc_ProbeDB`), `tools/install_probe.py` with `tools/local.example.ini`, and `docs/spike/README.md`.

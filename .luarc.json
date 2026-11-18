@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "Lua 5.1",
+  "workspace.library": [
+    "../WoW-Addons/types"
+  ],
+  "workspace.ignoreDir": [
+    "AzerothAccord/Libs",
+    "docs",
+    ".idea",
+    "tools/probe"
+  ],
+  "diagnostics.globals": [
+    "AzerothAccord",
+    "AzerothAccordDB",
+    "AzerothAccordCharDB",
+    "AzerothAccord_ToggleBinding",
+    "AzerothAccord_OnAddonCompartmentClick",
+    "AzerothAccord_OnAddonCompartmentEnter",
+    "AzerothAccord_OnAddonCompartmentLeave",
+    "BINDING_HEADER_AZACCORD",
+    "BINDING_NAME_AZACCORD_TOGGLE",
+    "LibStub",
+    "SlashCmdList",
+    "Mock",
+    "T",
+    "describe",
+    "it",
+    "before_boot",
+    "eq",
+    "ne",
+    "truthy",
+    "falsy",
+    "isNil",
+    "notNil",
+    "deepEq",
+    "near",
+    "contains",
+    "matches",
+    "raises",
+    "fail"
+  ]
+}

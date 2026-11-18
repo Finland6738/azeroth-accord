@@ -1,0 +1,6 @@
+<Bindings>
+	<!-- Adapted from Azeroth Guild Finder (Bindings.xml), same owner, GPL-3.0 (ADR 0018). -->
+	<Binding name="AZACCORD_TOGGLE" header="AZACCORD" category="ADDONS">
+		AzerothAccord_ToggleBinding()
+	</Binding>
+</Bindings>
