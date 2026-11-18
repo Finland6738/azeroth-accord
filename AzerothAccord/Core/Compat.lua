@@ -184,6 +184,13 @@ function Guild.PlayerRank()
 	return nil
 end
 
+-- The guild's own realm on connected realms (the 4th result of GetGuildInfo), nil when it is the player's realm or
+-- the client does not say.
+function Guild.GuildRealm()
+	local values = all("GetGuildInfo", "player")
+	return values and str(values[4]) or nil
+end
+
 function Guild.IsGuildLeader()
 	local v, state = first("IsGuildLeader")
 	if state == AVAILABLE then return v and true or false end

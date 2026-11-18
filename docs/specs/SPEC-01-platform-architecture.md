@@ -49,10 +49,12 @@ I moduli si parlano solo attraverso `Bus` e le interfacce pubbliche; nessun modu
 
 | Variabile | Ambito | Contenuto |
 |---|---|---|
-| `AzerothAccordDB` | account | `schema`, token dell'account, personaggi per reame, dati per gilda (`guilds[<chiave>]`: roster arricchito, record ricevuti, libro dei like, co-play, banca, richieste), impostazioni |
-| `AzerothAccordCharDB` | personaggio | stato dell'interfaccia (ultima vista, colonne, ordinamento) |
+| `AzerothAccordDB` | account | `schemaVersion`, `token` (token dell'account, 16 byte casuali in Base64, creato una volta), `chars[<reame>][<GUID>]` (personaggi per reame), `guilds[<chiave>]` (dati per gilda: roster arricchito, record ricevuti, libro dei like, co-play, banca, richieste), `settings` |
+| `AzerothAccordCharDB` | personaggio | `schemaVersion`, `ui`: ultima vista, colonne, ordinamento, posizione e dimensione della finestra |
 
-Limiti di crescita (MUST): co-play conservato 90 giorni; registri della banca 365 giorni; ricette solo come ID numerici. Un controllo in `/accord debug` mostra le dimensioni.
+La chiave di gilda è `<reame>/<nome della gilda>`, con il reame della gilda (sui reami connessi) senza spazi, trattini o apostrofi; i dati di una gilda si raggiungono solo con `GuildKey:Data()`, così due gilde non si mescolano mai e i dati di una gilda lasciata restano intatti. Ogni variabile ha un `schemaVersion`: le migrazioni girano all'`ADDON_LOADED`, i valori non validi tornano al predefinito (e `/accord debug` lo dice), una versione più nuova di quella dell'addon apre i dati in sola lettura ([ADR 0011](../adr/0011-embedded-ace3-savedvariables-and-schema-versions.md)).
+
+Limiti di crescita (MUST): co-play conservato 90 giorni; registri della banca 365 giorni; ricette solo come ID numerici. `/accord debug` mostra le dimensioni stimate delle due variabili e dei dati della gilda corrente, per tabella.
 
 ## 5. Compat e capacità
 

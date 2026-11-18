@@ -32,7 +32,7 @@
 - Spec: SPEC-01 §4; SPEC-00 §5
 - Scope: `Core/Config.lua` (AceDB, schema, migrations), `Data/GuildKey.lua`, `Core/Role.lua`, `Core/Bus.lua`.
 - Done when:
-  - [ ] Data is kept per guild; changing guild never mixes data; role changes fire on the Bus.
+  - [x] Data is kept per guild; changing guild never mixes data; role changes fire on the Bus.
 
 ### M1.5 — Codec, hash and transport
 - Branch: `step/m1-5-transport`

@@ -10,3 +10,7 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 | Officers only | Bank tabs reserved to officers |
 
 The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking.
+
+## What stays on your computer
+
+The addon keeps its data in the game's own saved-variables files (`AzerothAccord.lua` in your WTF folder): an **account code** (random, created once, used only so that guildmates can tell your characters belong together), your characters, and one separate section for **each guild** you have been in, so the data of two guilds is never mixed. If you leave a guild, its section stays untouched until you come back. `/accord debug` shows how much space the data takes, never the data itself.

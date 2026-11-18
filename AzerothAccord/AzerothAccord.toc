@@ -18,4 +18,8 @@ Locale\enUS.lua
 Locale\itIT.lua
 Core\Init.lua
 Core\Compat.lua
+Core\Config.lua
+Core\Bus.lua
+Core\Role.lua
 Core\Diagnostics.lua
+Data\GuildKey.lua
