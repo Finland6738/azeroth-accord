@@ -50,7 +50,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: `/aacp ping guild|officer`, pong replies, bursts to measure a safe rate, result codes; `/aacp whisper <name>` between guildmates; lockdown snapshots in the open world, in combat, in a dungeon, during a boss and in a battleground.
 - Done when:
-  - [ ] S5 and S6 answered; send gaps per distribution decided.
+  - [ ] S5 and S6 answered; send gaps per distribution decided. *(in game, two clients)*
+  - [x] Offline: both checks, the commands, the counters and the lockdown snapshots exist; `check_docs.py` passes.
 - Real client: everything (two clients).
 
 ### M0.6 — Group roster (S7)

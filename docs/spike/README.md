@@ -31,6 +31,13 @@ Run the installer again after every update of the probe, then `/reload`. The res
 | `/aacp recipes own` | S4: scans your own recipes now (ids, learned count, milliseconds) and stores it |
 | `/aacp recipes open <skillLineID>` | S4: tries `C_TradeSkillUI.OpenTradeSkill` from the addon (may be blocked: that is an answer) |
 | `/aacp recipes auto on\|off` | S4: scan automatically when a profession window opens (on after `/aacp run S4`) |
+| `/aacp ping guild\|officer` | S5: sends one small test message on that distribution with the test prefix `AzAcP` and records the result code |
+| `/aacp pong [on\|off]` | S5/S6: with it ON, this client answers every single ping it receives from another client, so the sender sees the round trip |
+| `/aacp burst guild\|officer <n> <gapSeconds> [bytes]` | S5: sends `n` (max 200) messages of about `bytes` (default 200, max 255) with a fixed gap, records result codes and own echoes; `/aacp burst stop` aborts |
+| `/aacp msgsize guild\|officer` | S5: sends messages of 100 to 300 bytes and records which sizes are accepted |
+| `/aacp snapshot <label>` | S5: stores the lockdown state (chat messaging lockdown, addon restrictions, combat, instance, encounter, battleground) and the result of one test GUILD send, tagged with your label |
+| `/aacp msgs` | S5/S6: prints the sent, result-code and received counters |
+| `/aacp whisper <name>` | S6: sends one addon WHISPER to a character; the name is used once and never stored |
 | `/aacp reset` | Clears the stored results and logs |
 
 Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build, time}` where `result` is `pass`, `fail`, `info` or `todo`. A check that is not implemented yet records "not implemented yet". Later steps add more commands; the usage line printed by `/aacp help` always lists the ones your version has.
@@ -43,6 +50,7 @@ Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build,
 | M0.2 | S1 | `Checks_GuildTab.lua` |
 | M0.3 | S2, S8, S10 | `Checks_Roster.lua` |
 | M0.4 | S3, S4 | `Checks_Recipes.lua` |
+| M0.5 | S5, S6 | `Checks_Messaging.lua` |
 
 ## M0.1: what to do in game
 
@@ -101,3 +109,18 @@ The probe tries the functions the specification names (`GetGuildMemberRecipes`, 
 4. `/aacp export`: the `S4 own recipes` log has the results.
 
 Tell, per profession, which of the two sources worked (native directory for others, own scan for yourself) and whether the window had to be open.
+
+## M0.5: what to do in game (S5, S6), two clients
+
+The probe registers and sends **only** the test prefix `AzAcP`, never `AzAccord`. Senders are only compared with your own name ("self" or "other"); nothing with a name is stored. You need two clients, ideally an **officer** and a **plain member** (two accounts or a second player running the probe), both with the new probe installed and `/aacp pong on` on the receiving one.
+
+**S5, GUILD and OFFICER.**
+
+1. On both clients `/aacp run S5` (registers the prefix and prints the starting state), and on the receiver `/aacp pong on`.
+2. Officer: `/aacp ping guild`, then `/aacp ping officer`. Read the result code in chat. On the plain member run `/aacp msgs`: did it receive on `GUILD`? On `OFFICER` (it should not, if it cannot read officer chat)? Did the officer get PONG replies?
+3. `/aacp msgsize guild` and `/aacp msgsize officer`: which payload sizes are accepted (the codes 255 and 256 matter).
+4. Rate: `/aacp burst guild 30 1`, then gaps 0.5, 0.25, 0.1 and 0 (wait for the end line each time: "burst ... sent N, codes {...}; own echoes received M"). Stop increasing as soon as codes other than `Success` appear or echoes are missing. Repeat on `officer`. On the receiver, `/aacp export` lists each received run with its missing message count.
+5. **Lockdown.** Take a snapshot in each situation with `/aacp snapshot <label>`: `outside` (open world, out of combat), `combat` (in combat, a dummy is fine), `dungeon` (inside a dungeon instance, before the boss), `boss` (during a boss encounter), `battleground` (during a match), `raid` and `mythic` if you do them. The probe also logs the lockdown state automatically on every `ADDON_RESTRICTION_STATE_CHANGED`, encounter start and end, combat start and end and loading screen. Stop doing bursts while locked down.
+6. `/aacp run S5`, then `/aacp export` on both clients and send the texts back.
+
+**S6, addon WHISPER between guildmates.** With `/aacp pong on` on the receiving client: sender runs `/aacp whisper <character name>` of a guildmate (online, same faction). Check the result code, then `/aacp msgs` on the receiver ("received: WHISPER other"). Repeat with a **low-level** character as sender and as receiver (a fresh level 1 in the guild is ideal) and with a guildmate on a connected realm if you have one. Then `/aacp run S6` and `/aacp export`.
