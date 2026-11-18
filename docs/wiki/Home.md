@@ -2,7 +2,7 @@
 
 **A richer guild window for World of Warcraft: Forever.** Azeroth Accord adds an **Accord** tab to the game's guild window: an extended roster with professions and recipes, the characters of each account, contacts, likes, a social index and the guild bank with requests.
 
-> **Status: design phase.** This manual describes the planned first version. There is no download yet.
+> **Status: in development.** The Accord tab, the standalone window and the guild sync exist and are being checked in game; the views arrive with the next versions. This manual describes the planned first version; pages say what is already there. There is no download yet: the first test version is `v0.1.0`.
 
 ## Start here
 

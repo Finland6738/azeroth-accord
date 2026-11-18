@@ -67,4 +67,4 @@
 - Branch: `step/m1-9-check`
 - Scope: `docs/checklists/M1.md`, CHANGELOG section, tag `v0.1.0` for the owner's guild.
 - Done when:
-  - [ ] The owner confirms load, tab and `/accord debug` in game.
+  - [ ] (in game) The owner confirms load, tab and `/accord debug` in game: [docs/checklists/M1.md](../checklists/M1.md). The CHANGELOG section and the tag `v0.1.0` follow that confirmation.
