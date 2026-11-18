@@ -40,6 +40,8 @@ Run the installer again after every update of the probe, then `/reload`. The res
 | `/aacp whisper <name>` | S6: sends one addon WHISPER to a character; the name is used once and never stored |
 | `/aacp group [<label>]` | S7: scans the current party or raid (counts only: readable and secret GUIDs, `UnitIsInMyGuild`, `GetRaidRosterInfo` fields, milliseconds) and stores it under your label |
 | `/aacp group watch on\|off` | S7: scans automatically 0, 1 and 3 seconds after every group roster change and at boss start and end (on after `/aacp run S7`) |
+| `/aacp bank [presence]` | S9: with the guild vault open, reads every viewable tab (permissions, filled slots, item logs) and the money and money log, one tab every 2.5 seconds, tab names replaced by `<tab n>`; `presence` only lists which vault functions exist |
+| `/aacp perf [sizes...]` | S11: times the roster operations and the social index and group map on generated data, for example `/aacp perf 500 1000 2000` (default 500 and 1000, at most 3000) |
 | `/aacp reset` | Clears the stored results and logs |
 
 Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build, time}` where `result` is `pass`, `fail`, `info` or `todo`. A check that is not implemented yet records "not implemented yet". Later steps add more commands; the usage line printed by `/aacp help` always lists the ones your version has.
@@ -54,6 +56,7 @@ Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build,
 | M0.4 | S3, S4 | `Checks_Recipes.lua` |
 | M0.5 | S5, S6 | `Checks_Messaging.lua` |
 | M0.6 | S7 | `Checks_Group.lua` |
+| M0.7 | S9, S11 | `Checks_BankPerf.lua` |
 
 ## M0.1: what to do in game
 
@@ -138,3 +141,15 @@ No name and no GUID is stored: only counts (readable and secret GUIDs, guild fla
 4. **Instance** (dungeon or raid, not Mythic+ unless you do it): `/aacp group dungeon` on entering, and again right after a boss pull and after the kill (watching also logs `ENCOUNTER_START` / `ENCOUNTER_END` by itself). Are the GUIDs or `UnitIsInMyGuild` secret there?
 5. If you can, repeat inside a battleground and during a Mythic+ run (`/aacp group bg`, `/aacp group mplus`).
 6. `/aacp export` and send it back (the `S7 group` log has every scan).
+
+## M0.7: what to do in game (S9, S11)
+
+**S9, the guild bank.** The Forever API dump documents only `C_GuildBank.IsGuildBankEnabled` and the vault events; the classic functions (`GetNumGuildBankTabs`, `GetGuildBankTabInfo`, `GetGuildBankItemInfo`, `QueryGuildBankLog`, ...) are looked up at run time. Tab names, log names and item links are never stored (tabs become `<tab n>`, logs keep only the entry shape and the time fields as returned). Do it twice: as a **plain member** and as an **officer** (two characters, or the same one with different ranks).
+
+1. `/aacp run S9` anywhere: role, API presence and which functions are missing.
+2. Go to the guild vault and open it (the probe logs `GUILDBANKFRAME_OPENED` and every later vault event with its delay in milliseconds).
+3. Run `/aacp bank` and wait for the final line (about 3 seconds per viewable tab). The `S9 bank` log has, for each tab: viewable, can deposit, withdrawals allowed and remaining; the filled slots; the log size, first and last entry shape and the time fields (are they "years, months, days, hours ago"?); the money and money log. The `S9 bank events` log has the event timing.
+4. Click a few tabs yourself while the window is open, then run `/aacp bank` again: do the numbers change? Do the events fire again?
+5. `/aacp export` on each character and send the texts back, saying which one was the member and which the officer.
+
+**S11, performance.** Anywhere, out of combat: `/aacp run S11` (500 members), then `/aacp perf 500 1000 2000`. The game may freeze for a moment on the larger sizes; that is the measurement. It runs only on generated data. The `S11 perf` log has, per size: building, sorting by three columns, filtering, formatting 30 visible rows, grouping alts by account, the social index for all accounts (and per account), the label propagation with its modularity, the serialization of the pair-day data and the memory used. Send `/aacp export`.

@@ -22,6 +22,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - M0.4: probe checks S3 and S4 (`Checks_Recipes.lua`): the native guild recipe directory (`/aacp recipes guild`, API presence by namespace, `GUILD_RECIPE_KNOWN_BY_MEMBERS` timing, getters described by shape) and the own recipe scan with the profession window open and closed (`/aacp recipes own|open|auto`, counts and milliseconds).
 - M0.5: probe checks S5 and S6 (`Checks_Messaging.lua`): test-prefix addon messages on GUILD, OFFICER and WHISPER (`/aacp ping|pong|burst|msgsize|whisper|msgs`) with result codes, own-echo latency, received runs with missing counts, and lockdown snapshots (`/aacp snapshot`, plus automatic logs on restriction, encounter and combat events).
 - M0.6: probe check S7 (`Checks_Group.lua`): party and raid scans (`/aacp group`, `watch`) counting readable and secret `UnitGUID`, `UnitIsInMyGuild`, `GetRaidRosterInfo` fields, guild-roster GUID matches and scan cost, with `GROUP_ROSTER_UPDATE` gaps and delayed re-scans, and boss start and end.
+- M0.7: probe checks S9 and S11 (`Checks_BankPerf.lua`): guild vault scan (`/aacp bank`: tab permissions, filled slots, item and money logs with time format, money, vault events with timing) and performance on generated data (`/aacp perf`: roster build, sorts, filter, social index, label propagation, serialization, memory).
 
 ### Repository
 

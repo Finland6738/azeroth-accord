@@ -68,7 +68,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: at the vault, as a member and as an officer: tabs and their view permissions, items per tab, money, item and money logs (count, time format), events and timing; `/aacp perf` runs the social index and a 500-member roster on generated data and reports milliseconds.
 - Done when:
-  - [ ] S9 and S11 answered.
+  - [ ] S9 and S11 answered. *(in game)*
+  - [x] Offline: both checks, `/aacp bank` and `/aacp perf` exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.8 — Results and decisions
