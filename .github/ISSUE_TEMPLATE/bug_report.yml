@@ -1,0 +1,60 @@
+name: Bug report
+description: Something in Azeroth Accord does not work as expected.
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Azeroth Accord.
+        **Privacy:** do not paste other players' names, whispers, chat logs, account names or folder paths from your PC. Replace them with placeholders such as `<player>`, `<guild>` or `<account>`.
+        Not sure it is a bug, or just want to share feedback? Use the [Feedback discussions](https://github.com/Finland6738/azeroth-accord/discussions/categories/feedback) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Addon version
+      description: Shown in the AddOns list at the character screen, or at the top of the `/accord debug` report.
+      placeholder: "0.x.y"
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: Game client
+      description: WoW Forever build and client language.
+      placeholder: "1.60.1.70862, English"
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: Your role when it happened
+      options:
+        - Guild member
+        - Officer
+        - Guild Master
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. Open the guild window and the Accord tab
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Lua errors and /accord debug output (optional)
+      description: |
+        Type `/accord debug` in the game: the report opens in a box. Press **Select all**, then Ctrl+C, and paste it here. It holds the versions, the capabilities, the sync state, the last addon errors and your settings, and no player or guild names. If the game showed a Lua error box, paste its text too. Remove any name you do not want to share.
+      render: text

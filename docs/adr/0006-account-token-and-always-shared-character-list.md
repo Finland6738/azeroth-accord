@@ -1,0 +1,25 @@
+# 0006. Account identity: an account token and an always-shared character list
+
+- Status: Accepted
+- Date: 2026-11-18 ([SPEC-05 §3](../specs/SPEC-05-roster-alts-contacts.md#3-personaggi-dello-stesso-account))
+
+## Context
+
+The owner wants to click a character and see **all the characters of the same Battle.net account on that realm**, without asking. The game does not expose another member's account: `ClubMemberInfo.bnetAccountId` is expected to be empty for guild members (to verify in M0, S2) and the BattleNet API only describes one's own friends.
+
+## Decision
+
+1. Account-wide SavedVariables hold a random **account token** (created once) and the list of every character of the account that logs in with the addon on each realm.
+2. The addon **always** shares this list with the guild (owner decision D3: no opt-out), together with the main character the player chose (default: the highest-level, most played character).
+3. The list is first-hand data (ADR 0005): it is accepted only from one of the characters it contains.
+4. Characters of a member who never installed the addon remain separate until that member logs in with it; a member may also add the alt relation in the guild note convention, read as a hint (`alt: <name>`).
+
+## Alternatives considered
+
+- **An anonymous count only** (as in Azeroth Guild Finder). The owner wants the names.
+- **Asking players to type their alts.** Error-prone and the owner wants it automatic.
+
+## Consequences
+
+- Positive: alts grouped without any typing, also across characters not in the guild.
+- Negative: only works for members with the addon; it is personal data, documented in the wiki page "Privacy and Data".
