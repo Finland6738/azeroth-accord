@@ -41,7 +41,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: native guild recipe directory (`IsGuildTradeSkillsEnabled`, `QueryGuildMemberRecipes`, `GUILD_RECIPE_KNOWN_BY_MEMBERS`, `GetGuildMemberRecipes`, `QueryGuildMembersForRecipe`, `GetNumGuildTradeSkill`); own recipe scan with the profession window open and closed, recipe counts and timing.
 - Done when:
-  - [ ] S3 and S4 answered; the source per profession is decided.
+  - [ ] S3 and S4 answered; the source per profession is decided. *(in game)*
+  - [x] Offline: both checks, `/aacp recipes` and the scan timing exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.5 — Guild messaging (S5, S6)

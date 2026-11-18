@@ -19,6 +19,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - M0.1: the probe addon skeleton `tools/probe/AzAc_Probe/` (TOC 16001, check registry S1–S11 as stubs, `/aacp list|run|export|reset`, export frame, `AzAc_ProbeDB`), `tools/install_probe.py` with `tools/local.example.ini`, and `docs/spike/README.md`.
 - M0.2: probe check S1 (`Checks_GuildTab.lua`): `/aacp tab` adds a test tab and panel to the guild window using only hooks, dumps the window structure and the taint state, and logs `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`; `/aacp note` stores owner observations.
 - M0.3: probe checks S2, S8 and S10 (`Checks_Roster.lua`): field statistics of `C_Club.GetMemberInfo` for the whole guild (counts only, online and offline, `discordInfo` shape, `bnetAccountId` sharing, realm parts of names), own BattleTag shape and `/aacp btag friend` on a volunteer, account-wide SavedVariables stamps across characters and realms.
+- M0.4: probe checks S3 and S4 (`Checks_Recipes.lua`): the native guild recipe directory (`/aacp recipes guild`, API presence by namespace, `GUILD_RECIPE_KNOWN_BY_MEMBERS` timing, getters described by shape) and the own recipe scan with the profession window open and closed (`/aacp recipes own|open|auto`, counts and milliseconds).
 
 ### Repository
 

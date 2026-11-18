@@ -2,9 +2,10 @@
 ## Title: AzAc Probe (development only)
 ## Notes: Throwaway spike addon for Azeroth Accord (M0). Never distributed.
 ## Author: Finland6738
-## Version: 0.3.0
+## Version: 0.4.0
 ## SavedVariables: AzAc_ProbeDB
 
 AzAc_Probe.lua
 Checks_GuildTab.lua
 Checks_Roster.lua
+Checks_Recipes.lua

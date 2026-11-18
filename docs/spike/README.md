@@ -27,6 +27,10 @@ Run the installer again after every update of the probe, then `/reload`. The res
 | `/aacp note <id> <text>` | Stores a free-text observation (for example `/aacp note S1 tab looks the same as the others`); never write player or guild names in it |
 | `/aacp tab [on\|off\|dump\|taint]` | S1: creates the test tab in the guild window (`on` is the default), hides it (`off`), stores the window structure (`dump`) or the taint check (`taint`) |
 | `/aacp btag [self\|friend]` | S8: `self` prints the shape of your own BattleTag (never the value); `friend` sends a **real** BattleTag friend request to the guild member you are targeting (a volunteer) |
+| `/aacp recipes guild [n]` | S3: asks the native guild recipe directory about up to `n` (default 3) online guildmates' professions, waits 6 seconds and reads it back (`<player n>` placeholders only) |
+| `/aacp recipes own` | S4: scans your own recipes now (ids, learned count, milliseconds) and stores it |
+| `/aacp recipes open <skillLineID>` | S4: tries `C_TradeSkillUI.OpenTradeSkill` from the addon (may be blocked: that is an answer) |
+| `/aacp recipes auto on\|off` | S4: scan automatically when a profession window opens (on after `/aacp run S4`) |
 | `/aacp reset` | Clears the stored results and logs |
 
 Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build, time}` where `result` is `pass`, `fail`, `info` or `todo`. A check that is not implemented yet records "not implemented yet". Later steps add more commands; the usage line printed by `/aacp help` always lists the ones your version has.
@@ -38,6 +42,7 @@ Results are saved in `AzAc_ProbeDB.results[id]` as `{id, result, details, build,
 | M0.1 | skeleton, registry, export | `AzAc_Probe.lua` |
 | M0.2 | S1 | `Checks_GuildTab.lua` |
 | M0.3 | S2, S8, S10 | `Checks_Roster.lua` |
+| M0.4 | S3, S4 | `Checks_Recipes.lua` |
 
 ## M0.1: what to do in game
 
@@ -77,3 +82,22 @@ Nothing printed or stored contains a name: only counts of filled values, types a
 2. On a **second character of the same account on the same realm**, run `/aacp run S10`: it must report "seen from earlier characters: 1". That is the account-wide SavedVariables answer.
 3. If you have a character on **another realm** (or a connected realm) on the same account, run it there too: it must see the others and report the other realm.
 4. Run `/aacp export` on the last character and send the text back. Say whether your realm is connected to others.
+
+## M0.4: what to do in game (S3, S4)
+
+The probe tries the functions the specification names (`GetGuildMemberRecipes`, `GetGuildTradeSkillInfo`, `GetNumGuildTradeSkill`, `QueryGuildMembersForRecipe`, `GetAllRecipeIDs`, ...) in the global table and in `C_GuildInfo`, `C_TradeSkillUI` and `C_Club`, and says where each one lives or that it is missing: the Forever API dump documents only `C_GuildInfo.QueryGuildMemberRecipes`, `QueryGuildMembersForRecipe`, `C_TradeSkillUI.IsGuildTradeSkillsEnabled` and the event `GUILD_RECIPE_KNOWN_BY_MEMBERS`, so a "missing" is itself an answer.
+
+**S3, the guild recipe directory.** With a guilded character and at least one **online guildmate with a profession who has opened their profession window this session** (ask them to open each profession once):
+
+1. `/aacp run S3` prints the API presence and `IsGuildTradeSkillsEnabled()`.
+2. `/aacp recipes guild 3` queries up to three online guildmates, counts `GUILD_RECIPE_KNOWN_BY_MEMBERS` events (and the delay), and after 6 seconds tries every getter with a few argument shapes, describing what it returns (types and counts, no names). Run it again after the guildmates open their profession windows, and once with the guild window closed and once open.
+3. `/aacp export` and send it back: the `S3 guild recipes` log has everything.
+
+**S4, own recipes.** With a character that has professions:
+
+1. With **no profession window open**, run `/aacp run S4`: it logs the API presence and a scan with the window closed.
+2. Open each of your profession windows (and the other tabs of the window, and then close it): every opening is scanned automatically (up to 6 scans per opening) and logged with the number of recipe ids, how many are learned, and the milliseconds the scan took. Close the window and run `/aacp recipes own` again: do you still get recipes?
+3. Optionally try `/aacp recipes open <skillLineID>` (a profession id printed in the logs) to see whether an addon may open the window.
+4. `/aacp export`: the `S4 own recipes` log has the results.
+
+Tell, per profession, which of the two sources worked (native directory for others, own scan for yourself) and whether the window had to be open.
