@@ -21,5 +21,8 @@ Core\Compat.lua
 Core\Config.lua
 Core\Bus.lua
 Core\Role.lua
+Core\Hash.lua
 Core\Diagnostics.lua
 Data\GuildKey.lua
+Net\Codec.lua
+Net\Transport.lua

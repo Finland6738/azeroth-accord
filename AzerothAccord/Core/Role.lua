@@ -67,8 +67,9 @@ end
 
 if ns.addon then
 	ns.addon.Role = Role
+	LibStub("AceEvent-3.0"):Embed(Role)   -- its own registrations: other modules may listen to the same events
 	for _, event in ipairs(Role.EVENTS) do
-		ns.addon:RegisterEvent(event, function() Role:Refresh() end)
+		Role:RegisterEvent(event, function() Role:Refresh() end)
 	end
 	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Role", function() return Role:DebugLines() end) end
 end

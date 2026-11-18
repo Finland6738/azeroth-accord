@@ -39,7 +39,7 @@
 - Spec: SPEC-02 §1, §2, §5; ADR 0004
 - Scope: `Net/Codec.lua`, `Core/Hash.lua` (SHA-256, HMAC, test vectors), `Net/Transport.lua` (`GUILD`, `OFFICER`, `WHISPER`, queue, lockdown, saved queue).
 - Done when:
-  - [ ] Messages survive lockdown and `/reload`; hash matches the standard test vectors.
+  - [x] Messages survive lockdown and `/reload`; hash matches the standard test vectors.
 
 ### M1.6 — Record store and trust rules
 - Branch: `step/m1-6-store`

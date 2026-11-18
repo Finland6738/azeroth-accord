@@ -51,6 +51,7 @@ Config.defaults = {
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
 		ui = { lastView = "roster", columns = {}, sort = {} },   -- windowPos, windowSize: nil until the user moves it
+		outbox = {},         -- messages waiting at logout, sent again at the next login (Net/Transport.lua, SPEC-02 §5)
 	},
 }
 
@@ -72,6 +73,7 @@ Config.rules = {
 	["char.ui.sort"] = { type = "table" },
 	["char.ui.windowPos"] = posRule(),
 	["char.ui.windowSize"] = sizeRule(),
+	["char.outbox"] = { type = "table" },
 }
 
 -- Migrations: Config.migrations[scope][n] brings data from version n-1 to n. Each step must be idempotent (running it

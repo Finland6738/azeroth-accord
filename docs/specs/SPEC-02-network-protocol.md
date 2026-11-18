@@ -12,7 +12,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 
 ## 2. Formato
 
-`<versione>|<tipo>|<payload>`: `versione` = `1`; `payload` = CBOR compresso in Base64 (`Codec`). Messaggi lunghi divisi da AceComm. Tipi sconosciuti o versioni maggiori: ignorati (NET-01).
+`<versione>|<tipo>|<payload>`: `versione` = `1`; `tipo` in maiuscolo; `payload` = Base64 di un byte di formato (`0` = CBOR così com'è, `1` = CBOR compresso con Deflate, usato solo oltre 120 byte e se accorcia) seguito dal CBOR dei campi (`Codec`). Versione e tipo sono testo in chiaro: chi riceve li legge prima di decodificare. Messaggi lunghi divisi da AceComm (pezzi di al massimo 255 byte prefisso compreso). Tipi sconosciuti o versioni maggiori: ignorati senza errori (NET-01); una versione maggiore è segnalata una volta per sessione (`PROTOCOL_NEWER`). Un modulo che aggiunge un tipo lo registra con `Codec:RegisterType`.
 
 | Tipo | Contenuto | Distribuzione |
 |---|---|---|
@@ -37,7 +37,13 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 
 ## 5. Coda e lockdown
 
-La coda di `Transport` rispetta ChatThrottleLib e un intervallo minimo per distribuzione; durante `C_ChatInfo.InChatMessagingLockdown()` o con le restrizioni attive i messaggi aspettano e partono dopo (NET-05). Nulla si perde finché il client resta acceso; alla disconnessione la coda si salva e riparte al prossimo accesso.
+La coda di `Transport` rispetta ChatThrottleLib e un intervallo minimo per distribuzione (`GUILD` e `OFFICER` 1 s, `WHISPER` 0,25 s, da rivedere con S5); durante `C_ChatInfo.InChatMessagingLockdown()` o con le restrizioni attive i messaggi aspettano e partono dopo (NET-05). Nulla si perde finché il client resta acceso; alla disconnessione la coda si salva (`AzerothAccordCharDB.outbox`) e riparte al prossimo accesso.
+
+- Priorità: `ALERT` (risposte e voti: `DIGEST`, `REQ`, `VOTE`, `SALT`), `NORMAL` (`HELLO`, `REC`, `LEDGER`), `BULK`; un messaggio `BULK` che aspetta più di 10 minuti si scarta. Con una `key` resta solo l'ultimo messaggio della stessa chiave.
+- `HELLO`: al massimo uno ogni 5 minuti anche a livello di coda (NET-04).
+- Un rifiuto per limite di velocità si riprova dopo 5 s, al massimo 3 volte; un rifiuto per lockdown del client è un'attesa, non un tentativo.
+- Ogni messaggio porta la chiave della gilda per cui è stato scritto: aspetta finché la gilda non è nota e si scarta se nel frattempo il personaggio è in un'altra gilda. Un messaggio salvato si scarta anche se la sua durata è scaduta a gioco chiuso o se è più vecchio di un giorno.
+- Il client rimanda a chi scrive i suoi messaggi `GUILD` e `OFFICER`: l'eco si scarta; un'eco `OFFICER` (o un messaggio `OFFICER` di un altro) prova che il canale degli ufficiali porta i messaggi degli addon (capacità `officerAddonChannel`, S5).
 
 ## 6. Fiducia e integrità
 
