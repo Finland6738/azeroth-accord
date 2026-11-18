@@ -9,7 +9,7 @@
 - Spec: SPEC-05 §1
 - Scope: `Data/Roster.lua` merging `GetGuildRosterInfo`, `GetGuildRosterLastOnline` and `C_Club.GetMemberInfo` (professions natively when available), refresh throttling.
 - Done when:
-  - [ ] Roster of 1000 members builds in the mock within the budget.
+  - [x] Roster of 1000 members builds in the mock within the budget.
 
 ### M2.2 — Account token and characters
 - Branch: `step/m2-2-accounts`

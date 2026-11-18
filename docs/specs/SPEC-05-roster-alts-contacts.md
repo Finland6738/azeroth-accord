@@ -17,6 +17,14 @@
 - ROS-02: vista **raggruppata per account**: una riga per account (il main) con gli alt sotto, espandibili.
 - ROS-03: il roster si aggiorna su `GUILD_ROSTER_UPDATE` e chiede `C_GuildInfo.GuildRoster()` al massimo ogni 15 s.
 
+Realizzazione (`Data/Roster.lua`, M2.1):
+
+- Un solo elenco di membri, unito da quattro fonti ([ADR 0010](../adr/0010-native-data-first-shared-data-as-fallback.md)): *roster* (`GetGuildRosterInfo` + `GetGuildRosterLastOnline`), *club* (`C_Club.GetMemberInfo`: professioni, Discord, `memberId`, `bnetAccountId`, agganciato per GUID, altrimenti per nome), *condiviso* (i record `recipes` riempiono le professioni che il server non dà; i record `accounts` dicono chi ha l'addon e in che versione) e *proprio* (le professioni del giocatore, sempre native). Ogni professione porta la sua `source` (`native`, `shared`, `own`), così l'interfaccia dice da dove viene il dato.
+- Costo: un passaggio sul roster e uno sul club, poi unioni per tabella hash: nessuna chiamata si ripete (1000 membri = 1000 `GetGuildRosterInfo` e 1000 `C_Club.GetMemberInfo`). Senza `GetGuildRosterInfo` il roster si costruisce dal solo club, con la classe ricavata dall'ID.
+- L'elenco si ricostruisce **solo quando serve**: `GUILD_ROSTER_UPDATE`, i record condivisi e il cambio di gilda lo segnano "sporco"; chi lo legge lo ricostruisce, e mentre una vista lo osserva (`Roster:Watch`) una raffica di eventi dà una sola ricostruzione dopo 1 s (evento `ROSTER_UPDATED` sul Bus).
+- ROS-03: `C_GuildInfo.GuildRoster()` si chiede al massimo ogni 15 s (`Roster:Request`), anche quando una vista inizia a osservare.
+- Le capacità `clubProfessions` e `clubDiscord` (S2) passano a `available` appena un membro ha quei campi pieni; se nessuno li ha restano `unknown` e valgono i dati condivisi.
+
 ## 2. Scheda membro
 
 Clic su un nome → scheda a destra (o sopra la tabella nella tab stretta): nome, classe, livello, grado, nota pubblica e (se visibile) nota ufficiali, professioni con link alle ricette, **personaggi dello stesso account**, contatti, like ricevuti, indice sociale con i compagni principali, versione dell'addon.

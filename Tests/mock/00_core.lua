@@ -51,6 +51,9 @@ function Mock.safecall(fn, ...)
 end
 Mock.pcall = Mock.safecall
 
+-- Real (CPU) seconds, for the performance budgets of the tests; the game clock of Tests/mock/10_clock.lua is simulated.
+function Mock.RealClock() return H.os.clock() end
+
 function Mock.ClearErrors()
 	for i = #W.errors, 1, -1 do W.errors[i] = nil end
 end
