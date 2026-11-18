@@ -56,4 +56,9 @@ Limiti di crescita (MUST): co-play conservato 90 giorni; registri della banca 36
 
 ## 5. Compat e capacità
 
-All'accesso `Compat:Probe()` riempie una tabella di capacità: `guildTab`, `clubProfessions`, `clubDiscord`, `guildRecipesNative`, `officerAddonChannel`, `bankLogs`… Ogni funzione si adatta alla capacità; le API **[verificare]** degradano senza errori.
+All'accesso `Compat:Probe()` riempie due tabelle:
+
+- **API**: per ogni funzione del gioco usata, `available`, `missing`, `restricted` (valore segreto o restrizione attiva) o `error`;
+- **funzioni** (capacità): `guildTab`, `clubProfessions`, `clubDiscord`, `guildRecipesNative`, `ownRecipes`, `officerAddonChannel`, `groupGUIDs`, `battleTag`, `bankLogs`, ognuna `available`, `missing` o `unknown` (l'API c'è ma nessun dato ha ancora mostrato se il server la riempie). I moduli le precisano quando lo scoprono (`Compat:SetFeature`, evento `FEATURE_CHANGED` sul Bus): la tab quando si aggancia, il roster quando arrivano i membri, il trasporto quando torna un messaggio `OFFICER`, la banca quando si apre.
+
+Ogni funzione si adatta alla capacità; le API **[verificare]** degradano senza errori (mancanti, in errore o con valori segreti: provato nei test offline per ognuna). `/accord debug` mostra entrambe le tabelle, mai nomi di giocatori, gilde, BattleTag o Discord.

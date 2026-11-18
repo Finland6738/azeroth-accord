@@ -74,6 +74,11 @@ function GetAverageItemLevel() return 0, 0, 0 end
 
 function IsLoggedIn() return player.loggedIn end
 
+-- Battle.net: the player's own BattleTag (Mock.player.battleTag, nil = not logged in to Battle.net) [verify S8].
+-- BNet_GetBattleTagSelf is a FrameXML global of the client; BNGetInfo is in api.json.
+function BNet_GetBattleTagSelf() return player.battleTag end
+function BNGetInfo() return 1, player.battleTag, 1, nil, false, false, false end
+
 -- AddOn metadata comes from the TOC the harness parsed.
 local function getMetadata(name, field)
 	if name == H.addonName then return H.tocFields[field] end

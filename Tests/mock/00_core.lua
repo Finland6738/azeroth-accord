@@ -63,7 +63,10 @@ end
 function securecallfunction(fn, ...) return fn(...) end
 function issecure() return true end
 function issecurevariable() return true end
-function issecretvalue() return false end        -- secret values are modelled by the Compat step (M1.3)
+-- Secret values (12.0 engine): Mock.SECRET stands for any value the client hides; the mock files hand it out where a
+-- test asks for secrets (Mock.group.secretGUIDs, ...). Only issecretvalue recognises it, as in the client.
+Mock.SECRET = setmetatable({}, { __tostring = function() return "<secret>" end })
+function issecretvalue(v) return rawequal(v, Mock.SECRET) end
 function InCombatLockdown() return W.inCombat == true end
 
 -- String helpers (wowpedia: API strsplit etc.). format is the plain Lua one.

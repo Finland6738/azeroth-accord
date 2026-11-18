@@ -9,6 +9,8 @@
 -- (spec: "to verify"). GuildTabardInfo is not in the dump: the fields are what the M0.5 probe will confirm.
 --
 -- Configure with Mock.guild (kept across Mock.Reload):
+--   (Accord additions: every member may have guid=, professions={ {id=, name=, rank=}, ... }, discord=, account=;
+--   a member without a guid gets a stable one from its position. Tests/mock/55_club.lua reads them.)
 --   Mock.guild.Set{ name=, realm=, ranks={"Guild Master","Officer",...}, myRank=<index, 0 = Guild Master>,
 --                   officerRanks=<highest rank index that counts as officer, default 1>, motd=, info=, tabard=,
 --                   members={ {name=, level=, class=, rank=<index>, online=, zone=, note=, lastOnline={y,m,d,h}} } }
@@ -36,7 +38,7 @@ local function me()
 	local p = W.player
 	return {
 		name = p.name, level = p.level, class = p.classFile, rank = guild.myRank, online = true, zone = "Orgrimmar",
-		note = "", officerNote = "", me = true,
+		note = "", officerNote = "", me = true, guid = p.guid, professions = guild.myProfessions, discord = guild.myDiscord,
 	}
 end
 
@@ -62,11 +64,13 @@ function Mock.guild.Set(config)
 	guild.myRank = config.myRank or 0
 	guild.officerRanks = config.officerRanks or 1
 	guild.motd, guild.info, guild.tabard = config.motd or "", config.info or "", config.tabard
-	for _, m in ipairs(config.members or {}) do
+	guild.myProfessions, guild.myDiscord = config.myProfessions, config.myDiscord
+	for i, m in ipairs(config.members or {}) do
 		guild.members[#guild.members + 1] = {
 			name = m.name, level = m.level or 60, class = m.class or "WARRIOR", rank = m.rank or #guild.ranks,
 			online = m.online ~= false, zone = m.zone or "Orgrimmar", note = m.note or "", officerNote = m.officerNote or "",
-			lastOnline = m.lastOnline,
+			lastOnline = m.lastOnline, guid = m.guid or string.format("Player-1-%08X", 0x1000 + i),
+			professions = m.professions, discord = m.discord,
 		}
 	end
 	Mock.Fire("PLAYER_GUILD_UPDATE", "player")
@@ -86,6 +90,9 @@ function Mock.guild.SetMyRank(index)
 end
 
 function IsInGuild() return guild.name ~= nil end
+
+-- The roster as the mock keeps it (the player first): Tests/mock/55_club.lua builds the club members from it.
+function Mock.guild.Roster() return guild.name and roster() or {} end
 
 function GetGuildInfo(unit)
 	if unit ~= "player" or not guild.name then return nil end
@@ -108,7 +115,7 @@ function GetGuildRosterInfo(index)
 	local m = guild.name and roster()[index]
 	if not m then return nil end
 	return m.name, guild.ranks[m.rank], m.rank, m.level, CLASS_NAMES[m.class] or m.class, m.zone, m.note, m.officerNote,
-		m.online, 0, m.class, 0, 0, false, false, 4, "Player-1-" .. string.format("%08X", index)
+		m.online, 0, m.class, 0, 0, false, false, 4, m.guid
 end
 
 -- years, months, days, hours since the member was last online; nothing while online.

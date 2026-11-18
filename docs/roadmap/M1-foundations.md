@@ -25,7 +25,7 @@
 - Spec: SPEC-01 §5
 - Scope: `Core/Compat.lua` with guild, club, group, trade skill and bank helpers; `Compat:Probe()`; `Core/Diagnostics.lua` and `/accord debug`.
 - Done when:
-  - [ ] Every [verify] API degrades without errors in the mock.
+  - [x] Every [verify] API degrades without errors in the mock.
 
 ### M1.4 — Config, guild key and roles
 - Branch: `step/m1-4-config`
