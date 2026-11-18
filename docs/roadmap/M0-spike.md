@@ -32,7 +32,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: every `ClubMemberInfo` field for the guild (counts of filled values, never names: professions, `discordInfo` shape, `bnetAccountId`, online and offline members); `BNet_GetBattleTagSelf` presence and format; `C_Club.SendBattleTagFriendRequest` on a volunteer; account-wide SavedVariables across characters and realms.
 - Done when:
-  - [ ] S2, S8 and S10 answered.
+  - [ ] S2, S8 and S10 answered. *(in game)*
+  - [x] Offline: the three checks, `/aacp btag` and the SavedVariables stamps exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.4 — Recipes (S3, S4)
