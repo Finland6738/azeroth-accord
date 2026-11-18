@@ -18,7 +18,7 @@
 - Spec: SPEC-09 §2; ADR 0016
 - Scope: `Tests/run_tests.py`, `Tests/lib/`, `Tests/mock/` (copied and renamed), `Tests/test_addon.lua`; CI runs the tests.
 - Done when:
-  - [ ] Boot, slash command and `/reload` round trip are tested.
+  - [x] Boot, slash command and `/reload` round trip are tested.
 
 ### M1.3 — Compat and capabilities
 - Branch: `step/m1-3-compat`

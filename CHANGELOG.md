@@ -17,6 +17,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Addon
 
 - M1.1: the addon skeleton `AzerothAccord/` (TOC 16001 with `AzerothAccordDB` / `AzerothAccordCharDB` and the AddOn Compartment, `embeds.xml` with Ace3, LibDataBroker and LibDBIcon, `Bindings.xml`, English and Italian locales, `Core/Init.lua` with the Forever check and `/accord` / `/acc` with `help`, `debug` and the view commands); `.pkgmeta`, `.luarc.json`, `tools/fetch_libs.py`, `tools/install_addon.py`, `tools/check_addon.py`, `tools/check_package.py` and the release workflow, adapted from Azeroth Guild Finder ([ADR 0018](docs/adr/0018-reuse-azeroth-guild-finder-foundations.md)); `docs/RELEASING.md`.
+- M1.2: the offline test harness, adapted from Azeroth Guild Finder: `Tests/run_tests.py` (lupa 2.8, Lua 5.1), `Tests/lib/` (assertions, harness with `/reload` simulation), `Tests/mock/` (the mock client: core helpers and `bit`, clock, frames and events, timers, addon messages with lockdown, guild roster, player and build, `C_EncodingUtil`), `Tests/test_addon.lua` (boot, Forever check, locales, slash commands, `/reload` round trip) and `Tests/test_mock.lua`; CI runs them.
 
 ### Spike
 

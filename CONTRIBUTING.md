@@ -45,7 +45,7 @@ python -m pip install lupa==2.8            # once, from M1.2
 python -X utf8 Tests/run_tests.py          # all offline tests, from M1.2
 ```
 
-`check_docs.py` checks relative links, the wiki sidebar and links, the ADR index, personal data (emails and personal paths) and LF line endings; from M1.1 also the addon TOC and the package contents. The offline tests run Lua 5.1 through lupa on a mock client ([ADR 0016](docs/adr/0016-offline-tests-with-lupa-and-a-mock-client.md)).
+`check_docs.py` checks relative links, the wiki sidebar and links, the ADR index, personal data (emails and personal paths) and LF line endings; from M1.1 also the addon TOC and the package contents. The offline tests run Lua 5.1 through lupa on a mock client ([ADR 0016](docs/adr/0016-offline-tests-with-lupa-and-a-mock-client.md)): `Tests/run_tests.py` loads the real libraries (it runs `tools/fetch_libs.py` when they are missing) and the addon in TOC order, then every `Tests/test_*.lua`, each test on a freshly booted client. `python -X utf8 Tests/run_tests.py <text>` runs only the tests whose name contains the text, `-v` adds tracebacks. The mock client is in `Tests/mock/` (one area per file, each citing the API dump entries it imitates); `Mock.Reload()` simulates `/reload` by writing out and reading back the SavedVariables.
 
 ## 5. Git, issues and pull requests
 
