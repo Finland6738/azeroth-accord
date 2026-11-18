@@ -11,7 +11,7 @@ local R = setmetatable({}, { __index = function(_, name) return Enum.SendAddonMe
 
 local function rec(n, pad) return { t = "REC", s = "accounts", r = { { id = "r" .. (n or 1), note = pad and ("abcdefgh"):rep(pad) or nil } } } end
 local function req() return { t = "REQ", s = "accounts" } end
-local function hello() return { t = "HELLO", d = {} } end
+local function hello() return { t = "HELLO", s = "" } end
 
 -- Replaces the wire with a recorder. `results` (optional) are the codes of the next sends, "hold" keeps a send
 -- unanswered (call W.answer(n, code) later); anything left over answers Success.

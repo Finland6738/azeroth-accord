@@ -27,3 +27,4 @@ Data\GuildKey.lua
 Net\Codec.lua
 Net\Transport.lua
 Net\Store.lua
+Net\Sync.lua

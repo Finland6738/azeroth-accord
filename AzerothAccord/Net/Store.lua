@@ -59,7 +59,8 @@ function Store:IndexRoster()
 		if type(row.name) == "string" then
 			local rank = row.rankIndex
 			if rank ~= nil and officerRank[rank] == nil then officerRank[rank] = C.Guild.RankIsOfficer(rank) == true end
-			local entry = { name = row.name, guid = row.guid, rankIndex = rank, officer = rank ~= nil and officerRank[rank] or false }
+			local entry = { name = row.name, guid = row.guid, rankIndex = rank, officer = rank ~= nil and officerRank[rank] or false,
+				online = row.online ~= false }
 			roster.byName[lower(row.name)] = entry
 			local s = lower(short(row.name))
 			if roster.byShort[s] == nil then roster.byShort[s] = entry else roster.byShort[s] = false end   -- ambiguous

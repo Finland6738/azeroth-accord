@@ -764,6 +764,13 @@ function Compat.After(seconds, fn)
 	return state == AVAILABLE
 end
 
+-- C_Timer.NewTimer(seconds, fn) -> a handle with :Cancel(), or nil.
+function Compat.NewTimer(seconds, fn)
+	local state, handle = Compat.Call("C_Timer.NewTimer", seconds, fn)
+	if state == AVAILABLE and type(handle) == "table" then return handle end
+	return nil
+end
+
 function Compat.NewTicker(seconds, fn)
 	local state, handle = Compat.Call("C_Timer.NewTicker", seconds, fn)
 	if state == AVAILABLE and type(handle) == "table" then return handle end

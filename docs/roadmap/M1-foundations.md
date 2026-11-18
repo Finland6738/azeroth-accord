@@ -53,7 +53,7 @@
 - Spec: SPEC-02 §4
 - Scope: `Net/Sync.lua` (`HELLO`, `DIGEST`, `REQ`, `REC`), the network simulator `Tests/sim/`.
 - Done when:
-  - [ ] 50 simulated clients converge with random logins, logouts and lockdown, within the traffic budget.
+  - [x] 50 simulated clients converge with random logins, logouts and lockdown, within the traffic budget.
 
 ### M1.8 — The Accord tab and the panel shell
 - Branch: `step/m1-8-guild-tab`

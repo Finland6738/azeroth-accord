@@ -178,6 +178,18 @@ function H.reload()
 	Mock.savedText = saved
 end
 
+-- Logout without the login that follows (the network simulator, Tests/sim/sim.lua): PLAYER_LOGOUT, then the
+-- SavedVariables as the client would write them. H.boot({ carry = true, saved = <that table> }) logs in again later.
+function H.logout()
+	Mock.Fire("PLAYER_LOGOUT")
+	local saved = {}
+	for _, name in ipairs(cfg.savedVars) do
+		local value = E[name]
+		if value ~= nil then saved[name] = serialize(value, name) end
+	end
+	return saved
+end
+
 -- Another independent client: a second copy of this harness without test files. Returns its H (H.boot, H.E, H.Mock).
 H.worlds = {}
 function H.newWorld()

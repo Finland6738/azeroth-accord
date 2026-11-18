@@ -8,7 +8,7 @@ local function body(flag, tbl)
 end
 
 local SAMPLES = {
-	HELLO = { av = "0.1.0", d = { accounts = "a1b2c3d4", contacts = "00000000" } },
+	HELLO = { av = "0.1.0", s = "\1\2\3\4\5\6\7\8\9\10\11" },
 	DIGEST = { d = { accounts = "ffffffff" } },
 	REQ = { s = "accounts", a = { "Player-1-A" } },
 	REC = { s = "accounts", r = { { id = "x", author = "Player-1-A", rev = 3, time = 1767225600 } } },
@@ -136,7 +136,7 @@ describe("malformed input", function()
 	end)
 
 	it("flags a newer version once and counts rejections for /accord debug", function()
-		Codec():Decode("3|HELLO|" .. body("\0", { d = {} }))
+		Codec():Decode("3|HELLO|" .. body("\0", { s = "" }))
 		truthy(Codec():ConsumeNewer())
 		falsy(Codec():ConsumeNewer())
 		contains(table.concat(Codec():DebugLines(), "\n"), "rejected 1")

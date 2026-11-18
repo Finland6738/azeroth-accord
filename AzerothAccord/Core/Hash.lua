@@ -132,4 +132,28 @@ function Hash.Short(msg, n)
 	return sub(hex, 1, n or 8)
 end
 
+-- A fast 32-bit hash for the sync digests, NOT cryptographic: h = (h * 33 + byte) mod 4294967291 (the largest prime
+-- below 2^32), plain arithmetic only, exact in Lua's doubles. Digests only steer which records to exchange, and a
+-- collision can at worst delay the sync of a member's own data, so speed matters more than strength here.
+local FAST_MOD = 4294967291
+function Hash.Fast(s)
+	if type(s) ~= "string" then s = tostring(s) end
+	local h = 5381
+	local n = #s
+	local i = 1
+	while i <= n do
+		local a, b, c, d, e, f, g, k = byte(s, i, i + 7)
+		h = (h * 33 + a) % FAST_MOD
+		if b then h = (h * 33 + b) % FAST_MOD end
+		if c then h = (h * 33 + c) % FAST_MOD end
+		if d then h = (h * 33 + d) % FAST_MOD end
+		if e then h = (h * 33 + e) % FAST_MOD end
+		if f then h = (h * 33 + f) % FAST_MOD end
+		if g then h = (h * 33 + g) % FAST_MOD end
+		if k then h = (h * 33 + k) % FAST_MOD end
+		i = i + 8
+	end
+	return h
+end
+
 if ns.addon then ns.addon.Hash = Hash end

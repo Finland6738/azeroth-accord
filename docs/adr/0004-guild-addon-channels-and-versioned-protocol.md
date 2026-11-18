@@ -15,6 +15,10 @@ All data is guild-internal (ADR 0001). The server delivers `GUILD` addon message
 4. A send queue respects the throttle and **waits** while `C_ChatInfo.InChatMessagingLockdown()` or the addon restrictions are active; nothing is lost, it goes out later.
 5. Sync is digest based: at login and periodically a client announces a short hash per data set, and only the differences are requested ([SPEC-02](../specs/SPEC-02-network-protocol.md)).
 
+## Implementation note (M1.7)
+
+The digest of point 5 is kept **per author**, not per data set: the trust rules (ADR 0005) let only the author's account or an officer pass a record on, so the sync must know whose data is missing to know who may send it. A client that is ahead of a HELLO's sender pushes what it may deliver; a client that is behind asks the sender, and the answer goes to the whole guild once. The protocol and its traffic budget, proved by the network simulator with 50 clients, are in [SPEC-02 §4](../specs/SPEC-02-network-protocol.md#4-sincronizzazione).
+
 ## Alternatives considered
 
 - **A custom channel.** Needed only for cross-guild data, which this addon does not have.
