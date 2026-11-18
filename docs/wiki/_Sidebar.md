@@ -3,6 +3,7 @@
 **Getting started**
 - [[Installation|Installation]]
 - [[Interface Tour|Interface-Tour]]
+- [[Commands|Commands]]
 
 **Features**
 - [[Guild Roster|Guild-Roster]]

@@ -5,8 +5,8 @@ Adapted from Azeroth Guild Finder (tools/check_addon.py), same owner, GPL-3.0 (A
 of its own (it uses the client's textures, SPEC-04 §5), so the texture and font checks of the original are left out.
 
 Locale rules (ADR 0015): every L["KEY"] used in the code has an English string in Locale/enUS.lua (AceLocale answers
-with the key itself for a missing one, which would hide the mistake), and Locale/itIT.lua defines no key that English
-does not have (a typo there would silently never show).
+with the key itself for a missing one, which would hide the mistake), and Locale/itIT.lua has exactly the English keys
+(an extra one is a typo that would never show, a missing one an untranslated string).
 
 Usage: python -I -X utf8 tools/check_addon.py (also called by tools/check_docs.py)
 """
@@ -75,6 +75,8 @@ def check_locale(problems):
         return
     for key in sorted(italian - have):
         problems.append(f"Locale/itIT.lua: L[\"{key}\"] is not an English key (typo?)")
+    for key in sorted(have - italian):
+        problems.append(f"Locale/itIT.lua: L[\"{key}\"] has no Italian string (ADR 0015: the interface is in English and Italian)")
 
 
 def read_toc():

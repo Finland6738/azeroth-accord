@@ -429,7 +429,10 @@ local function onRec(msg, sender, dist)
 	state.stats.recReceived = state.stats.recReceived + 1
 	state.stats.accepted = state.stats.accepted + accepted
 	state.stats.refused = state.stats.refused + refused
-	if accepted > 0 then emit("SYNC_RECEIVED", msg.s, accepted) end
+	if accepted > 0 then
+		state.lastReceived = compat().ServerTime()
+		emit("SYNC_RECEIVED", msg.s, accepted)
+	end
 end
 
 function Sync:OnMessage(msg, sender, dist)
@@ -469,6 +472,13 @@ end
 function Sync:OnGuildChanged(key)
 	resetState()
 	if key then Sync:Start() end
+end
+
+-- For the top bar of the panel: how many guildmates with the addon are online, when records last arrived.
+function Sync:Status()
+	local n = 0
+	for _ in pairs(presentPeers()) do n = n + 1 end
+	return { peers = n, lastReceived = state.lastReceived }
 end
 
 ---------------------------------------------------------------------------------------------------------------------

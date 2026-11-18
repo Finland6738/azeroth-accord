@@ -141,16 +141,21 @@ end
 function CreateFromMixins(...) return Mixin({}, ...) end
 
 -- hooksecurefunc(table|name, name|hook, hook): runs `hook` after the original with the same arguments.
+-- Every wrapper it installs is remembered in Mock.secureHooks (Accord, M1.8): a test can tell a field changed by
+-- hooksecurefunc (allowed, ADR 0003) from a Blizzard function the addon replaced (never allowed).
+Mock.secureHooks = setmetatable({}, { __mode = "k" })
 function hooksecurefunc(a, b, c)
 	local tbl, name, hook = _G, a, b
 	if type(a) == "table" then tbl, name, hook = a, b, c end
 	local original = tbl[name]
 	assert(type(original) == "function", "hooksecurefunc: " .. tostring(name) .. " is not a function")
-	tbl[name] = function(...)
+	local wrapper = function(...)
 		local results = { original(...) }
 		hook(...)
 		return unpack(results)
 	end
+	tbl[name] = wrapper
+	Mock.secureHooks[wrapper] = true
 end
 
 function debugstack() return H.traceback("", 2) end

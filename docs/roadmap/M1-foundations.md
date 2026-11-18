@@ -60,7 +60,7 @@
 - Spec: SPEC-04; ADR 0003
 - Scope: `UI/GuildTab.lua`, `UI/Shell.lua` (navigation, top bar, pop out), standalone window, AddOn Compartment entry, key binding; widgets and skin copied from Azeroth Guild Finder and restyled like Blizzard's guild window.
 - Done when:
-  - [ ] Tab, panel and window open and close in the mock; no Blizzard function is replaced.
+  - [x] Tab, panel and window open and close in the mock; no Blizzard function is replaced.
 - Real client: look, anchoring, taint (S1 again with the real code).
 
 ### M1.9 — M1 in-game check and v0.1.0
