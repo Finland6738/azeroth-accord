@@ -232,7 +232,7 @@ for _, stub in ipairs(STUBS) do
     end)
 end
 
-local USAGE = "/aacp [list] | run <id> | export | reset"
+local USAGE = "/aacp [list] | run <id> | export | reset | note <id> <text>"
 
 SLASH_AZACPROBE1 = "/aacp"
 SlashCmdList["AZACPROBE"] = function(msg)
@@ -262,6 +262,16 @@ SlashCmdList["AZACPROBE"] = function(msg)
     else
         out(Probe.Usage and Probe.Usage() or USAGE)
     end
+end
+
+-- /aacp note S1 <text>: a free-text observation of the owner, stored in the log and exported (never write names in it).
+Probe.commands.note = function(arg, rest)
+    if arg == "" then
+        out("usage: /aacp note <id> <text> (no player or guild names, please)")
+        return
+    end
+    Probe:Log("notes", arg:upper() .. ": " .. rest)
+    out("note stored")
 end
 
 --- Command names added by Checks files, listed in the usage line.

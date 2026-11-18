@@ -23,7 +23,8 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Depends on: M0.1
 - Scope: `/aacp tab` adds a test tab to `CommunitiesFrame` (structure dump: tab names, anchors, display modes, `CommunitiesFrame.GuildMemberDetailFrame`), shows a test panel, hides it on Blizzard tab clicks via hooks; records `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN` while the owner promotes, invites, edits notes and enters combat with the tab used.
 - Done when:
-  - [ ] S1 answered: tab position and look, no taint (or which action is blocked), minimized mode, `/reload`.
+  - [ ] S1 answered: tab position and look, no taint (or which action is blocked), minimized mode, `/reload`. *(in game)*
+  - [x] Offline: `/aacp tab`, the structure dump, the hooks and the blocked-action log exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.3 — Roster, professions and contacts (S2, S8, S10)

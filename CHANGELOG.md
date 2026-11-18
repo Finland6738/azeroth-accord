@@ -17,6 +17,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Spike
 
 - M0.1: the probe addon skeleton `tools/probe/AzAc_Probe/` (TOC 16001, check registry S1–S11 as stubs, `/aacp list|run|export|reset`, export frame, `AzAc_ProbeDB`), `tools/install_probe.py` with `tools/local.example.ini`, and `docs/spike/README.md`.
+- M0.2: probe check S1 (`Checks_GuildTab.lua`): `/aacp tab` adds a test tab and panel to the guild window using only hooks, dumps the window structure and the taint state, and logs `ADDON_ACTION_BLOCKED` / `ADDON_ACTION_FORBIDDEN`; `/aacp note` stores owner observations.
 
 ### Repository
 
