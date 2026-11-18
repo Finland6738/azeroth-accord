@@ -53,7 +53,7 @@ python -X utf8 Tests/run_tests.py          # all offline tests, from M1.2
 - Small commits with clear messages in English.
 - Every pull request updates **in the same PR**: `CHANGELOG.md` ("Unreleased"), the affected docs (specs, ADRs and the ADR index, both READMEs) and **the wiki pages in `docs/wiki/` for any user-visible change**. The *Docs rule* check enforces it for changes to the addon ([ADR 0014](docs/adr/0014-automatic-rules-ci-docs-rule-wiki-sync.md)).
 - The wiki is **never edited on GitHub**: it is published from `docs/wiki/` after every merge ([ADR 0013](docs/adr/0013-github-wiki-generated-from-docs-wiki.md)).
-- Pull requests are squash merged when `Tests` and `Docs rule` are green.
+- A pull request reaches `main` as one squashed commit when `Tests` and `Docs rule` are green; the maintainer squashes external contributions the same way, keeping the contributor as co-author.
 - The maintainer's steps are shipped with `tools/ship_step.py` ([ADR 0012](docs/adr/0012-git-flow-and-automated-shipping.md)).
 - A pull request that fixes an issue says `Closes #N`.
 

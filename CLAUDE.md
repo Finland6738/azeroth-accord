@@ -17,11 +17,11 @@ For every milestone step or fix:
 3. Run `python -I -X utf8 tools/check_docs.py` (plus the addon tests once they exist).
 4. Write the pull request body (what and why, what was **not** verified in the real client) and ship **without asking**:
    `python -I -X utf8 tools/ship_step.py --title "M<N>: <summary>" --body-file <file> --commit "<message>"`
-   It pushes, opens the PR, waits for CI and squash merges. If it stops, leave the PR open and report why.
+   It squashes the step into one noreply commit, pushes, opens the PR, waits for CI and fast-forwards `main` to the checked commit. If it stops, leave the PR open and report why.
 5. The wiki is published by the `Wiki sync` workflow after the merge: never edit the wiki on GitHub.
 
 Do not decide alone what belongs to the owner (licence, names, scope, deleting their data): ask, or open an issue with the options. Open questions are listed in `docs/specs/SPEC-10-risks-open-questions.md`.
 
 ## Privacy
 
-No personal data in the repository: no real names, emails (only GitHub noreply addresses), or personal paths (use `<WoW folder>` and similar). `tools/check_docs.py` fails on them. This includes git authorship: this repository's git identity is the noreply address, and merge commits are authored by it (`ship_step.py` passes `--author-email`); never merge from the GitHub web UI or with plain `gh pr merge`. `prompt.txt` holds the owner's notes and is git-ignored.
+No personal data in the repository: no real names, emails (only GitHub noreply addresses), or personal paths (use `<WoW folder>` and similar). `tools/check_docs.py` fails on them. This includes git authorship: this repository's git identity is the noreply address, and `ship_step.py` authors and commits every step with it; never merge from the GitHub web UI or with `gh pr merge` (GitHub would author the commit with the personal email). `prompt.txt` holds the owner's notes and is git-ignored.

@@ -13,7 +13,7 @@ Automated merges ([ADR 0012](0012-git-flow-and-automated-shipping.md)) are only 
 2. **Docs rule** (`docs-check.yml`, job `Docs rule`): a pull request that changes `AzerothAccord/` must also change `CHANGELOG.md` and a documentation file, unless it has the label `no-docs-needed`.
 3. **Wiki sync** (`wiki-sync.yml`) as in [ADR 0013](0013-github-wiki-generated-from-docs-wiki.md).
 4. **DCO** (`dco.yml`): an advisory warning for external commits without a sign-off.
-5. **Branch protection on `main`**: `Tests` and `Docs rule` required, also for administrators; no required reviews; no force pushes; no deletion. The owner turns it on in the repository settings.
+5. **Branch protection on `main`**: `Tests` and `Docs rule` required as status checks (a fast-forward push of a commit whose checks passed satisfies them); no "require a pull request" rule and no required reviews, because shipping fast-forwards `main` ([ADR 0012](0012-git-flow-and-automated-shipping.md)); no force pushes; no deletion. The owner turns it on in the repository settings.
 6. Actions are pinned to a commit and declare the least permissions they need.
 
 ## Consequences

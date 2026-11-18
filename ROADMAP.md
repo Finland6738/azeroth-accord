@@ -22,5 +22,5 @@ Later ([V2 backlog](docs/roadmap/V2-backlog.md)): raid sign-ups and attendance, 
 2. Keep the step small; open an issue for anything outside it.
 3. Update in the same branch: `CHANGELOG.md`, the affected specs and ADRs, `README.md` and `README.it.md` when features or status change, and **`docs/wiki/` for anything a user can see**.
 4. Run `python -I -X utf8 tools/check_docs.py` (and the addon tests from M1).
-5. Ship: `python -I -X utf8 tools/ship_step.py --title "M<N>: <summary>" --body-file <pr.md>` pushes, opens the pull request, waits for CI and squash merges it ([ADR 0012](docs/adr/0012-git-flow-and-automated-shipping.md)). The wiki is published automatically after the merge.
+5. Ship: `python -I -X utf8 tools/ship_step.py --title "M<N>: <summary>" --body-file <pr.md>` squashes the step into one commit, pushes, opens the pull request, waits for CI and fast-forwards `main` to it ([ADR 0012](docs/adr/0012-git-flow-and-automated-shipping.md)). The wiki is published automatically after the merge.
 6. The pull request says honestly what was **not** verified in the real client, and ticks the step's checkboxes in its milestone file.

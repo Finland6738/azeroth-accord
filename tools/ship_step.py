@@ -1,8 +1,14 @@
-"""Ship a finished step: commit, push, pull request, wait for CI, squash merge (ADR 0012).
+"""Ship a finished step: one squashed commit, push, pull request, wait for CI, fast-forward main (ADR 0012).
 
-The owner authorised this automation: a milestone step (or a fix) is merged into main without waiting for a manual
-review, but ONLY when the local checks and the required CI checks are green. On any failure the script stops and
-leaves the pull request open, with the reason printed.
+The owner authorised this automation: a milestone step (or a fix) reaches main without waiting for a manual review,
+but ONLY when the local checks and the required CI checks are green. On any failure the script stops and leaves the
+pull request open, with the reason printed.
+
+Why a fast-forward and not GitHub's squash merge: GitHub writes the squash commit itself and authors it with the
+account's primary email, which is personal, and it refuses the noreply address as --author-email ("Invalid email
+address"). So the script squashes the step locally into ONE commit authored and committed by the noreply identity,
+lets CI check exactly that commit in the pull request, and then pushes the same commit to main as a fast-forward.
+GitHub marks the pull request as merged because its head commit is now on main.
 
 Usage, from the repository root, on the step branch (never on main):
   python -I -X utf8 tools/ship_step.py --title "M1: transport and codec" --body-file pr.md [--commit "message"]
@@ -14,11 +20,12 @@ Steps:
   1. refuses to run on main or with a dirty tree (unless --commit);
   2. runs the local checks: tools/check_docs.py and, when it exists, Tests/run_tests.py;
   3. merges origin/main into the branch if main moved (a conflict stops the script);
-  4. pushes the branch and opens the pull request (or reuses the open one);
-  5. waits for the CI checks of the pull request (gh pr checks --watch);
-  6. squash merges with --delete-branch and the noreply address as merge author, then updates the local main and
-     stops if the merge commit carries any other author address.
-The wiki is published by the "Wiki sync" workflow after the merge, not by this script.
+  4. squashes the branch into one commit on top of origin/main, message = --title, noreply author and committer;
+  5. pushes the branch (--force-with-lease: the squash rewrites it) and opens the pull request (or reuses it);
+  6. waits for the CI checks of the pull request (gh pr checks --watch);
+  7. fast-forwards main to the checked commit (git push origin <sha>:main), stopping if main moved meanwhile,
+     deletes the branch, updates the local main and stops if the new main commit is not fully noreply.
+The wiki is published by the "Wiki sync" workflow after the push to main, not by this script.
 """
 import argparse
 import os
@@ -28,9 +35,11 @@ import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CO_AUTHOR = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
-# The squash merge commit is created by GitHub, which would otherwise use the account's primary email as author.
-# Personal addresses never go in the history (CLAUDE.md, Privacy): the merge author is always the noreply address.
-MERGE_AUTHOR_EMAIL = "200480737+Finland6738@users.noreply.github.com"
+# Personal addresses never go in the history (CLAUDE.md, Privacy): the step commit is authored and committed by the
+# noreply identity, whatever the local git configuration says.
+NAME = "Finland6738"
+EMAIL = "200480737+Finland6738@users.noreply.github.com"
+IDENTITY = ["-c", f"user.name={NAME}", "-c", f"user.email={EMAIL}"]
 
 
 def run(cmd, check=True, capture=True, dry=False):
@@ -56,6 +65,14 @@ def local_checks(dry):
         run([sys.executable, "-X", "utf8", tests], capture=False, dry=dry)
 
 
+def squash(title, dry):
+    """Leaves the branch as origin/main plus exactly one noreply commit with the same tree."""
+    if not dry and out(["git", "rev-list", "--count", "origin/main..HEAD"]) in ("", "0"):
+        sys.exit("Stopped: the branch has no change compared with origin/main.")
+    run(["git", "reset", "--soft", "origin/main"], dry=dry)
+    run(["git", *IDENTITY, "commit", "--author", f"{NAME} <{EMAIL}>", "-m", title + "\n\n" + CO_AUTHOR], dry=dry)
+
+
 def open_pr(branch, title, body_file, dry):
     existing = out(["gh", "pr", "view", branch, "--json", "number,state", "--jq", "select(.state==\"OPEN\") | .number"])
     if existing:
@@ -79,6 +96,26 @@ def wait_for_checks(number):
         sys.exit(f"Stopped: the CI checks of pull request #{number} are not green. The pull request stays open.")
 
 
+def fast_forward_main(branch, number, sha):
+    run(["git", "fetch", "origin", "main"])
+    if out(["git", "rev-parse", f"{sha}^"]) != out(["git", "rev-parse", "origin/main"]):
+        sys.exit(f"Stopped: main moved while CI was running. Run the script again on {branch}: it merges main, "
+                 f"squashes and waits for CI on the new commit. Pull request #{number} stays open.")
+    run(["git", "push", "origin", f"{sha}:refs/heads/main"])
+    for _ in range(6):   # GitHub needs a moment to notice that the head commit is on main
+        if out(["gh", "pr", "view", number, "--json", "state", "--jq", ".state"]) == "MERGED":
+            break
+        time.sleep(5)
+    run(["git", "push", "origin", "--delete", branch], check=False)
+    run(["git", "switch", "main"], check=False)
+    run(["git", "pull", "--ff-only", "origin", "main"], check=False)
+    run(["git", "branch", "-D", branch], check=False)
+    emails = out(["git", "log", "-1", "--format=%ae %ce", "origin/main"]).split()
+    if not emails or not all(e.endswith("@users.noreply.github.com") for e in emails):
+        sys.exit(f"Stopped: the main commit of pull request #{number} is not authored and committed by a noreply "
+                 "address. Tell the owner; do not ship anything else until it is fixed.")
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--title", required=True)
@@ -100,35 +137,31 @@ def main(argv):
             sys.exit("Stopped: there are uncommitted changes. Commit them or pass --commit \"message\".")
         local_checks(dry)
         run(["git", "add", "-A"], dry=dry)
-        run(["git", "commit", "-m", a.commit + "\n\n" + CO_AUTHOR], dry=dry)
+        run(["git", *IDENTITY, "commit", "-m", a.commit + "\n\n" + CO_AUTHOR], dry=dry)
     else:
         local_checks(dry)
 
     run(["git", "fetch", "origin", "main"], dry=dry)
     if out(["git", "rev-list", "--count", "HEAD..origin/main"]) not in ("", "0"):
-        merge = run(["git", "merge", "--no-edit", "origin/main"], check=False, dry=dry)
+        merge = run(["git", *IDENTITY, "merge", "--no-edit", "origin/main"], check=False, dry=dry)
         if merge.returncode != 0:
             run(["git", "merge", "--abort"], check=False, dry=dry)
             sys.exit("Stopped: merging origin/main gives conflicts. Resolve them by hand, run the checks, ship again.")
         local_checks(dry)
+    squash(a.title, dry)
 
-    run(["git", "push", "-u", "origin", branch], dry=dry)
+    run(["git", "push", "--force-with-lease", "-u", "origin", branch], dry=dry)
     number = open_pr(branch, a.title, a.body_file, dry)
     if dry:
-        print("(dry run) would wait for CI and squash merge")
+        print("(dry run) would wait for CI and fast-forward main")
         return 0
+    sha = out(["git", "rev-parse", "HEAD"])
     wait_for_checks(number)
     if a.no_merge:
         print(f"CI is green. Pull request #{number} left open (--no-merge).")
         return 0
-    run(["gh", "pr", "merge", number, "--squash", "--delete-branch", "--author-email", MERGE_AUTHOR_EMAIL])
-    run(["git", "switch", "main"], check=False)
-    run(["git", "pull", "--ff-only", "origin", "main"], check=False)
-    author = out(["git", "log", "-1", "--format=%ae", "origin/main"])
-    if not author.endswith("@users.noreply.github.com"):
-        sys.exit(f"Stopped: the merge commit of pull request #{number} is not authored by a noreply address. "
-                 "Tell the owner; do not merge anything else until it is fixed.")
-    print(f"Merged pull request #{number}. The wiki is published by the 'Wiki sync' workflow.")
+    fast_forward_main(branch, number, sha)
+    print(f"Shipped pull request #{number}: main is now {sha[:7]}. The wiki is published by the 'Wiki sync' workflow.")
     return 0
 
 

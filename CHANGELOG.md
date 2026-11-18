@@ -18,3 +18,4 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Licence, code of conduct, contributing guide, issue and pull request templates, CI (documentation checks), the docs rule, the wiki sync and the advisory DCO check; `tools/check_docs.py`, `tools/check_pr_docs.py`, `tools/ship_step.py` and `tools/sync_wiki.py` adapted from Azeroth Guild Finder ([ADR 0018](docs/adr/0018-reuse-azeroth-guild-finder-foundations.md)).
 - User manual skeleton in `docs/wiki/` (design phase).
+- `tools/ship_step.py` no longer uses GitHub's squash merge, which authors the commit with the account's personal email and refuses the noreply address: it squashes the step locally into one noreply commit, lets CI check it in the pull request and fast-forwards `main` to it ([ADR 0012](docs/adr/0012-git-flow-and-automated-shipping.md)).
