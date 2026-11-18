@@ -38,7 +38,15 @@ jobs:
         if: hashFiles('tools/check_package.py') != ''
         run: python -I -X utf8 tools/check_package.py
 
-      # The libraries are pinned in .pkgmeta and never committed (from M1.2 on).
+      # The libraries are pinned in .pkgmeta and never committed (from M1.2 on). They are cached on the pins, so a
+      # run only downloads when a pin changes; fetch_libs.py also retries with backoff on 429 and 5xx.
+      - name: Cache the libraries
+        if: hashFiles('Tests/run_tests.py') != ''
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: AzerothAccord/Libs
+          key: libs-${{ hashFiles('.pkgmeta', 'tools/fetch_libs.py') }}
+
       - name: Run the addon tests
         if: hashFiles('Tests/run_tests.py') != ''
         run: |

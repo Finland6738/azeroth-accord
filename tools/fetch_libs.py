@@ -11,6 +11,8 @@ import os
 import re
 import shutil
 import sys
+import time
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -48,13 +50,41 @@ def parse_externals(text):
     return out
 
 
+RETRY_STATUS = (429, 500, 502, 503, 504)
+ATTEMPTS = 5
+BACKOFF = 2.0  # seconds before the second attempt, doubled after each failure
+
+
+def fetch_bytes(zip_url, attempts=ATTEMPTS, backoff=BACKOFF, opener=None, sleep=time.sleep):
+    """Reads a URL, retrying with exponential backoff on 429, 5xx and network errors (shared CI runners get rate limited)."""
+    opener = opener or (lambda u: urllib.request.urlopen(u, timeout=60))
+    for attempt in range(1, attempts + 1):
+        try:
+            with opener(zip_url) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in RETRY_STATUS or attempt == attempts:
+                raise
+            wait = backoff * 2 ** (attempt - 1)
+            retry_after = e.headers.get("Retry-After") if e.headers else None
+            if retry_after and retry_after.isdigit():
+                wait = max(wait, min(int(retry_after), 60))
+            reason = f"HTTP {e.code}"
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if attempt == attempts:
+                raise
+            wait = backoff * 2 ** (attempt - 1)
+            reason = str(e)
+        print(f"  {reason}, retrying in {wait:g}s (attempt {attempt}/{attempts})")
+        sleep(wait)
+
+
 def download(url, tag, target):
     m = GITHUB.match(url)
     if not m:
         raise ValueError(f"only github.com URLs are supported: {url}")
     zip_url = f"https://codeload.github.com/{m.group(1)}/zip/refs/tags/{tag}"
-    with urllib.request.urlopen(zip_url, timeout=60) as resp:
-        data = resp.read()
+    data = fetch_bytes(zip_url)
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         top = z.namelist()[0].split("/", 1)[0] + "/"
         for name in z.namelist():
