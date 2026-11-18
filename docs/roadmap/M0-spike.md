@@ -15,7 +15,7 @@ The probe addon `AzAc_Probe` lives in `tools/probe/`, is **never distributed**, 
 - Scope: `tools/probe/AzAc_Probe/` (TOC 16001), `/aacp list|run <id>|export|reset`, results `{id, result, details, build, time}` in `AzAc_ProbeDB`, an export frame with all results as text; `tools/install_probe.py` and `tools/local.example.ini`; `docs/spike/README.md`.
 - Done when:
   - [ ] The probe loads on Forever and `/aacp` lists the checks. *(in game)*
-  - [ ] Offline: files, commands, check registry and install script exist; `check_docs.py` passes.
+  - [x] Offline: files, commands, check registry and install script exist; `check_docs.py` passes.
 - Real client: everything.
 
 ### M0.2 — The Accord tab in the guild window (S1)

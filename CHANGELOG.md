@@ -14,6 +14,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Development roadmap in `docs/roadmap/`: M0 spike to M6 release (50 steps) with branch, dependencies, scope, acceptance criteria, tests, docs and real-client checks, plus the V2 backlog.
 
+### Spike
+
+- M0.1: the probe addon skeleton `tools/probe/AzAc_Probe/` (TOC 16001, check registry S1–S11 as stubs, `/aacp list|run|export|reset`, export frame, `AzAc_ProbeDB`), `tools/install_probe.py` with `tools/local.example.ini`, and `docs/spike/README.md`.
+
 ### Repository
 
 - Licence, code of conduct, contributing guide, issue and pull request templates, CI (documentation checks), the docs rule, the wiki sync and the advisory DCO check; `tools/check_docs.py`, `tools/check_pr_docs.py`, `tools/ship_step.py` and `tools/sync_wiki.py` adapted from Azeroth Guild Finder ([ADR 0018](docs/adr/0018-reuse-azeroth-guild-finder-foundations.md)).
