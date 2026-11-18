@@ -4,6 +4,8 @@ Tutti i record hanno `id`, `author` (GUID del personaggio che scrive), `rev`, `t
 
 ## 1. Account e personaggi (`accounts`)
 
+Un record **per personaggio**: `id` = GUID del personaggio, scritto solo da lui (o ripassato da un suo alt già provato, o da un ufficiale).
+
 | Campo | Tipo | Note |
 |---|---|---|
 | `token` | stringa casuale di 16 byte (Base64) | creato una volta per account, mai cambiato |
@@ -11,9 +13,11 @@ Tutti i record hanno `id`, `author` (GUID del personaggio che scrive), `rev`, `t
 | `main` | GUID | scelto dal giocatore; predefinito: livello più alto, poi più tempo giocato |
 | `addonVersion` | stringa | per la diagnostica |
 
-Autore valido: uno dei personaggi di `chars` (prima mano).
+Autore valido: il personaggio stesso (`id` = `author`), che deve comparire in `chars`. Due personaggi sono dello **stesso account** solo se il record di ciascuno elenca l'altro (elenco reciproco, [SPEC-02 §6](SPEC-02-network-protocol.md#6-fiducia-e-integrità)): il `token` viaggia in chiaro e si potrebbe copiare, quindi serve solo a raggruppare, mai a provare.
 
 ## 2. Contatti (`contacts`)
+
+Un record per personaggio (`id` = GUID), scritto da lui o da un suo alt; i contatti di un account sono il record più recente tra i suoi personaggi.
 
 | Campo | Tipo | Note |
 |---|---|---|

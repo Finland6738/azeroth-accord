@@ -19,6 +19,10 @@ The owner wants to click a character and see **all the characters of the same Ba
 - **An anonymous count only** (as in Azeroth Guild Finder). The owner wants the names.
 - **Asking players to type their alts.** Error-prone and the owner wants it automatic.
 
+## Implementation note (M1.6)
+
+The token travels in clear inside the shared data, so a modified client could copy another member's token. The token is therefore used only to group characters for display, never as a proof. Each character publishes **its own** account record (one record per character, written only by it), and two characters count as the same account only when each one's record lists the other (mutual listing). A client that lists somebody else's character as its alt gains nothing: that character's own record does not list it back. This is how NET-10 ("a character of the same account") is checked in `Net/Store.lua`.
+
 ## Consequences
 
 - Positive: alts grouped without any typing, also across characters not in the guild.

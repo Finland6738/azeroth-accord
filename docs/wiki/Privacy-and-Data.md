@@ -11,6 +11,10 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 
 The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking.
 
+## Nobody can write your data
+
+Every piece of shared data names the character that wrote it, and the game itself tells each addon who sent a message. A guildmate's addon accepts your characters, contacts and recipes only from you (or from one of your own characters), and passes on another member's data only when it comes from an officer. Likes and bank decisions are accepted only from officers. A modified addon can therefore lie only about itself.
+
 ## What stays on your computer
 
 The addon keeps its data in the game's own saved-variables files (`AzerothAccord.lua` in your WTF folder): an **account code** (random, created once, used only so that guildmates can tell your characters belong together), your characters, and one separate section for **each guild** you have been in, so the data of two guilds is never mixed. If you leave a guild, its section stays untouched until you come back. `/accord debug` shows how much space the data takes, never the data itself.

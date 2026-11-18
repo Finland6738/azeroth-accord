@@ -49,8 +49,11 @@ La coda di `Transport` rispetta ChatThrottleLib e un intervallo minimo per distr
 
 Regole di [ADR 0005](../adr/0005-trust-first-hand-records-and-officer-relays.md):
 
-- **Prima mano** (NET-10): un record si accetta se il mittente è l'autore o un personaggio dello stesso account dell'autore.
+- **Prima mano** (NET-10): un record si accetta se il mittente è l'autore o un personaggio dello stesso account dell'autore. "Stesso account" vale solo con l'**elenco reciproco**: ogni personaggio pubblica il proprio record `accounts` (id = il suo GUID) con l'elenco dei personaggi dell'account, e A e B sono dello stesso account solo se il record di A elenca B e quello di B elenca A. Il token dell'account è pubblico e non prova nulla: chi copia il token o elenca un personaggio altrui non diventa il suo account, perché quel personaggio non lo elenca.
 - **Ritrasmesso** (NET-11): un record di un altro autore si accetta solo se il mittente è ufficiale secondo il roster di chi riceve.
 - **Autorità** (NET-12): libro dei like, stato delle richieste in banca e schede riservate si accettano solo da ufficiali.
 - **Osservazioni** (NET-13): il co-play si accetta solo da un osservatore presente nel gruppo osservato; si unisce con il massimo.
-- Il nome del mittente arriva dal server e non si può falsificare; i contenuti sì, per questo valgono le regole sopra.
+- Il nome del mittente arriva dal server e non si può falsificare; i contenuti sì, per questo valgono le regole sopra. Il mittente deve essere nel roster di chi riceve (nome con o senza reame); il suo GUID e il suo grado vengono dal roster, mai dal messaggio.
+- **Regole del proprietario**: oltre alla fiducia, ogni insieme dice cosa un autore può scrivere: solo il proprio record `accounts`; `contacts` e `recipes` solo di un personaggio del proprio account; `bankreq` aperte o annullate dal richiedente (o da un suo alt), decise solo da ufficiali; schede riservate di `bank` solo da ufficiali.
+- **Forma**: `id` (massimo 64 caratteri), `author` (un GUID di giocatore), `rev` intero da 1, `time` non oltre un'ora nel futuro, dimensione massima per insieme. A parità di `rev` vince il `time` più recente, poi il GUID dell'autore maggiore: ogni client tiene la stessa versione.
+- **Conservazione**: co-play 90 giorni, registri della banca 365, richieste chiuse e cancellazioni 60; un record che scadrebbe subito si rifiuta.

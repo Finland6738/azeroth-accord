@@ -46,7 +46,7 @@
 - Spec: SPEC-02 §3, §6; ADR 0005
 - Scope: `Net/Store.lua`: data sets, `rev`, first-hand, relay and authority rules, retention.
 - Done when:
-  - [ ] Forged authors and non-officer relays are refused in tests.
+  - [x] Forged authors and non-officer relays are refused in tests.
 
 ### M1.7 — Sync
 - Branch: `step/m1-7-sync`
