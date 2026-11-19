@@ -34,8 +34,8 @@ Model.COLUMNS = {
 	{ id = "rank", label = "COL_RANK", width = 90 },
 	{ id = "zone", label = "COL_ZONE", width = 120 },
 	{ id = "lastOnline", label = "COL_LAST_ONLINE", width = 85 },
-	{ id = "prof1", label = "COL_PROF1", width = 110 },
-	{ id = "prof2", label = "COL_PROF2", width = 110 },
+	{ id = "prof1", label = "COL_PROF1", width = 130 },
+	{ id = "prof2", label = "COL_PROF2", width = 130 },
 	{ id = "likes", label = "COL_LIKES", width = 50, available = function() return ns.Likes ~= nil end },
 	{ id = "social", label = "COL_SOCIAL", width = 60, available = function() return ns.Social ~= nil end },
 	{ id = "contacts", label = "COL_CONTACTS", width = 60, available = function() return ns.Contacts ~= nil end },
@@ -80,7 +80,7 @@ end
 function Model.ProfessionText(p)
 	if type(p) ~= "table" then return "" end
 	local name = p.name or (p.id and L["PROF_UNKNOWN"]:format(p.id)) or "?"
-	if p.rank then return name .. " " .. p.rank end
+	if p.rank then return name .. " " .. p.rank .. (p.maxRank and ("/" .. p.maxRank) or "") end
 	return name
 end
 

@@ -80,7 +80,11 @@ end
 local function professionsSection(e)
 	local lines = {}
 	for _, p in ipairs(e.professions or {}) do
-		lines[#lines + 1] = line(("%s (%s)"):format(Model.ProfessionText(p), sourceText(p)), p.source == "shared")
+		-- a click opens the member's recipes for this profession (PRO-02)
+		local open = e.guid and function()
+			if ns.RecipeView then ns.RecipeView:Open(e.guid, ns.RecipeView.SkillLineOf(e, p)) end
+		end or nil
+		lines[#lines + 1] = line(("%s (%s)"):format(Model.ProfessionText(p), sourceText(p)), p.source == "shared", nil, open)
 	end
 	if #lines == 0 then lines[1] = line(e.hasAddon and L["CARD_NO_PROF_ADDON"] or L["CARD_NO_PROF"], true) end
 	return { id = "professions", title = L["CARD_PROFESSIONS"], lines = lines }

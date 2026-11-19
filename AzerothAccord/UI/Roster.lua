@@ -295,6 +295,52 @@ local function layoutHeader(self)
 	self.columnsWidth = x
 end
 
+-- The invisible button over a profession cell (PRO-02): a click opens that member's recipe list; the tooltip says where
+-- the profession comes from and how old it is (PRO-01).
+function View.ProfessionTip(data, slot)
+	local p = data and data.entry and data.entry.professions and data.entry.professions[slot]
+	if not p then return nil end
+	local lines = { Model.ProfessionText(p) }
+	if ns.RecipeModel then lines[#lines + 1] = ns.RecipeModel.SourceText({ source = p.source, time = p.time }) end
+	lines[#lines + 1] = L["PROF_TIP_CLICK"]
+	return lines
+end
+
+local function profButton(row, i)
+	row.profButtons = row.profButtons or {}
+	local b = row.profButtons[i]
+	if b then return b end
+	b = CreateFrame("Button", nil, row)
+	b:SetHeight(View.ROW_HEIGHT)
+	b:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	b:SetScript("OnClick", function(self)
+		local data = self:GetParent().data
+		if data and self.slot and ns.RecipeView then ns.RecipeView:OpenFor(data.entry, self.slot) end
+	end)
+	W.SetTooltip(b, function(self) return View.ProfessionTip(self:GetParent().data, self.slot) end)
+	row.profButtons[i] = b
+	return b
+end
+
+local function fillProfessionButtons(self, row, data)
+	local e, used = data.entry, {}
+	for i, col in ipairs(self.cols) do
+		local slot = col.id == "prof1" and 1 or (col.id == "prof2" and 2 or nil)
+		if slot and ns.RecipeView and e.professions and e.professions[slot] then
+			local b = profButton(row, i)
+			b.slot = slot
+			b:ClearAllPoints()
+			b:SetPoint("LEFT", row, "LEFT", self.columnX[i], 0)
+			b:SetWidth(col.width)
+			b:Show()
+			used[i] = true
+		end
+	end
+	for i, b in pairs(row.profButtons or {}) do
+		if not used[i] then b.slot = nil b:Hide() end
+	end
+end
+
 local function fillRow(self, row, data)
 	local model, cols = self:Model(), self.cols
 	row.data = data
@@ -316,6 +362,7 @@ local function fillRow(self, row, data)
 		fs:Show()
 	end
 	for i = #cols + 1, #row.cells do row.cells[i]:Hide() end
+	fillProfessionButtons(self, row, data)
 	if data.kind == "group" then
 		row.expander:ClearAllPoints()
 		row.expander:SetPoint("LEFT", row, "LEFT", self.columnX[1] + 2, 0)

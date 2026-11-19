@@ -28,6 +28,8 @@
 - Branch: `step/m3-4-recipe-view`
 - Spec: PRO-01–PRO-03
 - Scope: clickable profession cells, recipe list with icons, tooltips, search, category filters, source and age.
+- Done when:
+  - [x] A click on a profession cell or a card line opens the list with icons, game tooltips, search, a category menu and the source and age; with no list the view says why and asks every source (covered by `Tests/test_recipe_view.lua`).
 
 ### M3.5 — "Who can craft"
 - Branch: `step/m3-5-who-can-craft`

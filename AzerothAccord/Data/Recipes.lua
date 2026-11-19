@@ -433,6 +433,57 @@ function Recipes:Refresh(guid, skillLine)
 	return self:RequestNative(guid, skillLine)
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- Names, icons and links of recipes (a recipe id is a spell id)
+---------------------------------------------------------------------------------------------------------------------
+Recipes.NAME_CACHE_MAX = 6000
+Recipes.LOAD_RETRY = 60             -- seconds before the client is asked again for a spell it has no data for
+local names = { map = {}, count = 0, asked = {}, missing = 0 }
+
+-- { name, icon } of a recipe, cached; nil while the client has no data for it. The first miss asks the client to load
+-- it (and once per LOAD_RETRY seconds after that); SPELL_DATA_LOAD_RESULT then emits RECIPE_NAMES_UPDATED.
+function Recipes.SpellData(id)
+	local e = names.map[id]
+	if e then return e end
+	local C = compat()
+	if not C or type(id) ~= "number" then return nil end
+	local info = C.Spell.Info(id)
+	if info then
+		if names.count >= Recipes.NAME_CACHE_MAX then names.map, names.count = {}, 0 end
+		names.map[id] = info
+		names.count = names.count + 1
+		return info
+	end
+	local t, last = C.Now(), names.asked[id]
+	if not last or t - last >= Recipes.LOAD_RETRY then
+		names.asked[id] = t
+		C.Spell.RequestData(id)
+	end
+	return nil
+end
+
+-- The name of a recipe, or nil while it is not known.
+function Recipes.NameOf(id)
+	local info = Recipes.SpellData(id)
+	return info and info.name or nil
+end
+
+-- The chat link of a recipe ("|Hspell:...|h[Name]|h"), or a link built from the name, or nil.
+function Recipes.LinkOf(id)
+	local C = compat()
+	local link = C and C.Spell.Link(id)
+	if link then return link end
+	local name = Recipes.NameOf(id)
+	if name and not name:find("[|%c]") then return ("|cff71d5ff|Hspell:%d|h[%s]|h|r"):format(id, name) end
+	return nil
+end
+
+local function onSpellData(id, success)
+	if type(id) ~= "number" or names.asked[id] == nil then return end
+	names.asked[id] = nil
+	if success ~= false and Recipes.SpellData(id) then emit("RECIPE_NAMES_UPDATED", id) end
+end
+
 -- A shared record arrived or changed: views that show it learn about it through the same event as a native answer.
 local function onStoreChanged(set, id, origin)
 	if set ~= "recipes" or type(id) ~= "string" then return end
@@ -466,6 +517,7 @@ if ns.addon then
 	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Recipes", function() return Recipes:DebugLines() end) end
 	LibStub("AceEvent-3.0"):Embed(Recipes)
 	Recipes:RegisterEvent(Recipes.EVENT, function() Recipes:OnNativeAnswer() end)
+	pcall(Recipes.RegisterEvent, Recipes, "SPELL_DATA_LOAD_RESULT", function(_, id, success) onSpellData(id, success) end)
 	if ns.Bus then
 		ns.Bus:On("GUILD_CHANGED", function() Recipes:Reset() decoded.map, decoded.count = {}, 0 end)
 		ns.Bus:On("STORE_CHANGED", onStoreChanged)

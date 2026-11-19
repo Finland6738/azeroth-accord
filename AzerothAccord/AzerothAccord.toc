@@ -44,4 +44,6 @@ UI\RosterModel.lua
 UI\Roster.lua
 UI\CopyBox.lua
 UI\MemberCard.lua
+UI\RecipeModel.lua
+UI\Professions.lua
 UI\Settings.lua

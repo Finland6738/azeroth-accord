@@ -611,6 +611,49 @@ function TradeSkill.BaseProfessionInfo()
 	return readableCopy((first("C_TradeSkillUI.GetBaseProfessionInfo")))
 end
 
+-- What the client says about a recipe beyond its name, for the recipe list [verify S4: GetRecipeInfo is documented
+-- but may answer only for the open profession]: { learned, difficulty (relativeDifficulty: 0 optimal, 1 medium,
+-- 2 easy, 3 trivial), category (the name of categoryID through GetCategoryInfo, undocumented) } or nil.
+function TradeSkill.RecipeMeta(spellID)
+	local info = TradeSkill.RecipeInfo(spellID)
+	if not info then return nil end
+	local out = { learned = info.learned, difficulty = num(info.relativeDifficulty) }
+	local category = num(info.categoryID)
+	if category then
+		local c = readableCopy((first("C_TradeSkillUI.GetCategoryInfo", category)))
+		if c and str(c.name) then out.category = c.name end
+	end
+	return out
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Spells: the name, icon and link of a recipe (the recipe ids are spell ids)
+---------------------------------------------------------------------------------------------------------------------
+local Spell = {}
+Compat.Spell = Spell
+
+-- { name, icon } of a spell id, or nil when the client has no data for it (yet): ask with Spell.RequestData and wait
+-- for SPELL_DATA_LOAD_RESULT.
+function Spell.Info(id)
+	if not num(id) then return nil end
+	local info = readableCopy((first("C_Spell.GetSpellInfo", id)))
+	if not info or not str(info.name) then return nil end
+	return { name = info.name, icon = num(info.iconID) or num(info.originalIconID) }
+end
+
+-- The chat link of a spell ("|cff71d5ff|Hspell:2330|h[Name]|h|r"), or nil.
+function Spell.Link(id)
+	if not num(id) then return nil end
+	return str((first("C_Spell.GetSpellLink", id)))
+end
+
+-- Asks the client to load the data of a spell. Returns the call state.
+function Spell.RequestData(id)
+	if not num(id) then return MISSING end
+	local _, state = first("C_Spell.RequestLoadSpellData", id)
+	return state
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Guild bank (SPEC-08): readable only while the vault is open [verify S9]
 ---------------------------------------------------------------------------------------------------------------------
@@ -878,6 +921,10 @@ local CAPS = {
 	{ "tradeskill.GetAllRecipeIDs", "tradeskill", "C_TradeSkillUI.GetAllRecipeIDs", note = "[verify S4] not in the dump" },
 	{ "tradeskill.GetFilteredRecipeIDs", "tradeskill", "C_TradeSkillUI.GetFilteredRecipeIDs", note = "[verify S4] not in the dump" },
 	{ "tradeskill.GetRecipeInfo", "tradeskill", "C_TradeSkillUI.GetRecipeInfo" },
+	{ "tradeskill.GetCategoryInfo", "tradeskill", "C_TradeSkillUI.GetCategoryInfo", note = "[verify S4] not in the dump" },
+	{ "spell.GetSpellInfo", "spell", "C_Spell.GetSpellInfo" },
+	{ "spell.GetSpellLink", "spell", "C_Spell.GetSpellLink" },
+	{ "spell.RequestLoadSpellData", "spell", "C_Spell.RequestLoadSpellData" },
 	{ "bank.IsGuildBankEnabled", "bank", "C_GuildBank.IsGuildBankEnabled", call = true },
 	{ "bank.GetNumGuildBankTabs", "bank", "GetNumGuildBankTabs" },
 	{ "bank.GetGuildBankItemInfo", "bank", "GetGuildBankItemInfo" },

@@ -81,13 +81,13 @@ describe("the content", function()
 	it("lists the professions with where each comes from", function()
 		eq(text(desc(ANN), "professions")[1], "Alchemy 300 (from the game)")
 		local bob = text(desc(BOB), "professions")
-		eq(bob[1], "Blacksmithing 75 (shared by the member, 3 d ago)")
+		eq(bob[1], "Blacksmithing 75/300 (shared by the member, 3 d ago)")
 		local _, section = text(desc(BOB), "professions")
 		truthy(section.lines[1].muted)
 		eq(text(desc(LONE), "professions")[1], "The game does not give this member's professions, and they do not use Azeroth Accord.")
 		Mock.tradeskill.own = { { name = "Mining", skillLine = 186, rank = 200, maxRank = 300 } }
 		A().Roster:MarkDirty()
-		eq(text(desc("Player-1-0000A001"), "professions")[1], "Mining 200 (read from your own character)")
+		eq(text(desc("Player-1-0000A001"), "professions")[1], "Mining 200/300 (read from your own character)")
 	end)
 
 	it("says so when the member has the addon but nothing was shared yet", function()
@@ -183,7 +183,7 @@ describe("the frame", function()
 		local texts = {}
 		for _, it in ipairs(items) do if it:IsShown() then texts[#texts + 1] = it.text:GetText() end end
 		eq(texts[1], "Details")
-		contains(table.concat(texts, "|"), "Blacksmithing 75 (shared by the member, 3 d ago)")
+		contains(table.concat(texts, "|"), "Blacksmithing 75/300 (shared by the member, 3 d ago)")
 		contains(table.concat(texts, "|"), "Elsewhere (12 Hunter) - not in guild")
 		local count = #items
 		rowOf("Ann"):Click()
