@@ -46,6 +46,10 @@
 - Branch: `step/m6-6-mockups`
 - Spec: SPEC-04 §5
 - Scope: port and adapt the mockup tools of Azeroth Guild Finder (`docs/specs/mockups/`, `tools/make_mockups.py`, `tools/mockup_lib.py`, `tools/mockup_scenes*.py`): design previews of every main view drawn from the addon's real layout and English texts, with a "Design preview" strip because nothing has run in the real client yet; embedded in the wiki pages and in `README.md` / `README.it.md`.
+- Spec: SPEC-04 §5; ADR 0019
+- Done when:
+  - [x] `tools/make_mockups.py`, `mockup_lib.py`, `mockup_scenes.py`, `mockup_scenes2.py`, `mockup_spec.py` and `docs/specs/mockups/` (`html/accord.css`, `accord.js`, four annotated pages, `render.sh`, `optimize_images.py`, `README.md`) make 24 design previews (the Accord tab, Roster table and grouped, member card, recipes, who can craft, likes, social index, group map, someone new, the seven Bank modes, Settings in two parts, the diagnostics box, the standalone window, three Italian ones) and four annotated mockups in WebP, from the addon's own texts, with original art and invented data and a "Design preview" strip; embedded in every wiki page of a feature, in the Interface Tour and in both READMEs.
+  - [ ] Replace a preview with a real screenshot, view by view, as the in-game checks run (ADR 0019 rule 6).
 
 ### M6.7 — Release checklist and v1.0.0
 - Branch: `step/m6-7-release`

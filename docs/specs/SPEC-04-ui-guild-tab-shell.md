@@ -46,6 +46,8 @@ Stesso pannello in una finestra mobile e ridimensionabile, aperta da `/accord`, 
 
 Aspetto coerente con la finestra della Gilda di Blizzard (bordi, font e colori del client), così la tab sembra nativa. Icone del client per classi, professioni e oggetti, per fileID o atlas.
 
+**Anteprime di progetto (M6.6).** Prima che l'addon giri nel client vero, l'aspetto di ogni vista principale è mostrato in immagini disegnate dal layout e dai testi dell'addon, con la grafica originale e dati inventati ([`mockups/`](mockups/README.md)): l'aspetto è quello della finestra Gilda del gioco, non una pergamena personalizzata come in Azeroth Guild Finder. Non sono screenshot; ogni immagine lo dice nella striscia in basso. Sono incorporate nel wiki e nei README.
+
 ## 6. Impostazioni (M6.1)
 
 La vista **Settings** (`/accord settings`) e un pannello **Azeroth Accord** nella finestra Impostazioni del gioco (registrato all'accesso con `Settings.RegisterCanvasLayoutCategory` e `RegisterAddOnCategory` quando il client li ha, altrimenti non c'è pannello e `/accord debug` lo dice) mostrano **la stessa pagina**, disegnata da un solo costruttore (`UI/Settings.lua`) con le opzioni e le azioni in `UI/SettingsModel.lua`. La pagina scorre con la rotella. Una modifica in una delle due si vede subito nell'altra (evento `SETTINGS_CHANGED` sul Bus). Il pannello del gioco costruisce la pagina solo quando viene mostrato; il suo pulsante *Defaults* non fa nulla, perché le opzioni di Accord si applicano mentre si cambiano.

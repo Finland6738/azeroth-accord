@@ -4,6 +4,10 @@
 
 > **Status: in development.** The Accord tab, the standalone window and the guild sync exist and are being checked in game; the views arrive with the next versions. This manual describes the planned first version; pages say what is already there. There is no download yet: the first test version is `v0.1.0`.
 
+![The Accord tab in the guild window: the roster of the guild with professions, likes and who runs the addon](../specs/mockups/previews/accord-tab-roster.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+
 ## Start here
 
 | I want to… | Read |

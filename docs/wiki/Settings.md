@@ -4,6 +4,12 @@ Open it with `/accord settings`, or from **Settings** in the panel's navigation.
 
 The page scrolls with the mouse wheel.
 
+![The Settings page: contacts, main character, notifications and Roster columns](../specs/mockups/previews/settings.webp)
+
+![The lower part of the page: the saved data sizes and Clear guild data](../specs/mockups/previews/settings-saved-data.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+
 ## Contacts shared with your guild
 
 - Your **BattleTag** is read from the game and shown here.

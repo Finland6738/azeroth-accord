@@ -12,6 +12,8 @@ The list shows an icon and the name of every recipe the member knows, sorted by 
 - **Category**: the menu offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
 - **Back to roster** returns to the table.
 
+![A guildmate's recipe list: the source and age of the list, the search, a category menu, difficulty colours, the game's own tooltip and Request craft](../specs/mockups/previews/professions-recipes.webp)
+
 ## When there is no list
 
 If the game does not give the list and the member's addon has not shared it, the panel says why and what to do: nobody who has the list is online (ask the member to open their profession window with Azeroth Accord, it is shared at once), the member does not use the addon, or the list is being requested. When you open a member's recipes and the addon does not have their list yet, it asks for it by whisper (to the member if they are online, else to an officer) and the list appears a few seconds later.
@@ -25,6 +27,10 @@ Your own recipes are shared when you open your profession window with the addon:
 Open the **Professions** view (`/accord professions`, or the **Professions** button on the left) and type the name of an item or a recipe in the search box at the top of the panel (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. **Online only** keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
+
+![Who can craft: the guildmates who know each recipe, online first, with the source and age of their list and a Request craft button](../specs/mockups/previews/professions-who-can-craft.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
 
 ## Request craft
 

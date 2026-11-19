@@ -23,6 +23,7 @@ Addon **non ufficiale** per **WoW: Forever** che aggiunge alla finestra della Gi
 | 08 | [Banca di gilda](SPEC-08-guild-bank.md) | foto della banca, registri, donazioni, richieste di prelievo e deposito |
 | 09 | [Qualità, spike e rilascio](SPEC-09-quality-release.md) | verifiche nel client (S1–S11), test offline, tappe di rilascio |
 | 10 | [Rischi e domande aperte](SPEC-10-risks-open-questions.md) | rischi tecnici e punti ancora da decidere |
+| — | [Mockup e anteprime dell'interfaccia](mockups/README.md) | immagini di progetto di ogni vista principale (in inglese), generate da `tools/make_mockups.py` |
 
 ## Convenzioni
 

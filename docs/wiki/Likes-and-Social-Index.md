@@ -9,6 +9,9 @@
 - Likes are **anonymous**: everyone sees only the totals.
 - Your like is delivered to an online officer's addon, which records it for the guild. If no officer is online it waits and shows as *pending*.
 
+
+![Reputation, Likes: one row per player with the same total on every character, and Like, Confirm?, pending, liked and you](../specs/mockups/previews/reputation-likes.webp)
+
 ### Giving a like
 
 - On a guildmate's **member card** (click their row in the Roster): the *Likes* section shows the total of the player and **[Like this player]**. Click it, then click again within a few seconds to confirm: a like cannot be taken back.
@@ -36,6 +39,8 @@ How it is counted, precisely: for the last 30 days, the minutes with each guildm
 
 **Who sees it.** Every member sees **their own** index. Officers and the Guild Master see **everyone's**: on the cards, in the **Social** column of the Roster and in a list in the Reputation view. Whether all members should see everyone's index is still an open question for the guild leader; until then this is the rule.
 
+![Reputation, Social: your own index with its breakdown and what it measures, and for officers every player's index](../specs/mockups/previews/reputation-social-index.webp)
+
 ## Group map
 
 Officers and the Guild Master have a **Groups** button in the Reputation view. It shows:
@@ -46,9 +51,15 @@ Officers and the Guild Master have a **Groups** button in the Reputation view. I
 
 The groups are found automatically from the minutes played together in the last 30 days, the same way on every officer's computer.
 
+![Reputation, Groups (officers): the communities of the guild as circles of players, and the time inside and outside each group](../specs/mockups/previews/reputation-group-map.webp)
+
 ## Play with someone new
 
 The **Someone new** button of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself.
+
+![Reputation, Someone new: guildmates online now of a similar level that you have played with the least, with Whisper and Invite](../specs/mockups/previews/reputation-someone-new.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
 
 ## What is recorded (from the roster version on)
 

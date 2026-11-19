@@ -143,6 +143,7 @@ def main():
     check_optional("check_addon", problems)
     check_optional("check_package", problems)
     check_optional("release_notes", problems)
+    check_optional("make_mockups", problems)
     for p in problems:
         print(p)
     print(f"{len(files)} files checked, {len(problems)} problem(s).")

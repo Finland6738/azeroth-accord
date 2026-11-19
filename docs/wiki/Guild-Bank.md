@@ -14,6 +14,10 @@
 
 ## The Bank view
 
+![Bank, Tabs: the tab as the game draws it, the guild money and how old the snapshot is](../specs/mockups/previews/bank-tabs.webp)
+
+![Bank, Items: every item once with its total and where it is](../specs/mockups/previews/bank-items.webp)
+
 Open it with the **Bank** button of the panel or `/accord bank`.
 
 - **Tabs**: one button per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab buttons you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
@@ -26,7 +30,17 @@ Open it with the **Bank** button of the panel or `/accord bank`.
 - **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever, all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
 - **Money**: how the guild's money changed over the last 30 days, from what the addons have seen.
 
+![Bank, Log: the merged bank log without duplicates](../specs/mockups/previews/bank-log.webp)
+
+![Bank, Donations: deposits per player over 30 days, 365 days or all time](../specs/mockups/previews/bank-donations.webp)
+
+![Bank, Money: the guild's money over the last 30 days](../specs/mockups/previews/bank-money.webp)
+
 ## Requests
+
+![Bank, Requests: the form and every request of the guild with its status](../specs/mockups/previews/bank-requests.webp)
+
+![The Requests view with numbered notes](../specs/mockups/img/03-bank-requests.webp)
 
 In the **Requests** mode of the Bank view you can:
 
@@ -36,6 +50,10 @@ In the **Requests** mode of the Bank view you can:
 - The addon never moves items or gold: after an approval the item reaches you by mail, trade or at the vault, as the officers decide.
 
 ## For officers: the inbox and the notices
+
+![Bank, Inbox: requests waiting for an officer, the counter on the tab, and one chat line per new request](../specs/mockups/previews/bank-inbox.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
 
 - A red mark with a number appears on the Accord tab of the guild window (and "Bank (n)" on the panel button) when requests are waiting for you. Members never see it.
 - The **Inbox** mode lists what waits for an officer, oldest first: open requests to approve or reject, approved ones to mark as *Fulfilled*. When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.

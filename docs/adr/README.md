@@ -26,3 +26,4 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0016](0016-offline-tests-with-lupa-and-a-mock-client.md) | Offline tests with lupa and a mock client | accepted |
 | [0017](0017-license-gpl-3.md) | Licence: GNU GPL v3.0 | accepted |
 | [0018](0018-reuse-azeroth-guild-finder-foundations.md) | Reuse the foundations of Azeroth Guild Finder | accepted |
+| [0019](0019-design-previews-original-art-invented-data.md) | Design previews: original art, invented data, drawn from the addon's texts | accepted |

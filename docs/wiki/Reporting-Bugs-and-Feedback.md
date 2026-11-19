@@ -4,6 +4,8 @@ Open an issue in the repository with the *Bug report* form, or share ideas and q
 
 ## The report
 
+![The /accord debug report in its box, already selected](../specs/mockups/previews/diagnostics-box.webp)
+
 Type `/accord debug` in game. A box opens with the report already selected: press **Ctrl+C**, close the box, and paste the text into the form. It shows how many lines and characters it has; it is cut at 30,000 characters (the end is what is cut; the important sections come first).
 
 **It contains no player, guild, BattleTag or Discord names, no account token, no character ids, and no folders of your PC.** If an error message of the addon happens to name a guildmate, your guild or you, the name is replaced by `<player>` or `<guild>` before it goes in the report. Replace any other name you paste yourself with a placeholder such as `<player>`.

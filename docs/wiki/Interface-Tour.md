@@ -4,6 +4,12 @@
 
 Open the guild window (default key `J`). Under the four tabs of the game (Chat, Roster, Guild Benefits, Guild Info) there is a fifth one with a guild tabard icon: **Accord**. Its tooltip says *Azeroth Accord*.
 
+![The guild window with the Accord tab selected: a fifth tab under the game's four, the panel with its top bar, navigation and the Roster view](../specs/mockups/previews/accord-tab-roster.webp)
+
+![The same screen with numbered notes: the tab, the sync state, the navigation, the filters, the sortable columns, a row, and Pop out](../specs/mockups/img/01-accord-tab.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+
 - Clicking it shows the Accord panel over the content of the guild window. Clicking any of the game's tabs goes back to it; closing the window closes the panel.
 - The tab shows only while your **guild** is the selected community, and not in the small (minimized) guild window.
 - The panel has nothing protected in it: it opens and closes in combat too, and it never changes how the game's own tabs work.
@@ -15,5 +21,7 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 - **Navigation** on the left: **Roster**, **Professions**, **Reputation**, **Bank**, **Settings**, each one as soon as the version that brings it is out. The first test version (`v0.1.0`) has no view yet: the panel shows a welcome text, while the addon already exchanges its data with the guild in the background. The **Roster** view comes with the roster version, and the **Settings** view (see [[Settings|Settings]]; the same page is in the game's settings window) with the release version; see [[Guild Roster|Guild-Roster]]. The **Professions** view (a member's recipe list, opened from the roster) comes with the professions version; see [[Professions and Recipes|Professions-and-Recipes]]. The **Reputation** view (likes, one row per player sorted by likes, with the Like button; your social index; the group map for officers; *Someone new* to play with) comes with the reputation version; see [[Likes and Social Index|Likes-and-Social-Index]]. The **Bank** view (the guild bank tab by tab, its money, a searchable list of items) comes with the bank version (officers also see the number of waiting requests on the tab); see [[Guild Bank|Guild-Bank]].
 
 ## The standalone window
+
+![The standalone window: the same panel in a window you can move and resize, here on the Likes of the Reputation view](../specs/mockups/previews/window-standalone.webp)
 
 `/accord`, the AddOn Compartment entry, a key binding or **Pop out** open the same panel in a window you can move (drag the title) and resize (the corner at the bottom right). It remembers its place and size for each character; Esc closes it. See [[Commands|Commands]].
