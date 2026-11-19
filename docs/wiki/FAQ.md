@@ -8,6 +8,10 @@
 
 **Can I remove a like?** No. Likes are permanent by design.
 
+**Who can see that I liked someone?** Nobody in the guild list: everyone sees only totals. The one officer whose addon records your like sees that it came from you at that moment.
+
+**My like says "pending".** No officer with the addon is online yet. It is delivered by itself when one is, also after you log out and back in.
+
 **Does the social index say who is a good player?** No. It only measures how widely someone groups with different guildmates.
 
 **Is the bank always up to date?** It is as recent as the last visit of a guildmate with the addon; each tab shows its age.

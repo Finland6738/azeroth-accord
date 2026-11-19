@@ -27,6 +27,10 @@ The token travels in clear inside the shared data, so a modified client could co
 
 `Data/Accounts.lua` builds the groups as the connected components of the mutual-listing graph. A character outside the guild cannot publish a record, so it is shown as *claimed* by the members who list it (never as proven); a guild member listed without listing back is ignored. A group whose members publish different tokens is flagged. The note hints (`main: <name>`, `alt: <name>`) only group members who have no record of their own. Stale characters (ACC-04) are dropped only after `GetPlayerInfoByGUID` has answered for some other character of the account, so that an alt that is not played for months is never lost by mistake.
 
+## Implementation note (M4.2)
+
+The token is also the input of the likes' pseudonyms (ADR 0007). Because it is public, a notary refuses a vote (`conflict`) when a character outside the voter's account publishes the same token: a copy would otherwise share the voter's pseudonym.
+
 ## Consequences
 
 - Positive: alts grouped without any typing, also across characters not in the guild.

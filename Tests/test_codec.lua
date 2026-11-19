@@ -12,8 +12,8 @@ local SAMPLES = {
 	DIGEST = { d = { accounts = "ffffffff" } },
 	REQ = { s = "accounts", a = { "Player-1-A" } },
 	REC = { s = "accounts", r = { { id = "x", author = "Player-1-A", rev = 3, time = 1767225600 } } },
-	VOTE = { target = "Player-1-B" },
-	LEDGER = { e = {} },
+	VOTE = { g = "Player-1-B", n = "0a1b2c3d" },
+	LEDGER = { g = "Player-1-B", r = "ok", e = { id = "x" } },
 	SALT = { k = "s", s = { { b = "secret", at = 1767225600 } } },
 }
 

@@ -15,7 +15,11 @@
 --                      would have to list it back.
 --   NET-11 relay       a record of another author is accepted only when the sender is an officer in this client's roster.
 --   NET-12 authority   records that need an authority (the likes ledger, bank request decisions, restricted bank tabs)
---                      are accepted only when both the sender and the author are officers.
+--                      are accepted only when both the sender and the author are officers. The likes ledger is the
+--                      exception for the author: an entry stays valid after its notary left the guild or was demoted
+--                      (SPEC-07 LIKE-07), so only the sender must be an officer (`authorAny`).
+--   append-only        the likes ledger (`immutable`): an id is written once, with rev 1, and never replaced; a different
+--                      record with an id already held is refused ("immutable").
 --   NET-13 observation co-play is accepted only from its observer (author == observer) who appears in at least one of the
 --                      observed pairs; observers are combined with a maximum (Store.MergeMax), never a sum.
 -- Plus shape checks (id, author GUID, rev, time not in the future, size per set) and the owner rule of each set (an
@@ -127,8 +131,9 @@ local function ownGUID() return ns.Compat and ns.Compat.Player.GUID() or nil end
 -- Data sets (SPEC-02 §3, SPEC-03)
 ---------------------------------------------------------------------------------------------------------------------
 -- Each set: maxBytes (estimated size of one record), owner(rec, store) -> true when the author may write this record
--- first hand (nil = any author), authority(rec) -> true when the record needs officers (NET-12), observation = true
--- for NET-13, expires(rec, now) -> true when retention removes it.
+-- first hand (nil = any author), authority(rec) -> true when the record needs officers (NET-12), authorAny = true when
+-- the author of an authority record need not be an officer any more, immutable = true for append-only sets, observation =
+-- true for NET-13, expires(rec, now) -> true when retention removes it. The owner rule is checked for authority records too.
 local function closedBankRequest(rec)
 	return rec.status == "fulfilled" or rec.status == "rejected" or rec.status == "cancelled"
 end
@@ -154,9 +159,12 @@ Store.SETS = {
 		observation = true,
 		expires = function(rec, t) return (rec.time or 0) < t - 90 * DAY end,
 	},
-	likes = {      -- the ledger, written by officers only (M4)
-		maxBytes = 4096,
+	likes = {      -- the ledger (Data/Likes.lua): id = "<16 hex of the pseudonym>:<target GUID>", { pseudonym, tag, target, day }
+		maxBytes = 512, -- written by officers (the notaries) only, once, never changed
 		authority = function() return true end,
+		authorAny = true,
+		immutable = true,
+		owner = function(rec) return ns.Likes ~= nil and ns.Likes.ValidEntry(rec) end,
 	},
 	bank = {       -- snapshots of tabs, money and logs (M5); restricted tabs need an officer
 		maxBytes = 12288,
@@ -241,6 +249,7 @@ function Store:Put(set, id, fields)
 	local records = root(true) and self:Records(set)
 	if not records then return nil, "guild" end
 	local old = records[id]
+	if old and def.immutable then return nil, "immutable" end
 	local rec = copy(fields or {})
 	rec.id, rec.author, rec.time = id, author, now()
 	rec.rev = (old and old.rev or 0) + 1
@@ -291,8 +300,11 @@ function Store:Check(set, rec, ctx)
 
 	if def.authority and def.authority(rec) then
 		if not senderOfficer then return false, "authority" end
-		local author = self:MemberByGUID(rec.author)
-		if not (author and author.officer) then return false, "authority" end
+		if not def.authorAny then
+			local author = self:MemberByGUID(rec.author)
+			if not (author and author.officer) then return false, "authority" end
+		end
+		if def.owner and not def.owner(rec, self) then return false, "owner" end
 		return true
 	end
 
@@ -323,7 +335,16 @@ function Store:Accept(set, rec, ctx)
 	if not ok then return reject(why) end
 	local records = root(true) and self:Records(set)
 	if not records then return reject("guild") end
-	local cmp = Store.Compare(rec, records[rec.id])
+	local held = records[rec.id]
+	if held and Store.SETS[set].immutable then
+		-- append-only: the entry held stays; the same entry again is nothing to do, a different one is refused
+		if Store.Compare(rec, held) == 0 then
+			stats.unchanged = stats.unchanged + 1
+			return false, "same"
+		end
+		return reject("immutable")
+	end
+	local cmp = Store.Compare(rec, held)
 	if cmp <= 0 then
 		stats.unchanged = stats.unchanged + 1
 		return false, cmp == 0 and "same" or "older"

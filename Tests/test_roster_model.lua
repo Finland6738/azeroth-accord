@@ -53,12 +53,12 @@ end
 describe("columns", function()
 	before_boot(function() mockGuild() end)
 
-	it("shows the default columns, never likes or social before their modules exist (M4)", function()
+	it("shows the default columns, never the social index before its module exists (M4)", function()
 		local m = M().new()
 		local ids = {}
 		for _, c in ipairs(m:VisibleColumns()) do ids[#ids + 1] = c.id end
 		deepEq(ids, { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "contacts", "addon" })
-		falsy(M().ColumnAvailable("likes")); falsy(M().ColumnAvailable("social")); truthy(M().ColumnAvailable("contacts"))
+		truthy(M().ColumnAvailable("likes")); falsy(M().ColumnAvailable("social")); truthy(M().ColumnAvailable("contacts"))
 		falsy(M().ColumnAvailable("nope"))
 	end)
 
@@ -82,7 +82,7 @@ describe("columns", function()
 		eq(ids[5], "zone")
 		m:SetColumns({ "level" })
 		deepEq(m.columns, { "name", "level" })
-		m:SetColumns({ "likes", "bogus", "class" })
+		m:SetColumns({ "social", "bogus", "class" })
 		deepEq(m.columns, { "name", "class" })
 	end)
 

@@ -50,8 +50,8 @@ local RANK = { ALERT = 1, NORMAL = 2, BULK = 3 }
 
 -- Default priority per message type; types the table does not list go NORMAL.
 Transport.PRIORITY = {
-	DIGEST = "ALERT", REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT",
-	HELLO = "NORMAL", REC = "NORMAL", LEDGER = "NORMAL",
+	DIGEST = "ALERT", REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT", LEDGER = "ALERT",
+	HELLO = "NORMAL", REC = "NORMAL",
 }
 
 -- Retail codes; the client's own Enum.SendAddonMessageResult wins when it exists (M0 S5 reads the real values).

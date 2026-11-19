@@ -55,7 +55,8 @@ Id del record: `<GUID osservatore>:<giorno>:<n>`; un giorno con più di 100 copp
 
 | Elemento | Campi | Chi lo scrive |
 |---|---|---|
-| Voce del libro | `{pseudonym, target (GUID), day, notary}` | solo ufficiali |
+| Voce del libro | `{pseudonym (32 cifre esadecimali), tag (16), target (GUID), day}`; il notaio è l'autore del record; id = `<16 cifre dello pseudonimo>:<target>`, `rev` sempre 1 ([SPEC-07 §2.2](SPEC-07-reputation-social.md#22-voti-e-libro-datalikeslua-m42)) | solo ufficiali; mai cambiata né cancellata |
+| Coda e voti dati (locale) | `GuildKey:Data().likes = { queue = { [GUID] = {at, n} }, given = { [GUID] = time } }` | solo sul computer del votante, mai condivisi |
 | Segreto di gilda | `salt` (32 byte, in Base64), con la data di creazione | primo ufficiale o GM; solo su `OFFICER` (whisper tra ufficiali finché S5 non è provato), mai salvato dai membri; nei client degli ufficiali `GuildKey:Data().salts` = `{ [impronta] = { k, at } }`, al massimo 8 ([SPEC-07 §2.1](SPEC-07-reputation-social.md#21-il-segreto-e-il-notaio-datanotarylua-m41)) |
 
 Totale di un account = numero di `pseudonym` distinti nelle voci il cui `target` è uno dei suoi personaggi ([ADR 0007](../adr/0007-likes-one-per-account-irreversible-anonymous.md)).

@@ -20,8 +20,8 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 | `DIGEST` | riservato: non usato dalla sincronizzazione attuale (la risposta a `HELLO` è l'invio diretto dei record, §4) | `WHISPER` |
 | `REQ` | richiesta dei record di uno o più autori (chiavi del riepilogo); con `s` = un insieme (non `*`) chiede **solo i record di quell'insieme**, per una vista che li serve subito (§4, punto 7) | `WHISPER` |
 | `REC` | uno o più record di un insieme | `GUILD` o `WHISPER` |
-| `VOTE` | voto per un like | `WHISPER` al notaio |
-| `LEDGER` | voci del libro dei like | `GUILD` |
+| `VOTE` | voto per un like: `g` = GUID del destinatario, `n` = numero del voto ([SPEC-07 §2.2](SPEC-07-reputation-social.md#22-voti-e-libro-datalikeslua-m42)) | `WHISPER` al notaio |
+| `LEDGER` | ricevuta del notaio: `g`, `n`, `r` = esito, `e` = la voce nuova del libro (le voci arrivano a tutti come `REC` dell'insieme `likes`, su `GUILD`) | `WHISPER` al votante |
 | `SALT` | segreto di gilda per gli pseudonimi: `k = "q"` (domanda, `f` = impronte dei salt che si hanno) o `k = "s"` (`s` = lista di `{b = salt in Base64, at = creazione}`) | `OFFICER`; anche `WHISPER` tra ufficiali finché S5 non è provato |
 
 ## 3. Insiemi di dati
@@ -59,7 +59,7 @@ Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO`
 
 La coda di `Transport` rispetta ChatThrottleLib e un intervallo minimo per distribuzione (`GUILD` e `OFFICER` 1 s, `WHISPER` 0,25 s, da rivedere con S5); durante `C_ChatInfo.InChatMessagingLockdown()` o con le restrizioni attive i messaggi aspettano e partono dopo (NET-05). Nulla si perde finché il client resta acceso; alla disconnessione la coda si salva (`AzerothAccordCharDB.outbox`) e riparte al prossimo accesso.
 
-- Priorità: `ALERT` (risposte e voti: `DIGEST`, `REQ`, `VOTE`, `SALT`), `NORMAL` (`HELLO`, `REC`, `LEDGER`), `BULK`; un messaggio `BULK` che aspetta più di 10 minuti si scarta. Con una `key` resta solo l'ultimo messaggio della stessa chiave.
+- Priorità: `ALERT` (risposte e voti: `DIGEST`, `REQ`, `VOTE`, `LEDGER`, `SALT`), `NORMAL` (`HELLO`, `REC`), `BULK`; un messaggio `BULK` che aspetta più di 10 minuti si scarta. Con una `key` resta solo l'ultimo messaggio della stessa chiave.
 - `HELLO`: al massimo uno ogni 5 minuti anche a livello di coda (NET-04).
 - Un rifiuto per limite di velocità si riprova dopo 5 s, al massimo 3 volte; un rifiuto per lockdown del client è un'attesa, non un tentativo.
 - Ogni messaggio porta la chiave della gilda per cui è stato scritto: aspetta finché la gilda non è nota e si scarta se nel frattempo il personaggio è in un'altra gilda. Un messaggio salvato si scarta anche se la sua durata è scaduta a gioco chiuso o se è più vecchio di un giorno.
@@ -71,7 +71,7 @@ Regole di [ADR 0005](../adr/0005-trust-first-hand-records-and-officer-relays.md)
 
 - **Prima mano** (NET-10): un record si accetta se il mittente è l'autore o un personaggio dello stesso account dell'autore. "Stesso account" vale solo con l'**elenco reciproco**: ogni personaggio pubblica il proprio record `accounts` (id = il suo GUID) con l'elenco dei personaggi dell'account, e A e B sono dello stesso account solo se il record di A elenca B e quello di B elenca A. Il token dell'account è pubblico e non prova nulla: chi copia il token o elenca un personaggio altrui non diventa il suo account, perché quel personaggio non lo elenca.
 - **Ritrasmesso** (NET-11): un record di un altro autore si accetta solo se il mittente è ufficiale secondo il roster di chi riceve.
-- **Autorità** (NET-12): libro dei like, stato delle richieste in banca e schede riservate si accettano solo da ufficiali.
+- **Autorità** (NET-12): libro dei like, stato delle richieste in banca e schede riservate si accettano solo da ufficiali. Per il libro dei like basta che il **mittente** sia ufficiale: una voce resta valida anche se il suo notaio non lo è più (LIKE-07). Il libro è **solo aggiunte**: una voce ha `rev` 1, un id ricavato dal contenuto, e non si sostituisce mai.
 - **Osservazioni** (NET-13): il co-play si accetta solo da un osservatore presente nel gruppo osservato; si unisce con il massimo.
 - Il nome del mittente arriva dal server e non si può falsificare; i contenuti sì, per questo valgono le regole sopra. Il mittente deve essere nel roster di chi riceve (nome con o senza reame); il suo GUID e il suo grado vengono dal roster, mai dal messaggio.
 - **Regole del proprietario**: oltre alla fiducia, ogni insieme dice cosa un autore può scrivere: solo il proprio record `accounts`; `contacts` e `recipes` solo di un personaggio del proprio account; `bankreq` aperte o annullate dal richiedente (o da un suo alt), decise solo da ufficiali; schede riservate di `bank` solo da ufficiali.

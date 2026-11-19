@@ -142,11 +142,16 @@ end)
 describe("NET-12: authority", function()
 	before_boot(function(M) guild() end)
 
-	it("accepts the likes ledger only from officers, written by officers", function()
-		local entry = R{ id = "L1", author = OFF, pseudonym = "p", target = BOB }
-		eq(select(2, accept("likes", entry, "Bob")), "authority")
-		truthy(accept("likes", entry, "Boss"))
-		eq(select(2, accept("likes", R{ id = "L2", author = BOB, target = MAL }, "Officer")), "authority", "a member-written entry")
+	it("accepts the likes ledger only from officers; an entry stays valid after its notary stopped being one", function()
+		local P = ("ab"):rep(16)
+		local function entry(p, author, target)
+			return R{ id = p:sub(1, 16) .. ":" .. target, author = author, pseudonym = p, target = target, day = 20260101 }
+		end
+		eq(select(2, accept("likes", entry(P, OFF, BOB), "Bob")), "authority")
+		truthy(accept("likes", entry(P, OFF, BOB), "Boss"))
+		truthy(accept("likes", entry(("cd"):rep(16), "Player-1-00000999", BOB), "Officer"), "the notary left the guild (LIKE-07)")
+		eq(select(2, accept("likes", R{ id = "L2", author = OFF, pseudonym = P, target = MAL, day = 20260101 }, "Officer")), "owner",
+			"an id that does not follow from the entry")
 	end)
 
 	it("lets a member open and cancel a request, and only officers decide it", function()

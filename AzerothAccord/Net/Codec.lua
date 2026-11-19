@@ -37,8 +37,8 @@ Codec.SCHEMA = {
 	DIGEST = { d = "table" },                 -- the answer to a HELLO, by whisper
 	REQ    = { s = "string" },                -- records of one data set: the set, then authors / buckets (Net/Sync.lua)
 	REC    = { s = "string", r = "table" },   -- one or more records of data set s
-	VOTE   = {},                              -- a like for the notary (M4)
-	LEDGER = {},                              -- entries of the likes ledger (M4)
+	VOTE   = { g = "string" },                -- a like for the notary: g = target GUID, n = nonce (Data/Likes.lua)
+	LEDGER = { g = "string", r = "string" },  -- the notary's receipt: target, result, e = the new ledger entry
 	SALT   = { k = "string" },                -- the guild secret for the pseudonyms, officers only (Data/Notary.lua)
 }
 

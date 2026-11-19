@@ -9,6 +9,15 @@
 - Likes are **anonymous**: everyone sees only the totals.
 - Your like is delivered to an online officer's addon, which records it for the guild. If no officer is online it waits and shows as *pending*.
 
+### How likes stay anonymous
+
+- Your addon whispers the like to **one** online officer with the addon (never to the guild channel). That officer's addon checks it and records it under an **anonymous code** computed with a secret that only officers' addons hold; the guild receives only that code and the character you liked. Members cannot turn the code back into a name.
+- The officer who records your like can see that it came from you at the moment it arrives. As in the game itself, officers are trusted.
+- The addon remembers on **your computer** which players you already liked (so the button disappears on all their characters) and the likes still waiting. Nobody else receives that list.
+- A second like to the same player is refused, also from one of your alts, to one of their alts, or after you reinstalled the addon on another computer.
+- If an officer leaves and nobody else holds the secret, a new one is made: the likes already given stay, but the check for a second like to the same player works only for likes given after that.
+- Likes cannot be invented by members: the guild's addons accept the list of likes only from officers, and an entry can never be changed or removed.
+
 ## Social index
 
 The social index shows **how many different guildmates someone really plays with**, from 0 to 100. It counts the minutes spent in a party or raid with guildmates over the last 30 days and turns them into **effective partners**: playing always with the same four people counts as about 4, spreading your time over thirty people counts as about 30. The index divides that by the number of active players.

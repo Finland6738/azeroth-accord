@@ -16,7 +16,7 @@
 - Spec: LIKE-01–LIKE-05, LIKE-09
 - Scope: `Data/Likes.lua`: vote queue, notary checks, pseudonyms, append-only ledger, authority rule, totals per account.
 - Done when:
-  - [ ] Tests: double vote, self and alt votes, forged ledger, queued votes, merge after alt linking.
+  - [x] Tests: double vote, self and alt votes, forged ledger, queued votes, merge after alt linking (`Tests/test_likes.lua`, with the network simulator: votes wait for an officer, two clients like a third and every client shows the same total; also a new token, another salt, a copied token, the append-only store).
 
 ### M4.3 — Like button, column and Reputation view
 - Branch: `step/m4-3-likes-ui`

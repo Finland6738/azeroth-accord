@@ -28,6 +28,8 @@
 --   contacts  the same for the `contacts` record (BattleTag and Discord), default false
 --   coplay    the one-minute co-play recording and its hourly publication (Data/CoPlay.lua), default false
 --   notary    officers ask for and share the guild salt of the likes after login (Data/Notary.lua), default false
+--   likes     waiting votes are delivered to a notary every 15 s (Data/Likes.lua), and every client starts with its own
+--             account token (the same clock would give them all the same one), default false
 --   officerChannel  false: OFFICER addon messages reach nobody, not even the sender's echo (S5 failing); default true
 --   setup     function(Mock, i, client) called after the mock client is built, before the addon loads
 -- Time starts at 0 when the clients exist; sim:resetStats() starts a fresh measurement.
@@ -313,6 +315,7 @@ local function bootClient(sim, i, opts)
 	world.autoContacts = sim.contacts
 	world.autoCoPlay = sim.coplay
 	world.autoNotary = sim.notary
+	world.autoLikes = sim.likes
 	local c = setmetatable({
 		sim = sim, index = i, world = world, E = world.E, Mock = world.Mock, name = Sim.nameOf(i), realmKey = sim.realmKey,
 		online = true, cursor = 0,
@@ -323,6 +326,9 @@ local function bootClient(sim, i, opts)
 		Mock.player.realm = sim.realm
 		Mock.player.guid = Sim.guidOf(i)
 		Mock.SetServerTime(sim.epoch)
+		-- every client would draw the same account token (the same clock, the same seed): real accounts never do, and
+		-- the likes' pseudonyms are made from it, so with `likes` each client starts with its own
+		if sim.likes then world.E.AzerothAccordDB = { token = ("SimTokenClient%010d"):format(i) } end
 		Mock.guild.Set{ name = GUILD_NAME, myRank = sim.officer[i] and 1 or 3, officerRanks = 1, members = rosterFor(sim, i) }
 		if opts.setup then opts.setup(Mock, i, c) end
 	end } }
@@ -335,7 +341,7 @@ function Sim.new(opts)
 		time = 0, slot = 0, step = opts.step or 0.1, latency = opts.latency or 0.1, loss = opts.loss or 0,
 		echo = opts.echo ~= false, realm = opts.realm or "Test Realm", clients = {}, inflight = {}, lastSlot = {},
 		rngState = (opts.seed or 1) % 2147483648, statsFrom = 0, delivered = 0, lost = 0, sync = opts.sync ~= false, accounts = opts.accounts == true, contacts = opts.contacts == true, coplay = opts.coplay == true,
-		notary = opts.notary == true, officerChannel = opts.officerChannel ~= false,
+		notary = opts.notary == true, likes = opts.likes == true, officerChannel = opts.officerChannel ~= false,
 		officer = {}, size = opts.clients or 2, epoch = 1767225600,
 	}, Sim)
 	for _, i in ipairs(opts.officers or {}) do sim.officer[i] = true end
