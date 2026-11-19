@@ -173,6 +173,14 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # The body of the release is the section of CHANGELOG.md for this version (tools/release_notes.py); a build before
+      # the changelog was promoted uses Unreleased.
+      - name: Write the release notes
+        if: steps.plan.outputs.publish != 'none'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: python -I -X utf8 tools/release_notes.py "$TAG" --out "$RUNNER_TEMP/release-notes.md"
+
       - name: Create the GitHub Release
         if: steps.plan.outputs.publish != 'none'
         env:
@@ -184,7 +192,7 @@ jobs:
           ZIP: ${{ steps.zip.outputs.path }}
         run: |
           set -euo pipefail
-          args=(release create "$TAG" "$ZIP" --title "$TAG" --generate-notes)
+          args=(release create "$TAG" "$ZIP" --title "$TAG" --notes-file "$RUNNER_TEMP/release-notes.md")
           if [[ "$PRERELEASE" == "true" ]]; then
             args+=(--prerelease)
           fi

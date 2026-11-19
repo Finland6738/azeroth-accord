@@ -142,6 +142,7 @@ def main():
     check_rules(problems)
     check_optional("check_addon", problems)
     check_optional("check_package", problems)
+    check_optional("release_notes", problems)
     for p in problems:
         print(p)
     print(f"{len(files)} files checked, {len(problems)} problem(s).")

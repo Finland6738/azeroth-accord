@@ -36,7 +36,7 @@ Ogni milestone termina con una lista di prove in gioco (`docs/checklists/`), da 
 
 ## 4. Rilascio
 
-`v0.x` alla fine di ogni milestone dopo M1 (per la gilda del proprietario), `v0.9` beta a fine M5, `v1.0.0` a fine M6. Pacchetto con il packager BigWigs (come Azeroth Guild Finder), GitHub Releases; CurseForge facoltativo.
+`v0.x` alla fine di ogni milestone dopo M1 (per la gilda del proprietario), `v0.9` beta a fine M5, `v1.0.0` a fine M6. Pacchetto con il packager BigWigs (come Azeroth Guild Finder), GitHub Releases; CurseForge facoltativo e spento finché il proprietario non decide ([SPEC-10 Q9](SPEC-10-risks-open-questions.md)). Il flusso (`.github/workflows/release.yml`, `docs/RELEASING.md`) parte solo con un tag `vX.Y.Z[-alpha|-beta|-rc[.N]]` o a mano: controlla il contenuto (`tools/check_package.py`), costruisce lo zip, lo ricontrolla, lo tiene come artefatto per 14 giorni, crea la GitHub Release con le note prese da `CHANGELOG.md` (`tools/release_notes.py`) e, solo se configurato, carica su CurseForge. Nessun tag viene creato dalle sessioni di sviluppo: ogni tag aspetta le prove in gioco del proprietario.
 
 ## 5. Rifinitura e prestazioni (M6.3)
 

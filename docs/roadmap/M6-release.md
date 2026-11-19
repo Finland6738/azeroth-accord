@@ -37,6 +37,10 @@
 ### M6.5 — Packaging and release workflow
 - Branch: `step/m6-5-packaging`
 - Scope: BigWigs packager, GitHub Releases, optional CurseForge (disabled until the owner decides, SPEC-10 Q9), `docs/RELEASING.md`.
+- Spec: SPEC-09 §4
+- Done when:
+  - [x] The release workflow (BigWigs packager, package and zip checks, GitHub Release with the notes of `CHANGELOG.md`, CurseForge only with `CF_API_KEY` and a project id in the TOC) is in place and has **not run**: no tag exists; `tools/release_notes.py` writes the notes and promotes *Unreleased* (self-tested by `tools/check_docs.py`); the TOC has the commented CurseForge line; `docs/RELEASING.md` lists the versions, the checks that come first and the owner's steps; SPEC-10 Q9 records the CurseForge decision.
+  - [ ] The first dry run of the workflow (Actions, *Run workflow*, nothing published) and a draft release, then the real tag: the owner, after the in-game checks.
 
 ### M6.6 — Wiki mockups and images
 - Branch: `step/m6-6-mockups`
