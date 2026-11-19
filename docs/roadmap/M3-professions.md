@@ -22,7 +22,7 @@
 - Branch: `step/m3-3-recipe-sync`
 - Scope: `recipes` data set in Store and Sync, on-demand requests when a view needs a member's list.
 - Done when:
-  - [ ] Simulator: a recipe list reaches 20 clients within the traffic budget.
+  - [x] Simulator: a recipe list reaches 20 clients within the traffic budget (`Tests/test_recipe_sync.lua`: 400 recipes reach 20 clients in under 10 s with about 1.3 KB in all; a late login stays inside the 8 KB login cost; an unchanged list adds no traffic).
 
 ### M3.4 — Recipe view from the roster
 - Branch: `step/m3-4-recipe-view`

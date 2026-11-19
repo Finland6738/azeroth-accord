@@ -18,7 +18,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 |---|---|---|
 | `HELLO` | versione dell'addon, riepilogo per autore (§4) | `GUILD` |
 | `DIGEST` | riservato: non usato dalla sincronizzazione attuale (la risposta a `HELLO` è l'invio diretto dei record, §4) | `WHISPER` |
-| `REQ` | richiesta dei record di uno o più autori (chiavi del riepilogo) | `WHISPER` |
+| `REQ` | richiesta dei record di uno o più autori (chiavi del riepilogo); con `s` = un insieme (non `*`) chiede **solo i record di quell'insieme**, per una vista che li serve subito (§4, punto 7) | `WHISPER` |
 | `REC` | uno o più record di un insieme | `GUILD` o `WHISPER` |
 | `VOTE` | voto per un like | `WHISPER` al notaio |
 | `LEDGER` | voci del libro dei like | `GUILD` |
@@ -40,6 +40,7 @@ Le regole di fiducia (§6) dicono **chi** può passare un record: l'account del 
 4. Ogni modifica locale esce come `REC` su `GUILD`, accumulata per 5 s.
 5. Limiti: al massimo un `HELLO` ogni 5 minuti per client; un `REC` porta al massimo circa 2,5 KB di record (stima), i più grandi si dividono.
 6. Un client che ha perso i propri dati se li riprende così dagli altri, e la sua prossima scrittura riparte dalla `rev` giusta.
+7. **Richiesta su misura** (`Sync:RequestSet(insieme, autore)`, per esempio le ricette di un membro quando una vista le apre e non ci sono): un `REQ` con `s` = il nome dell'insieme e la chiave dell'autore, in `WHISPER` a un solo destinatario che può consegnare: l'account dell'autore se è online, altrimenti fino a **due ufficiali** sentiti di recente (scelti per hash, sempre gli stessi). La risposta è un `REC` in `WHISPER` solo al richiedente, con i soli record di quell'insieme (non va su `GUILD`: serve a uno solo). Limiti: la stessa richiesta (insieme e autore) al massimo ogni 5 minuti; chi risponde ne accetta al massimo 20 al minuto per mittente. Se nessuno che possa consegnare è online non si manda nulla e non si ricorda nulla: la prossima chiamata riprova. Chi risponde segue le stesse regole di §4.2: l'account dell'autore o un ufficiale.
 
 **Budget di traffico** (provato dal simulatore, `Tests/test_sync_sim.lua`: 50 client, 5 ufficiali, metà offline all'inizio, 45 minuti di accessi, uscite, scritture e lockdown casuali, 1% di messaggi persi, latenza 0,05–0,5 s):
 

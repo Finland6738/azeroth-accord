@@ -32,6 +32,12 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 - Si pubblica un record `recipes` (SPEC-03 §3) quando l'impronta (`h`) cambia, al massimo **una volta ogni 10 minuti per professione** (PRO-06): una modifica che arriva prima aspetta e parte con lo stato più recente allo scadere dei 10 minuti. È sempre condiviso, senza impostazione.
 - Anche Cooking, First Aid e Fishing hanno un record (la cucina serve a "who can craft"), ma non compaiono nelle celle di professione del roster, che mostra le due professioni primarie.
 
+### 1.4 Sincronizzazione delle liste condivise e vista unificata
+
+- Il record `recipes` viaggia con la sincronizzazione normale per autore (SPEC-02 §4): ogni modifica locale esce come `REC` su `GUILD` dopo 5 secondi, e chi arriva dopo la riceve dall'account dell'autore o da un ufficiale. Il simulatore (`Tests/test_recipe_sync.lua`) mostra che la lista di 400 ricette di un membro raggiunge 20 client in meno di 10 secondi con circa 1,3 KB in tutto per la gilda, e che un accesso tardivo la riceve entro il costo di 8 KB di SPEC-02 §4.
+- **Richiesta su richiesta**: quando una vista apre le ricette di un membro, `Recipes:Ensure(guid, skillLine)` chiede a ogni fonte che può rispondere: la fonte nativa (§1.2) e, se la lista condivisa manca o ha più di 6 ore, la richiesta su misura di SPEC-02 §4.7. Restituisce lo stato di ciascuna (`queued`, `cached`, `unavailable`, `have`, `sent`, `recent`, `nobody`, `own`…), così la vista può dire "nessuno che abbia la lista è online" (PRO-03).
+- `Recipes:Lookup(guid, skillLine)` è l'unico punto di lettura delle viste: la risposta nativa se c'è (con anche l'età della lista condivisa), altrimenti la lista condivisa (per il personaggio del giocatore, la propria scansione, fonte `own`), altrimenti nulla. `Recipes:ProfessionsOf(guid)` elenca le professioni di cui il membro ha condiviso una lista. L'evento `RECIPES_UPDATED(guid, skillLine, fonte)` avvisa le viste quando arriva una lista, nativa o condivisa.
+
 ## 2. Requisiti
 
 - PRO-01: la cella della professione nel roster mostra nome e grado (per esempio `Alchemy 285/300`) e, al passaggio del mouse, la fonte e l'età.
@@ -43,4 +49,4 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 
 ## 3. Dimensioni
 
-Una professione ha qualche centinaio di ricette: come spellID ordinati codificati a differenze occupano circa 1 byte per ricetta prima della compressione. Una gilda di 200 membri con 2 professioni resta sotto i 300 KB in SavedVariables.
+Una professione ha qualche centinaio di ricette: come spellID ordinati codificati a differenze occupano circa 1,5 byte per ricetta, circa 2 caratteri in Base64 ([SPEC-03 §3](SPEC-03-data-model.md#3-ricette-recipes)). Una gilda di 200 membri con 2 professioni e in media 150 ricette ciascuna sta intorno ai 120 KB in SavedVariables, 300 KB nel caso peggiore di liste da 400 ricette; un record non supera 8 KB e un messaggio con 400 ricette pesa circa 1 KB dopo la compressione.

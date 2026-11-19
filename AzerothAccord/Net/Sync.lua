@@ -17,6 +17,10 @@
 --             from many clients goes out once and everyone who missed it catches up; local changes go on GUILD after a
 --             5-second batch; pushes go by WHISPER.
 --   DIGEST    not used by this design (the push replaces the digest reply); the type stays in the codec.
+--   ask       Sync:RequestSet(set, author): a view needs one author's records of ONE set now (a member's recipes), so it
+--             sends a REQ for just that set by WHISPER to a peer that may deliver (the author's own account if online, else
+--             up to two officers heard recently); the answer is a WHISPER REC with only those records, not a GUILD one.
+--             Asked at most once per ASK_COOLDOWN seconds per author and set.
 --
 -- Received records always go through Store:Receive, so a client that is not allowed to pass something on is simply
 -- refused by the others. Every timer is cancelled on a change of guild. Bus: SYNC_HELLO(sent), SYNC_RECEIVED(set, n).
@@ -39,6 +43,9 @@ Sync.BATCH = 5                      -- seconds a local change waits, so several 
 Sync.PRESENCE = 1500                -- a peer counts as online this long after its last message
 Sync.REC_BYTES = 2500               -- estimated size of the records in one REC (the codec limit is far above)
 Sync.ENTRY = 11                     -- bytes per author in a summary
+Sync.ASK_COOLDOWN = 300             -- seconds before the same set of the same author is asked for again
+Sync.ASK_OFFICERS = 2               -- officers asked when the author's account is not online
+Sync.ASK_RATE = { 20, 60 }          -- answers to set requests: at most 20 per sender per 60 seconds
 
 local function compat() return ns.Compat end
 local function store() return ns.Store end
@@ -57,10 +64,12 @@ local function resetState()
 		push = {},             -- target name -> { authors = { [guid] = true }, timer }
 		req = {},              -- target name -> { keys = { [key] = true }, theirs = summary, timer }
 		dirty = {},            -- set -> { [id] = true }: local changes waiting for the batch
+		asked = {},            -- "<set>|<author>" -> when this client asked for it (RequestSet)
+		answering = {},        -- sender name -> { start, count }: the rate of the set requests answered
 		batchTimer = nil, helloTimer = nil, timers = {},
 		cache = nil, version = 0, cacheVersion = -1,
 		stats = { hellosSent = 0, hellosHeard = 0, pushes = 0, requests = 0, answers = 0, recSent = 0, recReceived = 0,
-			accepted = 0, refused = 0 },
+			accepted = 0, refused = 0, asks = 0, asksAnswered = 0, asksLimited = 0 },
 	}
 	Sync.state = state
 end
@@ -399,6 +408,18 @@ local function onHello(msg, sender)
 	end
 end
 
+-- true while `sender` has not used up its share of set requests (ASK_RATE).
+local function withinAskRate(sender)
+	local t = now()
+	local w = state.answering[sender]
+	if not w or t - w.start >= Sync.ASK_RATE[2] then
+		w = { start = t, count = 0 }
+		state.answering[sender] = w
+	end
+	w.count = w.count + 1
+	return w.count <= Sync.ASK_RATE[1]
+end
+
 local function onReq(msg, sender)
 	if type(msg.a) ~= "table" then return end
 	local member = touch(sender)
@@ -408,17 +429,32 @@ local function onReq(msg, sender)
 	local byKey = {}
 	for author, g in pairs(groups) do byKey[g.key] = author end
 	local officer = iAmOfficer()
+	local single = msg.s ~= "*" and S.SETS[msg.s] and msg.s or nil
+	if single and not withinAskRate(sender) then
+		state.stats.asksLimited = state.stats.asksLimited + 1
+		return
+	end
 	local count = 0
 	for i, key in ipairs(msg.a) do
-		if i > 500 then break end
+		if i > (single and 20 or 500) then break end
 		local author = type(key) == "number" and byKey[key]
 		if author and (officer or (me and S:SameAccount(me, author))) then
 			local entries = {}
-			for _, e in ipairs(groups[author].records) do entries[#entries + 1] = e end
-			count = count + sendRecords(entries, "GUILD", nil, "REC|" .. key)
+			for _, e in ipairs(groups[author].records) do
+				if not single or e[1] == single then entries[#entries + 1] = e end
+			end
+			if single then
+				-- a request for one set came from a view that needs it now: the answer goes to that client only
+				if #entries > 0 then count = count + sendRecords(entries, "WHISPER", sender) end
+			else
+				count = count + sendRecords(entries, "GUILD", nil, "REC|" .. key)
+			end
 		end
 	end
-	if count > 0 then state.stats.answers = state.stats.answers + 1 end
+	if count > 0 then
+		if single then state.stats.asksAnswered = state.stats.asksAnswered + 1
+		else state.stats.answers = state.stats.answers + 1 end
+	end
 end
 
 local function onRec(msg, sender, dist)
@@ -474,6 +510,46 @@ function Sync:OnGuildChanged(key)
 	if key then Sync:Start() end
 end
 
+-- Asks for one author's records of one set because a view needs them (the recipes of a member). Returns "sent" and the
+-- name asked, "own" (the author is this player's own account: nothing to ask), "recent" (asked within ASK_COOLDOWN),
+-- "nobody" (no peer that may deliver them is online and known: nothing is sent and nothing is remembered, so the next
+-- call tries again), "blocked" (the transport refused), "guild" or "invalid".
+function Sync:RequestSet(set, author)
+	if not (ns.GuildKey and ns.GuildKey:Current()) then return "guild" end
+	local S = store()
+	if not S.SETS[set] or type(author) ~= "string" or author == "" then return "invalid" end
+	local me = myGUID()
+	if me and (author == me or S:SameAccount(me, author)) then return "own" end
+	local key = set .. "|" .. author
+	local t = now()
+	local last = state.asked[key]
+	if last and t - last < Sync.ASK_COOLDOWN then return "recent" end
+	local own, officers = {}, {}
+	for name, p in pairs(presentPeers()) do
+		if p.guid == author or S:SameAccount(p.guid, author) then own[#own + 1] = name
+		elseif p.officer then officers[#officers + 1] = { name = name, rank = hash().Fast((p.guid or "") .. (me or "")) } end
+	end
+	local targets = {}
+	if #own > 0 then
+		sort(own)
+		targets[1] = own[1]
+	else
+		sort(officers, function(a, b) if a.rank ~= b.rank then return a.rank < b.rank end return a.name < b.name end)
+		for i = 1, min(Sync.ASK_OFFICERS, #officers) do targets[i] = officers[i].name end
+	end
+	if #targets == 0 then return "nobody" end
+	local sentTo
+	for _, name in ipairs(targets) do
+		if send("WHISPER", { t = "REQ", s = set, a = { Sync.KeyOf(author) } }, { target = name, key = "ASK|" .. key .. "|" .. name }) then
+			sentTo = sentTo or name
+		end
+	end
+	if not sentTo then return "blocked" end
+	state.asked[key] = t
+	state.stats.asks = state.stats.asks + 1
+	return "sent", sentTo
+end
+
 -- For the top bar of the panel: how many guildmates with the addon are online, when records last arrived.
 function Sync:Status()
 	local n = 0
@@ -498,6 +574,7 @@ function Sync:DebugLines()
 			self.AUTO and "automatic" or "manual", authors, peers, officers),
 		("  HELLO sent %d, heard %d; pushes %d, requests %d, answers %d; REC sent %d, received %d (accepted %d, refused %d)"):format(
 			s.hellosSent, s.hellosHeard, s.pushes, s.requests, s.answers, s.recSent, s.recReceived, s.accepted, s.refused),
+		("  set requests: asked %d, answered %d, over the rate limit %d"):format(s.asks, s.asksAnswered, s.asksLimited),
 	}
 end
 

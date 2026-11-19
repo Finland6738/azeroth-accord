@@ -20,7 +20,7 @@
 -- list of spell ids (or a set { [id] = true }). A bitfield string is recognised but not decoded: that answer turns the
 -- native source off ("missing", with the reason) and the shared lists carry on alone.
 --
--- Bus: RECIPES_UPDATED(guid, skillLine, source) when a list arrives.
+-- Bus: RECIPES_UPDATED(guid, skillLine, source) when a list arrives ("native", "shared", or "own" for the player's own scan).
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Recipes = {}
@@ -338,14 +338,106 @@ function Recipes:Native(guid, skillLine)
 		fresh = compat().Now() - e.at < Recipes.NATIVE_TTL }
 end
 
--- The list the views show for a member and profession: today the native answer; the shared lists join in M3.3.
-function Recipes:Lookup(guid, skillLine)
-	return self:Native(guid, skillLine)
+---------------------------------------------------------------------------------------------------------------------
+-- The shared source: the `recipes` records the members' addons publish (M3.2 writes them, the sync carries them)
+---------------------------------------------------------------------------------------------------------------------
+local decoded = { map = {}, count = 0 }   -- record id -> { rev, time, ids }: a list is decoded once per revision
+
+local function decodedList(rec)
+	local e = decoded.map[rec.id]
+	if e and e.rev == rec.rev and e.time == rec.time then return e.ids end
+	local ids
+	if type(rec.ids) == "string" then ids = Recipes.Decode(rec.ids)
+	elseif type(rec.ids) == "table" then ids = Recipes.Normalize(rec.ids) end
+	if not ids then return nil end
+	if not e then
+		if decoded.count >= Recipes.CACHE_MAX then decoded.map, decoded.count = {}, 0 end
+		decoded.count = decoded.count + 1
+	end
+	decoded.map[rec.id] = { rev = rec.rev, time = rec.time, ids = ids }
+	return ids
 end
 
--- Makes sure a list is being fetched when none is fresh: returns what RequestNative says.
+local function recordOf(guid, skillLine)
+	local key = Recipes.Key(guid, skillLine)
+	local S = ns.Store
+	local rec = key and S and S:Get("recipes", key)
+	if type(rec) ~= "table" or rec.del == true then return nil end
+	return rec
+end
+
+-- The shared list of a member and profession, or nil: { ids, time, rank, maxRank, name, n, source = "shared" }; the
+-- player's own character reads its own scan and says source = "own".
+function Recipes:Shared(guid, skillLine)
+	local rec = recordOf(guid, skillLine)
+	if not rec then return nil end
+	local ids = decodedList(rec)
+	if not ids then return nil end
+	return { ids = ids, time = rec.time, rank = rec.rank, maxRank = rec.maxRank, name = rec.name, n = #ids, guid = guid,
+		skillLine = floor(skillLine), source = guid == ownGUID() and "own" or "shared" }
+end
+
+-- The professions a member has shared lists of: { { skillLine, name, rank, maxRank, time, n }, ... } by skill line.
+function Recipes:ProfessionsOf(guid)
+	local out, S = {}, ns.Store
+	if type(guid) ~= "string" or not S then return out end
+	for _, rec in pairs(S:Records("recipes")) do
+		if type(rec) == "table" and rec.char == guid and type(rec.skillLine) == "number" and rec.del ~= true then
+			out[#out + 1] = { skillLine = rec.skillLine, name = rec.name, rank = rec.rank, maxRank = rec.maxRank, time = rec.time,
+				n = tonumber(rec.n) or 0 }
+		end
+	end
+	table.sort(out, function(a, b) return a.skillLine < b.skillLine end)
+	return out
+end
+
+-- The list the views show for a member and profession (ADR 0010: native first, shared fills the gaps): the game's
+-- answer when there is one, else the member's shared list, else nil. The result is the source's own table plus
+-- `sharedTime` (when the shared list was written, if there is one) so the view can say both ages.
+function Recipes:Lookup(guid, skillLine)
+	local shared = self:Shared(guid, skillLine)
+	local own = shared and shared.source == "own"
+	local nat = not own and self:Native(guid, skillLine) or nil
+	if nat then
+		nat.sharedTime = shared and shared.time or nil
+		nat.rank, nat.maxRank, nat.name = shared and shared.rank, shared and shared.maxRank, shared and shared.name
+		return nat
+	end
+	return shared
+end
+
+-- A view needs the list of a member's profession: asks every source that can give it and says what each one did.
+-- Returns { native = <RequestNative status>, shared = "have" | <Sync:RequestSet status> }. A shared list that is
+-- already here is "have" (and is not asked again before it is old); the native list is asked whenever it is not fresh.
+Recipes.SHARED_REFRESH = 6 * 3600   -- a shared list older than this is asked for again when a view opens it
+function Recipes:Ensure(guid, skillLine)
+	local out = { native = self:RequestNative(guid, skillLine) }
+	local shared = self:Shared(guid, skillLine)
+	local C, Sync = compat(), ns.Sync
+	if shared and shared.source ~= "own" and C and C.ServerTime() - (shared.time or 0) < Recipes.SHARED_REFRESH then
+		out.shared = "have"
+	elseif shared and shared.source == "own" then
+		out.shared = "own"
+	elseif guid == ownGUID() then
+		out.shared = "own"
+	elseif Sync then
+		out.shared = Sync:RequestSet("recipes", guid)
+	else
+		out.shared = "nobody"
+	end
+	return out
+end
+
+-- Kept for callers of M3.1: makes sure the native list is being fetched when none is fresh.
 function Recipes:Refresh(guid, skillLine)
 	return self:RequestNative(guid, skillLine)
+end
+
+-- A shared record arrived or changed: views that show it learn about it through the same event as a native answer.
+local function onStoreChanged(set, id, origin)
+	if set ~= "recipes" or type(id) ~= "string" then return end
+	local guid, line = id:match("^(.-):(%d+)$")
+	if guid then emit("RECIPES_UPDATED", guid, tonumber(line), origin == "local" and "own" or "shared") end
 end
 
 -- Forgets the native queue and cache (a change of guild); the epoch makes timers of the old guild do nothing.
@@ -374,5 +466,8 @@ if ns.addon then
 	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Recipes", function() return Recipes:DebugLines() end) end
 	LibStub("AceEvent-3.0"):Embed(Recipes)
 	Recipes:RegisterEvent(Recipes.EVENT, function() Recipes:OnNativeAnswer() end)
-	if ns.Bus then ns.Bus:On("GUILD_CHANGED", function() Recipes:Reset() end) end
+	if ns.Bus then
+		ns.Bus:On("GUILD_CHANGED", function() Recipes:Reset() decoded.map, decoded.count = {}, 0 end)
+		ns.Bus:On("STORE_CHANGED", onStoreChanged)
+	end
 end
