@@ -56,6 +56,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - M5.6: the officers' inbox and the notices (SPEC-08 BANK-23, BANK-24, §10): `Data/BankInbox.lua`. A red mark with the number of open requests on the Accord tab of the guild window, "Bank (n)" on the panel button and a line in the compartment tooltip, for officers only; the **Inbox** mode of the Bank view (officers): what waits for a decision, oldest first, each with the bank movement that looks like its delivery (a withdrawal or deposit of the item, or the gold, by a character of the requester's account after the request) and the one-click *Fulfilled*; one chat line to an officer when a new request arrives and one to the requester when an officer approves, rejects (with the reason) or fulfils theirs, remembered so a reload does not repeat them, silent on the first run of a guild, bursts printed together (three lines and "and N more"). Offline tests, with the network simulator: `Tests/test_bank_inbox.lua`.
 
+- M5.7: `docs/checklists/M5.md`, the in-game check of M5 for the owner (capture at the vault, a member who never opens it seeing the snapshots, the officers' tab staying private, logs without duplicates, donations, a request from a member to an approved and fulfilled one, the inbox and notices, taint), with the S9 questions of the bank; the Guild Bank wiki page and the README status. The `v0.9.0` section and tag follow the owner's confirmation.
+
 ### Spike
 
 - M0.1: the probe addon skeleton `tools/probe/AzAc_Probe/` (TOC 16001, check registry S1–S11 as stubs, `/aacp list|run|export|reset`, export frame, `AzAc_ProbeDB`), `tools/install_probe.py` with `tools/local.example.ini`, and `docs/spike/README.md`.

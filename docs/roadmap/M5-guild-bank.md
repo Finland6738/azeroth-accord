@@ -49,3 +49,6 @@
 ### M5.7 — M5 in-game check and v0.9.0 beta
 - Branch: `step/m5-7-check`
 - Scope: `docs/checklists/M5.md`, wiki "Guild Bank", tag `v0.9.0` (beta for the owner's guild).
+- Done when:
+  - [x] `docs/checklists/M5.md` (the in-game check: capture, sharing, permissions, logs and donations, requests, inbox and notices, taint; it lists every unverified API and behaviour and the S9 questions), the wiki page Guild Bank, README status.
+  - [ ] The in-game check passes with the owner's guild, then the tag `v0.9.0` (not created: it waits for the check, [docs/RELEASING.md](../RELEASING.md)).
