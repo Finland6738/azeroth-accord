@@ -163,9 +163,14 @@ describe("NET-12: authority", function()
 	end)
 
 	it("restricted bank tabs come only from officers", function()
-		truthy(accept("bank", R{ id = "tab1", author = BOB, tab = 1, items = {} }, "Bob"))
-		eq(select(2, accept("bank", R{ id = "tab6", author = BOB, tab = 6, restricted = true, items = {} }, "Bob")), "authority")
-		truthy(accept("bank", R{ id = "tab6", author = OFF, tab = 6, restricted = true, items = {} }, "Officer"))
+		local function tab(author, n, extra)
+			return R{ id = author .. ":t" .. n, author = author, kind = "tab", tab = n, rank = 3, it = "1.2589.20", n = 1, restricted = extra }
+		end
+		truthy(accept("bank", tab(BOB, 1), "Bob"))
+		eq(select(2, accept("bank", tab(BOB, 6, true), "Bob")), "authority")
+		truthy(accept("bank", tab(OFF, 6, true), "Officer"))
+		eq(select(2, accept("bank", R{ id = BOB .. ":t2", author = OFF, kind = "tab", tab = 2, it = "", n = 0 }, "Officer")), "owner",
+			"an id that is not the author's")
 	end)
 end)
 
@@ -272,12 +277,13 @@ describe("per guild and retention", function()
 		S():Records("bankreq")["closed"] = { id = "closed", status = "fulfilled", time = now - 61 * day }
 		S():Records("bankreq")["open"] = { id = "open", status = "open", time = now - 200 * day }
 		S():Records("bank")["log"] = { id = "log", kind = "log", time = now - 366 * day }
-		S():Records("bank")["tab"] = { id = "tab", kind = "tab", time = now - 366 * day }
+		S():Records("bank")["tab"] = { id = "tab", kind = "tab", time = now - 89 * day }
+		S():Records("bank")["oldtab"] = { id = "oldtab", kind = "tab", time = now - 91 * day }
 		S():Records("contacts")["gone"] = { id = "gone", del = true, time = now - 61 * day }
-		eq(S():Prune(), 4)
+		eq(S():Prune(), 5)
 		isNil(S():Get("coplay", "old")); notNil(S():Get("coplay", "new"))
 		isNil(S():Get("bankreq", "closed")); notNil(S():Get("bankreq", "open"))
-		isNil(S():Get("bank", "log")); notNil(S():Get("bank", "tab"))
+		isNil(S():Get("bank", "log")); notNil(S():Get("bank", "tab")); isNil(S():Get("bank", "oldtab"))
 		isNil(S():Get("contacts", "gone"))
 	end)
 

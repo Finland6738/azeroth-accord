@@ -999,7 +999,7 @@ end
 -- can tell at login; modules refine them later with Compat:SetFeature (the Accord tab when it attaches, the roster when
 -- members come in, the transport when an OFFICER message comes back, the bank when the vault opens).
 Compat.FEATURES = { "guildTab", "clubProfessions", "clubDiscord", "guildRecipesNative", "ownRecipes", "officerAddonChannel",
-	"groupGUIDs", "battleTag", "bankLogs" }
+	"groupGUIDs", "battleTag", "bankLogs", "bankTabs" }
 
 local function hasAll(...)
 	for i = 1, select("#", ...) do
@@ -1055,6 +1055,11 @@ local function probeFeatures()
 	set("officerAddonChannel", hasAll("C_ChatInfo.SendAddonMessage") and UNKNOWN or MISSING, "no OFFICER message seen yet")
 	set("groupGUIDs", hasAll("UnitGUID", "GetNumGroupMembers") and UNKNOWN or MISSING, "not in a group yet")
 	set("battleTag", Player.BattleTag() and AVAILABLE or (hasAll("BNet_GetBattleTagSelf") and UNKNOWN or MISSING))
+	if hasAll("GetNumGuildBankTabs", "GetGuildBankItemInfo", "QueryGuildBankTab") then
+		set("bankTabs", UNKNOWN, "vault not opened yet")
+	else
+		set("bankTabs", MISSING, "bank tab API missing")
+	end
 	if hasAll("GetNumGuildBankTransactions", "GetGuildBankTransaction") then
 		set("bankLogs", UNKNOWN, "vault not opened yet")
 	else

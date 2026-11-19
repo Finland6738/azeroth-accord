@@ -8,6 +8,8 @@
 - Branch: `step/m5-1-bank-capture`
 - Spec: BANK-01; ADR 0009
 - Scope: `Data/Bank.lua`: paced tab queries at `GUILDBANKFRAME_OPENED`, money, tab permissions.
+- Done when:
+  - [x] The open vault is read one tab at a time with a pause; only viewable tabs; money; an unchanged tab is not sent again for 30 minutes; a tab that never loaded is not published as empty; the snapshot of an officer is restricted (covered by `Tests/test_bank_capture.lua`). Unverified in game: the S9 behaviour listed in `docs/checklists/M5.md` (M5.7).
 
 ### M5.2 — Snapshot sync with permissions
 - Branch: `step/m5-2-bank-sync`

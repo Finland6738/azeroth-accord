@@ -1,6 +1,6 @@
 # Guild bank
 
-> Planned for milestone M5.
+> Planned for milestone M5. Step by step: the addon already reads the vault when *you* open it (M5.1); sharing and the Bank view follow.
 
 - The game shows the bank only at the vault. Whenever a guildmate with the addon opens it, the addon saves what each tab holds and shares it, so the **Bank** view works anywhere. Each tab shows how old its contents are.
 - Tabs that your rank cannot see in the game stay hidden in the addon too.

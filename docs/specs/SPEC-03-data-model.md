@@ -63,11 +63,15 @@ Totale di un account = numero di `pseudonym` distinti nelle voci il cui `target`
 
 ## 6. Banca (`bank`)
 
-| Elemento | Campi |
-|---|---|
-| Foto di una scheda | `{tab, name, icon, viewRanks, items: [{slot, itemID, link, count}], time, author}` |
-| Denaro | `{money, time, author}` |
-| Voce di registro | `{kind (deposit, withdraw, move, repair, buyTab…), name, itemID?, count?, amount?, hourBucket}` |
+Ogni record appartiene a chi l'ha scritto (l'id comincia con il suo GUID: nessuno scrive la foto di un altro). Più autori possono avere una foto della stessa scheda: in vista vince la più recente ([SPEC-08 §5](SPEC-08-guild-bank.md#5-cattura-databanklua-m51)).
+
+| Elemento | Id | Campi |
+|---|---|---|
+| Foto di una scheda | `<GUID>:t<scheda>` | `kind = "tab"`, `tab` (1-8), `name`, `icon`, `rank` (grado di chi l'ha letta), `restricted` (solo ufficiali), `it` (oggetti `slot.itemID.quantità[.variante]`, al massimo 98, separati da virgole), `n`, `h` |
+| Denaro | `<GUID>:money` | `kind = "money"`, `money` (rame) |
+| Registro | `<GUID>:log:<scheda>` | M5.4 |
+
+Conservazione: foto e denaro 90 giorni, registri 365 ([SPEC-02 §6](SPEC-02-network-protocol.md#6-fiducia-e-integrità)).
 
 ## 7. Richieste in banca (`bankreq`)
 

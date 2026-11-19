@@ -25,7 +25,7 @@
 -- Plus shape checks (id, author GUID, rev, time not in the future, size per set) and the owner rule of each set (an
 -- author writes only its own character, its own account, its own observations).
 --
--- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
+-- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -166,10 +166,11 @@ Store.SETS = {
 		immutable = true,
 		owner = function(rec) return ns.Likes ~= nil and ns.Likes.ValidEntry(rec) end,
 	},
-	bank = {       -- snapshots of tabs, money and logs (M5); restricted tabs need an officer
+	bank = {       -- snapshots of tabs, money and logs (Data/Bank.lua); id = "<author GUID>:t<tab>" | ":money" | ":log:<tab>"
 		maxBytes = 12288,
-		authority = function(rec) return rec.restricted == true end,
-		expires = function(rec, t) return rec.kind == "log" and (rec.time or 0) < t - 365 * DAY end,
+		authority = function(rec) return rec.restricted == true end,   -- an officer's snapshot: officers only (NET-12)
+		owner = function(rec) return ns.Bank ~= nil and ns.Bank.ValidRecord(rec) end,
+		expires = function(rec, t) return (rec.time or 0) < t - (rec.kind == "log" and 365 or 90) * DAY end,
 	},
 	bankreq = {    -- requests (M5): the author opens or cancels its own, officers decide
 		maxBytes = 1024,

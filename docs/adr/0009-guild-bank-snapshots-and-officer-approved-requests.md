@@ -23,3 +23,7 @@ The owner wants to see the guild bank from the guild window, request withdrawals
 
 - Positive: an always-available view of the bank, a donation history, a transparent request flow.
 - Negative: the view is only as fresh as the last visit to the bank; the age of each tab is always shown.
+
+## Note (M5.1, capture)
+
+The game tells a client only whether its own rank can view a tab, never which other ranks can. A snapshot therefore records the rank of the character that read it and is shown to members of that rank or above; a snapshot read by an officer is restricted to officers (sent on `OFFICER` only). One record per author and tab keeps the first-hand rule of ADR 0005; the view picks the newest. Tabs that never loaded are never published as empty. All of this is to be confirmed by the M0 bank check (S9) and the in-game check of M5.
