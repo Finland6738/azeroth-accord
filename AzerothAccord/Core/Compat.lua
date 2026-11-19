@@ -722,6 +722,12 @@ function Bank.QueryTab(tab)
 	return state
 end
 
+-- The "tab" number that asks for the money log: one past the last item tab (MAX_GUILDBANK_TABS + 1) [verify S9].
+function Bank.MoneyLogTab()
+	local max = _G.MAX_GUILDBANK_TABS
+	return (type(max) == "number" and max or 6) + 1
+end
+
 function Bank.QueryLog(tab)
 	local _, state = first("QueryGuildBankLog", tab)
 	return state

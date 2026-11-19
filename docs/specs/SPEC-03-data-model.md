@@ -69,7 +69,7 @@ Ogni record appartiene a chi l'ha scritto (l'id comincia con il suo GUID: nessun
 |---|---|---|
 | Foto di una scheda | `<GUID>:t<scheda>` | `kind = "tab"`, `tab` (1-8), `name`, `icon`, `rank` (grado di chi l'ha letta), `restricted` (solo ufficiali), `it` (oggetti `slot.itemID.quantità[.variante]`, al massimo 98, separati da virgole), `n`, `h` |
 | Denaro | `<GUID>:money` | `kind = "money"`, `money` (rame) |
-| Registro | `<GUID>:log:<scheda>` | M5.4 |
+| Registro | `<GUID>:log:<scheda>` | `kind = "log"`, `tab` (0 = denaro, 1-8), `rank`, `restricted` (solo schede oggetti), `e` (voci `tipo,nome,oggetto,quantità,ora` separate da `;`, al massimo 150), `n`, `h` ([SPEC-08 §8](SPEC-08-guild-bank.md)) |
 
 Conservazione: foto e denaro 90 giorni, registri 365 ([SPEC-02 §6](SPEC-02-network-protocol.md#6-fiducia-e-integrità)).
 

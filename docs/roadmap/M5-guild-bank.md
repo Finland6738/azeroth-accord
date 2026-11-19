@@ -29,6 +29,8 @@
 - Branch: `step/m5-4-logs-donations`
 - Spec: BANK-10–BANK-12
 - Scope: log merging without duplicates, donations per account (30 days, 365 days, all time), money over time.
+- Done when:
+  - [x] Logs read at the vault are merged over visits and guildmates without duplicates (also with the shifted hours of the game's log), identical events in one capture stay two; donations are counted per account over the three periods, only deposits; the money keeps a history; every client of the simulator shows the same merged list (`Tests/test_bank_log.lua`). Unverified in game: the log time format and the money-log query number (S9).
 
 ### M5.5 — Requests
 - Branch: `step/m5-5-bank-requests`

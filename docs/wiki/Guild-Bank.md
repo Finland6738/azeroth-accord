@@ -19,3 +19,9 @@ Open it with the **Bank** button of the panel or `/accord bank`.
 - **Tabs**: one button per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab buttons you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
 - **Items**: one row per item over all the tabs you may see, with the total and where it is. The search box of the panel filters by item name, item number or tab name.
 - With nothing to show yet, the view says so: somebody must open the vault once.
+
+## Logs, donations and money
+
+- **Log**: who deposited or withdrew what, newest first. The game keeps only a short history and shows it only at the vault; the addon adds every visit of a guildmate with the addon to the history, without listing the same event twice, so it grows beyond the game's. Search by name or item.
+- **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever, all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
+- **Money**: how the guild's money changed over the last 30 days, from what the addons have seen.

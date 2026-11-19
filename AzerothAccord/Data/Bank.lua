@@ -31,7 +31,7 @@ ns.modules.Bank = Bank
 local type, pairs, ipairs, tostring, tonumber, floor = type, pairs, ipairs, tostring, tonumber, math.floor
 local concat, sort = table.concat, table.sort
 
-Bank.EVENTS = { "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED", "GUILDBANKBAGSLOTS_CHANGED", "GUILDBANK_UPDATE_MONEY" }
+Bank.EVENTS = { "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED", "GUILDBANKBAGSLOTS_CHANGED", "GUILDBANKLOG_UPDATE", "GUILDBANK_UPDATE_MONEY" }
 Bank.PAUSE = 1.0          -- seconds between two queries
 Bank.WAIT = 4             -- seconds to wait for a tab to load before reading what is there
 Bank.TABS_RETRY = 1.5     -- seconds before asking again for the tab count while the vault has not told it yet
@@ -50,7 +50,7 @@ local function resetState()
 		epoch = ((state and state.epoch) or 0) + 1,
 		perms = {},            -- tab -> { name, icon, viewable, canDeposit, withdrawals, remaining }: this rank, this session
 		published = {},        -- tab -> { h, at }: the last publication of this session (REPUBLISH)
-		stats = { captures = 0, tabs = 0, published = 0, unchanged = 0, unreadable = 0, aborted = 0 },
+		stats = { captures = 0, tabs = 0, logs = 0, published = 0, unchanged = 0, unreadable = 0, aborted = 0 },
 		last = nil,            -- the outcome of the last capture, for /accord debug
 		lastCapture = nil,     -- server time of the last complete capture
 	}
@@ -132,6 +132,8 @@ function Bank.ValidRecord(rec)
 		return Bank.DecodeItems(rec.it) ~= nil
 	elseif rec.kind == "money" then
 		return rec.id == rec.author .. ":money" and int(rec.money, 0, 9007199254740991)
+	elseif rec.kind == "log" then
+		return ns.BankLog ~= nil and ns.BankLog.ValidRecord(rec)
 	end
 	return false
 end
@@ -184,6 +186,9 @@ local function myRank()
 end
 
 local function officer() return ns.Role and ns.Role:IsOfficer() or false end
+
+-- The rank index of this character (0 = Guild Master), nil when the client does not say.
+function Bank.OwnRank() return myRank() end
 
 -- Writes the snapshot of one tab. Returns true, or false and "unchanged", "unreadable" or the store's reason.
 function Bank:PublishTab(tab, name, icon, items, force)
@@ -275,6 +280,17 @@ local function complete(run, how)
 			end
 		end
 	end
+	if waiting.kind == "log" then
+		local rows = waiting.tab == 0 and C.Bank.MoneyLog() or C.Bank.ItemLog(waiting.tab)
+		if state.open and #rows > 0 and ns.BankLog then
+			local at = C.ServerTime()
+			local ok, why = ns.BankLog:Capture(waiting.tab, ns.BankLog.FromGame(waiting.tab, rows, at))
+			state.stats.logs = state.stats.logs + 1
+			run.results[#run.results + 1] = ("log %s: %d entries%s"):format(waiting.tab == 0 and "money" or waiting.tab, #rows,
+				ok and "" or (" (" .. tostring(why) .. ")"))
+			if C:Feature("bankLogs") ~= "available" then C:SetFeature("bankLogs", "available", "a log was read from the open vault") end
+		end
+	end
 	if not after(Bank.PAUSE, function() advance(run) end) then advance(run) end
 end
 
@@ -285,6 +301,15 @@ local function startJob(run, job)
 		C.Bank.QueryTab(job.tab)
 		local waiting = run.waiting
 		-- the timeout: whatever the client has by then is read
+		if not after(Bank.WAIT, function()
+			if run.waiting == waiting then complete(run, "timeout") end
+		end) then
+			complete(run, "timeout")
+		end
+	elseif job.kind == "log" then
+		run.waiting = { kind = "log", tab = job.tab }
+		local waiting = run.waiting
+		C.Bank.QueryLog(job.tab == 0 and C.Bank.MoneyLogTab() or job.tab)
 		if not after(Bank.WAIT, function()
 			if run.waiting == waiting then complete(run, "timeout") end
 		end) then
@@ -339,6 +364,10 @@ local function begin(tries)
 		if t.viewable then jobs[#jobs + 1] = { kind = "tab", tab = t.tab } end
 	end
 	jobs[#jobs + 1] = { kind = "money" }
+	for _, t in ipairs(tabs) do
+		if t.viewable then jobs[#jobs + 1] = { kind = "log", tab = t.tab } end
+	end
+	jobs[#jobs + 1] = { kind = "log", tab = 0 }   -- the money log
 	local run = { jobs = jobs, i = 0, results = {}, epoch = state.epoch }
 	state.run = run
 	state.stats.captures = state.stats.captures + 1
@@ -374,6 +403,13 @@ function Bank:OnSlotsChanged()
 	if run and run.waiting and run.waiting.kind == "tab" then complete(run, "event") end
 end
 
+-- A log loaded: the job that waits for it can read.
+function Bank:OnLogUpdate()
+	local run = state.run
+	if run then run.loaded = true end
+	if run and run.waiting and run.waiting.kind == "log" then complete(run, "event") end
+end
+
 -- The money changed while the vault is open and no capture runs: publish the new amount.
 function Bank:OnMoney()
 	if not state.open or state.run then return end
@@ -390,6 +426,7 @@ end
 function Bank:CanSee(rec)
 	if type(rec) ~= "table" then return false end
 	if rec.author == ownGUID() then return true end
+	if rec.kind == "log" and rec.tab == 0 then return true end   -- the money log is for every member
 	local isOfficer = officer()
 	if rec.restricted == true then return isOfficer end
 	if isOfficer then return true end
@@ -465,8 +502,8 @@ function Bank:Reset() resetState() decoded = {} end
 function Bank:DebugLines()
 	local s = state.stats
 	return {
-		("Bank: vault %s, %d capture(s), %d tab(s) read, %d published, %d unchanged, %d unreadable, %d aborted"):format(
-			state.open and "open" or "closed", s.captures, s.tabs, s.published, s.unchanged, s.unreadable, s.aborted),
+		("Bank: vault %s, %d capture(s), %d tab(s) and %d log(s) read, %d published, %d unchanged, %d unreadable, %d aborted"):format(
+			state.open and "open" or "closed", s.captures, s.tabs, s.logs, s.published, s.unchanged, s.unreadable, s.aborted),
 		("  last: %s"):format(state.last or "the vault has not been opened this session"),
 	}
 end
@@ -479,6 +516,7 @@ if ns.addon then
 		GUILDBANKFRAME_OPENED = function() Bank:OnOpened() end,
 		GUILDBANKFRAME_CLOSED = function() Bank:OnClosed() end,
 		GUILDBANKBAGSLOTS_CHANGED = function() Bank:OnSlotsChanged() end,
+		GUILDBANKLOG_UPDATE = function() Bank:OnLogUpdate() end,
 		GUILDBANK_UPDATE_MONEY = function() Bank:OnMoney() end,
 	}
 	for _, event in ipairs(Bank.EVENTS) do pcall(Bank.RegisterEvent, Bank, event, handlers[event]) end
