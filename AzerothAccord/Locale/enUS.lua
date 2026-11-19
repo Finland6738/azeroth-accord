@@ -247,3 +247,14 @@ L["SOC_LIST_NOTE"] = "Officers and the Guild Master see everyone's index; the ot
 L["SOC_LIST_ROW"] = "%d   (%.1f effective, %d different)"
 L["SOC_LIST_LOW"] = "not enough data (%s)"
 L["SOC_OWN_ONLY"] = "Each member sees their own index; officers see everyone's."
+
+-- The group map (SPEC-07 §3.3, M4.6)
+L["REP_MODE_GROUPS"] = "Groups"
+L["MAP_NONE"] = "The group map needs the social index: it is being computed, or there is no group play in the last 30 days."
+L["MAP_MIXING_LOW"] = "Well mixed: almost everyone plays with everyone (modularity %.2f)"
+L["MAP_MIXING_MEDIUM"] = "Some groups: the guild mixes, with a few regular groups (modularity %.2f)"
+L["MAP_MIXING_HIGH"] = "Cliques: the guild splits into groups that rarely play together (modularity %.2f)"
+L["MAP_SUMMARY"] = "%d players with group play in the last 30 days, %d groups, %s together in all"
+L["MAP_GROUP"] = "Group %d (%d): %s"
+L["MAP_MORE"] = " and %d more"
+L["MAP_GROUP_TIME"] = "%s inside the group, %s with the rest of the guild"

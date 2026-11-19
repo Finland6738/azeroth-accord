@@ -238,3 +238,13 @@ L["SOC_LIST_NOTE"] = "Ufficiali e Maestro di gilda vedono l'indice di tutti; gli
 L["SOC_LIST_ROW"] = "%d   (%.1f effettivi, %d diversi)"
 L["SOC_LIST_LOW"] = "dati insufficienti (%s)"
 L["SOC_OWN_ONLY"] = "Ogni membro vede il proprio indice; gli ufficiali vedono quello di tutti."
+
+L["REP_MODE_GROUPS"] = "Gruppi"
+L["MAP_NONE"] = "La mappa dei gruppi ha bisogno dell'indice sociale: è in calcolo, oppure non c'è gioco di gruppo negli ultimi 30 giorni."
+L["MAP_MIXING_LOW"] = "Ben mescolata: quasi tutti giocano con tutti (modularità %.2f)"
+L["MAP_MIXING_MEDIUM"] = "Qualche gruppo: la gilda si mescola, con alcuni gruppi abituali (modularità %.2f)"
+L["MAP_MIXING_HIGH"] = "Gruppetti: la gilda si divide in gruppi che giocano poco insieme (modularità %.2f)"
+L["MAP_SUMMARY"] = "%d giocatori con gioco di gruppo negli ultimi 30 giorni, %d gruppi, %s insieme in tutto"
+L["MAP_GROUP"] = "Gruppo %d (%d): %s"
+L["MAP_MORE"] = " e altri %d"
+L["MAP_GROUP_TIME"] = "%s dentro il gruppo, %s con il resto della gilda"

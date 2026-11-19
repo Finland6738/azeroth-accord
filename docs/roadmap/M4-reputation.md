@@ -43,6 +43,8 @@
 - Branch: `step/m4-6-group-map`
 - Spec: SOC-10–SOC-12
 - Scope: weighted label propagation, modularity, communities list and circle drawing, visibility per Q3.
+- Done when:
+  - [x] Weighted label propagation and modularity are exact on known graphs and deterministic; the Groups mode shows the mixing, the circles of players and the list of communities to officers and the Guild Master only (SPEC-10 Q3 proposal, still open) (covered by `Tests/test_group_map.lua`).
 
 ### M4.7 — Suggested teammates and v0.4.0
 - Branch: `step/m4-7-suggestions`

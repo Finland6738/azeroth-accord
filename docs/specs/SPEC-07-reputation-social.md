@@ -109,6 +109,14 @@ Interfaccia (`UI/Social.lua`, M4.5):
 - SOC-11: vista con l'elenco delle comunità (membri, minuti interni contro minuti verso l'esterno) e un disegno semplice a cerchi.
 - SOC-12: visibile a tutti per l'indice personale; la mappa completa è per ufficiali e GM (domanda Q3 in [SPEC-10](SPEC-10-risks-open-questions.md)).
 
+Realizzazione (`Data/GroupMap.lua`, `UI/GroupMap.lua`, M4.6):
+
+- **Grafo**: quello dell'indice sociale (minuti per coppia di account negli ultimi 30 giorni), calcolato una volta per risultato.
+- **Comunità**: *label propagation* pesata e deterministica: ogni account parte con la propria etichetta; a turni, in ordine fisso, prende l'etichetta con più minuti tra i suoi compagni (a parità tiene la propria, altrimenti la più piccola); si ferma quando un turno non cambia nulla (al massimo 30). Stessi dati, stessi gruppi su ogni client.
+- **Modularità** `Q = Σ_c [L_c/m − (d_c/2m)²]` (m = minuti di tutte le coppie, `L_c` minuti dentro `c`, `d_c` somma dei minuti degli account di `c`); lettura: sotto 0,3 "ben mescolata", da 0,3 "qualche gruppo", da 0,5 "gruppetti".
+- **Vista** (modalità *Groups* della vista Reputation, solo per ufficiali e GM finché Q3 è aperta): il riepilogo (lettura e valore di `Q`, giocatori, gruppi, ore insieme), un disegno con un cerchio di punti colorati per gruppo (il nome al passaggio del mouse, un clic apre la scheda, cerchi più grandi per gruppi più grandi) e l'elenco dei gruppi con i giocatori (per minuti insieme) e i minuti dentro il gruppo contro quelli con il resto della gilda.
+- Provato offline: due triangoli uniti da un ponte debole danno due gruppi e `Q = 2·(30/61 − 1/4) ≈ 0,4836`; quattro gruppetti danno "gruppetti"; 200 account in pochi millisecondi.
+
 ### 3.4 Compagni suggeriti
 
 - SOC-20: riquadro "Play with someone new": membri **online adesso**, di livello compatibile, con cui il giocatore ha giocato meno di 30 minuti negli ultimi 30 giorni; pulsanti Whisper e Invite (azioni del giocatore).

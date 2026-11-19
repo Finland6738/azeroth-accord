@@ -36,7 +36,17 @@ How it is counted, precisely: for the last 30 days, the minutes with each guildm
 
 **Who sees it.** Every member sees **their own** index. Officers and the Guild Master see **everyone's**: on the cards, in the **Social** column of the Roster and in a list in the Reputation view. Whether all members should see everyone's index is still an open question for the guild leader; until then this is the rule.
 
-The member card shows the effective partners, the number of different partners and the five guildmates played with most. The **group map** shows the guild's groups and how mixed the guild is. *Play with someone new* suggests online guildmates you have rarely played with.
+The member card shows the effective partners, the number of different partners and the five guildmates played with most.
+
+## Group map
+
+Officers and the Guild Master have a **Groups** button in the Reputation view. It shows:
+
+- how mixed the guild is: *well mixed* (almost everyone plays with everyone), *some groups* or *cliques* (groups that rarely play together), with the number behind it (the *modularity*: near 0 means mixed, 0.5 and more means cliques);
+- a drawing: one circle of coloured dots per group, one dot per player (hover for the name, click for the card);
+- the list of groups with their players and the hours spent inside the group and with the rest of the guild.
+
+The groups are found automatically from the minutes played together in the last 30 days, the same way on every officer's computer. *Play with someone new* suggests online guildmates you have rarely played with.
 
 ## What is recorded already (from the roster version)
 
