@@ -87,6 +87,15 @@ Per ogni account `a` nella finestra degli ultimi 30 giorni:
 - SOC-05: la scheda membro mostra l'indice, `N`, il numero di compagni distinti e i 5 compagni principali con la loro quota.
 - SOC-06: il calcolo si fa in locale, al massimo una volta ogni 10 minuti, a pezzi per non bloccare il client.
 
+Realizzazione (`Data/Social.lua`, M4.4; i tre esempi qui sopra sono test numerici in `Tests/test_social.lua`):
+
+- **Finestra**: i 30 giorni del reame che finiscono oggi, oggi compreso (`Social.CutoffDay`, aritmetica delle date senza `time()`).
+- **Osservatori**: per giorno e coppia di personaggi vale il **massimo** tra gli osservatori, mai la somma (NET-13).
+- **Account**: i personaggi diventano account con `Accounts:AccountKey` (i personaggi **provati** dall'elenco reciproco; una nota `main:`/`alt:` non unisce nulla, come per i like); una coppia di due personaggi dello stesso account si lascia fuori; i minuti si sommano sui giorni e sui personaggi.
+- **Minuti**: `M` = Σ `m_b` conta i minuti **per compagno**: un'ora con quattro compagni di gilda vale quattro ore. Le coppie non dicono quanto tempo il giocatore è stato in gruppo, solo con chi; "5 ore" (SOC-04) e "60 minuti" (per `A`) si misurano così.
+- **A** = gli account con almeno 60 minuti nella finestra; l'indice c'è solo con almeno 5 ore e `A ≥ 2`.
+- **A pezzi** (SOC-06): una coroutine che si ferma ogni 40 record (o giorni, o account) e riparte al frame dopo con `C_Timer.After(0)`; si ricalcola solo se i dati sono cambiati e l'ultimo calcolo ha più di 10 minuti (o se si chiede esplicitamente), la prima volta 90 s dopo l'accesso. Misura offline: 200 account e 30 giorni (circa 3000 coppie) in circa 10 ms. Il risultato tiene anche il grafo degli account (minuti per coppia di account) per la mappa dei gruppi e i compagni suggeriti.
+
 ### 3.3 Mappa dei gruppi
 
 - SOC-10: grafo degli account (peso = minuti insieme); comunità con *label propagation* pesata; **modularità** `Q` come indice di mescolanza della gilda ("bassa: tutti giocano con tutti", "alta: gruppetti").

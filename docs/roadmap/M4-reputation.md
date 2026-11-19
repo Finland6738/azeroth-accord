@@ -30,7 +30,7 @@
 - Spec: SPEC-07 §3.2; ADR 0008
 - Scope: `Data/Social.lua`: accounts, 30-day window, entropy, index, chunked computation.
 - Done when:
-  - [ ] The examples of SPEC-07 §3.2 are numeric tests.
+  - [x] The examples of SPEC-07 §3.2 are numeric tests (`Tests/test_social.lua`: N = 4 → 10, N ≈ 8.94 → 22, N = 30 → 75 with A = 41; also the maximum over observers, alts merged, the 30-day window, "not enough data", the computation in steps at most every ten minutes, 200 accounts in about 10 ms offline).
 
 ### M4.5 — Social column and card breakdown
 - Branch: `step/m4-5-social-ui`

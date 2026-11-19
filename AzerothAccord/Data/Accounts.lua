@@ -445,6 +445,28 @@ function Accounts:MainOf(guid)
 	return g and g.byGUID[g.main] or nil
 end
 
+-- The characters that count as one account for the likes and the social index (SPEC-07): the PROVED characters of the
+-- group of `guid` (mutual listing, and the characters outside the guild they list), or the character alone when it is in
+-- no group or joined to one only by a note (a hint is shown in the roster, it never merges likes or minutes).
+function Accounts:ProvedChars(guid)
+	local g = self:GroupOf(guid)
+	local m = g and g.byGUID[guid]
+	if not g or not m or m.hint then return { guid } end
+	local out = {}
+	for _, x in ipairs(g.members) do
+		if not x.hint then out[#out + 1] = x.guid end
+	end
+	return out
+end
+
+-- A stable key of the account of `guid` for the likes and the social index: the smallest GUID of its proved characters.
+function Accounts:AccountKey(guid)
+	if type(guid) ~= "string" then return nil end
+	local key = guid
+	for _, g in ipairs(self:ProvedChars(guid)) do if g < key then key = g end end
+	return key
+end
+
 -- The account token of a character (its own record), for contacts; nil without an addon record.
 function Accounts:TokenOf(guid)
 	local g = self:GroupOf(guid)

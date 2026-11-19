@@ -30,6 +30,8 @@
 
 The social index shows **how many different guildmates someone really plays with**, from 0 to 100. It counts the minutes spent in a party or raid with guildmates over the last 30 days and turns them into **effective partners**: playing always with the same four people counts as about 4, spreading your time over thirty people counts as about 30. The index divides that by the number of active players.
 
+How it is counted, precisely: for the last 30 days, the minutes with each guildmate's **player** (all their characters together, and yours too); when several addons saw the same group, the largest count is used. Time is counted per guildmate, so an hour in a group with four guildmates counts as four hours with guildmates. Below **5 hours** with guildmates the index says *not enough data*. Active players are those with at least one hour with guildmates in the 30 days. Your addon computes it on your computer, at most every ten minutes, a little at a time so the game never stutters.
+
 The member card shows the effective partners, the number of different partners and the five guildmates played with most. The **group map** shows the guild's groups and how mixed the guild is. *Play with someone new* suggests online guildmates you have rarely played with.
 
 ## What is recorded already (from the roster version)

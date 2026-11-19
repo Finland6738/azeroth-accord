@@ -110,14 +110,8 @@ end
 -- The characters a like to `guid` counts for: the proved characters of its account (mutual listing, ADR 0006), or the
 -- character alone when it has no group or is only joined to one by a note.
 function Likes:AccountChars(guid)
-	local g = ns.Accounts and ns.Accounts:GroupOf(guid)
-	local m = g and g.byGUID[guid]
-	if not g or not m or m.hint then return { guid } end
-	local out = {}
-	for _, x in ipairs(g.members) do
-		if not x.hint then out[#out + 1] = x.guid end
-	end
-	return out
+	if ns.Accounts then return ns.Accounts:ProvedChars(guid) end
+	return { guid }
 end
 
 local function index()

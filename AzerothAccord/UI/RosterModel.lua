@@ -37,7 +37,8 @@ Model.COLUMNS = {
 	{ id = "prof1", label = "COL_PROF1", width = 130 },
 	{ id = "prof2", label = "COL_PROF2", width = 130 },
 	{ id = "likes", label = "COL_LIKES", width = 50, available = function() return ns.Likes ~= nil end },
-	{ id = "social", label = "COL_SOCIAL", width = 60, available = function() return ns.Social ~= nil end },
+	{ id = "social", label = "COL_SOCIAL", width = 60,   -- only where SPEC-10 Q3 lets the player see others' index (M4.5)
+		available = function() return ns.Social ~= nil and ns.Social.ColumnVisible ~= nil and ns.Social:ColumnVisible() == true end },
 	{ id = "contacts", label = "COL_CONTACTS", width = 60, available = function() return ns.Contacts ~= nil end },
 	{ id = "addon", label = "COL_ADDON", width = 55 },
 }

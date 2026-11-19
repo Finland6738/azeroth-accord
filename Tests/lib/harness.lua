@@ -162,6 +162,7 @@ function H.boot(opts)
 	if addonObject and addonObject.CoPlay then addonObject.CoPlay.AUTO = H.autoCoPlay == true end
 	if addonObject and addonObject.Notary then addonObject.Notary.AUTO = H.autoNotary == true end
 	if addonObject and addonObject.Likes then addonObject.Likes.AUTO = H.autoLikes == true end
+	if addonObject and addonObject.Social then addonObject.Social.AUTO = H.autoSocial == true end
 
 	for name, text in pairs(opts.saved or {}) do E[name] = deserialize(text) end
 

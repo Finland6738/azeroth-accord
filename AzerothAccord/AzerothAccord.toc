@@ -34,6 +34,7 @@ Data\Contacts.lua
 Data\CoPlay.lua
 Data\Notary.lua
 Data\Likes.lua
+Data\Social.lua
 Data\Recipes.lua
 Data\RecipeScan.lua
 Data\Crafters.lua
