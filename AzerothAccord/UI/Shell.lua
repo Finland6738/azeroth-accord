@@ -38,6 +38,27 @@ function Shell:RegisterView(id, def)
 	return true
 end
 
+-- The text of a navigation button: the label and, when the view has a `badge` function that gives a number above 0, the number
+-- in brackets (the Bank view: the requests waiting for an officer).
+function Shell.NavLabel(view)
+	local text = view.label or view.id
+	if type(view.badge) == "function" then
+		local ok, n = pcall(view.badge)
+		if ok and type(n) == "number" and n > 0 then text = text .. " (" .. n .. ")" end
+	end
+	return text
+end
+
+-- Relabels the navigation buttons (a badge changed).
+function Shell:UpdateBadges()
+	local content = self.content
+	if not content then return end
+	for _, b in ipairs(content.nav.buttons) do
+		local view = b.viewId and self.views[b.viewId]
+		if view and b:IsShown() then b.label:SetText(Shell.NavLabel(view)) end
+	end
+end
+
 function Shell:ViewList()
 	local list = {}
 	for _, v in pairs(self.views) do list[#list + 1] = v end
@@ -156,7 +177,7 @@ function Shell:Refresh()
 	for i, view in ipairs(list) do
 		local b = navButton(nav, i)
 		b.viewId = view.id
-		b.label:SetText(view.label or view.id)
+		b.label:SetText(Shell.NavLabel(view))
 		b:Show()
 	end
 	for i = #list + 1, #nav.buttons do nav.buttons[i]:Hide() end
@@ -290,6 +311,8 @@ end
 function Shell.FillTooltip(tooltip)
 	tooltip:AddLine(L["COMPARTMENT_HINT"], 1, 1, 1, true)
 	if inGuild() then tooltip:AddLine(Shell.StatusText(), 0.6, 0.6, 0.6, true) end
+	local waiting = ns.BankInbox and ns.BankInbox.PendingCount() or 0
+	if waiting > 0 then tooltip:AddLine(L["BANKNOTE_WAITING"]:format(waiting), 1, 0.82, 0, true) end
 end
 
 if ns.addon then

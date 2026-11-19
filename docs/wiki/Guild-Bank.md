@@ -34,3 +34,9 @@ In the **Requests** mode of the Bank view you can:
 - Every guildmate sees every request. You can **cancel** your own while it is still open.
 - **Officers** answer with *Approve*, *Reject* (the reason box becomes the reason of the rejection) and *Fulfilled*. Hover over a row to read its history. Only officers can change a request's status: the other addons ignore anything else.
 - The addon never moves items or gold: after an approval the item reaches you by mail, trade or at the vault, as the officers decide.
+
+## For officers: the inbox and the notices
+
+- A red mark with a number appears on the Accord tab of the guild window (and "Bank (n)" on the panel button) when requests are waiting for you. Members never see it.
+- The **Inbox** mode lists what waits for an officer, oldest first: open requests to approve or reject, approved ones to mark as *Fulfilled*. When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.
+- You get one chat line when a new request arrives; the requester gets one when you approve, reject or fulfil it. Notices are never repeated after a reload, and the first time the addon runs it does not announce the requests that already exist.

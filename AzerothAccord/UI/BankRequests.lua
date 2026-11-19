@@ -191,7 +191,13 @@ local function fillRow(row, d)
 	row.name:SetText(d.name or "?")
 	row.kind:SetText(d.kindText)
 	row.what:SetText(d.what)
-	row.reason:SetText(d.reason or "")
+	if d.suggestion then
+		row.reason:SetText(Mode.SuggestionText(d.suggestion))
+		row.reason:SetTextColor(Skin.Color("gold"))
+	else
+		row.reason:SetText(d.reason or "")
+		row.reason:SetTextColor(Skin.Color("grey"))
+	end
 	local actions = {}
 	if d.canCancel then actions[#actions + 1] = "cancel" end
 	for _, m in ipairs(d.moves) do actions[#actions + 1] = m end
@@ -201,6 +207,43 @@ local function fillRow(row, d)
 		if action then b:SetLabel(L[BUTTON_TEXT[action]]) b:Show() else b:Hide() end
 	end
 	row:Show()
+end
+
+-- The list under the form (or at the top of a mode without one): virtual rows and the empty-list message.
+local function buildArea(f, top)
+	local area = W.Frame(f, 10, 10)
+	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
+	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
+	area:EnableMouseWheel(true)
+	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
+	area:SetScript("OnSizeChanged", function() View:Redraw() end)
+	area.rows = {}
+	f.area = area
+	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
+	f.message:SetWidth(380)
+end
+
+local function visibleRows(area)
+	local h = area and area:GetHeight() or 0
+	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
+	return max(1, floor(h / View.ROW_HEIGHT))
+end
+
+local function drawRows(f, rows, emptyText)
+	View.rowsShown = rows
+	local total, visible = #rows, visibleRows(f.area)
+	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
+	local drawn = max(0, min(visible + 1, total - View.offset))
+	for i = 1, drawn do fillRow(f.area.rows[i] or newRow(f.area, i), rows[View.offset + i]) end
+	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
+	if total == 0 then
+		f.message:SetText(emptyText)
+		f.message:Show()
+	else
+		f.message:Hide()
+	end
+	return total
 end
 
 function mode.build(f)
@@ -244,27 +287,12 @@ function mode.build(f)
 	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 12, -Mode.FORM_HEIGHT + 22)
 	f.closed = W.Check(f, { text = L["BANKREQ_SHOW_CLOSED"], width = 170, onClick = function(checked) Mode.showClosed = checked View.offset = 0 View:Redraw() end })
 	f.closed:SetPoint("LEFT", f.mine, "RIGHT", 12, 0)
-	local area = W.Frame(f, 10, 10)
-	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Mode.FORM_HEIGHT)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area.rows = {}
-	f.area = area
-	f.message = W.Text(f, "body", "grey", "CENTER")
-	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
+	buildArea(f, Mode.FORM_HEIGHT)
 	Mode.noteText = function() return f.reason:GetText() end
 end
 
-local function visibleRows(area)
-	local h = area and area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
-end
-
 function mode.refresh(f)
+	Mode.noteText = function() return f.reason:GetText() end
 	for _, b in ipairs(f.kindButtons) do
 		local text = Mode.KindText(b.kind)
 		b:SetLabel(b.kind == Mode.kind and ("> " .. text .. " <") or text)
@@ -274,20 +302,64 @@ function mode.refresh(f)
 	f.mine:SetChecked(Mode.onlyMine)
 	f.closed:SetChecked(Mode.showClosed)
 	local rows = Mode.Rows({ search = View.search, onlyMine = Mode.onlyMine, showClosed = Mode.showClosed })
-	View.rowsShown = rows
-	local total, visible = #rows, visibleRows(f.area)
-	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
-	local drawn = max(0, min(visible + 1, total - View.offset))
-	for i = 1, drawn do fillRow(f.area.rows[i] or newRow(f.area, i), rows[View.offset + i]) end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	if total == 0 then
-		f.message:SetText(View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKREQ_EMPTY"])
-		f.message:Show()
-	else
-		f.message:Hide()
-	end
-	return total
+	return drawRows(f, rows, View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKREQ_EMPTY"])
 end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The officers' inbox (BANK-23, BANK-24)
+---------------------------------------------------------------------------------------------------------------------
+-- "Looks delivered: Bob took Linen Cloth x20, 3 h ago" for the log entry that matches a request.
+function Mode.SuggestionText(e)
+	local Log = ns.BankLog
+	local what
+	if Log and e.tab == Log.MONEY_TAB then
+		what = View.MoneyText(e.count)
+	else
+		local info = View.ItemInfo(e.itemID)
+		what = (info.name or L["BANK_ITEM_LOADING"]:format(e.itemID)) .. " x" .. e.count
+	end
+	local ago = ns.Shell and ns.Shell.Ago(max(0, now() - e.t)) or ""
+	return L["BANKREQ_LOOKS_DONE"]:format(e.name, what, ago)
+end
+
+-- The rows of the inbox: what needs an officer, oldest first, with the suggestion; each gets `what`, `kindText`, `statusText`.
+function Mode.InboxRows(opts)
+	opts = opts or {}
+	local Inbox = ns.BankInbox
+	if not Inbox then return {} end
+	local query = lower(opts.search)
+	local out = {}
+	for _, r in ipairs(Inbox:Rows()) do
+		r.what = Mode.WhatText(r)
+		r.kindText, r.statusText = Mode.KindText(r.kind), Mode.StatusText(r.status)
+		if query == "" or lower(r.name):find(query, 1, true) or lower(r.what):find(query, 1, true) or lower(r.reason):find(query, 1, true) then
+			out[#out + 1] = r
+		end
+	end
+	return out
+end
+
+local inbox = {}
+
+function inbox.build(f)
+	f.explain = W.Text(f, "small", "grey", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain:SetText(L["BANKREQ_INBOX_EXPLAIN"])
+	buildArea(f, 26)
+	Mode.noteText = Mode.noteText or function() return "" end
+end
+
+function inbox.refresh(f)
+	Mode.noteText = function() return Mode.inboxNote or "" end
+	return drawRows(f, Mode.InboxRows({ search = View.search }), View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKREQ_INBOX_EMPTY"])
+end
+
+local function isOfficer() return ns.Role ~= nil and ns.Role:IsOfficer() end
+View.AddMode("inbox", {
+	label = L["BANK_MODE_INBOX"], order = 22, build = inbox.build, refresh = inbox.refresh, search = true,
+	available = isOfficer,
+})
 
 View.AddMode("requests", { label = L["BANK_MODE_REQUESTS"], order = 25, build = mode.build, refresh = mode.refresh, search = true })
 

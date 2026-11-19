@@ -42,6 +42,7 @@ Data\Crafters.lua
 Data\Bank.lua
 Data\BankLog.lua
 Data\BankRequests.lua
+Data\BankInbox.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

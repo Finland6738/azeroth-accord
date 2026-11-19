@@ -43,6 +43,8 @@
 - Branch: `step/m5-6-bank-inbox`
 - Spec: BANK-23, BANK-24
 - Scope: counter on the tab, officer inbox, requester notification, "mark as fulfilled" proposal from logs.
+- Done when:
+  - [x] Officers (and nobody else) see the count of open requests on the tab, the panel button and the compartment tooltip; the inbox lists what waits, oldest first; an officer is told about a new request and the requester about a decision, once, without a flood at install; a request gets a "looks delivered" proposal from the logs, never a change by itself (`Tests/test_bank_inbox.lua`, with the network simulator).
 
 ### M5.7 — M5 in-game check and v0.9.0 beta
 - Branch: `step/m5-7-check`

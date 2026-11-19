@@ -481,6 +481,7 @@ end
 if ns.Shell then
 	ns.Shell:RegisterView("bank", {
 		label = L["VIEW_BANK"], order = 40, search = true,
+		badge = function() return ns.BankInbox and ns.BankInbox.PendingCount() or 0 end,
 		build = function(f) View:Build(f) end,
 		onSearch = function(text) View:SetSearch(text) end,
 	})

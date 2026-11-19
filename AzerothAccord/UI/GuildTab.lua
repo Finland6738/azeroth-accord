@@ -103,6 +103,25 @@ end
 
 function GuildTab:IsPanelShown() return self.panel ~= nil and self.panel:IsShown() end
 
+-- The count of requests waiting for an officer (BANK-23): a small red mark with the number on the tab; nothing for 0.
+function GuildTab:SetBadge(count)
+	self.badgeCount = count or 0
+	local tab = self.tab
+	if not tab then return end
+	if not tab.badge then
+		tab.badgeBg = tab:CreateTexture(nil, "OVERLAY")
+		tab.badgeBg:SetSize(16, 16)
+		tab.badgeBg:SetPoint("TOPRIGHT", tab, "TOPRIGHT", 3, 3)
+		tab.badgeBg:SetColorTexture(Skin.Color("red", 0.95))
+		tab.badge = W.Text(tab, "small", "white", "CENTER", "OVERLAY")
+		tab.badge:SetPoint("CENTER", tab.badgeBg, "CENTER", 0, 0)
+	end
+	local n = self.badgeCount
+	tab.badge:SetText(n > 99 and "99+" or tostring(n))
+	tab.badge:SetShown(n > 0)
+	tab.badgeBg:SetShown(n > 0)
+end
+
 local function buildTab(cf)
 	local tab, template = W.Create("CheckButton", GuildTab.TAB_NAME, cf, "guildTab")
 	GuildTab.template = template
@@ -187,6 +206,7 @@ function GuildTab:Attach()
 	end
 	self:Anchor()
 	self:UpdateVisibility()
+	if self.badgeCount then self:SetBadge(self.badgeCount) end
 	setFeature("available", "attached with template " .. (GuildTab.template ~= "" and GuildTab.template or "none"))
 	return true
 end
