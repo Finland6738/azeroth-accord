@@ -32,6 +32,7 @@ Data\Roster.lua
 Data\Accounts.lua
 Data\Contacts.lua
 Data\CoPlay.lua
+Data\Recipes.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

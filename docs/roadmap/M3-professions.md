@@ -8,6 +8,8 @@
 - Branch: `step/m3-1-native-recipes`
 - Spec: SPEC-06 §1; ADR 0010
 - Scope: `Data/Recipes.lua` native source (as decided by M0.4), with request pacing and cache.
+- Done when:
+  - [x] The native source sits behind the `guildRecipesNative` capability check and works against the mock directory with pacing, timeout and cache; with the source off or unreadable the shared lists are the only source (covered by `Tests/test_recipes.lua`). The choice between the sources is confirmed by the M0.4 results, which are not in yet.
 
 ### M3.2 — Own recipe scan and encoding
 - Branch: `step/m3-2-recipe-scan`

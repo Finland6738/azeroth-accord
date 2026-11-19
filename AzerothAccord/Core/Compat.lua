@@ -554,12 +554,13 @@ function TradeSkill.QueryGuildMemberRecipes(guid, skillLineID)
 	return state
 end
 
--- skillLineID, recipes (a list of spell ids, possibly a bitfield string: kept as the client gives it, read later by
--- Data/Recipes), or nil. The shape of GetGuildMemberRecipes is [verify S3].
-function TradeSkill.GuildMemberRecipes()
-	local values = all("GetGuildMemberRecipes")
+-- What GetGuildMemberRecipes answers, every value as the client gives it (the first is the skill line; then a list of
+-- spell ids, or a count and a bitfield string: Data/Recipes reads whichever shape it is), or nil. The member and the
+-- skill line are passed along in case the client wants them; the shape is [verify S3] and not documented in the dump.
+function TradeSkill.GuildMemberRecipes(guid, skillLineID)
+	local values, count = all("GetGuildMemberRecipes", guid, skillLineID)
 	if not values then return nil end
-	return values[1], values[2]
+	return unpack(values, 1, count)
 end
 
 -- Number of guild trade skill entries (GetNumGuildTradeSkill), 0 when unknown.

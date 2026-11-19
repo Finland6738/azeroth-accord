@@ -9,6 +9,22 @@
 | Nativa | `C_TradeSkillUI.IsGuildTradeSkillsEnabled`, `C_GuildInfo.QueryGuildMemberRecipes(guid, skillLine)`, `GetGuildMemberRecipes`, `C_GuildInfo.QueryGuildMembersForRecipe`, evento `GUILD_RECIPE_KNOWN_BY_MEMBERS`, `GetNumGuildTradeSkill` / `GetGuildTradeSkillInfo` **[verificare]** S3 | tutti i membri, anche senza addon |
 | Condivisa | `TRADE_SKILL_SHOW` / `TRADE_SKILL_LIST_UPDATE` → `C_TradeSkillUI.GetAllRecipeIDs`, `GetRecipeInfo(id).learned`, `GetBaseProfessionInfo` **[verificare]** S4 | membri con l'addon, aggiornata quando aprono la finestra della professione |
 
+### 1.1 Stato della scelta tra le fonti
+
+I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponibili**: non si sa se i server Forever riempiono la directory delle ricette di gilda. Per questo:
+
+- la fonte nativa è implementata dietro un controllo di capacità (`guildRecipesNative`, SPEC-01 §5): è usabile solo se `IsGuildTradeSkillsEnabled()` risponde `true` e le funzioni `QueryGuildMemberRecipes` e `GetGuildMemberRecipes` esistono; la capacità passa a `available` alla prima risposta letta;
+- le liste condivise dagli addon (M3.2 e M3.3) sono un **ripiego completo che funziona da solo**: senza fonte nativa ogni vista mostra le liste condivise e nient'altro;
+- **la scelta definitiva sarà confermata dai risultati di M0.4**: se la fonte nativa non risponde, resta il ripiego; se risponde, vince la nativa (ADR 0010) e la condivisa riempie i vuoti.
+
+### 1.2 La fonte nativa (`Data/Recipes.lua`)
+
+- Una richiesta chiede **un membro e una professione**: `C_GuildInfo.QueryGuildMemberRecipes(guid, skillLine)`; l'evento `GUILD_RECIPE_KNOWN_BY_MEMBERS` non ha contenuto, quindi le richieste vanno **una alla volta** e la risposta si attribuisce alla richiesta in corso.
+- Ritmo: coda di al massimo 20 richieste senza duplicati, almeno 2 secondi tra due richieste, una risposta che non arriva entro 8 secondi si scarta; dopo 5 richieste senza risposta di fila la fonte riposa 10 minuti.
+- Cache solo in memoria: una risposta resta valida 15 minuti (chi riapre la vista non costa nulla), al massimo 300 risposte, mai scritte su disco.
+- Forma della risposta **[verificare]** S3: `GetGuildMemberRecipes` non ha firma nel dump. Si legge come primo valore la linea di abilità, poi una lista di spellID (o un insieme `{[id] = true}`). Una risposta a **bitfield** (stringa di bit) viene riconosciuta ma non decodificata: dopo due risposte illeggibili la fonte nativa si spegne (`guildRecipesNative` = `missing`, con il motivo) e restano le liste condivise.
+- Una risposta per un'altra linea di abilità, o senza richiesta in corso (l'ha chiesta la finestra di Blizzard), si ignora.
+
 ## 2. Requisiti
 
 - PRO-01: la cella della professione nel roster mostra nome e grado (per esempio `Alchemy 285/300`) e, al passaggio del mouse, la fonte e l'età.
