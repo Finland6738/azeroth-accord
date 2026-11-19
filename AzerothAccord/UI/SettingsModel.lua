@@ -140,7 +140,7 @@ function Model.ResetColumns()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- Sizes of the saved data (SPEC-01 §4, SPEC-09 §6)
+-- Sizes of the saved data (SPEC-01 §4, SPEC-09 §5)
 ---------------------------------------------------------------------------------------------------------------------
 -- A size as the page says it: "512 B", "12.3 KB", "1.2 MB".
 function Model.FormatBytes(bytes)

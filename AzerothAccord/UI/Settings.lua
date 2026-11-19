@@ -138,9 +138,12 @@ local function refresh(f)
 	refreshData(f)
 end
 
--- Refreshes every page that exists (a change in one is visible in the other).
+-- Refreshes every page that is on screen (a change in one is visible in the other). A hidden page refreshes when it is
+-- shown: the sizes of a big guild take a moment to count, and nobody sees them while the page is hidden.
 function View:Refresh()
-	for _, f in ipairs(View.instances) do refresh(f) end
+	for _, f in ipairs(View.instances) do
+		if f:IsVisible() then refresh(f) end
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------------------

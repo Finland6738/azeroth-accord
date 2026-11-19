@@ -36,6 +36,10 @@ function GetLocale() return player.locale end
 function GetRealmName() return player.realm end
 function GetNormalizedRealmName() return (player.realm:gsub("[%s%-']", "")) end
 function GetBuildInfo() return "1.60.1", "70170", "Oct  1 2026", 16001, "1.60.1", "Release" end
+-- The memory the game attributes to an addon (KB): Mock.player.addonMemory, 2048.25 by default; nil makes the call
+-- return nothing, like a client that does not have the figure.
+function UpdateAddOnMemoryUsage() end
+function GetAddOnMemoryUsage(name) return player.addonMemory ~= false and (player.addonMemory or 2048.25) or nil end
 function GetCurrentRegion() return 3 end   -- EU
 function GetCurrentRegionName() return "EU" end
 

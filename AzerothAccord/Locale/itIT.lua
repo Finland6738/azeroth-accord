@@ -20,6 +20,8 @@ L["HELP_DEBUG"] = "rapporto di diagnostica da copiare in una segnalazione"
 L["HELP_HELP"] = "mostra questo elenco"
 L["UNKNOWN_COMMAND"] = "Comando sconosciuto '%s'."
 L["COMING_SOON"] = "Questa parte arriva presto."
+L["VIEW_ERROR_TITLE"] = "Non è stato possibile disegnare questa vista"
+L["VIEW_ERROR_TEXT"] = "Qualcosa è andato storto aprendola. Le altre viste funzionano ancora. Apri il rapporto con /accord debug e allegalo a una segnalazione; cliccare di nuovo la vista nell'elenco riprova."
 
 L["TAB_TOOLTIP"] = "Roster di gilda, professioni, like e banca."
 L["NOT_IN_GUILD"] = "Non sei in una gilda."

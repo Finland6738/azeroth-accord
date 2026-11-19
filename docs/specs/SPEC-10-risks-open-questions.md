@@ -9,7 +9,7 @@
 | R3 | `OFFICER` non consegna i messaggi addon | bassa | medio | dati riservati non condivisi; il salt dei like passa in whisper tra ufficiali |
 | R4 | Pochi membri installano l'addon | media | alto | valore dato anche dai dati nativi; la gilda del proprietario come primo pubblico |
 | R5 | Restrizioni degli addon più dure (valori segreti nei gruppi, lockdown) | media | medio | Compat, coda, registrazione locale |
-| R6 | Crescita delle SavedVariables in gilde grandi | bassa | medio | limiti di conservazione, codifica compatta, diagnostica delle dimensioni |
+| R6 | Crescita delle SavedVariables in gilde grandi | bassa | medio | limiti di conservazione, codifica compatta, diagnostica delle dimensioni. Misurato offline in M6.3 ([SPEC-09 §5](SPEC-09-quality-release.md#5-rifinitura-e-prestazioni-m63)): 3,6 MB per 1000 membri, 400 con l'addon e 90 giorni di co-play, l'80% del quale è co-play; il numero in gioco viene dal controllo S11 |
 | R7 | Lettura sociale dell'indice ("classifica dei giocatori") | media | medio | testo che spiega cosa misura; mappa completa solo per ufficiali (Q3) |
 
 ## 2. Domande aperte per il proprietario

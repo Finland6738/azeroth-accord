@@ -23,7 +23,7 @@ Realizzazione (`UI/GuildTab.lua`, M1.8):
 
 ## 2. Il pannello
 
-- **Navigazione** a sinistra, dentro il pannello: Roster, Professions, Reputation, Bank, Settings. Le voci delle milestone non ancora pronte non compaiono: ogni vista si registra (`Shell:RegisterView`) quando esiste; senza viste (M1) il pannello mostra un testo di benvenuto. La vista scelta per ultima si ricorda per personaggio.
+- **Navigazione** a sinistra, dentro il pannello: Roster, Professions, Reputation, Bank, Settings. Le voci delle milestone non ancora pronte non compaiono: ogni vista si registra (`Shell:RegisterView`) quando esiste; senza viste (M1) il pannello mostra un testo di benvenuto. La vista scelta per ultima si ricorda per personaggio. Una vista che solleva un errore alla costruzione mostra un testo di errore al suo posto e non toglie le altre ([SPEC-09 §5](SPEC-09-quality-release.md#5-rifinitura-e-prestazioni-m63)).
 - **Barra superiore**: ricerca globale (nome, professione, oggetto), stato della sincronizzazione (ultimo aggiornamento, membri con l'addon online), pulsante **Pop out** che apre la stessa vista nella finestra autonoma più larga.
 - **Tabelle**: intestazioni cliccabili per ordinare, colonne scelte dal giocatore (salvate per personaggio), righe virtuali (solo quelle visibili sono disegnate) per gilde di 1000 membri.
 - **Fonte e età dei dati** sempre visibili dove servono (per esempio "Bank tab 2 · seen 3 h ago by <name>").

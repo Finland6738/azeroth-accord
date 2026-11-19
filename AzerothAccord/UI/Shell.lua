@@ -112,7 +112,7 @@ local function navButton(nav, i)
 	b.highlight = b:CreateTexture(nil, "HIGHLIGHT")
 	b.highlight:SetAllPoints(b)
 	b.highlight:SetColorTexture(1, 1, 1, 0.08)
-	b:SetScript("OnClick", function(self) Shell:Select(self.viewId) end)
+	b:SetScript("OnClick", function(self) Shell:Select(self.viewId, true) end)
 	nav.buttons[i] = b
 	return b
 end
@@ -200,6 +200,30 @@ function Shell:Refresh()
 	self:UpdateStatus()
 end
 
+-- Draws a view for the first time. A view that raises while it is built (a game update changed an API, a bug of ours)
+-- must not take the panel with it: the error goes to the game's error handler (and so to /accord debug), the view shows
+-- a short text saying so, and the other views keep working. Selecting the view again tries to build it afresh.
+local function buildView(content, view)
+	local frame = W.Frame(content.body, 10, 10)
+	frame:SetAllPoints(content.body)
+	view.frame = frame
+	local ok, err = xpcall(view.build, function(e)
+		if geterrorhandler then pcall(geterrorhandler(), e) end
+		return e
+	end, frame)
+	if ok then return true end
+	view.failed = tostring(err)
+	local title = W.Text(frame, "title", "red", "CENTER")
+	title:SetPoint("TOP", frame, "TOP", 0, -60)
+	title:SetText(L["VIEW_ERROR_TITLE"])
+	local text = W.Text(frame, "body", nil, "CENTER")
+	text:SetPoint("TOP", title, "BOTTOM", 0, -10)
+	text:SetWidth(380)
+	text:SetText(L["VIEW_ERROR_TEXT"])
+	frame.errorTitle, frame.errorText = title, text
+	return false
+end
+
 function Shell:ShowSelected()
 	local content = self.content
 	for i, b in ipairs(content.nav.buttons) do
@@ -207,11 +231,7 @@ function Shell:ShowSelected()
 	end
 	for id, view in pairs(self.views) do
 		if id == self.selected then
-			if not view.frame then
-				view.frame = W.Frame(content.body, 10, 10)
-				view.frame:SetAllPoints(content.body)
-				view.build(view.frame)
-			end
+			if not view.frame then buildView(content, view) end
 			view.frame:Show()
 		elseif view.frame then
 			view.frame:Hide()
@@ -219,8 +239,14 @@ function Shell:ShowSelected()
 	end
 end
 
-function Shell:Select(id)
-	if not self.views[id] then return false end
+-- `retry` is true for a click on the navigation: a view whose build failed is then built afresh.
+function Shell:Select(id, retry)
+	local view = self.views[id]
+	if not view then return false end
+	if retry and view.failed and view.frame then
+		view.frame:Hide()
+		view.frame, view.failed = nil, nil
+	end
 	self.selected = id
 	if ns.Config then ns.Config:Set("char.ui.lastView", id) end
 	if self.content then self:ShowSelected() end

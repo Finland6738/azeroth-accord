@@ -21,6 +21,11 @@
 ### M6.3 — Polish and performance
 - Branch: `step/m6-3-polish`
 - Scope: empty states, loading states, error texts, large-guild profiling (S11 numbers), memory and SavedVariables sizes.
+- Spec: SPEC-09 §5
+- Done when:
+  - [x] A view that raises while it is built shows an error text and leaves the panel and the other views working (`Tests/test_states.lua`); every view opens in a guild whose roster has not loaded and in a client without the optional APIs; the empty-state texts are pinned; the Settings page counts only while shown.
+  - [x] A 1000-member guild with 400 addon users and 90 days of co-play: the saved file, memory and the time of each heavy step stay inside budgets, numbers in SPEC-09 §5 (`Tests/test_large_guild.lua`); `/accord debug` reports the addon's memory.
+  - [ ] In game: the S11 numbers (roster and index with 500+ members), the memory figure and the size of the saved file after a week of play.
 
 ### M6.4 — Diagnostics and bug reports
 - Branch: `step/m6-4-diagnostics`

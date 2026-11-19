@@ -932,6 +932,20 @@ Compat.Base64 = {
 }
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The addon's own memory (M6.3)
+---------------------------------------------------------------------------------------------------------------------
+-- The Lua memory the game attributes to this addon, in KB, or nil when the client has no such call. UpdateAddOnMemoryUsage
+-- walks every installed addon, so this is called only on request (/accord debug), never in a loop. The figure includes
+-- the embedded libraries and the SavedVariables tables. Both functions are in the Forever dump.
+Compat.Addon = {}
+function Compat.Addon.MemoryKB(name)
+	run(Resolve("UpdateAddOnMemoryUsage"))
+	local kb = first("GetAddOnMemoryUsage", name or ADDON_NAME)
+	if type(kb) == "number" and kb >= 0 then return kb end
+	return nil
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Build, API probe and feature capabilities
 ---------------------------------------------------------------------------------------------------------------------
 function Compat.BuildInfo()

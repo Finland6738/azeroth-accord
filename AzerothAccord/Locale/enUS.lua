@@ -22,6 +22,8 @@ L["HELP_DEBUG"] = "diagnostics report to copy into a bug report"
 L["HELP_HELP"] = "show this list"
 L["UNKNOWN_COMMAND"] = "Unknown command '%s'."
 L["COMING_SOON"] = "This part is coming soon."
+L["VIEW_ERROR_TITLE"] = "This view could not be drawn"
+L["VIEW_ERROR_TEXT"] = "Something went wrong while opening it. The other views still work. Open the report with /accord debug and include it in a bug report; clicking the view in the list tries again."
 
 -- The Accord tab, the panel and the window (SPEC-04)
 L["TAB_TOOLTIP"] = "Guild roster, professions, likes and bank."

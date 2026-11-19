@@ -79,7 +79,7 @@ function GuildKey:Known()
 	return keys
 end
 
--- The size of the current guild's data per top-level table, biggest first: { { name, bytes }, ... }, total (SPEC-09 §6);
+-- The size of the current guild's data per top-level table, biggest first: { { name, bytes }, ... }, total (SPEC-09 §5);
 -- nil when there is no data. No names: the key itself is not part of it.
 function GuildKey:SizeParts()
 	local key = self:Current()

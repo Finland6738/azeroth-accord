@@ -27,3 +27,7 @@
 **Can the addon take items or gold out of the bank for me?** No. A bank request is only a note that the whole guild sees and officers answer; the item is handed over in the game, by mail, trade or at the vault.
 
 **Is the addon available in Italian?** Yes. In an Italian game client (`itIT`) the whole interface is in Italian: the panel, the views, the Settings page and the chat lines. Every other client gets English. Names that come from the game (items, recipes, zones, guild ranks) and what players type are never translated, and the `/accord debug` report stays in English on purpose so it can be pasted in a bug report. A mistake in a translation is a normal bug: see [[Reporting Bugs and Feedback|Reporting-Bugs-and-Feedback]].
+
+**How much space does the addon use?** In a busy guild (1000 members, 400 of them with the addon, three months of play) the saved data is about 3.5 MB and the addon uses a few tens of MB of memory while the panel has been opened. Most of it is the record of who played with whom (kept 90 days). *Settings → Saved data* shows the sizes, and **Clear guild data** frees them; the guild fills it again.
+
+**A view says "This view could not be drawn".** Something failed while opening that one view; the other views are not affected. Click its name in the list to try again, and if it stays, send the `/accord debug` report ([[Reporting Bugs and Feedback|Reporting-Bugs-and-Feedback]]).

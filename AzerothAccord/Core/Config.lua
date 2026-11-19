@@ -493,6 +493,9 @@ function Config:DebugLines()
 	end
 	lines[#lines + 1] = ("Account: token %s, %d character(s) on %d realm(s), data of %d guild(s)"):format(
 		(account.token and account.token ~= "") and "set" or "missing", chars, realms, guilds)
+	local kb = ns.Compat and ns.Compat.Addon and ns.Compat.Addon.MemoryKB()
+	lines[#lines + 1] = kb and ("Memory: about %.1f MB in use by the addon (the game's figure)"):format(kb / 1024)
+		or "Memory: unknown (the game gives no figure)"
 	if ns.GuildKey and ns.GuildKey.SizeLines then
 		for _, line in ipairs(ns.GuildKey:SizeLines()) do lines[#lines + 1] = line end
 	end
