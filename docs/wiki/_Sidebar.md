@@ -4,6 +4,7 @@
 - [[Installation|Installation]]
 - [[Interface Tour|Interface-Tour]]
 - [[Commands|Commands]]
+- [[Settings|Settings]]
 
 **Features**
 - [[Guild Roster|Guild-Roster]]

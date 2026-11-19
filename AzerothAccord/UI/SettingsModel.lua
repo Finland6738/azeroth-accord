@@ -1,0 +1,249 @@
+-- SettingsModel: the options of Azeroth Accord, the sizes of the saved data and "Clear guild data" (M6.1, SPEC-04 §4).
+-- Pure Lua, no frame: UI/Settings.lua draws it in the Settings view of the panel and in the game's Settings window.
+-- Lua 5.1. The option table is the one definition: key, saved path, default, who sees it and the texts. Defaults come
+-- from Config.defaults, so a damaged value falls back to the same default the wiki lists.
+--
+-- Options saved per ACCOUNT (AzerothAccordDB.settings), so every character of the player behaves the same:
+--   notifyOfficer   a chat line when a bank request arrives that an officer has not seen (officers only)
+--   notifyDecision  a chat line when a bank request of the player was approved, rejected or fulfilled
+-- Elsewhere, and only listed here for the page: the Discord name (account.settings.discord, Data/Contacts.lua), the main
+-- character (Data/Accounts.lua) and the Roster columns (char.ui.columns, per character, UI/RosterModel.lua).
+-- Bus: SETTINGS_CHANGED(key) after a change of an option, a main character or the columns.
+local ADDON_NAME, ns = ...
+ns = ns or {}
+local Model = {}
+ns.SettingsModel, ns.modules = Model, ns.modules or {}
+ns.modules.SettingsModel = Model
+
+local type, pairs, ipairs, pcall, tostring = type, pairs, ipairs, pcall, tostring
+
+Model.PANEL_NAME = "Azeroth Accord"
+
+Model.OPTIONS = {
+	{ key = "notifyOfficer", path = "account.settings.notifyOfficer", label = "SET_NOTIFY_OFFICER", tip = "SET_NOTIFY_OFFICER_TIP",
+		group = "notifications", officersOnly = true },
+	{ key = "notifyDecision", path = "account.settings.notifyDecision", label = "SET_NOTIFY_DECISION", tip = "SET_NOTIFY_DECISION_TIP",
+		group = "notifications" },
+}
+
+local byKey = {}
+for _, o in ipairs(Model.OPTIONS) do byKey[o.key] = o end
+Model.OPTION = byKey
+
+local function emit(event, ...) if ns.Bus then ns.Bus:Emit(event, ...) end end
+
+local function defaultAt(path)
+	local node = ns.Config and ns.Config.defaults
+	for part in path:gmatch("[^.]+") do
+		if type(node) ~= "table" then return nil end
+		node = node[part]
+	end
+	return node
+end
+
+function Model.Default(key)
+	local o = byKey[key]
+	return o and defaultAt(o.path) or nil
+end
+
+-- The saved value; an option that was never saved (or damaged) is its default.
+function Model.Get(key)
+	local o = byKey[key]
+	if not o then return nil end
+	local v = ns.Config and ns.Config:Get(o.path)
+	if type(v) ~= "boolean" then return Model.Default(key) end
+	return v
+end
+
+function Model.IsDefault(key) return Model.Get(key) == Model.Default(key) end
+
+-- Saves an option. Returns true, or false and the reason (unknown option, read-only saved data, a rule).
+function Model.Set(key, value)
+	local o = byKey[key]
+	if not o then return false, "unknown" end
+	if type(value) ~= "boolean" then return false, "expected boolean" end
+	local ok, why = ns.Config:Set(o.path, value)
+	if not ok then return false, why end
+	emit("SETTINGS_CHANGED", key)
+	return true
+end
+
+-- Whether the player sees an option at all (the officer notice means nothing to a member).
+function Model.Visible(key)
+	local o = byKey[key]
+	if not o then return false end
+	if o.officersOnly then return ns.Role ~= nil and ns.Role:IsOfficer() end
+	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Main character (Data/Accounts.lua)
+---------------------------------------------------------------------------------------------------------------------
+-- The characters the player may pick as main, the chosen one first-marked: { { guid, name, level, classID, isMain }, ... }.
+function Model.MainChoices()
+	local A = ns.Accounts
+	local out = {}
+	if not A then return out end
+	local main = A:Main()
+	for _, e in ipairs(A:OwnChars()) do
+		out[#out + 1] = { guid = e.guid, name = e.name, level = e.level, classID = e.classID, isMain = e.guid == main }
+	end
+	return out
+end
+
+function Model.SetMain(guid)
+	local A = ns.Accounts
+	if not A then return false, "unavailable" end
+	local ok, why = A:SetMain(guid)
+	if ok then emit("SETTINGS_CHANGED", "main") end
+	return ok, why
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Roster columns (UI/RosterModel.lua, saved per character)
+---------------------------------------------------------------------------------------------------------------------
+-- { { id, label, on, always }, ... } for the columns that exist now.
+function Model.ColumnChoices()
+	local RM = ns.RosterModel
+	local view = ns.RosterView
+	if not (RM and view and view.Model) then return {} end
+	local model = view:Model()
+	local out = {}
+	for _, c in ipairs(RM.AvailableColumns()) do
+		out[#out + 1] = { id = c.id, label = c.label, on = model:HasColumn(c.id), always = c.always == true }
+	end
+	return out
+end
+
+function Model.ToggleColumn(id)
+	local view = ns.RosterView
+	if not (view and view.Model) then return false end
+	local model = view:Model()
+	local def = ns.RosterModel and ns.RosterModel.COLUMN[id]
+	if not def or def.always then return false end
+	model:ToggleColumn(id)
+	model:Save()
+	if view.Changed then view:Changed(true) end
+	emit("SETTINGS_CHANGED", "columns")
+	return true
+end
+
+function Model.ResetColumns()
+	local view = ns.RosterView
+	if not (view and view.Model) then return false end
+	local model = view:Model()
+	model:SetColumns(model:DefaultColumns())
+	model:Save()
+	if view.Changed then view:Changed(true) end
+	emit("SETTINGS_CHANGED", "columns")
+	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Sizes of the saved data (SPEC-01 §4, SPEC-09 §6)
+---------------------------------------------------------------------------------------------------------------------
+-- A size as the page says it: "512 B", "12.3 KB", "1.2 MB".
+function Model.FormatBytes(bytes)
+	bytes = tonumber(bytes) or 0
+	if bytes < 1024 then return ("%d B"):format(bytes) end
+	if bytes < 1024 * 1024 then return ("%.1f KB"):format(bytes / 1024) end
+	return ("%.1f MB"):format(bytes / 1024 / 1024)
+end
+
+-- The numbers behind the "Saved data" card: { account = bytes, char = bytes, guilds = number of guilds held, guild =
+-- bytes of the current guild or nil, parts = { { name, bytes, records }, ... } }. `records` is the number of records of a
+-- store set (the data sets of SPEC-03), nil for other tables. Estimates of the saved file, not measured on disk.
+function Model.Sizes()
+	local C = ns.Config
+	local out = { account = 0, char = 0, guilds = 0, parts = {} }
+	if not (C and C.db) then return out end
+	out.account = C.EstimateSize(C.db.account or {})
+	out.char = C.EstimateSize(C.db.char or {})
+	for _ in pairs(C.db.account and C.db.account.guilds or {}) do out.guilds = out.guilds + 1 end
+	local GK = ns.GuildKey
+	if not GK then return out end
+	local parts, total = GK:SizeParts()
+	if not parts then return out end
+	out.guild = total
+	local data = GK:Data()
+	local sets = data and data.store and data.store.sets
+	for _, p in ipairs(parts) do
+		if p.name == "store" and type(sets) == "table" then
+			-- the store is the bulk of the data: one line per data set instead of one for the whole store
+			for _, set in ipairs(ns.Store and ns.Store.SET_ORDER or {}) do
+				local records = sets[set]
+				if type(records) == "table" then
+					local n = 0
+					for _ in pairs(records) do n = n + 1 end
+					out.parts[#out.parts + 1] = { name = set, bytes = C.EstimateSize(records), records = n }
+				end
+			end
+		else
+			out.parts[#out.parts + 1] = { name = p.name, bytes = p.bytes }
+		end
+	end
+	table.sort(out.parts, function(a, b)
+		if a.bytes ~= b.bytes then return a.bytes > b.bytes end
+		return a.name < b.name
+	end)
+	return out
+end
+
+-- Clears what the addon holds about the current guild (GuildKey:Clear keeps what only this computer knows: the notary's
+-- salts, the account's likes memory, the bank money history and the bank notices already seen). Returns the bytes freed, or false and the reason.
+function Model.ClearGuildData()
+	local GK = ns.GuildKey
+	if not GK then return false, "unavailable" end
+	local freed, why = GK:Clear()
+	if freed == false then return false, why end
+	emit("SETTINGS_CHANGED", "clear")
+	return freed
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The panel in the game's Settings window
+---------------------------------------------------------------------------------------------------------------------
+-- Registers a canvas category when the client has the API; `makeFrame(name)` is called only then and returns the canvas
+-- frame. Never raises. Returns true, or false and why: "unavailable" (no Settings API) or "failed".
+function Model.RegisterPanel(makeFrame, api)
+	if Model.category then return true end
+	api = api or (ns.Compat and ns.Compat.Resolve("Settings"))
+	if type(api) ~= "table" or type(api.RegisterCanvasLayoutCategory) ~= "function"
+		or type(api.RegisterAddOnCategory) ~= "function" then
+		Model.panelStatus = "unavailable"
+		return false, "unavailable"
+	end
+	local ok, category = pcall(function()
+		local frame = makeFrame(Model.PANEL_NAME)
+		local cat = api.RegisterCanvasLayoutCategory(frame, Model.PANEL_NAME)
+		api.RegisterAddOnCategory(cat)
+		return cat
+	end)
+	if not ok or not category then
+		Model.panelStatus = "failed"
+		return false, "failed"
+	end
+	Model.category, Model.api, Model.panelStatus = category, api, "registered"
+	return true
+end
+
+-- Opens the game's Settings window on our panel. Returns false when there is none.
+function Model.OpenPanel()
+	local api, category = Model.api, Model.category
+	if not (api and category and type(api.OpenToCategory) == "function") then return false end
+	local id = category.GetID and category:GetID() or category.ID or category
+	return pcall(api.OpenToCategory, id) and true or false
+end
+
+function Model.DebugLines()
+	local parts = {}
+	for _, o in ipairs(Model.OPTIONS) do
+		parts[#parts + 1] = ("%s=%s%s"):format(o.key, tostring(Model.Get(o.key)), Model.IsDefault(o.key) and "" or " (changed)")
+	end
+	return { "Settings: " .. table.concat(parts, ", ") .. "; game panel: " .. tostring(Model.panelStatus or "not tried") }
+end
+
+if ns.addon then
+	ns.addon.SettingsModel = Model
+	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Settings", function() return Model.DebugLines() end) end
+end

@@ -34,7 +34,7 @@ import sys
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CO_AUTHOR = "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+CO_AUTHOR = os.environ.get("AZACCORD_CO_AUTHOR", "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>")
 # Personal addresses never go in the history (CLAUDE.md, Privacy): the step commit is authored and committed by the
 # noreply identity, whatever the local git configuration says.
 NAME = "Finland6738"

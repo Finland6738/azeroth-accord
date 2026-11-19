@@ -47,7 +47,7 @@ Config.defaults = {
 		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, seen, added, answered } }: Data/Accounts.lua
 		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
-		settings = {},
+		settings = { notifyOfficer = true, notifyDecision = true },   -- plus discord (typed, optional): UI/SettingsModel.lua
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
@@ -69,6 +69,8 @@ Config.rules = {
 	["account.guilds"] = { type = "table" },
 	["account.settings"] = { type = "table" },
 	["account.settings.discord"] = { type = "string", optional = true, maxLen = 32 },
+	["account.settings.notifyOfficer"] = { type = "boolean" },
+	["account.settings.notifyDecision"] = { type = "boolean" },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },

@@ -122,6 +122,12 @@ local function nameOf(guid)
 	return e and (e.short or e.name) or "?"
 end
 
+-- A notice the player switched off in the Settings (UI/SettingsModel.lua) is not printed; what waits is still counted.
+local function wanted(key)
+	local M = ns.SettingsModel
+	return M == nil or M.Get(key) ~= false
+end
+
 local flush
 local function queue(text)
 	state.pending[#state.pending + 1] = text
@@ -152,10 +158,10 @@ function Inbox:OnRequest(id)
 	local me = compat() and compat().Player.GUID()
 	local own = me ~= nil and S:SameAccount(me, rec.requester)
 	if rec.status == "open" and before == nil then
-		if isOfficer() and not own then
+		if isOfficer() and not own and wanted("notifyOfficer") then
 			queue(L["BANKNOTE_NEW"]:format(nameOf(rec.requester), whatOf(rec)))
 		end
-	elseif own and (rec.status == "approved" or rec.status == "rejected" or rec.status == "fulfilled") then
+	elseif own and (rec.status == "approved" or rec.status == "rejected" or rec.status == "fulfilled") and wanted("notifyDecision") then
 		local last = rec.history and rec.history[#rec.history]
 		local text = L["BANKNOTE_" .. rec.status:upper()]:format(whatOf(rec), last and nameOf(last.by) or "?")
 		if rec.status == "rejected" and rec.note then text = text .. " " .. L["BANKREQ_NOTE"]:format(rec.note) end

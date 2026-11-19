@@ -12,7 +12,7 @@ This page is the short version and the rules every step follows. **The developme
 | **[M3 – Professions](docs/roadmap/M3-professions.md)** | `step/m3-…` | Recipes from the profession cell, "who can craft", craft requests | recipes of a guildmate open from the roster |
 | **[M4 – Reputation](docs/roadmap/M4-reputation.md)** | `step/m4-…` | Likes (account to account, irreversible, anonymous), social index, group map, suggested teammates | the same like totals on every client |
 | **[M5 – Guild bank](docs/roadmap/M5-guild-bank.md)** | `step/m5-…` | Bank snapshots, logs, donations, withdrawal and deposit requests approved by officers | a request goes from a member to an officer and is fulfilled; `v0.9` beta |
-| **[M6 – Release](docs/roadmap/M6-release.md)** | `step/m6-…` | Settings, Italian interface, polish, packaging | `v1.0.0` |
+| **[M6 – Release](docs/roadmap/M6-release.md)** | `step/m6-…` | Settings, Italian interface, polish, diagnostics, packaging, images of the manual | `v1.0.0` |
 
 Later ([V2 backlog](docs/roadmap/V2-backlog.md)): raid sign-ups and attendance, the guild's loot system, guild board and notes, craft orders, goals, polls, officer tools.
 

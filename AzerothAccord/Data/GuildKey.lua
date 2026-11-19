@@ -11,7 +11,7 @@ local GuildKey = {}
 ns.GuildKey, ns.modules = GuildKey, ns.modules or {}
 ns.modules.GuildKey = GuildKey
 
-local type, pairs, tostring = type, pairs, tostring
+local type, pairs, ipairs, tostring = type, pairs, ipairs, tostring
 
 GuildKey.SEP = "/"
 
@@ -79,22 +79,65 @@ function GuildKey:Known()
 	return keys
 end
 
--- /accord debug: the size of the current guild's data, per top-level table (no names: the key itself is not shown).
-function GuildKey:SizeLines()
+-- The size of the current guild's data per top-level table, biggest first: { { name, bytes }, ... }, total (SPEC-09 §6);
+-- nil when there is no data. No names: the key itself is not part of it.
+function GuildKey:SizeParts()
 	local key = self:Current()
 	local db = ns.Config and ns.Config.db.account
 	local data = key and type(db) == "table" and db.guilds and db.guilds[key]
-	if type(data) ~= "table" then return { "Current guild: no data" } end
+	if type(data) ~= "table" then return nil, 0 end
 	local parts, total = {}, 0
 	for name, value in pairs(data) do
 		if type(value) == "table" then
 			local size = ns.Config.EstimateSize(value)
 			total = total + size
-			parts[#parts + 1] = ("%s %.1f KB"):format(tostring(name), size / 1024)
+			parts[#parts + 1] = { name = tostring(name), bytes = size }
 		end
 	end
-	table.sort(parts)
-	return { ("Current guild: about %.1f KB%s"):format(total / 1024, #parts > 0 and (" (" .. table.concat(parts, ", ") .. ")") or "") }
+	table.sort(parts, function(a, b)
+		if a.bytes ~= b.bytes then return a.bytes > b.bytes end
+		return a.name < b.name
+	end)
+	return parts, total
+end
+
+-- /accord debug: the same, as one line.
+function GuildKey:SizeLines()
+	local parts, total = self:SizeParts()
+	if not parts then return { "Current guild: no data" } end
+	local text = {}
+	table.sort(parts, function(a, b) return a.name < b.name end)
+	for _, p in ipairs(parts) do text[#text + 1] = ("%s %.1f KB"):format(p.name, p.bytes / 1024) end
+	return { ("Current guild: about %.1f KB%s"):format(total / 1024, #text > 0 and (" (" .. table.concat(text, ", ") .. ")") or "") }
+end
+
+-- Tables of a guild that Clear keeps unless told otherwise: what only this computer knows and the guild cannot send
+-- back. The notary's salts (the likes key of the guild: losing the only copy would let an old like be given twice,
+-- ADR 0007), this account's own likes memory (SPEC-07 LIKE-04) and the bank table (the money history observed at the
+-- vault and which request notices were already shown, so a resend is not announced again).
+GuildKey.KEEP_ON_CLEAR = { "salts", "likes", "bank" }
+
+-- "Clear guild data" (M6.1): forgets everything the addon holds about the current guild except `keep` (default
+-- KEEP_ON_CLEAR) and starts again from the guild: the modules reset (GUILD_CHANGED with the same key twice in a row is
+-- the signal they already handle for a guild change) and the guild sends what it knows again. Never touches the
+-- account (token, characters, main, settings) or the character's own settings. Returns the bytes freed, or false and
+-- the reason ("guild", "read-only").
+function GuildKey:Clear(key, keep)
+	key = key or self:Current()
+	local db = ns.Config and ns.Config.db.account
+	if not key or type(db) ~= "table" or type(db.guilds) ~= "table" then return false, "guild" end
+	if ns.Config:IsReadOnly("account") then return false, "read-only" end
+	local data = db.guilds[key]
+	if type(data) ~= "table" then return 0 end
+	local before = ns.Config.EstimateSize(data)
+	local kept = {}
+	for _, name in ipairs(keep or GuildKey.KEEP_ON_CLEAR) do kept[name] = true end
+	for name in pairs(data) do
+		if not kept[name] and name ~= "firstSeen" then data[name] = nil end
+	end
+	data.lastSeen = now()
+	if ns.Bus then ns.Bus:Emit("GUILD_CHANGED", key, key) end
+	return before - ns.Config.EstimateSize(data)
 end
 
 if ns.addon then ns.addon.GuildKey = GuildKey end

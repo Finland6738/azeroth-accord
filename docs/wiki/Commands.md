@@ -9,7 +9,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view: likes of every player and the Like button, your social index, the group map (officers), *Someone new* to play with *(M4)* |
 | `/accord bank` | Opens the Bank view *(M5)* |
-| `/accord settings` | Opens the Settings view, where you type your Discord name |
+| `/accord settings` | Opens the Settings view: Discord name, main character, notices, Roster columns, saved data (see [[Settings|Settings]]) |
 | `/accord debug` | Opens a diagnostic report, already selected: press Ctrl+C and paste it into a bug report. It contains no player, guild, BattleTag or Discord names |
 | `/accord help` | Lists the commands in the chat |
 

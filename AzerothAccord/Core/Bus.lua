@@ -11,6 +11,8 @@
 --                                                     only when the role or the guild key changed.
 --   GUILD_CHANGED(guildKey, oldGuildKey)              Core/Role.lua; the character joined, left or changed guild (either
 --                                                     key may be nil). Modules drop what they hold of the old guild.
+--   SETTINGS_CHANGED(key)                             UI/SettingsModel.lua; an option ("notifyOfficer", "notifyDecision"), the "main", the
+--                                                     "columns" or "clear" (guild data cleared) changed.
 -- Later modules add their events here.
 local ADDON_NAME, ns = ...
 ns = ns or {}

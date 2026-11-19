@@ -38,9 +38,25 @@ Stesso pannello in una finestra mobile e ridimensionabile, aperta da `/accord`, 
 |---|---|
 | `/accord` o `/acc` | apre o chiude la finestra autonoma |
 | `/accord roster`, `professions`, `reputation`, `bank` | apre quella vista (`professions` si apre sulla ricerca "who can craft", [SPEC-06 §2.2](SPEC-06-professions-recipes.md); `reputation` sulla classifica dei like, [SPEC-07 §2.3](SPEC-07-reputation-social.md#23-interfaccia-dei-like-uireputationlua-m43)) |
+| `/accord settings` | apre la vista Settings ([§6](#6-impostazioni-m61)) |
 | `/accord debug` | rapporto di diagnostica in una casella già selezionata, da copiare con Ctrl+C |
 | `/accord help` | elenco dei comandi |
 
 ## 5. Stile
 
 Aspetto coerente con la finestra della Gilda di Blizzard (bordi, font e colori del client), così la tab sembra nativa. Icone del client per classi, professioni e oggetti, per fileID o atlas.
+
+## 6. Impostazioni (M6.1)
+
+La vista **Settings** (`/accord settings`) e un pannello **Azeroth Accord** nella finestra Impostazioni del gioco (registrato all'accesso con `Settings.RegisterCanvasLayoutCategory` e `RegisterAddOnCategory` quando il client li ha, altrimenti non c'è pannello e `/accord debug` lo dice) mostrano **la stessa pagina**, disegnata da un solo costruttore (`UI/Settings.lua`) con le opzioni e le azioni in `UI/SettingsModel.lua`. La pagina scorre con la rotella. Una modifica in una delle due si vede subito nell'altra (evento `SETTINGS_CHANGED` sul Bus). Il pannello del gioco costruisce la pagina solo quando viene mostrato; il suo pulsante *Defaults* non fa nulla, perché le opzioni di Accord si applicano mentre si cambiano.
+
+| Scheda | Contenuto | Dove si salva |
+|---|---|---|
+| Contatti | BattleTag (letto dal gioco) e nome Discord digitato; sempre condivisi con la gilda, nessun interruttore (D3) | `account.settings.discord` |
+| Personaggio principale | il main tra i personaggi dell'account sul reame (menu); guida il gruppo nel Roster raggruppato e nella scheda | `mains[<reame>]` ([SPEC-05 §3](SPEC-05-roster-alts-contacts.md)) |
+| Notifiche | `notifyOfficer` (solo ufficiali: una riga in chat per ogni nuova richiesta alla banca) e `notifyDecision` (una riga quando una richiesta propria è approvata, rifiutata o consegnata); entrambe attive di default. Spegnerle non toglie nulla dal contatore sulla scheda né dalla vista Banca | `account.settings.notifyOfficer`, `account.settings.notifyDecision` |
+| Colonne del Roster | le colonne che la tabella mostra e il ritorno a quelle predefinite; la colonna del nome non si spegne | `char.ui.columns` (per personaggio) |
+| Dati salvati | dimensione stimata dell'account, del personaggio e della gilda corrente, e per ogni insieme di dati della gilda numero di record e dimensione (nessun nome) | — |
+| Cancella i dati della gilda | due clic (il primo mostra quanto si libera e si ritira dopo 8 secondi): dimentica i dati della gilda corrente e li richiede ai compagni | — |
+
+**Cancella i dati della gilda** (`GuildKey:Clear`) toglie dalla tabella della gilda corrente tutto tranne ciò che **solo questo computer sa** e la gilda non può rimandare: le chiavi dei like dell'ufficiale (`salts`: perderne l'unica copia permetterebbe di dare di nuovo un like già dato, [ADR 0007](../adr/0007-likes-one-per-account-irreversible-anonymous.md)), la memoria dei like dati dall'account (`likes`) e la tabella `bank` (storico del denaro osservato alla banca e avvisi già mostrati, così un reinvio non viene annunciato di nuovo). Non tocca mai il token dell'account, i personaggi, il main, le impostazioni, le impostazioni del personaggio né i dati di un'altra gilda, e si rifiuta con i dati salvati in sola lettura (schema più nuovo). Poi emette di nuovo `GUILD_CHANGED` con la stessa chiave: i moduli si azzerano e ripartono come dopo un cambio di gilda (HELLO, richiesta dei dati, roster).

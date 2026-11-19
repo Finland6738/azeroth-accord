@@ -12,7 +12,7 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 
 The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking. There is no switch to turn this off. Contacts received from other players are checked (a BattleTag must look like one, a Discord name must be a plain user name) and shown as plain text, never as links.
 
-The character list holds, for each of your characters on the realm (inside the guild or not): name, class, level, whether it is in the guild, and which one is your main. A character you delete or rename is cleaned up by itself after 30 days, once the game confirms it no longer knows it.
+The character list holds, for each of your characters on the realm (inside the guild or not): name, class, level, whether it is in the guild, and which one is your main. A character you delete or rename is cleaned up by itself after 30 days, once the game confirms it no longer knows it. **Settings → Clear guild data** forgets what the addon holds about a guild on your computer at any time ([[Settings|Settings]]).
 
 The minutes you spend in groups with guildmates are recorded from the roster version on (see *Likes and social index*), per day and per pair of characters, and kept for 90 days.
 

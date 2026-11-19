@@ -10,7 +10,7 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M3** | [M3-professions.md](M3-professions.md) | Recipes per member, "who can craft", craft requests | 6 | final check |
 | **M4** | [M4-reputation.md](M4-reputation.md) | Likes, social index, group map, suggested teammates | 7 | final check |
 | **M5** | [M5-guild-bank.md](M5-guild-bank.md) | Bank snapshots, logs, donations, requests | 7 | final check |
-| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, packaging, v1.0.0 | 6 | beta and release checklist |
+| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, v1.0.0 | 7 | beta and release checklist |
 | V2 | [V2-backlog.md](V2-backlog.md) | Ideas after v1.0.0 | — | — |
 
 ## Order and dependencies

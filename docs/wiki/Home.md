@@ -14,4 +14,5 @@
 | Find someone who can craft an item | [[Professions and Recipes|Professions-and-Recipes]] |
 | Understand likes and the social index | [[Likes and Social Index|Likes-and-Social-Index]] |
 | See the bank or ask for an item | [[Guild Bank|Guild-Bank]] |
+| Change my main, my Discord name or the notices | [[Settings|Settings]] |
 | Know what is shared | [[Privacy and Data|Privacy-and-Data]] |

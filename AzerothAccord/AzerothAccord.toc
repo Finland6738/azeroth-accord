@@ -62,4 +62,5 @@ UI\Suggest.lua
 UI\Bank.lua
 UI\BankLog.lua
 UI\BankRequests.lua
+UI\SettingsModel.lua
 UI\Settings.lua

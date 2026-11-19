@@ -1,10 +1,14 @@
 # M6 — Release
 
-**Goal:** `v1.0.0`: settings, Italian interface, polish, packaging and the full manual.
+**Goal:** `v1.0.0`: settings, Italian interface, polish, packaging, the images of the manual and the full manual.
 
 ### M6.1 — Settings
 - Branch: `step/m6-1-settings`
+- Spec: SPEC-04 §4 ("Impostazioni")
 - Scope: Settings view and the game's Settings panel: Discord handle, main character, columns, notifications, data sizes and "clear guild data".
+- Done when:
+  - [x] `UI/SettingsModel.lua` (the options `notifyOfficer` and `notifyDecision` with defaults, validation and `SETTINGS_CHANGED`; main character choice; Roster columns; sizes of the saved data per data set; "Clear guild data" that keeps what only this computer knows) and `UI/Settings.lua` (one scrolling page drawn in the Settings view of the panel and in a canvas panel registered with `Settings.RegisterCanvasLayoutCategory` when the client has it); the bank notices follow the options; a change in one page shows in the other (`Tests/test_settings.lua`).
+  - [ ] In game: the panel appears in the game's Settings window, the page scrolls, "Clear guild data" refills from the guild (the release check, `docs/checklists/release.md`, written in M6.7).
 
 ### M6.2 — Italian interface
 - Branch: `step/m6-2-itit`
@@ -21,8 +25,13 @@
 
 ### M6.5 — Packaging and release workflow
 - Branch: `step/m6-5-packaging`
-- Scope: BigWigs packager, GitHub Releases, optional CurseForge, `docs/RELEASING.md`.
+- Scope: BigWigs packager, GitHub Releases, optional CurseForge (disabled until the owner decides, SPEC-10 Q9), `docs/RELEASING.md`.
 
-### M6.6 — Release checklist and v1.0.0
-- Branch: `step/m6-6-release`
-- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v1.0.0`.
+### M6.6 — Wiki mockups and images
+- Branch: `step/m6-6-mockups`
+- Spec: SPEC-04 §5
+- Scope: port and adapt the mockup tools of Azeroth Guild Finder (`docs/specs/mockups/`, `tools/make_mockups.py`, `tools/mockup_lib.py`, `tools/mockup_scenes*.py`): design previews of every main view drawn from the addon's real layout and English texts, with a "Design preview" strip because nothing has run in the real client yet; embedded in the wiki pages and in `README.md` / `README.it.md`.
+
+### M6.7 — Release checklist and v1.0.0
+- Branch: `step/m6-7-release`
+- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v1.0.0` (the tag waits for the owner).
