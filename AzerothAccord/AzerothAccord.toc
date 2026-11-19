@@ -49,4 +49,5 @@ UI\CopyBox.lua
 UI\MemberCard.lua
 UI\RecipeModel.lua
 UI\Professions.lua
+UI\Reputation.lua
 UI\Settings.lua

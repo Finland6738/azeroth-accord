@@ -1,6 +1,6 @@
 # Guild roster
 
-> Available from the roster version (milestone M2). The Likes and Social columns arrive with milestone M4. The profession cells open the member's recipes from the professions version (milestone M3): see [[Professions and Recipes|Professions-and-Recipes]].
+> Available from the roster version (milestone M2). The Likes and Social columns arrive with milestone M4 (Likes: the player's total, green when you liked them, grey while your like is pending). The profession cells open the member's recipes from the professions version (milestone M3): see [[Professions and Recipes|Professions-and-Recipes]].
 
 The **Roster** view is a table of every member: name, level, class, rank, zone, last online, **profession 1** and **profession 2**, likes, social index, Battle.net and Discord. Click a column header to sort (a second click reverses; members with nothing in that column always go last); use the search box at the top (name or profession) and the filters (*Online*, *Mains only*, and the *Class*, *Rank* and *Profession* menus); *Columns* chooses which columns to show, and your choices are remembered for each character. The table stays fast with a guild of 1000 members.
 

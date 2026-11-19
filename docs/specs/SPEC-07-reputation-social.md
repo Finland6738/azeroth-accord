@@ -42,6 +42,13 @@ Limiti noti, scritti nella wiki: il notaio vede chi ha votato nel momento in cui
 - **Solo aggiunte** (LIKE-03): lo `Store` accetta una voce di `likes` solo da un ufficiale (NET-12), solo con `rev` 1, solo con l'id ricavato dal contenuto, e non sostituisce mai una voce che ha (`immutable`). L'autore non deve essere ancora ufficiale: una voce resta valida se il notaio è uscito o è stato retrocesso (LIKE-07).
 - **Totale** (LIKE-04): il numero di `pseudonym` **distinti** fra le voci il cui destinatario è un personaggio dell'account; i personaggi uniti solo da una nota pubblica (`main:` / `alt:`) non contano. Quando due personaggi si uniscono più tardi (elenco reciproco) i loro like si sommano senza contare due volte lo stesso votante.
 
+### 2.3 Interfaccia dei like (`UI/Reputation.lua`, M4.3)
+
+- **Scheda del membro**: una sezione *Likes* con il totale dell'account ("uguale su tutti i personaggi") e, se si può votare, **[Like this player]**; il primo clic chiede conferma (il testo diventa "clicca ancora: un like non si può ritirare"), il secondo entro 8 s dà il like. Poi la riga dice "in attesa di un ufficiale" (LIKE-05) o "hai dato il like"; sui propri personaggi non c'è nessuna azione (LIKE-02).
+- **Colonna Likes** del roster, ora tra le colonne predefinite: il totale dell'account; verde se il giocatore gli ha dato il like, grigio se il like aspetta un ufficiale.
+- **Vista Reputation** (LIKE-08), per tutti: una riga per account con almeno un personaggio nella gilda (il main se è nella gilda, altrimenti il personaggio di livello più alto; quanti personaggi), posto in classifica (a pari like lo stesso posto), totale, e il pulsante **Like** (due clic) o lo stato ("dato", "in attesa", "tu"). Si ordina per like o per nome dalle intestazioni; la casella di ricerca del pannello filtra per qualunque personaggio dell'account; un clic sulla riga apre la scheda del membro nel Roster. Nessuna riga dice chi ha votato (LIKE-04).
+- Un rifiuto del notaio (`self`, `target`, `conflict`) si dice in chat. La vista ha **modalità** (pulsanti in alto) a cui i passi successivi aggiungono l'indice sociale, la mappa dei gruppi e i compagni suggeriti; una modalità riservata agli ufficiali non ha il pulsante per gli altri.
+
 ## 3. Indice sociale
 
 [ADR 0008](../adr/0008-social-breadth-index-from-co-play.md).

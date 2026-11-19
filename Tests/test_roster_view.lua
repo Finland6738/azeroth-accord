@@ -50,7 +50,7 @@ describe("the view", function()
 		for _, b in ipairs(V().frame.header.buttons) do if b:IsShown() then titles[#titles + 1] = b.label:GetText() end end
 		eq(titles[1], "Name ^")
 		eq(titles[2], "Lvl")
-		eq(#titles, 10)
+		eq(#titles, 11)
 		eq(V().frame.toolbar.count:GetText(), "11 of 11 members")
 	end)
 
@@ -146,7 +146,7 @@ describe("headers and the toolbar", function()
 		falsy(V():Model():HasColumn("zone"))
 		local titles = 0
 		for _, b in ipairs(V().frame.header.buttons) do if b:IsShown() then titles = titles + 1 end end
-		eq(titles, 9)
+		eq(titles, 10)
 		deepEq(A().Config:Get("char.ui.columns")[1], "name")
 		A().Widgets.menu.rows[#items]:Click()   -- default columns
 		truthy(V():Model():HasColumn("zone"))

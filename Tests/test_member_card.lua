@@ -138,8 +138,8 @@ describe("the content", function()
 		Card().AddSection("broken", 15, function(e) error("boom") end)
 		Card().AddSection("none", 16, function(e) return nil end)
 		local d = desc(ANN)
-		eq(#d.sections, 6)   -- details, professions, account, contacts, and the two that work
-		eq(d.sections[5].id, "early"); eq(d.sections[6].id, "late")
+		eq(#d.sections, 7)   -- details, professions, account, contacts, likes (M4.3), and the two that work
+		eq(d.sections[5].id, "likes"); eq(d.sections[6].id, "early"); eq(d.sections[7].id, "late")
 		isNil(Card().Describe("nope"))
 	end)
 end)

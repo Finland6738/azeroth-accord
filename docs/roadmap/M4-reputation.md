@@ -22,6 +22,8 @@
 - Branch: `step/m4-3-likes-ui`
 - Spec: LIKE-04, LIKE-08
 - Scope: Like on the member card, likes column, pending state, the Reputation view.
+- Done when:
+  - [x] The card has the account's total and a Like action confirmed by a second click, then the pending or given state; the Likes column is a default column (green when liked, grey while pending); the Reputation view lists every account by likes with places, sort, search, a two-click Like and a click to the card, and never shows who voted (covered by `Tests/test_reputation_view.lua`).
 
 ### M4.4 — Social index computation
 - Branch: `step/m4-4-social-index`

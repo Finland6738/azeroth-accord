@@ -57,7 +57,7 @@ describe("columns", function()
 		local m = M().new()
 		local ids = {}
 		for _, c in ipairs(m:VisibleColumns()) do ids[#ids + 1] = c.id end
-		deepEq(ids, { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "contacts", "addon" })
+		deepEq(ids, { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "contacts", "addon" })
 		truthy(M().ColumnAvailable("likes")); falsy(M().ColumnAvailable("social")); truthy(M().ColumnAvailable("contacts"))
 		falsy(M().ColumnAvailable("nope"))
 	end)

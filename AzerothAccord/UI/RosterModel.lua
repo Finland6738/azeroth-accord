@@ -41,7 +41,7 @@ Model.COLUMNS = {
 	{ id = "contacts", label = "COL_CONTACTS", width = 60, available = function() return ns.Contacts ~= nil end },
 	{ id = "addon", label = "COL_ADDON", width = 55 },
 }
-Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "contacts", "addon" }
+Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "contacts", "addon" }
 
 local byId = {}
 for _, c in ipairs(Model.COLUMNS) do byId[c.id] = c end
@@ -116,8 +116,11 @@ function Model.Cell(id, e)
 		local C = ns.Contacts
 		return C and C.Summary and C:Summary(e.guid) or "", nil
 	elseif id == "likes" then
+		-- the total of the account; green when this player liked it, grey while the like waits for an officer
 		local x = ns.Likes
-		return x and x.Total and tostring(x:Total(e.guid) or "") or ""
+		if not (x and x.Total and e.guid) or e.notInGuild then return "" end
+		local state = x:StateOf(e.guid)
+		return tostring(x:Total(e.guid)), state == "given" and "green" or (state == "pending" and "grey" or nil)
 	elseif id == "social" then
 		local x = ns.Social
 		return x and x.Index and tostring(x:Index(e.guid) or "") or ""
