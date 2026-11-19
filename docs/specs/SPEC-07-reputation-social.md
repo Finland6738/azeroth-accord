@@ -32,6 +32,14 @@ Limiti noti, scritti nella wiki: il notaio vede chi ha votato nel momento in cui
 - SOC-02: si conta anche dentro istanze e raid; l'invio dei dati aspetta la fine del lockdown.
 - SOC-03: i dati si pubblicano una volta all'ora e alla disconnessione, per giorno; si uniscono con il **massimo** per coppia e giorno.
 
+Realizzazione (`Data/CoPlay.lua`, M2.6; nessuna vista, solo `/accord debug` con i conteggi):
+
+- Un `C_Timer.NewTicker` di 60 s, avviato all'accesso. Ogni conteggio legge il gruppo (`Compat.Group.Members`), tiene i membri della gilda (`UnitIsInMyGuild`, altrimenti il roster) e aggiunge 1 minuto a **ogni coppia** tra loro, il giocatore compreso. Un membro con GUID nascosto (valore segreto) si riconosce dal nome, se leggibile, tramite il roster; se anche il nome è nascosto si **conta come illeggibile e si lascia fuori**, mai indovinato (`/accord debug` ne dà il numero). Quando almeno un conteggio riconosce i membri senza buchi la capacità `groupGUIDs` passa a `available` **[verificare]** S7.
+- Il giorno è quello del calendario del reame (`C_DateAndTime.GetCurrentCalendarTime`, altrimenti la data UTC del `GetServerTime`), come numero `AAAAMMGG`. Una coppia non supera 1440 minuti al giorno.
+- **Pubblicazione**: una volta all'ora, alla disconnessione (`PLAYER_LOGOUT`) e al primo conteggio del giorno dopo (per ieri). I minuti si tengono in memoria e partono solo quando cambiano; il lockdown ritarda l'invio (Transport), non il conteggio (SOC-02). Dopo un `/reload` il conteggio riparte da quanto era stato pubblicato.
+- **Record a pezzi**: id = `<osservatore>:<giorno>:<n>`, al massimo 100 coppie per record (una raid di 40 ha 780 coppie: 8 pezzi, ciascuno sotto il limite di 8 KB), ogni pezzo con almeno una coppia dell'osservatore (regola NET-13). Solo i pezzi cambiati si riscrivono.
+- Più osservatori dello stesso gruppo danno il **massimo** per coppia e giorno (`Store:MergeMax`), non la somma: provato con tre client del simulatore nello stesso gruppo (10 minuti, non 30). Conservazione 90 giorni (`Store:Prune`).
+
 ### 3.2 Calcolo
 
 Per ogni account `a` nella finestra degli ultimi 30 giorni:

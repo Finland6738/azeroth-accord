@@ -19,6 +19,10 @@ The owner wants an automatic rating, "a kind of MMR", that rewards members who *
 - **Counting distinct partners.** Ten minutes once with everyone would look like real mixing.
 - **Elo-like rating.** There is no match result to rate; entropy measures exactly "how spread" the play time is.
 
+## Implementation note (M2.6)
+
+Recording starts in M2, before any view exists (owner decision D6). `Data/CoPlay.lua` counts every 60 seconds, per realm day, publishes hourly, at logout and at the change of day, splits a day into records of at most 100 pairs (a 40-man raid has 780 pairs), each with one pair of the observer, and never guesses who a member with a hidden GUID is: it is counted as unreadable and left out.
+
 ## Consequences
 
 - Positive: explainable (the member card shows the partners' share), resistant to one-off groups.

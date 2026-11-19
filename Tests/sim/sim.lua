@@ -26,6 +26,7 @@
 --   accounts  every client registers itself and publishes its own `accounts` record after login, as in the game (default
 --             false: tests that write their own records keep exact control of the store)
 --   contacts  the same for the `contacts` record (BattleTag and Discord), default false
+--   coplay    the one-minute co-play recording and its hourly publication (Data/CoPlay.lua), default false
 --   setup     function(Mock, i, client) called after the mock client is built, before the addon loads
 -- Time starts at 0 when the clients exist; sim:resetStats() starts a fresh measurement.
 local H, T = ...
@@ -308,6 +309,7 @@ local function bootClient(sim, i, opts)
 	world.autoSync = sim.sync
 	world.autoAccounts = sim.accounts
 	world.autoContacts = sim.contacts
+	world.autoCoPlay = sim.coplay
 	local c = setmetatable({
 		sim = sim, index = i, world = world, E = world.E, Mock = world.Mock, name = Sim.nameOf(i), realmKey = sim.realmKey,
 		online = true, cursor = 0,
@@ -329,7 +331,7 @@ function Sim.new(opts)
 	local sim = setmetatable({
 		time = 0, slot = 0, step = opts.step or 0.1, latency = opts.latency or 0.1, loss = opts.loss or 0,
 		echo = opts.echo ~= false, realm = opts.realm or "Test Realm", clients = {}, inflight = {}, lastSlot = {},
-		rngState = (opts.seed or 1) % 2147483648, statsFrom = 0, delivered = 0, lost = 0, sync = opts.sync ~= false, accounts = opts.accounts == true, contacts = opts.contacts == true,
+		rngState = (opts.seed or 1) % 2147483648, statsFrom = 0, delivered = 0, lost = 0, sync = opts.sync ~= false, accounts = opts.accounts == true, contacts = opts.contacts == true, coplay = opts.coplay == true,
 		officer = {}, size = opts.clients or 2, epoch = 1767225600,
 	}, Sim)
 	for _, i in ipairs(opts.officers or {}) do sim.officer[i] = true end

@@ -765,6 +765,16 @@ function Compat.ServerTime()
 	return time()
 end
 
+-- The realm's calendar day as a number YYYYMMDD (C_DateAndTime.GetCurrentCalendarTime is the server's own calendar
+-- [verify]); the UTC date of the server time when the client does not say. SPEC-03 §4: co-play is kept per day.
+function Compat.ServerDay()
+	local t = first("C_DateAndTime.GetCurrentCalendarTime")
+	if type(t) == "table" and num(t.year) and num(t.month) and num(t.monthDay) then
+		return t.year * 10000 + t.month * 100 + t.monthDay
+	end
+	return tonumber(date("!%Y%m%d", Compat.ServerTime()))
+end
+
 -- Monotonic seconds with sub-second precision (GetTime); the wall clock when the client function is missing.
 function Compat.Now()
 	local v = first("GetTime")

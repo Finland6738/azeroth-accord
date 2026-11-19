@@ -31,6 +31,7 @@ Net\Sync.lua
 Data\Roster.lua
 Data\Accounts.lua
 Data\Contacts.lua
+Data\CoPlay.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

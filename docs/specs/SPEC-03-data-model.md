@@ -39,9 +39,11 @@ Un record per personaggio (`id` = GUID), scritto da lui o da un suo alt; i conta
 
 | Campo | Tipo | Note |
 |---|---|---|
-| `day` | `AAAAMMGG` (ora del server) | |
+| `day` | numero `AAAAMMGG` (calendario del reame) | |
 | `pairs` | mappa `"<guidA>:<guidB>" → minuti` (GUID ordinati) | personaggi, non account: l'unione in account si fa al calcolo |
 | `observer` | GUID | deve comparire in almeno una coppia ([SPEC-02 §6](SPEC-02-network-protocol.md#6-fiducia-e-integrità)) |
+
+Id del record: `<GUID osservatore>:<giorno>:<n>`; un giorno con più di 100 coppie si divide in pezzi (n = 1, 2, ...), ciascuno con almeno una coppia dell'osservatore.
 
 ## 5. Like (`likes`)
 

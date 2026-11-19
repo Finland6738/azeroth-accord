@@ -13,6 +13,8 @@ The character list, BattleTag and Discord name are **always shared** with your g
 
 The character list holds, for each of your characters on the realm (inside the guild or not): name, class, level, whether it is in the guild, and which one is your main. A character you delete or rename is cleaned up by itself after 30 days, once the game confirms it no longer knows it.
 
+The minutes you spend in groups with guildmates are recorded from the roster version on (see *Likes and social index*), per day and per pair of characters, and kept for 90 days.
+
 ## Nobody can write your data
 
 Every piece of shared data names the character that wrote it, and the game itself tells each addon who sent a message. A guildmate's addon accepts your characters, contacts and recipes only from you (or from one of your own characters), and passes on another member's data only when it comes from an officer. Likes and bank decisions are accepted only from officers. A modified addon can therefore lie only about itself.

@@ -159,6 +159,7 @@ function H.boot(opts)
 	-- Likewise Data/Accounts.lua publishes the character's own record by itself after login (Sim.new option `accounts`).
 	if addonObject and addonObject.Accounts then addonObject.Accounts.AUTO = H.autoAccounts == true end
 	if addonObject and addonObject.Contacts then addonObject.Contacts.AUTO = H.autoContacts == true end
+	if addonObject and addonObject.CoPlay then addonObject.CoPlay.AUTO = H.autoCoPlay == true end
 
 	for name, text in pairs(opts.saved or {}) do E[name] = deserialize(text) end
 

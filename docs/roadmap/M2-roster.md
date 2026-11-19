@@ -44,7 +44,7 @@
 - Spec: SPEC-07 §3.1; ADR 0008
 - Scope: `Data/CoPlay.lua`: one-minute sampling, pairs per day, hourly publishing, max merge, 90-day retention; no view yet (only `/accord debug` counts).
 - Done when:
-  - [ ] Two observers of the same group give the maximum, not the sum.
+  - [x] Two observers of the same group give the maximum, not the sum.
 
 ### M2.7 — M2 in-game check and v0.2.0
 - Branch: `step/m2-7-check`
