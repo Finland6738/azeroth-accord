@@ -36,6 +36,13 @@ Tabella (`UI/RosterModel.lua`, `UI/Roster.lua`, M2.3):
 
 Clic su un nome → scheda a destra (o sopra la tabella nella tab stretta): nome, classe, livello, grado, nota pubblica e (se visibile) nota ufficiali, professioni con link alle ricette, **personaggi dello stesso account**, contatti, like ricevuti, indice sociale con i compagni principali, versione dell'addon.
 
+Realizzazione (`UI/MemberCard.lua`, M2.4):
+
+- Il clic su una riga della tabella (`ROSTER_SELECT` sul Bus) apre la scheda **a destra** della tabella in un pannello largo almeno 760 px (la tabella cede 274 px), **sopra** la tabella in uno stretto (la tab della finestra Gilda), con un pulsante *Back*. La scheda è un frame a sé dentro la vista Roster, segue i dati (si ridisegna a `ROSTER_UPDATED` e `ACCOUNTS_UPDATED`) e si chiude se il membro esce dal roster o se cambia la gilda.
+- `Card.Describe(voce)` è una funzione pura e coperta dai test: titolo e sottotitolo (livello e classe), sezioni **Details** (zona, online o ultimo accesso, grado, nota pubblica, nota ufficiali, addon e versione), **Professions** (ognuna con la fonte: "from the game", "shared by the member, 3 d ago", "read from your own character"; se mancano, il testo spiega perché), **Characters of the same account** e le sezioni che aggiungono i passi successivi con `Card.AddSection(id, ordine, fn)` (contatti in M2.5, like e indice sociale in M4); una sezione che dà errore si ignora.
+- **Nota ufficiali** solo se `CanViewOfficerNote()` dice di sì, anche quando il client consegna il testo comunque. Senza quell'API la nota non si mostra.
+- **Personaggi dello stesso account** (ACC-03): tutti gli altri personaggi del gruppo, il main con l'etichetta "main", quelli fuori dalla gilda in grigio con "not in guild", quelli dedotti da una nota con "declared in the note"; ogni riga è un pulsante che apre la scheda di quel personaggio (anche di uno fuori gilda, descritto da ciò che l'account elenca). Il main legge "This is the main character."
+
 ## 3. Personaggi dello stesso account
 
 [ADR 0006](../adr/0006-account-token-and-always-shared-character-list.md):

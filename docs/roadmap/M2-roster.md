@@ -29,6 +29,8 @@
 - Branch: `step/m2-4-member-card`
 - Spec: SPEC-05 §2
 - Scope: card with details, notes (respecting `CanViewOfficerNote`), professions, the account's characters.
+- Done when:
+  - [x] The card shows details, professions with their source, the officers' note only when allowed, and all the characters of the account (covered by `Tests/test_member_card.lua`).
 
 ### M2.5 — Contacts
 - Branch: `step/m2-5-contacts`

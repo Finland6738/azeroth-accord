@@ -216,6 +216,24 @@ function View:StopWatch()
 	if ns.Roster then ns.Roster:Unwatch() end
 end
 
+-- The table gives room to the member card when it sits beside it (Card:Inset): the toolbar, the rows and the scroll
+-- track end that many pixels before the right edge.
+function View:Reflow()
+	local f = self.frame
+	if not f or not f.toolbar then return end
+	local inset = ns.MemberCard and ns.MemberCard:Inset() or 0
+	f.toolbar:ClearAllPoints()
+	f.toolbar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.toolbar:SetPoint("TOPRIGHT", f, "TOPRIGHT", -inset, 0)
+	f.area:ClearAllPoints()
+	f.area:SetPoint("TOPLEFT", f.header, "BOTTOMLEFT", 0, 0)
+	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14 - inset, 0)
+	f.track:ClearAllPoints()
+	f.track:SetPoint("TOPRIGHT", f.header, "BOTTOMRIGHT", 14, 0)
+	f.track:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -inset, 0)
+	self.inset = inset
+end
+
 function View:Build(f)
 	self.frame = f
 	buildToolbar(self, f)
@@ -223,6 +241,9 @@ function View:Build(f)
 	buildScroll(self, f)
 	f:SetScript("OnShow", function() View:StartWatch() View:Changed() end)
 	f:SetScript("OnHide", function() View:StopWatch() end)
+	f:SetScript("OnSizeChanged", function()
+		if ns.MemberCard and ns.MemberCard:IsShown() then ns.MemberCard:Place() ns.MemberCard:Layout() View:Reflow() View:Redraw() end
+	end)
 	self.offset = 0
 	self:Changed(true)
 	if f:IsVisible() then self:StartWatch() end   -- a new frame is shown without an OnShow

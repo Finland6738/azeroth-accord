@@ -353,6 +353,8 @@ local function pseudoEntry(m)
 		online = false, professions = {}, notInGuild = true, claimed = true }
 end
 
+Model.PseudoEntry = pseudoEntry
+
 local function flatRows(self, members)
 	local list = {}
 	for _, e in ipairs(members) do

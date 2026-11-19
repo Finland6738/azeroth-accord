@@ -205,6 +205,12 @@ function Guild.IsOfficer()
 	return state == AVAILABLE and v and true or false
 end
 
+-- true when the player may read the officers' notes (CanViewOfficerNote), false when not or when the API is missing.
+function Guild.CanViewOfficerNote()
+	local v, state = first("CanViewOfficerNote")
+	return state == AVAILABLE and v == true
+end
+
 -- Asks the server for a fresh roster (GUILD_ROSTER_UPDATE follows). Returns the call state.
 function Guild.RequestRoster()
 	local _, state = first("C_GuildInfo.GuildRoster")
@@ -831,6 +837,7 @@ local CAPS = {
 	{ "guild.IsGuildOfficer", "guild", "C_GuildInfo.IsGuildOfficer", call = true },
 	{ "guild.GetNumGuildMembers", "guild", "GetNumGuildMembers", call = true },
 	{ "guild.GetGuildRosterInfo", "guild", "GetGuildRosterInfo" },
+	{ "guild.CanViewOfficerNote", "guild", "CanViewOfficerNote", call = true },
 	{ "guild.GetGuildRosterLastOnline", "guild", "GetGuildRosterLastOnline", note = "[verify] not in the dump" },
 	{ "guild.GuildRoster", "guild", "C_GuildInfo.GuildRoster" },
 	{ "guild.GuildControlGetRankFlags", "guild", "C_GuildInfo.GuildControlGetRankFlags" },

@@ -100,6 +100,14 @@ function GetGuildInfo(unit)
 end
 
 function IsGuildLeader() return guild.name ~= nil and guild.myRank == 0 end
+-- CanViewOfficerNote / CanEditPublicNote / CanEditOfficerNote (api.json globals): the officer ranks may read the
+-- officers' notes; Mock.guild.officerNoteVisible = true/false overrides that.
+function CanViewOfficerNote()
+	if guild.officerNoteVisible ~= nil then return guild.officerNoteVisible end
+	return guild.name ~= nil and guild.myRank <= guild.officerRanks
+end
+function CanEditPublicNote() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
+function CanEditOfficerNote() return CanViewOfficerNote() end
 function CanGuildInvite() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
 
 function GetNumGuildMembers()

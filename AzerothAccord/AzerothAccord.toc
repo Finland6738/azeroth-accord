@@ -38,3 +38,4 @@ UI\GuildTab.lua
 UI\DiagnosticsBox.lua
 UI\RosterModel.lua
 UI\Roster.lua
+UI\MemberCard.lua
