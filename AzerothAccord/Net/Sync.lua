@@ -16,6 +16,11 @@
 --   REC       records of one set. Answers to REQ go on GUILD with a queue key per author and set, so the same request
 --             from many clients goes out once and everyone who missed it catches up; local changes go on GUILD after a
 --             5-second batch; pushes go by WHISPER.
+--   OHELLO    (OFFICER) the same summary for the records that only officers hold (the bank tabs an officer read:
+--             Store.IsRestricted). Those records never travel on GUILD and never count in a GUILD summary, so a member's
+--             summary and an officer's agree on everything a member may hold. A local change of such a record goes out as
+--             REC on OFFICER; an officer who is ahead of an OHELLO sender pushes the missing ones by WHISPER (only the
+--             officer designated for that sender, or the author's own account), exactly as for a HELLO.
 --   DIGEST    not used by this design (the push replaces the digest reply); the type stays in the codec.
 --   ask       Sync:RequestSet(set, author): a view needs one author's records of ONE set now (a member's recipes), so it
 --             sends a REQ for just that set by WHISPER to a peer that may deliver (the author's own account if online, else
@@ -67,7 +72,7 @@ local function resetState()
 		asked = {},            -- "<set>|<author>" -> when this client asked for it (RequestSet)
 		answering = {},        -- sender name -> { start, count }: the rate of the set requests answered
 		batchTimer = nil, helloTimer = nil, timers = {},
-		cache = nil, version = 0, cacheVersion = -1,
+		cache = {}, version = 0, cacheVersion = -1,
 		stats = { hellosSent = 0, hellosHeard = 0, pushes = 0, requests = 0, answers = 0, recSent = 0, recReceived = 0,
 			accepted = 0, refused = 0, asks = 0, asksAnswered = 0, asksLimited = 0 },
 	}
@@ -88,15 +93,18 @@ function Sync.KeyOf(guid)
 	return k
 end
 
--- author GUID -> { key, d, t, records = { { set, rec }, ... } } over every data set of the current guild.
-function Sync:Groups()
-	if state.cache and state.cacheVersion == state.version then return state.cache end
+-- author GUID -> { key, d, t, records = { { set, rec }, ... } } over every data set of the current guild. The records for
+-- officers only (Store.IsRestricted) are left out, unless `restricted` is true: then only those are grouped.
+function Sync:Groups(restricted)
+	restricted = restricted == true
+	if state.cacheVersion ~= state.version then state.cache, state.cacheVersion = {}, state.version end
+	if state.cache[restricted] then return state.cache[restricted] end
 	local groups = {}
 	local S = store()
 	for _, set in ipairs(S.SET_ORDER) do
 		for id, rec in pairs(S:Records(set)) do
 			local author = type(rec) == "table" and rec.author
-			if type(author) == "string" then
+			if type(author) == "string" and S.IsRestricted(set, rec) == restricted then
 				local g = groups[author]
 				if not g then g = { records = {}, parts = {}, t = 0 } groups[author] = g end
 				g.records[#g.records + 1] = { set, rec }
@@ -111,7 +119,7 @@ function Sync:Groups()
 		g.d = hash().Fast(concat(g.parts, "\n")) % 16777216
 		g.parts = nil
 	end
-	state.cache, state.cacheVersion = groups, state.version
+	state.cache[restricted] = groups
 	return groups
 end
 
@@ -268,8 +276,8 @@ local function sendRecords(entries, dist, target, keyPrefix)
 	return count
 end
 
-local function recordsOf(authors)
-	local groups, entries = Sync:Groups(), {}
+local function recordsOf(authors, restricted)
+	local groups, entries = Sync:Groups(restricted), {}
 	for author in pairs(authors) do
 		local g = groups[author]
 		if g then for _, e in ipairs(g.records) do entries[#entries + 1] = e end end
@@ -297,6 +305,10 @@ function Sync:SendHello()
 	if ok then
 		state.stats.hellosSent = state.stats.hellosSent + 1
 		emit("SYNC_HELLO", true)
+	end
+	-- the officers also tell each other what they hold of the restricted records (OFFICER, never GUILD)
+	if iAmOfficer() then
+		send("OFFICER", { t = "OHELLO", s = self:EncodeSummary(self:Groups(true)) }, { key = "OHELLO" })
 	end
 	return ok and true or false
 end
@@ -408,6 +420,42 @@ local function onHello(msg, sender)
 	end
 end
 
+-- An officer's OHELLO: the restricted records (bank tabs read by an officer) are pushed to an officer who lacks them. Only
+-- officers speak and listen here; a member never holds such a record.
+local function onOfficerHello(msg, sender)
+	if not iAmOfficer() then return end
+	local theirs = Sync.DecodeSummary(msg.s)
+	if not theirs then return end
+	local member = touch(sender)
+	if not (member and member.officer) then return end
+	local target, S, me = member.guid, store(), myGUID()
+	local groups = Sync:Groups(true)
+	local pushAuthors, isDesignated = {}, nil
+	for author, g in pairs(groups) do
+		if ahead(g, theirs[g.key]) then
+			if me and S:SameAccount(me, author) and author ~= target and not S:SameAccount(author, target) then
+				pushAuthors[author] = true
+			else
+				if isDesignated == nil then isDesignated = designated(target) end
+				if isDesignated and author ~= target then pushAuthors[author] = true end
+			end
+		end
+	end
+	if not next(pushAuthors) then return end
+	local key = "O|" .. sender
+	local entry = state.push[key]
+	if not entry then
+		entry = { authors = {} }
+		state.push[key] = entry
+		entry.timer = after(between(Sync.PUSH_DELAY), function()
+			state.push[key] = nil
+			local n = sendRecords(recordsOf(entry.authors, true), "WHISPER", sender)
+			if n > 0 then state.stats.pushes = state.stats.pushes + 1 end
+		end)
+	end
+	for a in pairs(pushAuthors) do entry.authors[a] = true end
+end
+
 -- true while `sender` has not used up its share of set requests (ASK_RATE).
 local function withinAskRate(sender)
 	local t = now()
@@ -477,6 +525,7 @@ function Sync:OnMessage(msg, sender, dist)
 	if msg.t == "HELLO" and dist == "GUILD" then onHello(msg, sender)
 	elseif msg.t == "REQ" and dist == "WHISPER" then onReq(msg, sender)
 	elseif msg.t == "REC" then onRec(msg, sender, dist)
+	elseif msg.t == "OHELLO" and dist == "OFFICER" then onOfficerHello(msg, sender)
 	elseif msg.t == "DIGEST" then touch(sender) end
 end
 
@@ -493,7 +542,13 @@ local function flushLocal()
 		end
 	end
 	state.dirty = {}
-	if #entries > 0 then sendRecords(entries, "GUILD") end
+	-- the records for officers only never go on GUILD: they go on OFFICER (and nowhere when nobody can hear them)
+	local open, closed = {}, {}
+	for _, e in ipairs(entries) do
+		if S.IsRestricted(e[1], e[2]) then closed[#closed + 1] = e else open[#open + 1] = e end
+	end
+	if #open > 0 then sendRecords(open, "GUILD") end
+	if #closed > 0 and iAmOfficer() then sendRecords(closed, "OFFICER") end
 end
 
 function Sync:OnStoreChanged(set, id, origin)

@@ -167,7 +167,11 @@ describe("NET-12: authority", function()
 			return R{ id = author .. ":t" .. n, author = author, kind = "tab", tab = n, rank = 3, it = "1.2589.20", n = 1, restricted = extra }
 		end
 		truthy(accept("bank", tab(BOB, 1), "Bob"))
-		eq(select(2, accept("bank", tab(BOB, 6, true), "Bob")), "authority")
+		eq(select(2, accept("bank", tab(BOB, 6, true), "Bob")), "restricted", "a member's client never holds an officer's tab")
+		eq(select(2, accept("bank", tab(OFF, 6, true), "Officer")), "restricted")
+		guild(1)   -- the same checks on an officer's client
+		AzerothAccord.Role:Refresh()
+		eq(select(2, accept("bank", tab(BOB, 6, true), "Bob")), "authority", "a member is no authority")
 		truthy(accept("bank", tab(OFF, 6, true), "Officer"))
 		eq(select(2, accept("bank", R{ id = BOB .. ":t2", author = OFF, kind = "tab", tab = 2, it = "", n = 0 }, "Officer")), "owner",
 			"an id that is not the author's")

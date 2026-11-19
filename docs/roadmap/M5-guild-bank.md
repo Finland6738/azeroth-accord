@@ -15,6 +15,8 @@
 - Branch: `step/m5-2-bank-sync`
 - Spec: BANK-02, BANK-03
 - Scope: newest per tab, `GUILD` / `OFFICER` / not shared by permission, authority for restricted tabs.
+- Done when:
+  - [x] A member's snapshot reaches every client and the newest per tab wins; a snapshot read by an officer goes on `OFFICER` only and no member holds it; a later officer receives it with `OHELLO`; with no addon messages on `OFFICER` it stays with its reader; forged restricted or foreign-id snapshots are refused; a rank sees only snapshots read by its own rank or above (`Tests/test_bank_sync.lua`, with the network simulator).
 
 ### M5.3 — Bank view
 - Branch: `step/m5-3-bank-view`

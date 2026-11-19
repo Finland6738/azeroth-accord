@@ -381,8 +381,83 @@ function Bank:OnMoney()
 	if money then Bank:PublishMoney(money) end
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- The newest snapshot of each tab (BANK-03) and who may see it (BANK-02)
+---------------------------------------------------------------------------------------------------------------------
+-- true when this client may show `rec` (a tab snapshot): its own, one for officers only when this client is an officer,
+-- else when this character's rank is the rank of the reader or above (a lower index). A record that does not say its
+-- rank is for officers (the strict reading of the game's tab permissions, SPEC-10 Q4).
+function Bank:CanSee(rec)
+	if type(rec) ~= "table" then return false end
+	if rec.author == ownGUID() then return true end
+	local isOfficer = officer()
+	if rec.restricted == true then return isOfficer end
+	if isOfficer then return true end
+	local mine = myRank()
+	return mine ~= nil and type(rec.rank) == "number" and mine <= rec.rank
+end
+
+local function newer(a, b)
+	if b == nil then return true end
+	if (a.time or 0) ~= (b.time or 0) then return (a.time or 0) > (b.time or 0) end
+	return tostring(a.author) > tostring(b.author)
+end
+
+local function authorName(guid)
+	local e = ns.Roster and ns.Roster:ByGUID(guid)
+	if e then return e.short or e.name end
+	local m = ns.Store and ns.Store:MemberByGUID(guid)
+	return m and m.name or nil
+end
+
+local decoded = {}   -- record id -> { rev, items }: the items text is decoded once per revision
+local function itemsOf(rec)
+	local d = decoded[rec.id]
+	if d and d.rev == rec.rev and d.text == rec.it then return d.items end
+	local items = Bank.DecodeItems(rec.it) or {}
+	decoded[rec.id] = { rev = rec.rev, text = rec.it, items = items }
+	return items
+end
+
+-- The tabs to show, in tab order: for each tab the newest snapshot this client may see (a read the vault confirmed):
+-- { tab, name, icon, items = { { slot, itemID, count, variant }, ... }, n, time, author, authorName, rank, restricted,
+--   mine (this character read it) }. A snapshot that is not readable is skipped, never raised on.
+function Bank:Tabs()
+	local S, best = ns.Store, {}
+	if not S then return {} end
+	for _, rec in pairs(S:Records("bank")) do
+		if type(rec) == "table" and rec.kind == "tab" and type(rec.tab) == "number" and rec.del ~= true and self:CanSee(rec) then
+			if newer(rec, best[rec.tab]) then best[rec.tab] = rec end
+		end
+	end
+	local out = {}
+	for tab, rec in pairs(best) do
+		out[#out + 1] = { tab = tab, name = rec.name, icon = rec.icon, items = itemsOf(rec), n = rec.n or 0, time = rec.time,
+			author = rec.author, authorName = authorName(rec.author), rank = rec.rank, restricted = rec.restricted == true,
+			mine = rec.author == ownGUID() }
+	end
+	sort(out, function(a, b) return a.tab < b.tab end)
+	return out
+end
+
+function Bank:Snapshot(tab)
+	for _, t in ipairs(self:Tabs()) do if t.tab == tab then return t end end
+	return nil
+end
+
+-- The newest guild money record: { money, time, author, authorName } or nil. Every member may see the money.
+function Bank:Money()
+	local S, best = ns.Store, nil
+	if not S then return nil end
+	for _, rec in pairs(S:Records("bank")) do
+		if type(rec) == "table" and rec.kind == "money" and type(rec.money) == "number" and rec.del ~= true and newer(rec, best) then best = rec end
+	end
+	if not best then return nil end
+	return { money = best.money, time = best.time, author = best.author, authorName = authorName(best.author) }
+end
+
 -- A change of guild: nothing waits any more.
-function Bank:Reset() resetState() end
+function Bank:Reset() resetState() decoded = {} end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- /accord debug

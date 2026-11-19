@@ -43,7 +43,7 @@ Transport.TICK = 0.2              -- pass interval of the queue while it holds m
 Transport.QUEUE_MAX = 200         -- pending messages (all distributions together)
 Transport.LOCKDOWN_RECHECK = 1    -- seconds to wait after the client refused a message with "lockdown"
 Transport.SAVED_MAX_AGE = 86400   -- a saved message older than this (server time) is not sent again
-Transport.RATE = { HELLO = { 1, 300 } }   -- type -> { count, seconds }
+Transport.RATE = { HELLO = { 1, 300 }, OHELLO = { 1, 300 } }   -- type -> { count, seconds }
 
 Transport.DISTS = { GUILD = true, OFFICER = true, WHISPER = true }
 local RANK = { ALERT = 1, NORMAL = 2, BULK = 3 }
@@ -51,7 +51,7 @@ local RANK = { ALERT = 1, NORMAL = 2, BULK = 3 }
 -- Default priority per message type; types the table does not list go NORMAL.
 Transport.PRIORITY = {
 	DIGEST = "ALERT", REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT", LEDGER = "ALERT",
-	HELLO = "NORMAL", REC = "NORMAL",
+	HELLO = "NORMAL", OHELLO = "NORMAL", REC = "NORMAL",
 }
 
 -- Retail codes; the client's own Enum.SendAddonMessageResult wins when it exists (M0 S5 reads the real values).

@@ -130,10 +130,17 @@ local function ownGUID() return ns.Compat and ns.Compat.Player.GUID() or nil end
 ---------------------------------------------------------------------------------------------------------------------
 -- Data sets (SPEC-02 §3, SPEC-03)
 ---------------------------------------------------------------------------------------------------------------------
--- Each set: maxBytes (estimated size of one record), owner(rec, store) -> true when the author may write this record
+-- Each set: restricted(rec) -> true for a record that only officers may hold and that travels on OFFICER only (the bank
+-- tabs that an officer read), maxBytes (estimated size of one record), owner(rec, store) -> true when the author may write this record
 -- first hand (nil = any author), authority(rec) -> true when the record needs officers (NET-12), authorAny = true when
 -- the author of an authority record need not be an officer any more, immutable = true for append-only sets, observation =
 -- true for NET-13, expires(rec, now) -> true when retention removes it. The owner rule is checked for authority records too.
+-- true when `rec` of `set` is for officers only: it travels on OFFICER and a member's client refuses it.
+function Store.IsRestricted(set, rec)
+	local def = Store.SETS[set]
+	return def ~= nil and def.restricted ~= nil and type(rec) == "table" and def.restricted(rec) == true
+end
+
 local function closedBankRequest(rec)
 	return rec.status == "fulfilled" or rec.status == "rejected" or rec.status == "cancelled"
 end
@@ -169,6 +176,7 @@ Store.SETS = {
 	bank = {       -- snapshots of tabs, money and logs (Data/Bank.lua); id = "<author GUID>:t<tab>" | ":money" | ":log:<tab>"
 		maxBytes = 12288,
 		authority = function(rec) return rec.restricted == true end,   -- an officer's snapshot: officers only (NET-12)
+		restricted = function(rec) return rec.restricted == true end,  -- never on GUILD, never held by a member (SPEC-08 BANK-02)
 		owner = function(rec) return ns.Bank ~= nil and ns.Bank.ValidRecord(rec) end,
 		expires = function(rec, t) return (rec.time or 0) < t - (rec.kind == "log" and 365 or 90) * DAY end,
 	},
@@ -291,6 +299,7 @@ function Store:Check(set, rec, ctx)
 	if not def then return false, "set" end
 	local bad = validShape(rec, def)
 	if bad then return false, bad end
+	if def.restricted and def.restricted(rec) and not (ns.Role and ns.Role:IsOfficer()) then return false, "restricted" end
 	local member = ctx.member
 	if member == nil then
 		member = self:Member(ctx.sender) or false

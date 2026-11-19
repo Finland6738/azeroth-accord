@@ -34,6 +34,7 @@ Codec.lastReject = nil      -- last rejection reason, for /accord debug
 -- Modules that add a type register it with Codec:RegisterType.
 Codec.SCHEMA = {
 	HELLO  = { s = "string" },                -- s = the sync summary (Net/Sync.lua), av = addon version
+	OHELLO = { s = "string" },                -- HELLO of the officers' records (the restricted bank tabs), on OFFICER
 	DIGEST = { d = "table" },                 -- the answer to a HELLO, by whisper
 	REQ    = { s = "string" },                -- records of one data set: the set, then authors / buckets (Net/Sync.lua)
 	REC    = { s = "string", r = "table" },   -- one or more records of data set s
