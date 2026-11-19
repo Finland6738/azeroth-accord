@@ -10,12 +10,18 @@
 --   Mock.group.Set{ raid = false, members = { { name = "Ally", guid = "Player-1-...", inGuild = true, class = "MAGE",
 --                   level = 60, subgroup = 1 }, ... } }   -- the OTHER members; fires GROUP_ROSTER_UPDATE
 --   Mock.group.Leave()
+--   Mock.group.invites     names given to C_PartyInfo.InviteUnit
 local Mock, H = ...
 local W = Mock.world
 
 W.group = W.group or { raid = false, members = {}, secretGUIDs = false }
 local group = W.group
 Mock.group = group
+
+-- C_PartyInfo.InviteUnit(name): records the invite (the client asks the server; nothing else happens here).
+group.invites = group.invites or {}
+C_PartyInfo = C_PartyInfo or {}
+function C_PartyInfo.InviteUnit(name) group.invites[#group.invites + 1] = name end
 
 function group.Set(config)
 	group.raid = config.raid == true

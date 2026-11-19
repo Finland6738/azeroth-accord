@@ -258,3 +258,15 @@ L["MAP_SUMMARY"] = "%d players with group play in the last 30 days, %d groups, %
 L["MAP_GROUP"] = "Group %d (%d): %s"
 L["MAP_MORE"] = " and %d more"
 L["MAP_GROUP_TIME"] = "%s inside the group, %s with the rest of the guild"
+
+-- Play with someone new (SPEC-07 SOC-20, M4.7)
+L["REP_MODE_NEW"] = "Someone new"
+L["NEW_EXPLAIN"] = "Play with someone new: guildmates online now, within %d levels of you, with whom you played less than %d minutes in the last 30 days."
+L["NEW_DETAIL"] = "level %d, %s - together: %s"
+L["NEW_NEVER"] = "never"
+L["NEW_MINUTES"] = "%d min"
+L["NEW_WHISPER"] = "Whisper"
+L["NEW_INVITE"] = "Invite"
+L["NEW_INVITED"] = "Invitation sent to %s."
+L["NEW_INVITE_FAILED"] = "The game did not let the addon invite %s."
+L["NEW_NONE"] = "Nobody new to suggest right now: no guildmate of your level is online, or you already play with all of them."

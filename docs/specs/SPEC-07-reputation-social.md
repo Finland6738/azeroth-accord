@@ -120,3 +120,5 @@ Realizzazione (`Data/GroupMap.lua`, `UI/GroupMap.lua`, M4.6):
 ### 3.4 Compagni suggeriti
 
 - SOC-20: riquadro "Play with someone new": membri **online adesso**, di livello compatibile, con cui il giocatore ha giocato meno di 30 minuti negli ultimi 30 giorni; pulsanti Whisper e Invite (azioni del giocatore).
+
+Realizzazione (`UI/Suggest.lua`, M4.7): modalità *Someone new* della vista Reputation, per tutti. "Livello compatibile" = al massimo 5 livelli di differenza; i minuti sono quelli del grafo dell'indice sociale (tutti i personaggi dei due giocatori; senza un calcolo ancora fatto valgono 0); una riga per giocatore (il suo personaggio online più vicino di livello), prima chi ha meno minuti insieme, poi il livello più vicino, al massimo 12. **Whisper** apre la casella della chat con `/w Nome ` (l'addon non manda nulla); **Invite** chiama `C_PartyInfo.InviteUnit` (nel dump; altrimenti `InviteUnit`, **[verificare]**) e lo dice in chat.

@@ -50,3 +50,6 @@
 - Branch: `step/m4-7-suggestions`
 - Spec: SOC-20
 - Scope: "Play with someone new" box; `docs/checklists/M4.md`; wiki "Likes and Social Index"; tag `v0.4.0`.
+- Done when:
+  - [x] **Someone new** lists online guildmates within 5 levels with under 30 minutes together in the last 30 days, one per player, with Whisper (opens the chat box, sends nothing) and Invite (`C_PartyInfo.InviteUnit`) (covered by `Tests/test_suggest.lua`); `docs/checklists/M4.md` lists every unverified API and behaviour, the steps for at least two players and an online officer, and the report table; the wiki, the FAQ and the READMEs describe the reputation version.
+  - [ ] (in game) The owner confirms likes through an online officer with the same total on every client, the social index, the group map and the suggestions in game: [docs/checklists/M4.md](../checklists/M4.md). The CHANGELOG section and the tag `v0.4.0` follow that confirmation (no tag or release is created before it).

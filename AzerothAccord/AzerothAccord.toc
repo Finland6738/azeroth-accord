@@ -54,4 +54,5 @@ UI\Professions.lua
 UI\Reputation.lua
 UI\Social.lua
 UI\GroupMap.lua
+UI\Suggest.lua
 UI\Settings.lua

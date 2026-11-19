@@ -1,6 +1,6 @@
 # Likes and social index
 
-> Likes are available from the reputation version (milestone M4); the social index, the group map and the suggestions follow within the same milestone. **Recording of group play started earlier, in milestone M2** (see below), so that the index has weeks of history when it appears.
+> Available from the reputation version (milestone M4): likes, the social index, the group map and *Play with someone new*. **Recording of group play started earlier, in milestone M2** (see below), so that the index has weeks of history when it appears.
 
 ## Likes
 
@@ -36,8 +36,6 @@ How it is counted, precisely: for the last 30 days, the minutes with each guildm
 
 **Who sees it.** Every member sees **their own** index. Officers and the Guild Master see **everyone's**: on the cards, in the **Social** column of the Roster and in a list in the Reputation view. Whether all members should see everyone's index is still an open question for the guild leader; until then this is the rule.
 
-The member card shows the effective partners, the number of different partners and the five guildmates played with most.
-
 ## Group map
 
 Officers and the Guild Master have a **Groups** button in the Reputation view. It shows:
@@ -46,8 +44,12 @@ Officers and the Guild Master have a **Groups** button in the Reputation view. I
 - a drawing: one circle of coloured dots per group, one dot per player (hover for the name, click for the card);
 - the list of groups with their players and the hours spent inside the group and with the rest of the guild.
 
-The groups are found automatically from the minutes played together in the last 30 days, the same way on every officer's computer. *Play with someone new* suggests online guildmates you have rarely played with.
+The groups are found automatically from the minutes played together in the last 30 days, the same way on every officer's computer.
 
-## What is recorded already (from the roster version)
+## Play with someone new
 
-Every minute you are in a party or raid with at least one guildmate, the addon adds one minute to each pair of guildmates in the group, also inside instances. The minutes are kept per day, shared with your guild once an hour (and when you log out) and discarded after 90 days. When several players with the addon were in the same group, the largest count is used, never the sum. Nothing is shown yet: only `/accord debug` prints the counts (never names). Members the game hides from addons inside an instance are left out rather than guessed.
+The **Someone new** button of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself.
+
+## What is recorded (from the roster version on)
+
+Every minute you are in a party or raid with at least one guildmate, the addon adds one minute to each pair of guildmates in the group, also inside instances. The minutes are kept per day, shared with your guild once an hour (and when you log out) and discarded after 90 days. When several players with the addon were in the same group, the largest count is used, never the sum. The social index, the group map and the suggestions are computed from these minutes; `/accord debug` prints only counts (never names). Members the game hides from addons inside an instance are left out rather than guessed.

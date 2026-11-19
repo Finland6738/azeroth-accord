@@ -528,6 +528,16 @@ function Group.RaidRosterRow(i)
 		zone = str(values[7]), online = values[8] and true or false, isDead = values[9] and true or false }
 end
 
+-- Invites a player to the party (SOC-20, a click of the player): C_PartyInfo.InviteUnit (in the Forever dump), else the
+-- legacy InviteUnit global [verify]. false for a name that is not a plain character name or when neither exists.
+function Group.Invite(name)
+	if type(name) ~= "string" or name == "" or name:find("[%s|%c]") then return false end
+	local _, state = first("C_PartyInfo.InviteUnit", name)
+	if state == AVAILABLE then return true end
+	_, state = first("InviteUnit", name)
+	return state == AVAILABLE
+end
+
 function Compat.InInstance()
 	local values = all("IsInInstance")
 	if not values then return false, nil end
@@ -917,6 +927,7 @@ local CAPS = {
 	{ "group.GetNumGroupMembers", "group", "GetNumGroupMembers", call = true },
 	{ "group.UnitIsInMyGuild", "group", "UnitIsInMyGuild" },
 	{ "group.GetRaidRosterInfo", "group", "GetRaidRosterInfo", note = "[verify S7] secret values in instances" },
+	{ "group.InviteUnit", "group", "C_PartyInfo.InviteUnit", note = "Play with someone new (SOC-20)" },
 	{ "tradeskill.IsGuildTradeSkillsEnabled", "tradeskill", "C_TradeSkillUI.IsGuildTradeSkillsEnabled", call = true, note = "[verify S3]" },
 	{ "tradeskill.QueryGuildMemberRecipes", "tradeskill", "C_GuildInfo.QueryGuildMemberRecipes", note = "[verify S3]" },
 	{ "tradeskill.GetGuildMemberRecipes", "tradeskill", "GetGuildMemberRecipes", note = "[verify S3]" },

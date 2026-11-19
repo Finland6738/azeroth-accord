@@ -1,0 +1,158 @@
+-- "Play with someone new" (SPEC-07 SOC-20). Lua 5.1.
+-- A mode of the Reputation view for every member: guildmates who are ONLINE now, of a compatible level (at most
+-- LEVEL_GAP levels apart), with whom the player played less than NEW_MINUTES in the last 30 days (the account graph of the
+-- social index: all characters of both players count), one row per player (their character that is online, the closest
+-- in level). The fewest minutes first. Each row has Whisper (opens the chat box with "/w Name": the player writes and sends)
+-- and Invite (C_PartyInfo.InviteUnit: a click of the player). The addon never sends anything by itself.
+-- Suggest.List(opts) is a plain function of the roster and the social result (tested offline).
+local ADDON_NAME, ns = ...
+ns = ns or {}
+local Suggest = {}
+ns.Suggest, ns.modules = Suggest, ns.modules or {}
+ns.modules.Suggest = Suggest
+
+local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local type, ipairs, pairs, tostring, floor, max, min, abs = type, ipairs, pairs, tostring, math.floor, math.max, math.min, math.abs
+
+Suggest.LEVEL_GAP = 5
+Suggest.NEW_MINUTES = 30
+Suggest.LIMIT = 12
+Suggest.ROW_HEIGHT = 24
+
+-- The suggestions: { guid, name, classFile, level, zone, minutes } sorted by minutes together, then level closeness, then
+-- name. opts.limit (default LIMIT).
+function Suggest.List(opts)
+	opts = opts or {}
+	local R, C, A, S = ns.Roster, ns.Compat, ns.Accounts, ns.Social
+	if not (R and C) then return {} end
+	local me = C.Player.GUID()
+	local myLevel = C.Player.Level() or 0
+	local myKey = A and me and A:AccountKey(me) or me
+	local best = {}
+	for _, e in ipairs(R:Members()) do
+		if type(e.guid) == "string" and e.online and not e.notInGuild and not e.isSelf and e.guid ~= me then
+			local key = A and A:AccountKey(e.guid) or e.guid
+			if key ~= myKey and e.level and abs(e.level - myLevel) <= Suggest.LEVEL_GAP then
+				local minutes = S and me and S:MinutesBetween(me, e.guid) or 0
+				if minutes < Suggest.NEW_MINUTES then
+					local old = best[key]
+					if not old or abs(e.level - myLevel) < abs(old.level - myLevel) then
+						best[key] = { guid = e.guid, name = e.short or e.name or "?", classFile = e.classFile, level = e.level, zone = e.zone,
+							minutes = minutes }
+					end
+				end
+			end
+		end
+	end
+	local out = {}
+	for _, s in pairs(best) do out[#out + 1] = s end
+	table.sort(out, function(a, b)
+		if a.minutes ~= b.minutes then return a.minutes < b.minutes end
+		local da, db = abs(a.level - myLevel), abs(b.level - myLevel)
+		if da ~= db then return da < db end
+		if a.name ~= b.name then return a.name < b.name end
+		return a.guid < b.guid
+	end)
+	local limit = opts.limit or Suggest.LIMIT
+	for i = #out, limit + 1, -1 do out[i] = nil end
+	return out
+end
+
+-- The roster name to whisper or invite ("Name" on the player's realm, else "Name-Realm").
+local function targetName(guid)
+	local e = ns.Roster and ns.Roster:ByGUID(guid)
+	return e and (e.name or e.short) or nil
+end
+
+function Suggest:Whisper(guid)
+	local name = targetName(guid)
+	return name ~= nil and ns.Compat.Chat.OpenWhisper(name, "") or false
+end
+
+function Suggest:Invite(guid)
+	local name = targetName(guid)
+	local ok = name ~= nil and ns.Compat.Group.Invite(name) or false
+	if ns.addon then
+		local e = ns.Roster and ns.Roster:ByGUID(guid)
+		ns.addon:Print((ok and L["NEW_INVITED"] or L["NEW_INVITE_FAILED"]):format(e and (e.short or e.name) or "?"))
+	end
+	return ok
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The mode of the Reputation view
+---------------------------------------------------------------------------------------------------------------------
+local mode = {}
+
+local function classColor(classFile)
+	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
+	if c then return c.r, c.g, c.b end
+	return 1, 1, 1
+end
+
+function Suggest.MinutesText(minutes)
+	if not minutes or minutes <= 0 then return L["NEW_NEVER"] end
+	return L["NEW_MINUTES"]:format(minutes)
+end
+
+function mode.build(f)
+	Suggest.frame = f
+	f.explain = W.Text(f, "small", "grey", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain:SetText(L["NEW_EXPLAIN"]:format(Suggest.LEVEL_GAP, Suggest.NEW_MINUTES))
+	f.area = W.Frame(f, 10, 10)
+	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
+	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, 0)
+	f.area.rows = {}
+	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message:SetPoint("CENTER", f.area, "CENTER", 0, 0)
+	f.message:SetWidth(380)
+end
+
+local function newRow(area, i)
+	local row = CreateFrame("Frame", nil, area)
+	row:SetHeight(Suggest.ROW_HEIGHT)
+	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
+	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
+	row.name = W.Text(row, "body", nil, "LEFT")
+	row.name:SetPoint("LEFT", row, "LEFT", 10, 0)
+	row.name:SetWidth(130)
+	row.detail = W.Text(row, "small", "grey", "LEFT")
+	row.detail:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
+	row.detail:SetPoint("RIGHT", row, "RIGHT", -190, 0)
+	row.invite = W.Button(row, { text = L["NEW_INVITE"], width = 84, height = Suggest.ROW_HEIGHT - 2,
+		onClick = function(b) Suggest:Invite(b:GetParent().guid) end })
+	row.invite:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+	row.whisper = W.Button(row, { text = L["NEW_WHISPER"], width = 84, height = Suggest.ROW_HEIGHT - 2,
+		onClick = function(b) Suggest:Whisper(b:GetParent().guid) end })
+	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -6, 0)
+	area.rows[i] = row
+	return row
+end
+
+function mode.refresh(f)
+	local list = Suggest.List()
+	Suggest.shown = list
+	local h = f.area:GetHeight() or 0
+	local visible = h >= Suggest.ROW_HEIGHT and floor(h / Suggest.ROW_HEIGHT) or Suggest.LIMIT
+	local drawn = min(#list, visible)
+	for i = 1, drawn do
+		local s = list[i]
+		local row = f.area.rows[i] or newRow(f.area, i)
+		row.guid = s.guid
+		row.name:SetText(s.name)
+		row.name:SetTextColor(classColor(s.classFile))
+		row.detail:SetText(L["NEW_DETAIL"]:format(s.level, s.zone or "?", Suggest.MinutesText(s.minutes)))
+		row:Show()
+	end
+	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
+	f.message:SetShown(#list == 0)
+	f.message:SetText(L["NEW_NONE"])
+end
+
+if ns.ReputationView then
+	ns.ReputationView.AddMode("new", { label = L["REP_MODE_NEW"], order = 40, build = mode.build, refresh = mode.refresh })
+end
+
+if ns.addon then ns.addon.Suggest = Suggest end
