@@ -25,6 +25,13 @@ Realizzazione (`Data/Roster.lua`, M2.1):
 - ROS-03: `C_GuildInfo.GuildRoster()` si chiede al massimo ogni 15 s (`Roster:Request`), anche quando una vista inizia a osservare.
 - Le capacità `clubProfessions` e `clubDiscord` (S2) passano a `available` appena un membro ha quei campi pieni; se nessuno li ha restano `unknown` e valgono i dati condivisi.
 
+Tabella (`UI/RosterModel.lua`, `UI/Roster.lua`, M2.3):
+
+- Il **modello** non ha frame ed è provato da test: colonne (`name` sempre visibile; `likes`, `social` e `contacts` compaiono solo quando esiste il loro modulo, da M4 e M2.5), testo di ogni cella, ordinamento per ogni colonna (un valore mancante, per esempio nessuna professione, va sempre in fondo; a parità conta il nome), ricerca per nome e per professione, filtri online / classe / grado / professione / solo main, vista per account (ROS-02).
+- **Vista per account**: una riga per account con il main in testa, il numero di alt e un pulsante `+` / `-`; gli alt sotto sono ordinati come ogni elenco e comprendono i personaggi fuori gilda (grigi, "not in guild"). Un account compare se **almeno un** suo membro soddisfa ricerca e filtri; "solo main" mostra la sola riga del main. Gli account si ordinano per il valore del main (per "ultimo accesso" vale il membro più recente dell'account).
+- **Righe virtuali**: tanti frame quanto è alta la tabella più uno, riempiti di nuovo a ogni scorrimento (rotella o clic sulla barra); 1000 membri non creano 1000 frame.
+- Scelte salvate per personaggio in `char.ui` (`columns`, `sort`, `grouped`); la vista osserva il roster mentre è visibile (`Roster:Watch`). Il clic su una riga seleziona il membro ed emette `ROSTER_SELECT(guid, entry)` sul Bus (la scheda di M2.4).
+
 ## 2. Scheda membro
 
 Clic su un nome → scheda a destra (o sopra la tabella nella tab stretta): nome, classe, livello, grado, nota pubblica e (se visibile) nota ufficiali, professioni con link alle ricette, **personaggi dello stesso account**, contatti, like ricevuti, indice sociale con i compagni principali, versione dell'addon.

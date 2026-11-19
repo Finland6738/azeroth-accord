@@ -12,7 +12,7 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 ## The panel
 
 - **Top bar**: the sync state, for example *3 guildmate(s) with Accord online · updated 2 min ago*, and **Pop out**, which moves the panel into its own, larger window. A search box appears once a view can search.
-- **Navigation** on the left: **Roster**, **Professions**, **Reputation**, **Bank**, **Settings**, each one as soon as the version that brings it is out. In the first test version (`v0.1.0`) there is no view yet: the panel shows a welcome text, while the addon already exchanges its data with the guild in the background.
+- **Navigation** on the left: **Roster**, **Professions**, **Reputation**, **Bank**, **Settings**, each one as soon as the version that brings it is out. The first test version (`v0.1.0`) has no view yet: the panel shows a welcome text, while the addon already exchanges its data with the guild in the background. The **Roster** view comes with the next version.
 
 ## The standalone window
 

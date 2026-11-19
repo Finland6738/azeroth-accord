@@ -48,7 +48,16 @@ function Widget:GetName() return self._name end
 function Widget:GetObjectType() return self._type end
 function Widget:IsObjectType(t) return self._type == t or (t == "Frame" and self._type ~= "Texture" and self._type ~= "FontString") end
 function Widget:GetParent() return self._parent end
-function Widget:SetParent(p) self._parent = p end
+function Widget:SetParent(p)
+	local old = self._parent
+	if old and old._children and old ~= p then
+		for i, child in ipairs(old._children) do
+			if child == self then table.remove(old._children, i) break end
+		end
+	end
+	self._parent = p
+	if p and p._children and old ~= p then p._children[#p._children + 1] = self end
+end
 
 function Widget:Show()
 	if not self._shown then

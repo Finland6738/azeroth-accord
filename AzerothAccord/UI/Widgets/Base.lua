@@ -114,6 +114,112 @@ function W.SearchBox(parent, opts)
 	return box
 end
 
+-- A check box with a label, drawn with plain textures (no template that the client might not have):
+-- opts = { text, onClick(checked), checked, tooltip, width }. b:SetChecked(v) / b:GetChecked() as on a CheckButton.
+function W.Check(parent, opts)
+	opts = opts or {}
+	local b = CreateFrame("Button", nil, parent)
+	b:SetSize(opts.width or 110, 20)
+	b.box = b:CreateTexture(nil, "BACKGROUND")
+	b.box:SetSize(14, 14)
+	b.box:SetPoint("LEFT", b, "LEFT", 0, 0)
+	b.box:SetColorTexture(Skin.Color("grey", 0.35))
+	b.mark = b:CreateTexture(nil, "ARTWORK")
+	b.mark:SetSize(8, 8)
+	b.mark:SetPoint("CENTER", b.box, "CENTER", 0, 0)
+	b.mark:SetColorTexture(Skin.Color("gold"))
+	b.label = W.Text(b, "small", nil, "LEFT")
+	b.label:SetPoint("LEFT", b.box, "RIGHT", 5, 0)
+	b.label:SetText(opts.text or "")
+	b.checked = opts.checked and true or false
+	b.mark:SetShown(b.checked)
+	b.SetChecked = function(self, v) self.checked = v and true or false self.mark:SetShown(self.checked) end
+	b.GetChecked = function(self) return self.checked end
+	b:SetScript("OnClick", function(self)
+		self:SetChecked(not self.checked)
+		if opts.onClick then opts.onClick(self.checked, self) end
+	end)
+	if opts.tooltip then W.SetTooltip(b, opts.tooltip) end
+	return b
+end
+
+-- A popup list under `anchor`: items = { { text, checked, onClick, keepOpen, header }, ... }. One menu is open at a time;
+-- a click anywhere else, Esc or choosing an item closes it (unless the item has keepOpen, as the column chooser has).
+local MENU_ROW, MENU_WIDTH = 20, 190
+function W.ShowMenu(anchor, items, width)
+	local menu = W.menu
+	if not menu then
+		menu = CreateFrame("Frame", "AzerothAccordMenu", UIParent)
+		menu:SetFrameStrata("FULLSCREEN_DIALOG")
+		menu:EnableMouse(true)
+		W.Background(menu, "panel", 0.97)
+		menu.rows = {}
+		menu.catcher = CreateFrame("Button", nil, UIParent)
+		menu.catcher:SetAllPoints(UIParent)
+		menu.catcher:SetFrameStrata("FULLSCREEN")
+		menu.catcher:SetScript("OnClick", function() W.HideMenu() end)
+		menu:SetScript("OnHide", function() menu.catcher:Hide() end)
+		menu:Hide()
+		menu.catcher:Hide()
+		W.menu = menu
+		W.CloseOnEscape(menu)
+	end
+	local function fill()
+		for i, item in ipairs(menu.items) do
+			local row = menu.rows[i]
+			if not row then
+				row = CreateFrame("Button", nil, menu)
+				row:SetHeight(MENU_ROW)
+				row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
+				row.highlight:SetAllPoints(row)
+				row.highlight:SetColorTexture(1, 1, 1, 0.1)
+				row.check = W.Text(row, "small", "gold", "LEFT")
+				row.check:SetPoint("LEFT", row, "LEFT", 6, 0)
+				row.label = W.Text(row, "small", nil, "LEFT")
+				row.label:SetPoint("LEFT", row, "LEFT", 22, 0)
+				row.label:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+				row:SetScript("OnClick", function(self)
+					local it = self.item
+					if not it or it.header then return end
+					if it.onClick then it.onClick(it) end
+					if it.keepOpen then
+						it.checked = not it.checked
+						self.check:SetText(it.checked and "x" or "")
+					else
+						W.HideMenu()
+					end
+				end)
+				menu.rows[i] = row
+			end
+			row.item = item
+			row:SetWidth(menu.width)
+			row:ClearAllPoints()
+			row:SetPoint("TOPLEFT", menu, "TOPLEFT", 0, -4 - (i - 1) * MENU_ROW)
+			row.check:SetText(item.checked and "x" or "")
+			row.label:SetText(item.text or "")
+			row.label:SetTextColor(Skin.Color(item.header and "gold" or "white"))
+			row:Show()
+		end
+		for i = #menu.items + 1, #menu.rows do menu.rows[i]:Hide() end
+	end
+	menu.items, menu.width = items, width or MENU_WIDTH
+	menu:SetSize(menu.width, 8 + #items * MENU_ROW)
+	menu:ClearAllPoints()
+	menu:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+	fill()
+	menu.catcher:Show()
+	menu:Show()
+	return menu
+end
+
+function W.HideMenu()
+	if W.menu then W.menu:Hide() end
+end
+
+function W.MenuIsOpen()
+	return W.menu ~= nil and W.menu:IsShown() == true
+end
+
 -- Adds the frame's global name to UISpecialFrames, so Esc closes it.
 function W.CloseOnEscape(frame)
 	local name = frame:GetName()

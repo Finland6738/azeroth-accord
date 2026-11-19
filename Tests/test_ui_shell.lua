@@ -107,6 +107,7 @@ describe("GT-03: the panel", function()
 	before_boot(function(M) guild() end)
 
 	it("opens over the content area with the Accord content and checks the tab", function()
+		Shell().views = {}   -- the Roster view of M2.3 registers itself: this test is about the welcome text
 		Mock.communities.Open()
 		Tab().tab:Click()
 		truthy(Tab():IsPanelShown())
@@ -304,11 +305,12 @@ describe("navigation and views (SPEC-04 §2)", function()
 	before_boot(function(M) guild() end)
 
 	it("shows no navigation and the welcome text while no view exists; view commands say coming soon", function()
+		Shell().views = {}   -- the Roster view of M2.3 registers itself: here no view exists
 		Mock.Slash("/accord")
 		falsy(Shell().content.nav:IsShown())
 		falsy(Shell().content.bar.search:IsShown(), "no search before a view can search")
 		Mock.ClearOutput()
-		Mock.Slash("/accord roster")
+		Mock.Slash("/accord professions")
 		contains(text(), "coming soon")
 	end)
 

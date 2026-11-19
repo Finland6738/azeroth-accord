@@ -51,7 +51,7 @@ Config.defaults = {
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
-		ui = { lastView = "roster", columns = {}, sort = {} },   -- windowPos, windowSize: nil until the user moves it
+		ui = { lastView = "roster", columns = {}, sort = {}, grouped = false },   -- windowPos, windowSize: nil until the user moves it
 		outbox = {},         -- messages waiting at logout, sent again at the next login (Net/Transport.lua, SPEC-02 §5)
 	},
 }
@@ -73,6 +73,7 @@ Config.rules = {
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },
 	["char.ui.columns"] = { type = "table" },
 	["char.ui.sort"] = { type = "table" },
+	["char.ui.grouped"] = { type = "boolean" },
 	["char.ui.windowPos"] = posRule(),
 	["char.ui.windowSize"] = sizeRule(),
 	["char.outbox"] = { type = "table" },

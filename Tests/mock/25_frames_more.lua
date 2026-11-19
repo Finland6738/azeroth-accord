@@ -47,16 +47,27 @@ function Mock.Drag(frame, point, x, y)
 end
 
 -- Show and Hide run the OnShow / OnHide script AND the functions added with HookScript, as the client does (the generic
--- widget ran only the script).
+-- widget ran only the script). A frame that becomes visible or hidden because its parent did also runs its own OnShow /
+-- OnHide, children that are themselves shown only (M2.3).
+local function cascade(widget, script)
+	for _, child in ipairs(widget._children) do
+		if child._shown then
+			Mock.RunScript(child, script)
+			cascade(child, script)
+		end
+	end
+end
 function Widget:Show()
 	if not self._shown then
 		self._shown = true
 		Mock.RunScript(self, "OnShow")
+		cascade(self, "OnShow")
 	end
 end
 function Widget:Hide()
 	if self._shown then
 		self._shown = false
 		Mock.RunScript(self, "OnHide")
+		cascade(self, "OnHide")
 	end
 end

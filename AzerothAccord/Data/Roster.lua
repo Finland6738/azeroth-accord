@@ -56,13 +56,26 @@ end
 local classes
 local function classTable()
 	if classes then return classes end
-	local found = { byID = {}, byFile = {} }
+	local found = { byID = {}, byFile = {}, names = {} }
 	local list = compat().Classes()
 	for _, c in ipairs(list or {}) do
-		if c.file then found.byID[c.id] = c.file found.byFile[c.file] = c.id end
+		if c.file then found.byID[c.id] = c.file found.byFile[c.file] = c.id found.names[c.file] = c.name end
 	end
 	if list then classes = found end   -- an empty answer (too early at login) is not kept
 	return found
+end
+
+-- The class file ("MAGE") of a class id, nil when the client does not say.
+function Roster.ClassFile(classID)
+	return classTable().byID[classID]
+end
+
+-- The player-facing class name of a class file ("Mage"), as the client spells it; the file name itself when unknown.
+function Roster.ClassName(classFile)
+	if type(classFile) ~= "string" then return nil end
+	local name = classTable().names[classFile]
+	if name then return name end
+	return classFile:sub(1, 1) .. classFile:sub(2):lower()
 end
 
 ---------------------------------------------------------------------------------------------------------------------

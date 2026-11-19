@@ -5,7 +5,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | Command | What it does |
 |---|---|
 | `/accord` | Opens or closes the Accord window (you must be in a guild) |
-| `/accord roster` | Opens the Roster view *(from the roster version, M2)* |
+| `/accord roster` | Opens the Roster view |
 | `/accord professions` | Opens the Professions view *(M3)* |
 | `/accord reputation` | Opens the Reputation view *(M4)* |
 | `/accord bank` | Opens the Bank view *(M5)* |

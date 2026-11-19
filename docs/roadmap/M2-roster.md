@@ -23,7 +23,7 @@
 - Spec: SPEC-05 §1; SPEC-04 §2
 - Scope: `UI/RosterModel.lua`, `UI/Roster.lua`: virtual rows, sort, search, filters, column chooser, grouped-by-account view.
 - Done when:
-  - [ ] Sorting and filters are covered by model tests.
+  - [x] Sorting and filters are covered by model tests.
 
 ### M2.4 — Member card
 - Branch: `step/m2-4-member-card`
