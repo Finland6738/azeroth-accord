@@ -22,6 +22,8 @@
 - Branch: `step/m5-3-bank-view`
 - Spec: BANK-04
 - Scope: tab grid and list view, search, totals per item, age of each tab.
+- Done when:
+  - [x] The Tabs mode draws a tab as 14 x 7 slots with icons, counts and tooltips, the money and the age of the tab with who read it; the Items mode lists each item once with its total and the tabs it is in, searchable by name, number and tab name; a rank sees only the tabs it may see; item names that load late fill in (`Tests/test_bank_view.lua`).
 
 ### M5.4 — Logs and donations
 - Branch: `step/m5-4-logs-donations`

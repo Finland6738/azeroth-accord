@@ -1,6 +1,6 @@
 # Guild bank
 
-> Planned for milestone M5. Step by step: the addon already reads the vault when *you* open it (M5.1) and shares what it saw with the guild (M5.2); the Bank view follows.
+> Planned for milestone M5. Step by step: the addon already reads the vault when *you* open it (M5.1) and shares what it saw with the guild (M5.2); the **Bank** view shows it (M5.3).
 
 - The game shows the bank only at the vault. Whenever a guildmate with the addon opens it, the addon saves what each tab holds and shares it, so the **Bank** view works anywhere. Each tab shows how old its contents are.
 - Tabs that your rank cannot see in the game stay hidden in the addon too.
@@ -11,3 +11,11 @@
 
 - What you see in the vault is shared with the guild so that a guildmate who never visits the vault sees it too, as old as your visit.
 - The game does not tell the addon which ranks may see a tab, only whether *your* rank can. So a tab you read is shown to members of your rank and above. A tab read by an **officer** is shared with officers only (on the officer channel) and never reaches the members' computers. If every rank may see a tab but only officers have opened the vault, members see that tab once a member has opened it too.
+
+## The Bank view
+
+Open it with the **Bank** button of the panel or `/accord bank`.
+
+- **Tabs**: one button per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab buttons you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
+- **Items**: one row per item over all the tabs you may see, with the total and where it is. The search box of the panel filters by item name, item number or tab name.
+- With nothing to show yet, the view says so: somebody must open the vault once.

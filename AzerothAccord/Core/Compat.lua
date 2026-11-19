@@ -757,6 +757,36 @@ function Bank.MoneyLog()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- Items (names, icons and quality for the bank view): C_Item, with the old global as the fallback
+---------------------------------------------------------------------------------------------------------------------
+local Item = {}
+Compat.Item = Item
+
+-- { name, link, quality, icon } of an item the client has loaded, else nil (ask with Item.Request).
+function Item.Info(itemID)
+	if not num(itemID) then return nil end
+	local v = all("C_Item.GetItemInfo", itemID)
+	if not v or not str(v[1]) then v = all("GetItemInfo", itemID) end
+	if not v or not str(v[1]) then return nil end
+	return { name = v[1], link = str(v[2]), quality = num(v[3]), icon = v[10] }
+end
+
+-- The icon of an item (a file id or a path), which the client usually knows before the name; nil when it does not.
+function Item.Icon(itemID)
+	if not num(itemID) then return nil end
+	local v = first("C_Item.GetItemIconByID", itemID)
+	if v == nil then v = select(5, GetItemInfoInstant and GetItemInfoInstant(itemID)) end
+	return v
+end
+
+-- Asks the client to load an item; GET_ITEM_INFO_RECEIVED comes when it has.
+function Item.Request(itemID)
+	if not num(itemID) then return MISSING end
+	local _, state = first("C_Item.RequestLoadItemDataByID", itemID)
+	return state
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Chat restrictions (SPEC-02 §5)
 ---------------------------------------------------------------------------------------------------------------------
 local Chat = {}

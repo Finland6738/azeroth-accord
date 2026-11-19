@@ -56,4 +56,5 @@ UI\Reputation.lua
 UI\Social.lua
 UI\GroupMap.lua
 UI\Suggest.lua
+UI\Bank.lua
 UI\Settings.lua
