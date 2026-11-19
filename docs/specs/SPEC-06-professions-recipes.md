@@ -25,6 +25,13 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 - Forma della risposta **[verificare]** S3: `GetGuildMemberRecipes` non ha firma nel dump. Si legge come primo valore la linea di abilità, poi una lista di spellID (o un insieme `{[id] = true}`). Una risposta a **bitfield** (stringa di bit) viene riconosciuta ma non decodificata: dopo due risposte illeggibili la fonte nativa si spegne (`guildRecipesNative` = `missing`, con il motivo) e restano le liste condivise.
 - Una risposta per un'altra linea di abilità, o senza richiesta in corso (l'ha chiesta la finestra di Blizzard), si ignora.
 
+### 1.3 La scansione delle proprie ricette (`Data/RecipeScan.lua`)
+
+- Quando si apre la finestra di una professione (o la sua lista cambia: `TRADE_SKILL_SHOW`, `TRADE_SKILL_LIST_UPDATE`) la scansione parte 2 secondi dopo l'ultimo evento di una raffica e legge: la professione aperta (`GetBaseProfessionInfo`, abbinata per id o per nome a una professione del personaggio, così l'id è quello del roster), l'elenco degli id (`GetAllRecipeIDs`, altrimenti `GetFilteredRecipeIDs`) **[verificare]** S4 e per ogni id `GetRecipeInfo(id).learned`.
+- Si tengono solo le ricette imparate. Se il client non dà mai il campo `learned` si contano tutte come conosciute; se non dà nessuna informazione sulle ricette non si legge nulla (non si pubblica un'ipotesi). La lista **filtrata** segue la ricerca della finestra e può essere parziale: una scansione da lì può solo **aggiungere** ricette a quelle già pubblicate, mai toglierne.
+- Si pubblica un record `recipes` (SPEC-03 §3) quando l'impronta (`h`) cambia, al massimo **una volta ogni 10 minuti per professione** (PRO-06): una modifica che arriva prima aspetta e parte con lo stato più recente allo scadere dei 10 minuti. È sempre condiviso, senza impostazione.
+- Anche Cooking, First Aid e Fishing hanno un record (la cucina serve a "who can craft"), ma non compaiono nelle celle di professione del roster, che mostra le due professioni primarie.
+
 ## 2. Requisiti
 
 - PRO-01: la cella della professione nel roster mostra nome e grado (per esempio `Alchemy 285/300`) e, al passaggio del mouse, la fonte e l'età.

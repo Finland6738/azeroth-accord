@@ -88,7 +88,8 @@ local function sharedProfessions()
 	local S = ns.Store
 	if not S then return out, 0 end
 	for _, rec in pairs(S:Records("recipes")) do
-		if type(rec) == "table" and type(rec.char) == "string" and type(rec.skillLine) == "number" and rec.del ~= true then
+		if type(rec) == "table" and type(rec.char) == "string" and type(rec.skillLine) == "number" and rec.del ~= true
+			and (not ns.Recipes or ns.Recipes.IsPrimary(rec.skillLine)) then
 			local list = out[rec.char]
 			if not list then list = {} out[rec.char] = list end
 			list[#list + 1] = { id = rec.skillLine, name = type(rec.name) == "string" and rec.name or nil,

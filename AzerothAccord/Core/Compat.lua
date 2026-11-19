@@ -587,14 +587,15 @@ function TradeSkill.OwnProfessions()
 end
 
 -- The recipe ids of the open profession window [verify S4: whether the window must be open]: GetAllRecipeIDs, else
--- GetFilteredRecipeIDs (neither is in the dump). A list of numbers, or nil.
+-- GetFilteredRecipeIDs (neither is in the dump). A list of numbers, or nil; the second result is "all" or "filtered"
+-- (the filtered list follows the window's search and filters, so it may be partial).
 function TradeSkill.RecipeIDs()
-	for _, path in ipairs({ "C_TradeSkillUI.GetAllRecipeIDs", "C_TradeSkillUI.GetFilteredRecipeIDs" }) do
-		local ids = first(path)
+	for _, def in ipairs({ { "C_TradeSkillUI.GetAllRecipeIDs", "all" }, { "C_TradeSkillUI.GetFilteredRecipeIDs", "filtered" } }) do
+		local ids = first(def[1])
 		if type(ids) == "table" then
 			local out = {}
 			for _, id in ipairs(ids) do if num(id) then out[#out + 1] = id end end
-			return out
+			return out, def[2]
 		end
 	end
 	return nil

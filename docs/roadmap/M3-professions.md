@@ -15,6 +15,8 @@
 - Branch: `step/m3-2-recipe-scan`
 - Spec: SPEC-06 §1, §3
 - Scope: scan on `TRADE_SKILL_SHOW` / `TRADE_SKILL_LIST_UPDATE`, delta-varint encoding, hash, publishing rule PRO-06.
+- Done when:
+  - [x] The profession window is read, its learned recipes are encoded as delta varints in Base64 and published as one `recipes` record per profession, once every 10 minutes at most, only when the hash changes; the encoding round-trips and refuses malformed text (covered by `Tests/test_recipe_scan.lua`).
 
 ### M3.3 — Recipe sync
 - Branch: `step/m3-3-recipe-sync`

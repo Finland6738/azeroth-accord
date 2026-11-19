@@ -27,13 +27,19 @@ Un record per personaggio (`id` = GUID), scritto da lui o da un suo alt; i conta
 
 ## 3. Ricette (`recipes`)
 
+Un record per personaggio e professione: `id` = `<GUID>:<skillLine>` (un `id` diverso si rifiuta), scritto dal personaggio o da un suo alt.
+
 | Campo | Tipo | Note |
 |---|---|---|
 | `char` | GUID | |
-| `skillLine` | numero | ID della professione |
+| `skillLine` | numero | ID della professione (quello del roster: il giocatore ha la sua professione con lo stesso id) |
+| `name` | stringa | nome della professione, per mostrarla anche senza i dati nativi |
 | `rank`, `maxRank` | numeri | |
-| `ids` | lista ordinata di spellID delle ricette | codificata a differenze (varint) prima del CBOR |
-| `source` | `native` / `shared` | [ADR 0010](../adr/0010-native-data-first-shared-data-as-fallback.md) |
+| `ids` | testo | spellID delle ricette conosciute, ordinati, codificati a differenze (varint a 7 bit, bit alto = altro byte) e poi in Base64: testo ASCII, sicuro in SavedVariables e nei messaggi; circa 1,5 byte per ricetta prima del Base64 |
+| `n` | numero | quante ricette ci sono in `ids` |
+| `h` | numero | impronta a 32 bit di professione, grado e `ids`: cambia quando cambia la lista o il grado (PRO-06) |
+
+La **fonte** non è un campo: i record di questo insieme sono sempre condivisi (di un addon); le liste native non si salvano mai ([ADR 0010](../adr/0010-native-data-first-shared-data-as-fallback.md)). Il lettore non si fida del testo: `Recipes.Decode` rifiuta Base64 non valido, numeri tagliati, differenze nulle, id fuori campo e più di 3000 ricette.
 
 ## 4. Gioco di gruppo (`coplay`)
 

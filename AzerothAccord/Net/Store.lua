@@ -144,7 +144,10 @@ Store.SETS = {
 	},
 	recipes = {    -- one record per character and profession: id = "<GUID>:<skillLine>", { char, skillLine, ids, ... }
 		maxBytes = 8192,
-		owner = function(rec, s) return type(rec.char) == "string" and s:SameAccount(rec.char, rec.author) end,
+		owner = function(rec, s)
+			return type(rec.char) == "string" and type(rec.skillLine) == "number" and rec.id == rec.char .. ":" .. rec.skillLine
+				and s:SameAccount(rec.char, rec.author)
+		end,
 	},
 	coplay = {     -- one record per observer and day: id = "<observer GUID>:<YYYYMMDD>", { day, pairs, observer }
 		maxBytes = 8192,

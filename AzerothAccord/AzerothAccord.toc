@@ -33,6 +33,7 @@ Data\Accounts.lua
 Data\Contacts.lua
 Data\CoPlay.lua
 Data\Recipes.lua
+Data\RecipeScan.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

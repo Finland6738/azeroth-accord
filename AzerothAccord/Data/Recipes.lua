@@ -43,6 +43,11 @@ Recipes.MAX_SPELL_ID = 2147483647
 
 Recipes.EVENT = "GUILD_RECIPE_KNOWN_BY_MEMBERS"
 
+-- The secondary professions: they have recipes (cooking is the one guilds ask for) but are not one of the two
+-- primary professions the roster shows in a member's profession cells. Skill line ids of the client.
+Recipes.SECONDARY = { [129] = true, [185] = true, [356] = true, [794] = true }   -- First Aid, Cooking, Fishing, Archaeology
+function Recipes.IsPrimary(skillLine) return type(skillLine) == "number" and not Recipes.SECONDARY[skillLine] end
+
 local native
 local function resetNative(previous)
 	native = {
@@ -104,6 +109,69 @@ function Recipes.ParseNative(values)
 		end
 	end
 	return line, nil, sawString and "bitfield" or "shape"
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The wire and saved form of a list (SPEC-03 §3): sorted spell ids as differences, each a varint (7 bits per byte, the
+-- high bit says another byte follows), the bytes in Base64 so the text is plain ASCII in SavedVariables and in the
+-- addon message. About 1.5 bytes per recipe before Base64 for a profession of a few hundred recipes.
+---------------------------------------------------------------------------------------------------------------------
+-- The Base64 text of a list of spell ids ("" for an empty list), or nil plus a reason ("nobase64").
+function Recipes.Encode(ids)
+	ids = Recipes.Normalize(ids)
+	if not ids then return nil, "shape" end
+	if #ids == 0 then return "" end
+	local bytes, previous = {}, 0
+	for _, id in ipairs(ids) do
+		local delta = id - previous
+		previous = id
+		while delta >= 128 do
+			bytes[#bytes + 1] = string.char(delta % 128 + 128)
+			delta = floor(delta / 128)
+		end
+		bytes[#bytes + 1] = string.char(delta)
+	end
+	local C = compat()
+	local text = C and C.Base64.Encode(table.concat(bytes))
+	if not text then return nil, "nobase64" end
+	return text
+end
+
+-- The list a text stands for, or nil plus a reason ("shape", "base64", "varint", "range", "count"). Never raises and
+-- never trusts the text: it came from another client.
+function Recipes.Decode(text)
+	if type(text) ~= "string" or #text > 16384 then return nil, "shape" end
+	if text == "" then return {} end
+	if text:find("[^A-Za-z0-9+/=]") then return nil, "base64" end
+	local C = compat()
+	local raw = C and C.Base64.Decode(text)
+	if type(raw) ~= "string" or raw == "" then return nil, "base64" end
+	local ids, id, value, shift = {}, 0, 0, 0
+	for i = 1, #raw do
+		local b = raw:byte(i)
+		value = value + (b % 128) * 2 ^ shift
+		if b < 128 then
+			if value < 1 then return nil, "range" end   -- a list has no repeated or unordered ids
+			id = id + value
+			if id > Recipes.MAX_SPELL_ID then return nil, "range" end
+			if #ids >= Recipes.MAX_IDS then return nil, "count" end
+			ids[#ids + 1] = id
+			value, shift = 0, 0
+		else
+			shift = shift + 7
+			if shift > 28 then return nil, "varint" end
+		end
+	end
+	if shift ~= 0 then return nil, "varint" end   -- the last number was cut off
+	return ids
+end
+
+-- The fingerprint of a published list: changes when the recipes or the skill rank change (PRO-06). A 32-bit fast hash,
+-- like the sync digests: a collision can only delay a publication.
+function Recipes.HashOf(skillLine, rank, maxRank, text)
+	local H = ns.Hash
+	if not H then return 0 end
+	return H.Fast(("%s|%s|%s|%s"):format(tostring(skillLine), tostring(rank or 0), tostring(maxRank or 0), text or ""))
 end
 
 ---------------------------------------------------------------------------------------------------------------------
