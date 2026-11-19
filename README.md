@@ -2,7 +2,7 @@
 
 **A richer guild window for World of Warcraft: Forever.** Azeroth Accord adds an **Accord** tab to the game's guild window with what the default panel lacks: an extended roster with professions and recipes, all the characters of the same account, Battle.net and Discord contacts, likes between guildmates, a social index that shows whether the guild plays together or splits into cliques, and the guild bank with withdrawal, deposit and donation requests.
 
-> **Status: milestone M1 (foundations) is complete in code and waits for the in-game check** ([docs/checklists/M1.md](docs/checklists/M1.md)): the Accord tab, the standalone window, `/accord debug` and the guild sync exist, the views (roster, professions, reputation, bank) come with M2–M5. The first test version, `v0.1.0`, is published for the owner's guild once the check passes; there is no download yet.
+> **Status: milestones M1 (foundations) and M2 (roster) are complete in code and wait for the in-game checks** ([M1](docs/checklists/M1.md), [M2](docs/checklists/M2.md)): the Accord tab, the standalone window, the guild sync, the **Roster** view (sortable, filterable, grouped by account), the **member card**, the characters of an account, **contacts** (BattleTag, Discord, friend request), the Settings view and the silent co-play recording exist; the Professions, Reputation and Bank views come with M3–M5. The first test versions, `v0.1.0` and `v0.2.0`, are published for the owner's guild once the checks pass; there is no download yet.
 
 [Italiano](README.it.md) · [Roadmap](ROADMAP.md) · [Specification (Italian)](docs/specs/README.md) · [Decisions](docs/adr/README.md) · [User manual](docs/wiki/Home.md)
 

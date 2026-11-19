@@ -48,4 +48,7 @@
 
 ### M2.7 — M2 in-game check and v0.2.0
 - Branch: `step/m2-7-check`
-- Scope: `docs/checklists/M2.md`, wiki "Guild Roster", tag `v0.2.0`.
+- Scope: `docs/checklists/M2.md`, wiki "Guild Roster", tag `v0.2.0`. The step also adds the *[Make this my main]* line to the card of the player's own characters (the one gap the card left in ACC-02).
+- Done when:
+  - [x] `docs/checklists/M2.md` lists every unverified API, the steps and the report table; the wiki page and the READMEs describe the roster version.
+  - [ ] (in game) The owner confirms the roster, the card, the alts of two accounts, the contacts and the co-play counts in game: [docs/checklists/M2.md](../checklists/M2.md). The CHANGELOG section and the tag `v0.2.0` follow that confirmation (no tag or release is created before it).

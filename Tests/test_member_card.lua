@@ -256,3 +256,34 @@ describe("the frame", function()
 		eq(#Mock.errors, 0)
 	end)
 end)
+
+describe("choosing the main of your own account", function()
+	before_boot(function() mockGuild() end)
+
+	it("offers '[Make this my main]' on your own characters that are not the main, and shares the choice", function()
+		local a = setup()
+		a.Accounts:RegisterSelf()
+		a.Accounts:Register{ guid = "Player-1-0000A002", name = "Myalt", classID = 5, level = 70 }
+		a.Accounts:Publish()
+		Mock.Slash("/accord roster")
+		Mock.Advance(2)
+		V().frame:SetWidth(900)
+		eq(a.Accounts:Main(), "Player-1-0000A002", "the highest level")
+		Card():ShowGUID("Player-1-0000A001")
+		local button
+		for _, it in ipairs(Card().frame.items) do if it:IsShown() and it.text:GetText() == "[Make this my main]" then button = it end end
+		notNil(button)
+		button:Click()
+		eq(a.Accounts:Main(), "Player-1-0000A001")
+		eq(a.Store:Get("accounts", "Player-1-0000A001").main, "Player-1-0000A001")
+		for _, it in ipairs(Card().frame.items) do falsy(it:IsShown() and it.text:GetText() == "[Make this my main]", "gone once it is the main") end
+	end)
+
+	it("is not offered on other players' characters", function()
+		local a = setup()
+		a.Accounts:RegisterSelf()
+		for _, s in ipairs(desc(BOB).sections) do
+			for _, l in ipairs(s.lines) do falsy(l.text == "[Make this my main]") end
+		end
+	end)
+end)

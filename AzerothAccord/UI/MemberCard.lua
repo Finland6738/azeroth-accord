@@ -113,6 +113,18 @@ local function accountSection(e)
 	elseif g.main == e.guid then
 		table.insert(lines, 1, line(L["CARD_THIS_IS_MAIN"], true))
 	end
+	-- one of the player's own characters: it can be made the main of the account (Accounts:SetMain, shared at once)
+	local A = ns.Accounts
+	if A and e.guid and A:Main() ~= e.guid then
+		for _, c in ipairs(A:OwnChars()) do
+			if c.guid == e.guid then
+				lines[#lines + 1] = line(L["CARD_MAKE_MAIN"], false, nil, function()
+					if A:SetMain(e.guid) then Card:Refresh() end
+				end, true)
+				break
+			end
+		end
+	end
 	return { id = "account", title = L["CARD_ACCOUNT"], lines = lines }
 end
 

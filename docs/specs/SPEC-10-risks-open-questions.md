@@ -22,3 +22,4 @@
 | Q4 | Banca: le schede che un grado non vede nel gioco restano nascoste anche nell'addon? | sì, si rispettano i permessi del gioco |
 | Q5 | Classifica delle donazioni visibile a tutti o solo agli ufficiali? | a tutti, per riconoscere chi aiuta |
 | Q6 | Il sistema di loot personalizzato della gilda: in V2 serve una descrizione per integrarlo | da raccogliere prima di pianificare V2 |
+| Q7 | Convenzione delle note pubbliche per gli alt senza addon ([SPEC-05 §3](SPEC-05-roster-alts-contacts.md), ACC-05): `main: <nome>` = "il mio main è <nome>", `alt: <nome>` = "<nome> è un mio alt". Si usa così o al contrario? | come implementato in M2.2; cambia solo chi è il main del gruppo, non il raggruppamento |

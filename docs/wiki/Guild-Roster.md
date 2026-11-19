@@ -1,6 +1,6 @@
 # Guild roster
 
-> Available from the roster version (milestone M2). Contacts and likes/social columns arrive with the following steps.
+> Available from the roster version (milestone M2). The Likes and Social columns arrive with milestone M4, the profession cells open recipes from M3.
 
 The **Roster** view is a table of every member: name, level, class, rank, zone, last online, **profession 1** and **profession 2**, likes, social index, Battle.net and Discord. Click a column header to sort (a second click reverses; members with nothing in that column always go last); use the search box at the top (name or profession) and the filters (*Online*, *Mains only*, and the *Class*, *Rank* and *Profession* menus); *Columns* chooses which columns to show, and your choices are remembered for each character. The table stays fast with a guild of 1000 members.
 
@@ -10,7 +10,7 @@ Click a row to open the **member card**: beside the table in a wide panel, over 
 
 ## Characters of the same account
 
-The card lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. Turn on *By account* in the table to see one row per player with the alts underneath (click **+** to show them).
+On your own characters the card offers **[Make this my main]**. The card lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. Turn on *By account* in the table to see one row per player with the alts underneath (click **+** to show them).
 
 A character that is not in the guild appears too, marked *not in guild*. The main is the one the player chose, otherwise the highest-level character.
 
