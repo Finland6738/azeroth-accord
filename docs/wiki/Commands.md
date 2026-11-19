@@ -6,7 +6,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 |---|---|
 | `/accord` | Opens or closes the Accord window (you must be in a guild) |
 | `/accord roster` | Opens the Roster view |
-| `/accord professions` | Opens the Professions view *(M3)* |
+| `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view *(M4)* |
 | `/accord bank` | Opens the Bank view *(M5)* |
 | `/accord settings` | Opens the Settings view, where you type your Discord name |

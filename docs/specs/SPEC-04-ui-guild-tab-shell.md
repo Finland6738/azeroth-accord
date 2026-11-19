@@ -37,7 +37,7 @@ Stesso pannello in una finestra mobile e ridimensionabile, aperta da `/accord`, 
 | Comando | Effetto |
 |---|---|
 | `/accord` o `/acc` | apre o chiude la finestra autonoma |
-| `/accord roster`, `professions`, `reputation`, `bank` | apre quella vista |
+| `/accord roster`, `professions`, `reputation`, `bank` | apre quella vista (`professions` si apre sulla ricerca "who can craft", [SPEC-06 §2.2](SPEC-06-professions-recipes.md)) |
 | `/accord debug` | rapporto di diagnostica in una casella già selezionata, da copiare con Ctrl+C |
 | `/accord help` | elenco dei comandi |
 

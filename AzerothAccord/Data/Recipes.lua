@@ -342,6 +342,7 @@ end
 -- The shared source: the `recipes` records the members' addons publish (M3.2 writes them, the sync carries them)
 ---------------------------------------------------------------------------------------------------------------------
 local decoded = { map = {}, count = 0 }   -- record id -> { rev, time, ids }: a list is decoded once per revision
+Recipes.DECODE_CACHE_MAX = 1500             -- decoded lists kept (a guild of 400 members with 2-3 professions each)
 
 local function decodedList(rec)
 	local e = decoded.map[rec.id]
@@ -351,7 +352,7 @@ local function decodedList(rec)
 	elseif type(rec.ids) == "table" then ids = Recipes.Normalize(rec.ids) end
 	if not ids then return nil end
 	if not e then
-		if decoded.count >= Recipes.CACHE_MAX then decoded.map, decoded.count = {}, 0 end
+		if decoded.count >= Recipes.DECODE_CACHE_MAX then decoded.map, decoded.count = {}, 0 end
 		decoded.count = decoded.count + 1
 	end
 	decoded.map[rec.id] = { rev = rec.rev, time = rec.time, ids = ids }
@@ -375,6 +376,30 @@ function Recipes:Shared(guid, skillLine)
 	if not ids then return nil end
 	return { ids = ids, time = rec.time, rank = rec.rank, maxRank = rec.maxRank, name = rec.name, n = #ids, guid = guid,
 		skillLine = floor(skillLine), source = guid == ownGUID() and "own" or "shared" }
+end
+
+-- Every list known now, one per member and profession: the native answers first (they win, ADR 0010), then the shared
+-- records; each { guid, skillLine, ids, source, time, rank, maxRank, name }. For the "who can craft" index.
+function Recipes:AllLists()
+	local out, seen, S, me = {}, {}, ns.Store, ownGUID()
+	for key, e in pairs(native.cache) do
+		local shared = recordOf(e.guid, e.skillLine)
+		out[#out + 1] = { guid = e.guid, skillLine = e.skillLine, ids = e.ids, source = "native", time = e.time,
+			rank = shared and shared.rank, maxRank = shared and shared.maxRank, name = shared and shared.name }
+		seen[key] = true
+	end
+	if S then
+		for id, rec in pairs(S:Records("recipes")) do
+			if not seen[id] and type(rec) == "table" and rec.del ~= true and type(rec.char) == "string" and type(rec.skillLine) == "number" then
+				local ids = decodedList(rec)
+				if ids then
+					out[#out + 1] = { guid = rec.char, skillLine = rec.skillLine, ids = ids, source = rec.char == me and "own" or "shared",
+						time = rec.time, rank = rec.rank, maxRank = rec.maxRank, name = rec.name }
+				end
+			end
+		end
+	end
+	return out
 end
 
 -- The professions a member has shared lists of: { { skillLine, name, rank, maxRank, time, n }, ... } by skill line.
@@ -438,7 +463,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 Recipes.NAME_CACHE_MAX = 6000
 Recipes.LOAD_RETRY = 60             -- seconds before the client is asked again for a spell it has no data for
-local names = { map = {}, count = 0, asked = {}, missing = 0 }
+Recipes.LOAD_BURST = { 150, 5 }     -- at most 150 spell data requests per 5 seconds (a first search over every list)
+local names = { map = {}, count = 0, asked = {}, missing = 0, windowStart = 0, windowCount = 0 }
 
 -- { name, icon } of a recipe, cached; nil while the client has no data for it. The first miss asks the client to load
 -- it (and once per LOAD_RETRY seconds after that); SPELL_DATA_LOAD_RESULT then emits RECIPE_NAMES_UPDATED.
@@ -456,8 +482,12 @@ function Recipes.SpellData(id)
 	end
 	local t, last = C.Now(), names.asked[id]
 	if not last or t - last >= Recipes.LOAD_RETRY then
-		names.asked[id] = t
-		C.Spell.RequestData(id)
+		if t - names.windowStart >= Recipes.LOAD_BURST[2] then names.windowStart, names.windowCount = t, 0 end
+		if names.windowCount < Recipes.LOAD_BURST[1] then
+			names.windowCount = names.windowCount + 1
+			names.asked[id] = t
+			C.Spell.RequestData(id)
+		end
 	end
 	return nil
 end

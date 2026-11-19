@@ -35,6 +35,8 @@
 - Branch: `step/m3-5-who-can-craft`
 - Spec: PRO-04
 - Scope: the Professions view: reverse index from item or recipe name to members, online first, grouped by account.
+- Done when:
+  - [x] The search by recipe or item name lists the crafters online first and grouped by account, with online only, member list and Back (covered by `Tests/test_crafters.lua` and `Tests/test_craft_view.lua`); a first search over 400 members with two lists of 300 recipes stays under 3 s in the offline harness (about 250 ms measured).
 
 ### M3.6 — Craft request and v0.3.0
 - Branch: `step/m3-6-craft-request`
