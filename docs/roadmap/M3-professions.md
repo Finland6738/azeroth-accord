@@ -42,3 +42,6 @@
 - Branch: `step/m3-6-craft-request`
 - Spec: PRO-05
 - Scope: prefilled whisper with the recipe link; `docs/checklists/M3.md`; wiki "Professions and Recipes"; tag `v0.3.0`.
+- Done when:
+  - [x] **Request craft** opens the chat box with the whisper and the recipe link written, only for online members other than the player, and sends nothing (covered by `Tests/test_craft_request.lua`); `docs/checklists/M3.md` lists every unverified API, the steps and the report table; the wiki page, the FAQ and the READMEs describe the professions version.
+  - [ ] (in game) The owner confirms the recipe lists, the native source, who can craft and the craft request in game: [docs/checklists/M3.md](../checklists/M3.md). The CHANGELOG section and the tag `v0.3.0` follow that confirmation (no tag or release is created before it).

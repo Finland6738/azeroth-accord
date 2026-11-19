@@ -185,3 +185,12 @@ L["CR_ONLINE_ONLY"] = "Online only"
 L["CR_ONLINE_ONLY_TIP"] = "Show only the members who are online now."
 L["CR_TIP_RECIPE"] = "Can craft: %s"
 L["CR_TIP_CLICK"] = "Click to see all their recipes."
+
+-- Request craft (SPEC-06 PRO-05)
+L["CR_REQUEST"] = "Request craft"
+L["CR_REQUEST_TIP"] = "Opens a whisper to %s with the recipe link already written. You read it and send it."
+L["CR_REQUEST_NO"] = "The recipe has no name yet, or the member is not available."
+L["CR_REQUEST_OPENED"] = "Whisper to %s ready in the chat box: press Enter to send it."
+L["CR_REQUEST_OFFLINE"] = "That member is not online: a whisper would not reach them."
+L["CR_REQUEST_FAILED"] = "The chat box could not be opened with the whisper."
+L["CR_WHISPER"] = "Hello! Could you craft %s for me? Thank you!"

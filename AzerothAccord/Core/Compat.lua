@@ -788,11 +788,15 @@ function Chat.CanSend()
 	return not Chat.InChatLockdown() and not Chat.OutgoingAddonRestricted() and Chat.RestrictionAny() == nil
 end
 
--- Opens the chat box with "/w Name " typed in (the player writes and sends). false when the name is not a plain
--- character name or the client has no ChatFrame_OpenChat.
-function Chat.OpenWhisper(name)
+-- Opens the chat box with "/w Name <text>" typed in (the player reads it, changes it if they like and sends it: the addon
+-- never sends a whisper). false when the name is not a plain character name, the text has a control character or is
+-- longer than a chat line (255), or the client has no ChatFrame_OpenChat.
+function Chat.OpenWhisper(name, text)
 	if type(name) ~= "string" or name == "" or name:find("[%s|%c]") then return false end
-	local _, state = first("ChatFrame_OpenChat", "/w " .. name .. " ")
+	if text ~= nil and (type(text) ~= "string" or text:find("%c")) then return false end
+	local line = "/w " .. name .. " " .. (text or "")
+	if #line > 255 then return false end
+	local _, state = first("ChatFrame_OpenChat", line)
 	return state == AVAILABLE
 end
 

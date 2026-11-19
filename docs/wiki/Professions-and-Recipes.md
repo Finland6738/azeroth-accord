@@ -1,6 +1,6 @@
 # Professions and recipes
 
-> Recipe lists and **who can craft** are available from the professions version (milestone M3). **Request craft** arrives in the last step of the same milestone.
+> Available from the professions version (milestone M3): recipe lists, **who can craft** and **Request craft**.
 
 ## Opening a member's recipes
 
@@ -26,6 +26,14 @@ Open the **Professions** view (`/accord professions`, or the **Professions** but
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 
-## Coming next in this milestone
+## Request craft
 
-- **Request craft** opens a whisper to that member with the recipe link already written; you send it.
+Next to every recipe of an **online** member (in their list, or under the recipe in *Who can craft*) there is a **Request craft** button. It opens the chat box with a whisper to that member already written, with the recipe link in it: *"Hello! Could you craft [recipe] for me? Thank you!"*. **Azeroth Accord never sends it**: you read it, change it if you like and press Enter. The button is not shown for offline members (a whisper would not reach them), for your own recipes, or on the recipe's header line.
+
+## If something is missing
+
+- **The list of a member is not there**: the game does not always give recipe lists, and a member's addon shares theirs only after they open the profession window with Azeroth Accord. The panel says so, and asks for the list by itself while somebody who has it is online.
+- **A recipe shows as "Recipe 1234"**: the game has not given its name yet; it appears in a moment.
+- **"Who can craft" finds nobody**: it searches the members whose list is known. Open a few members' recipes (the addon asks for them) and search again.
+
+See also the [[FAQ]].

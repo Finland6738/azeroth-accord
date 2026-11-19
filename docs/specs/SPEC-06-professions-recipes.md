@@ -62,6 +62,12 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 - Il nome di una ricetta è il nome dell'incantesimo, che per la maggior parte dei mestieri è anche il nome dell'oggetto creato; i nomi non ancora caricati si chiedono al client (al massimo 150 richieste ogni 5 secondi) e la ricerca li conta come "in caricamento".
 - La ricerca copre i membri **di cui si conosce la lista**: quelle condivise dai loro addon e le risposte native già ricevute in questa sessione (aprire le ricette di un membro chiede la sua). Un clic su un membro apre la sua lista (Back torna alla ricerca). La richiesta nativa "chi conosce questa ricetta" (`QueryGuildMembersForRecipe`) non si usa: la sua risposta non ha forma documentata **[verificare]** S3; si valuterà con i risultati di M0.4.
 
+### 2.3 Richiesta di creazione (M3.6, PRO-05)
+
+- Un pulsante **Request craft** compare su ogni ricetta dell'elenco di un membro e su ogni persona sotto una ricetta di "who can craft", **solo se il membro è online** e non è il giocatore. Non compare sulla riga d'intestazione della ricetta, sui membri offline (un sussurro non li raggiungerebbe) né sulle proprie ricette.
+- Il clic apre la casella della chat con `/w <nome> Hello! Could you craft <link> for me? Thank you!` (`Recipes:OpenCraftRequest`, `Compat.Chat.OpenWhisper(nome, testo)`): **l'addon non invia nulla**, il giocatore legge, cambia se vuole e preme Invio. Il link è quello dell'incantesimo della ricetta (`C_Spell.GetSpellLink`, altrimenti costruito dal nome); una ricetta senza nome non si può chiedere. Il testo è nella lingua dell'interfaccia del giocatore. Un messaggio di chat ha al massimo 255 caratteri: più lungo non si apre.
+- `CRAFT_REQUESTED(guid, recipeId)` va sul Bus (per la V2, quando la richiesta diventerà un ordine registrato). Nessun dato di una richiesta viene salvato né condiviso.
+
 ## 3. Dimensioni
 
 Una professione ha qualche centinaio di ricette: come spellID ordinati codificati a differenze occupano circa 1,5 byte per ricetta, circa 2 caratteri in Base64 ([SPEC-03 §3](SPEC-03-data-model.md#3-ricette-recipes)). Una gilda di 200 membri con 2 professioni e in media 150 ricette ciascuna sta intorno ai 120 KB in SavedVariables, 300 KB nel caso peggiore di liste da 400 ricette; un record non supera 8 KB e un messaggio con 400 ricette pesa circa 1 KB dopo la compressione.

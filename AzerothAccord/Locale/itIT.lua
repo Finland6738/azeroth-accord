@@ -178,3 +178,12 @@ L["CR_ONLINE_ONLY"] = "Solo online"
 L["CR_ONLINE_ONLY_TIP"] = "Mostra solo i membri online adesso."
 L["CR_TIP_RECIPE"] = "Può creare: %s"
 L["CR_TIP_CLICK"] = "Clicca per vedere tutte le sue ricette."
+
+-- Richiesta di creazione (SPEC-06 PRO-05)
+L["CR_REQUEST"] = "Chiedi di crearlo"
+L["CR_REQUEST_TIP"] = "Apre un sussurro a %s con il link della ricetta già scritto. Lo leggi e lo invii tu."
+L["CR_REQUEST_NO"] = "La ricetta non ha ancora un nome, oppure il membro non è disponibile."
+L["CR_REQUEST_OPENED"] = "Sussurro a %s pronto nella casella della chat: premi Invio per inviarlo."
+L["CR_REQUEST_OFFLINE"] = "Quel membro non è online: un sussurro non lo raggiungerebbe."
+L["CR_REQUEST_FAILED"] = "Non si è potuta aprire la casella della chat con il sussurro."
+L["CR_WHISPER"] = "Ciao! Potresti creare %s per me? Grazie!"

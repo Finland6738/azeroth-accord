@@ -514,6 +514,35 @@ local function onSpellData(id, success)
 	if success ~= false and Recipes.SpellData(id) then emit("RECIPE_NAMES_UPDATED", id) end
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- Request craft (PRO-05)
+---------------------------------------------------------------------------------------------------------------------
+-- The whisper for asking a member to craft a recipe: { name = <name to whisper>, text = <the message, with the recipe
+-- link>, link, recipe } or nil plus a reason ("member" not in the roster, "self", "offline", "noname" the recipe has no
+-- name yet). Nothing is sent: the player opens the chat box with it and sends it (V2 turns this into a recorded order).
+function Recipes:CraftRequest(guid, recipeId)
+	local Ro, L = ns.Roster, ns.L
+	local e = Ro and type(guid) == "string" and Ro:ByGUID(guid)
+	if not e or type(e.name) ~= "string" then return nil, "member" end
+	if e.isSelf then return nil, "self" end
+	if e.online ~= true then return nil, "offline" end
+	local link = Recipes.LinkOf(recipeId)
+	local name = Recipes.NameOf(recipeId)
+	if not (link or name) then return nil, "noname" end
+	return { name = e.name, short = e.short or e.name, link = link, recipe = name,
+		text = L["CR_WHISPER"]:format(link or ("[" .. name .. "]")) }
+end
+
+-- Opens the chat box for that whisper. Returns true, or false and the reason (CraftRequest's, or "chat").
+function Recipes:OpenCraftRequest(guid, recipeId)
+	local request, why = self:CraftRequest(guid, recipeId)
+	if not request then return false, why end
+	local C = compat()
+	if not (C and C.Chat.OpenWhisper(request.name, request.text)) then return false, "chat" end
+	emit("CRAFT_REQUESTED", guid, recipeId)
+	return true, request
+end
+
 -- A shared record arrived or changed: views that show it learn about it through the same event as a native answer.
 local function onStoreChanged(set, id, origin)
 	if set ~= "recipes" or type(id) ~= "string" then return end

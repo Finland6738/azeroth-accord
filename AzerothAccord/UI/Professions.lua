@@ -242,8 +242,13 @@ local function newRow(self, area, i)
 	row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
 	row.name = W.Text(row, "body", nil, "LEFT")
 	row.detail = W.Text(row, "small", "grey", "LEFT")
+	row.request = W.Button(row, { text = L["CR_REQUEST"], width = 84, height = View.ROW_HEIGHT - 2,
+		tooltip = function(b) return View.RequestTip(b:GetParent().data) end,
+		onClick = function(b) View:RequestCraft(b:GetParent().data) end })
+	row.request:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+	row.request:Hide()
 	row.note = W.Text(row, "small", "green", "RIGHT")
-	row.note:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+	row.note:SetPoint("RIGHT", row.request, "LEFT", -8, 0)
 	row:SetScript("OnEnter", function(self2) View:ShowTooltip(self2) end)
 	row:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
 	row:SetScript("OnClick", function(self2) View:RowClicked(self2) end)
@@ -274,6 +279,35 @@ function View:ShowTooltip(row)
 	end
 	if d.category then GameTooltip:AddLine(d.category, 0.6, 0.6, 0.6, true) end
 	GameTooltip:Show()
+end
+
+-- PRO-05: the member and the recipe of a row, for the Request craft button: a recipe of the member whose list is open, or
+-- a crafter under a recipe of the search.
+local function requestTarget(d)
+	if type(d) ~= "table" then return nil end
+	if d.kind == "member" then return d.member.guid, d.recipeId end
+	if d.kind == "recipe" then return nil end
+	return View.model.guid, d.id
+end
+
+function View.RequestTip(d)
+	local guid, id = requestTarget(d)
+	if not guid then return nil end
+	local request = ns.Recipes and ns.Recipes:CraftRequest(guid, id)
+	return { L["CR_REQUEST"], request and L["CR_REQUEST_TIP"]:format(request.short) or L["CR_REQUEST_NO"] }
+end
+
+-- The Request craft button: opens the chat box with the whisper written; the player sends it.
+function View:RequestCraft(d)
+	local guid, id = requestTarget(d)
+	if not guid then return false end
+	local ok, result = ns.Recipes:OpenCraftRequest(guid, id)
+	if ok then
+		if ns.addon then ns.addon:Print(L["CR_REQUEST_OPENED"]:format(result.short)) end
+	elseif ns.addon then
+		ns.addon:Print(result == "offline" and L["CR_REQUEST_OFFLINE"] or L["CR_REQUEST_FAILED"])
+	end
+	return ok
 end
 
 -- A click on a crafter opens that member's recipe list for the profession the recipe is in.
@@ -348,6 +382,9 @@ local function fillRecipeRow(self, row, d)
 	end
 	row.note:SetText(d.known and L["RV_YOU_KNOW"] or "")
 	row.note:SetTextColor(Skin.Color("green"))
+	local guid = requestTarget(d)
+	local e = guid and ns.Roster and ns.Roster:ByGUID(guid)
+	row.request:SetShown(e ~= nil and e.online == true and e.isSelf ~= true)
 	row:Show()
 end
 
@@ -364,6 +401,7 @@ local function fillCraftRow(self, row, d)
 		row.name:SetTextColor(Skin.Color("gold"))
 		if d.icon then row.icon:SetTexture(d.icon) row.icon:Show() else row.icon:Hide() end
 		row.detail:Hide()
+		row.request:Hide()
 		row.note:SetText(L["CR_CRAFTERS"]:format(d.count))
 		row.note:SetTextColor(Skin.Color("grey"))
 	else
@@ -374,11 +412,12 @@ local function fillCraftRow(self, row, d)
 		row.name:SetText(m.name)
 		row.name:SetTextColor(classColor(m.classFile))
 		row.detail:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
-		row.detail:SetPoint("RIGHT", row, "RIGHT", -100, 0)
+		row.detail:SetPoint("RIGHT", row, "RIGHT", -190, 0)
 		row.detail:SetText(View.MemberDetail(m))
 		row.detail:Show()
 		row.note:SetText(m.online and L["ONLINE"] or "")
 		row.note:SetTextColor(Skin.Color("green"))
+		row.request:SetShown(m.online == true and m.isSelf ~= true)
 	end
 	row:Show()
 end

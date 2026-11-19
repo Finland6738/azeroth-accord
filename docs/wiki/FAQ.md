@@ -11,3 +11,7 @@
 **Does the social index say who is a good player?** No. It only measures how widely someone groups with different guildmates.
 
 **Is the bank always up to date?** It is as recent as the last visit of a guildmate with the addon; each tab shows its age.
+
+**Why is a guildmate's recipe list empty?** The game does not always give recipe lists to addons, so the list usually comes from the member's own Azeroth Accord, shared when they open their profession window. If they do not use the addon, or have not opened the profession since installing it, the panel tells you what to ask them. See [[Professions and Recipes|Professions-and-Recipes]].
+
+**Does Request craft send a message by itself?** No. It opens the chat box with the whisper already written; you read it and send it.
