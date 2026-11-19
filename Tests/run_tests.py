@@ -155,6 +155,12 @@ def zdecompress(data, wbits):
         return False, b(str(e))
 
 
+def bitop(op, a, b):
+    """The 32-bit and / or / xor of the mock's `bit` library (a pure Lua loop of 32 steps per call made hashing slow)."""
+    a, b = int(a) & 0xFFFFFFFF, int(b) & 0xFFFFFFFF
+    return a & b if op == 1 else a | b if op == 2 else a ^ b
+
+
 def main(argv):
     flt, verbose = "", False
     for arg in argv:
@@ -217,6 +223,7 @@ def main(argv):
         b"log": log,
         b"zcompress": zcompress,
         b"zdecompress": zdecompress,
+        b"bitop": bitop,
     })
 
     if not test_files:

@@ -21,6 +21,7 @@ local H = {
 	validEvents = cfg.events,
 	zcompress = cfg.zcompress,
 	zdecompress = cfg.zdecompress,
+	bitop = cfg.bitop,   -- (op 1 and / 2 or / 3 xor, a, b) -> unsigned 32-bit result; nil in a sub-harness
 	traceback = debug.traceback,
 	os = os,
 }

@@ -29,13 +29,22 @@ local floor, min = math.floor, math.min
 -- Resolve, secret values, guarded calls
 ---------------------------------------------------------------------------------------------------------------------
 
+local function index(value, part) return value[part] end   -- one function for every step: no closure per lookup
+local PARTS = {}                                              -- path -> its names, split once (the paths are a fixed set)
+
 -- "C_Club.GetGuildClubId" -> the value in the global table, or nil. Never raises.
 function Compat.Resolve(path)
 	if type(path) ~= "string" or path == "" then return nil end
+	local parts = PARTS[path]
+	if not parts then
+		parts = {}
+		for part in path:gmatch("[^.]+") do parts[#parts + 1] = part end
+		PARTS[path] = parts
+	end
 	local value = _G
-	for part in path:gmatch("[^.]+") do
+	for i = 1, #parts do
 		if type(value) ~= "table" then return nil end
-		local ok, nextValue = pcall(function() return value[part] end)
+		local ok, nextValue = pcall(index, value, parts[i])
 		if not ok then return nil end
 		value = nextValue
 	end

@@ -19,3 +19,7 @@ The addon runs only inside WoW Forever, which cannot start in continuous integra
 
 - Positive: fast tests in CI; the protocol is proven with many clients.
 - Negative: a green test shows that the code agrees with our assumptions about the client, not that the client agrees: the M0 results and the in-game check of each milestone stay necessary.
+
+## Note (speed)
+
+Hot paths of the mock are kept cheap, because the simulator runs thousands of client ticks: the `bit` library of the mock does its bit operations in Python through the runner (`bitop`), `GetGuildRosterInfo` indexes the roster instead of rebuilding it, and the OnUpdate tick walks only the frames that have an OnUpdate script. A full run is about two minutes on a slow Windows machine and about one minute on CI.

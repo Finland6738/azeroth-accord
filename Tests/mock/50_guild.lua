@@ -110,17 +110,23 @@ function CanEditPublicNote() return guild.name ~= nil and guild.myRank <= guild.
 function CanEditOfficerNote() return CanViewOfficerNote() end
 function CanGuildInvite() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
 
+-- The roster scans of the addon call these once per member: they index the data without rebuilding the list.
+local function rosterAt(index)
+	if index == 1 then return me() end
+	return guild.members[index - 1]
+end
+
 function GetNumGuildMembers()
 	if not guild.name then return 0, 0, 0 end
-	local list, online = roster(), 0
-	for _, m in ipairs(list) do if m.online then online = online + 1 end end
-	return #list, online, online
+	local online = me().online and 1 or 0
+	for _, m in ipairs(guild.members) do if m.online then online = online + 1 end end
+	return #guild.members + 1, online, online
 end
 
 -- name, rankName, rankIndex, level, classDisplayName, zone, note, officerNote, isOnline, status, classFileName,
 -- achievementPoints, achievementRank, isMobile, canSoR, repStanding, guid
 function GetGuildRosterInfo(index)
-	local m = guild.name and roster()[index]
+	local m = guild.name and rosterAt(index)
 	if not m then return nil end
 	return m.name, guild.ranks[m.rank], m.rank, m.level, CLASS_NAMES[m.class] or m.class, m.zone, m.note, m.officerNote,
 		m.online, 0, m.class, 0, 0, false, false, 4, m.guid
@@ -128,7 +134,7 @@ end
 
 -- years, months, days, hours since the member was last online; nothing while online.
 function GetGuildRosterLastOnline(index)
-	local m = guild.name and roster()[index]
+	local m = guild.name and rosterAt(index)
 	if not m or m.online then return nil end
 	local t = m.lastOnline or { 0, 0, 1, 0 }
 	return t[1], t[2], t[3], t[4]

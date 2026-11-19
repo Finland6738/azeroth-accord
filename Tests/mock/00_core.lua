@@ -186,16 +186,20 @@ do
 	local function band(x, y) return x == 1 and y == 1 end
 	local function bor(x, y) return x == 1 or y == 1 end
 	local function bxor(x, y) return x ~= y end
-	local function fold(op)
+	-- Python does the bits when the runner offers it (about 15 times faster than the loop above).
+	local native = H.bitop
+	local function fold(op, code)
+		local two = bitwise
+		if native then two = function(a, b) return native(code, a, b) end end
 		return function(first, ...)
 			local acc = u(first)
-			for i = 1, select("#", ...) do acc = bitwise(acc, (select(i, ...)), op) end
+			for i = 1, select("#", ...) do acc = two(acc, (select(i, ...)), op) end
 			return norm(acc)
 		end
 	end
 	bit = {
 		tobit = norm,
-		band = fold(band), bor = fold(bor), bxor = fold(bxor),
+		band = fold(band, 1), bor = fold(bor, 2), bxor = fold(bxor, 3),
 		bnot = function(x) return norm(-u(x) - 1) end,
 		lshift = function(x, n) return norm(u(x) * 2 ^ (n % 32)) end,
 		rshift = function(x, n) return norm(math.floor(u(x) / 2 ^ (n % 32))) end,

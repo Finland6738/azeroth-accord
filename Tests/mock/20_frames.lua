@@ -119,13 +119,29 @@ function Widget:GetTop() return self._height end
 function Widget:GetBottom() return 0 end
 function Widget:GetRect() return 0, 0, self._width, self._height end
 
-function Widget:SetScript(name, fn) self._scripts[name] = fn end
+-- Frames that ever had an OnUpdate script, in creation order: the tick walks these instead of every frame (the
+-- simulator creates thousands of frames, and a tick runs 2 per second of simulated time for every client).
+local updaters = {}
+local function trackUpdater(w)
+	if w._seq and not w._updater then
+		w._updater = true
+		local at = #updaters + 1
+		while at > 1 and updaters[at - 1]._seq > w._seq do updaters[at] = updaters[at - 1]; at = at - 1 end
+		updaters[at] = w
+	end
+end
+
+function Widget:SetScript(name, fn)
+	self._scripts[name] = fn
+	if name == "OnUpdate" then trackUpdater(self) end
+end
 function Widget:GetScript(name) return self._scripts[name] end
 function Widget:HasScript() return true end
 function Widget:HookScript(name, fn)
 	local hooks = self._hooks[name] or {}
 	self._hooks[name] = hooks
 	hooks[#hooks + 1] = fn
+	if name == "OnUpdate" then trackUpdater(self) end
 end
 
 -- Events. Order of dispatch is frame creation order, then registration is a set.
@@ -349,12 +365,14 @@ function CreateFrame(objectType, name, parent, template)
 	end
 	if name then _G[name] = w else nameless = nameless + 1 end
 	frames[#frames + 1] = w
+	w._seq = #frames
 	return w
 end
 
 UIParent = newWidget("Frame", "UIParent", nil)
 UIParent._width, UIParent._height = 1920, 1080
 frames[#frames + 1] = UIParent
+UIParent._seq = #frames
 WorldFrame = newWidget("Frame", "WorldFrame", nil)
 Minimap = CreateFrame("Minimap", "Minimap", UIParent)
 Minimap:SetSize(140, 140)
@@ -366,7 +384,7 @@ function GetNumChatWindows() return 1 end
 
 -- Used by OnUpdate dispatch (30_timers.lua).
 function Mock.RunOnUpdate(dt)
-	for _, frame in ipairs({ unpack(frames) }) do
+	for _, frame in ipairs({ unpack(updaters) }) do
 		if (frame._scripts.OnUpdate or frame._hooks.OnUpdate) and frame:IsVisible() then
 			runScript(frame, "OnUpdate", dt)
 		end
