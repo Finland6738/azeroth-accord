@@ -1,0 +1,385 @@
+-- Bank requests (M5.5; SPEC-08 BANK-20..BANK-22, SPEC-03 §7, ADR 0005): a member opens and cancels requests, only officers
+-- move them to approved, rejected or fulfilled, every guildmate sees every request, and every client ends with the same
+-- status (network simulator).
+local function A() return AzerothAccord end
+local function S() return AzerothAccord.Store end
+local function R() return AzerothAccord.BankRequests end
+local function V() return AzerothAccord.BankView end
+local function RV() return AzerothAccord.BankRequestsView end
+
+local ME, BOB, OFF = "Player-1-0000A001", "Player-1-00000B0B", "Player-1-00000C0C"
+local LINEN = 2589
+
+local function guild(rank)
+	Mock.guild.Set{ name = "Accord", myRank = rank or 3, members = {
+		{ name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB },
+		{ name = "Boss", level = 60, class = "PRIEST", rank = 1, guid = OFF },
+	} }
+end
+
+local function asOfficer()
+	Mock.guild.Set{ name = "Accord", myRank = 1, members = { { name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB } } }
+	A().Role:Refresh()
+end
+
+describe("the text of a request", function()
+	before_boot(function() guild() end)
+
+	it("takes an item from a link or a number, and nothing else", function()
+		eq(R().ParseItem("|cffffffff|Hitem:2589::::::::60:::::|h[Linen Cloth]|h|r"), 2589)
+		eq(R().ParseItem("  2589 "), 2589)
+		eq(R().ParseItem(118), 118)
+		isNil(R().ParseItem("linen cloth")); isNil(R().ParseItem("")); isNil(R().ParseItem(0)); isNil(R().ParseItem(nil)); isNil(R().ParseItem(2 ^ 40))
+	end)
+
+	it("cleans a reason: no control characters, no link escapes, one space, at most 120 characters", function()
+		eq(R().CleanText("  need  it\n for |cffff0000raid|r  "), "need it for cffff0000raid r")
+		eq(#R().CleanText(("x"):rep(500)), 120)
+		eq(R().CleanText(nil), "")
+	end)
+end)
+
+describe("opening, cancelling and deciding (one client)", function()
+	before_boot(function() guild(3) end)
+
+	local function mine() return S():Get("bankreq", ME .. ":1") end
+
+	it("opens a request for an item with a reason, with its history", function()
+		local seen
+		A().Bus:On("BANKREQ_CHANGED", function(id, status) seen = id .. status end)
+		local rec = R():Create({ kind = "withdraw", itemID = LINEN, count = 20, reason = "for the raid" })
+		notNil(rec)
+		eq(rec.id, ME .. ":1"); eq(rec.status, "open"); eq(rec.itemID, LINEN); eq(rec.count, 20); eq(rec.reason, "for the raid")
+		eq(rec.requester, ME); eq(rec.author, ME); eq(#rec.history, 1); eq(rec.history[1].s, "open"); eq(rec.history[1].by, ME)
+		eq(seen, ME .. ":1open")
+		eq(R():OpenCount(), 1)
+	end)
+
+	it("opens a request for gold, and a donation; a deposit needs an item", function()
+		truthy(R():Create({ kind = "withdraw", amount = 50000 }))
+		truthy(R():Create({ kind = "donation", amount = 100000, reason = "weekly" }))
+		truthy(R():Create({ kind = "donation", itemID = LINEN, count = 100 }))
+		eq(select(2, R():Create({ kind = "deposit", amount = 5 })), "item")
+		truthy(R():Create({ kind = "deposit", itemID = LINEN, count = 3 }))
+		eq(S():Get("bankreq", ME .. ":2").amount, 100000, "the ids count up")
+	end)
+
+	it("refuses a bad request and says why", function()
+		eq(select(2, R():Create({ kind = "steal", amount = 5 })), "kind")
+		eq(select(2, R():Create({ kind = "withdraw", itemID = "nope", count = 1 })), "item")
+		eq(select(2, R():Create({ kind = "withdraw", itemID = LINEN, count = 0 })), "count")
+		eq(select(2, R():Create({ kind = "withdraw", itemID = LINEN, count = 10000 })), "count")
+		eq(select(2, R():Create({ kind = "withdraw", amount = 0 })), "amount")
+		eq(select(2, R():Create({ kind = "withdraw", amount = 1.5 })), "amount")
+		eq(select(2, R():Create(nil)), "kind")
+		eq(R():OpenCount(), 0)
+	end)
+
+	it("allows five open requests at a time", function()
+		for i = 1, 5 do truthy(R():Create({ kind = "withdraw", amount = i * 100 })) end
+		eq(select(2, R():Create({ kind = "withdraw", amount = 1000 })), "limit")
+		truthy(R():Cancel(ME .. ":1"))
+		truthy(R():Create({ kind = "withdraw", amount = 1000 }))
+	end)
+
+	it("the requester cancels an open request, once; not somebody else's, not a decided one", function()
+		R():Create({ kind = "withdraw", amount = 100 })
+		local rec = R():Cancel(ME .. ":1")
+		eq(rec.status, "cancelled"); eq(#rec.history, 2); eq(rec.history[2].s, "cancelled"); eq(rec.rev, 2)
+		eq(select(2, R():Cancel(ME .. ":1")), "status")
+		eq(select(2, R():Cancel(ME .. ":9")), "missing")
+		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw",
+			status = "open", amount = 5, created = GetServerTime(), history = {} }
+		eq(select(2, R():Cancel(BOB .. ":1")), "owner")
+	end)
+
+	it("a member cannot decide", function()
+		R():Create({ kind = "withdraw", amount = 100 })
+		eq(select(2, R():Decide(ME .. ":1", "approved")), "officer")
+		eq(mine().status, "open")
+	end)
+
+	it("every guildmate sees every request, and what this player may do with each", function()
+		R():Create({ kind = "withdraw", itemID = LINEN, count = 5 })
+		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "donation",
+			status = "open", amount = 5, created = GetServerTime() - 100, history = {} }
+		local rows = R():List()
+		eq(#rows, 2)
+		eq(rows[1].own, true); eq(rows[1].canCancel, true); eq(#rows[1].moves, 0)
+		eq(rows[2].own, false); eq(rows[2].canCancel, false); eq(rows[2].name, "Bob")
+		eq(#R():List({ own = true }), 1)
+		eq(#R():List({ status = { approved = true } }), 0)
+	end)
+end)
+
+describe("an officer moves requests", function()
+	before_boot(function() guild(1) end)
+
+	it("approves and fulfils with the history, in the right order only", function()
+		A().Role:Refresh()
+		local rec = R():Create({ kind = "withdraw", itemID = LINEN, count = 5 })
+		local id = rec.id
+		eq(R():List()[1].moves[1], "approved"); eq(#R():List()[1].moves, 3, "approve, reject or mark fulfilled")
+		local a = R():Decide(id, "approved")
+		eq(a.status, "approved"); eq(#a.history, 2); eq(a.history[2].s, "approved"); eq(a.history[2].by, ME); eq(a.rev, 2)
+		eq(a.itemID, LINEN); eq(a.count, 5); eq(a.created, rec.created, "the content stays")
+		eq(select(2, R():Decide(id, "approved")), "status")
+		eq(select(2, R():Decide(id, "open")), "status")
+		local f = R():Decide(id, "fulfilled")
+		eq(f.status, "fulfilled"); eq(#f.history, 3)
+		eq(select(2, R():Decide(id, "rejected")), "status", "a closed request does not move")
+		eq(select(2, R():Cancel(id)), "status")
+		eq(R():OpenCount(), 0)
+	end)
+
+	it("rejects with a reason that is kept and cleaned", function()
+		A().Role:Refresh()
+		local id = R():Create({ kind = "withdraw", amount = 100 }).id
+		local r = R():Decide(id, "rejected", "  not now |cffff0000sorry|r ")
+		eq(r.status, "rejected"); eq(r.note, "not now cffff0000sorry r")
+	end)
+
+	it("only the three decisions exist", function()
+		A().Role:Refresh()
+		local id = R():Create({ kind = "withdraw", amount = 100 }).id
+		eq(select(2, R():Decide(id, "cancelled")), "status")
+		eq(select(2, R():Decide(id, "bogus")), "status")
+		eq(select(2, R():Decide("Player-1-0000FFFF:1", "approved")), "missing")
+	end)
+
+	it("the highest status wins whatever order the versions arrive in, and the content never changes", function()
+		A().Role:Refresh()
+		local base = { id = BOB .. ":1", requester = BOB, kind = "withdraw", amount = 5, created = GetServerTime(), history = {}, time = GetServerTime() }
+		local function v(status, author, rev)
+			local r = {}
+			for k, x in pairs(base) do r[k] = x end
+			r.status, r.author, r.rev = status, author, rev
+			return r
+		end
+		local approved, cancelled = v("approved", OFF, 2), v("cancelled", BOB, 2)
+		eq(R().Compare(approved, cancelled), 1); eq(R().Compare(cancelled, approved), -1)
+		eq(R().Compare(v("fulfilled", OFF, 3), v("rejected", OFF, 9)), 1)
+		eq(R().Compare(v("open", BOB, 1), nil), 1)
+		eq(R().Compare(v("approved", OFF, 3), v("approved", OFF, 2)), 1, "same status: the later revision")
+		local changed = v("approved", OFF, 3); changed.amount = 9
+		falsy(R().Transition(base, changed))
+		truthy(R().Transition(base, v("approved", OFF, 2)))
+	end)
+end)
+
+describe("the requests in the network simulator", function()
+	local function sendRequest(c, spec) return c:addon().BankRequests:Create(spec) end
+
+	it("a member's request reaches every guildmate, an officer approves it and everyone shows the same status", function()
+		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, seed = 81 }
+		sim:advance(40)
+		local rec = sendRequest(sim:client(3), { kind = "withdraw", itemID = LINEN, count = 20, reason = "raid" })
+		local id = rec.id
+		sim:advance(60)
+		for i = 1, 5 do
+			local r = sim:client(i):addon().Store:Get("bankreq", id)
+			notNil(r, "client " .. i .. " sees the open request")
+			eq(r.status, "open")
+		end
+		local decided = sim:client(1):addon().BankRequests:Decide(id, "approved")
+		notNil(decided)
+		sim:advance(60)
+		for i = 1, 5 do eq(sim:client(i):addon().Store:Get("bankreq", id).status, "approved", "client " .. i) end
+		sim:client(2):addon().BankRequests:Decide(id, "fulfilled")
+		sim:advance(60)
+		for i = 1, 5 do
+			local r = sim:client(i):addon().Store:Get("bankreq", id)
+			eq(r.status, "fulfilled", "client " .. i); eq(#r.history, 3)
+			eq(sim:client(i):addon().Store.stats.rejected, 0, "client " .. i .. " refused nothing")
+		end
+	end)
+
+	it("status changes come only from officers: a member's forged decision, or a cancel of somebody else's request, is refused", function()
+		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, seed = 83 }
+		sim:advance(40)
+		local id = sendRequest(sim:client(3), { kind = "withdraw", amount = 100000 }).id
+		sim:advance(60)
+		local held = sim:client(4):addon().Store:Get("bankreq", id)
+		local function forged(status, author, rev)
+			local r = {}
+			for k, v in pairs(held) do r[k] = v end
+			r.status, r.author, r.rev, r.time = status, author, rev, held.time + 5
+			return r
+		end
+		-- client 4 (a member) writes an approval in its own name, and one in an officer's name
+		local T = sim:client(4):addon().Transport
+		T:Send("GUILD", { t = "REC", s = "bankreq", r = { forged("approved", Sim.guidOf(4), 2) } })
+		T:Send("GUILD", { t = "REC", s = "bankreq", r = { forged("approved", Sim.guidOf(1), 3) } })
+		-- and a cancel of client 3's request in client 3's name
+		T:Send("GUILD", { t = "REC", s = "bankreq", r = { forged("cancelled", Sim.guidOf(3), 4) } })
+		sim:advance(60)
+		for i = 1, 5 do eq(sim:client(i):addon().Store:Get("bankreq", id).status, "open", "client " .. i .. " still sees it open") end
+		truthy((sim:client(1):addon().Store.stats.reasons.authority or 0) >= 2, "officers refused the decisions")
+		truthy((sim:client(1):addon().Store.stats.reasons.relay or 0) >= 1, "and the cancel in somebody else's name")
+	end)
+
+	it("a decision and a cancel written at the same moment end the same everywhere: the decision", function()
+		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, seed = 85 }
+		sim:advance(40)
+		local id = sendRequest(sim:client(3), { kind = "withdraw", amount = 100000 }).id
+		sim:advance(60)
+		sim:client(3):restrict({ lockdown = true })     -- its cancel waits in the queue while the decision goes out
+		notNil(sim:client(3):addon().BankRequests:Cancel(id))
+		notNil(sim:client(1):addon().BankRequests:Decide(id, "approved"))
+		sim:advance(30)
+		sim:client(3):restrict({ lockdown = false })
+		sim:advance(120)
+		for i = 1, 5 do eq(sim:client(i):addon().Store:Get("bankreq", id).status, "approved", "client " .. i) end
+	end)
+
+	it("a member who logs in later gets the requests from an officer", function()
+		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, offline = { 5 }, seed = 87 }
+		sim:advance(40)
+		local id = sendRequest(sim:client(3), { kind = "donation", itemID = LINEN, count = 50 }).id
+		sim:advance(60)
+		sim:client(1):addon().BankRequests:Decide(id, "approved")
+		sim:advance(60)
+		sim:client(3):logout()
+		sim:client(5):login()
+		local ok = sim:advanceUntil(function()
+			local r = sim:client(5):addon().Store:Get("bankreq", id)
+			return r and r.status == "approved"
+		end, 400)
+		truthy(ok, "relayed by an officer")
+	end)
+
+	it("a request stays on the record for the requester's alt too: an alt may cancel it", function()
+		local sim = Sim.new{ clients = 4, officers = { 1 }, seed = 89, accounts = true }
+		sim:advance(120)
+		-- clients 3 and 4 are alts of one account: each lists the other
+		for _, i in ipairs({ 3, 4 }) do
+			local c = sim:client(i)
+			local other = Sim.guidOf(i == 3 and 4 or 3)
+			local rec = c:addon().Store:Get("accounts", c:guid())
+			if rec then
+				local chars = {}
+				for _, ch in ipairs(rec.chars) do chars[#chars + 1] = ch end
+				chars[#chars + 1] = { guid = other, name = "alt" }
+				c:addon().Store:Put("accounts", c:guid(), { token = rec.token, chars = chars, main = rec.main })
+			end
+		end
+		sim:advance(120)
+		local id = sendRequest(sim:client(3), { kind = "withdraw", amount = 5000 }).id
+		sim:advance(60)
+		local ok = sim:client(4):addon().BankRequests:Cancel(id)
+		notNil(ok, "the alt is the same account")
+		sim:advance(60)
+		for i = 1, 4 do eq(sim:client(i):addon().Store:Get("bankreq", id).status, "cancelled", "client " .. i) end
+	end)
+end)
+
+describe("the Requests mode", function()
+	before_boot(function()
+		guild(3)
+		Mock.items.info[LINEN] = { name = "Linen Cloth", quality = 1, icon = 132889 }
+		Mock.items.cached[LINEN] = true
+	end)
+
+	local function shown(frames)
+		local out = {}
+		for _, f in ipairs(frames) do if f:IsShown() then out[#out + 1] = f end end
+		return out
+	end
+
+	local function open()
+		Mock.Slash("/accord bank")
+		V():SetMode("requests")
+		return V().modes.requests.frame
+	end
+
+	it("opens a request from the form, and lists it with its status", function()
+		local f = open()
+		contains(f.message:GetText(), "No open requests")
+		f.item:SetText("|cffffffff|Hitem:2589::::::::60:::::|h[Linen Cloth]|h|r")
+		f.amount:SetText("20")
+		f.reason:SetText("for the raid")
+		f.send:Click()
+		eq(f.item:GetText(), "", "the form is cleared")
+		contains(f.status:GetText(), "Request sent")
+		local rows = shown(f.area.rows)
+		eq(#rows, 1)
+		eq(rows[1].status:GetText(), "Open"); eq(rows[1].name:GetText(), "Testchar"); eq(rows[1].kind:GetText(), "Withdraw")
+		eq(rows[1].what:GetText(), "Linen Cloth x20"); eq(rows[1].reason:GetText(), "for the raid")
+		eq(rows[1].buttons[1]:GetText(), "Cancel"); falsy(rows[1].buttons[2]:IsShown())
+	end)
+
+	it("asks for gold in whole gold pieces and says what is wrong with the form", function()
+		local f = open()
+		f.amount:SetText("12")
+		f.send:Click()
+		eq(S():Get("bankreq", ME .. ":1").amount, 120000)
+		f.amount:SetText("")
+		f.send:Click()
+		contains(f.status:GetText(), "Gold")
+		f.item:SetText("not an item")
+		f.send:Click()
+		contains(f.status:GetText(), "item link or an item number")
+	end)
+
+	it("the kind buttons choose the kind", function()
+		local f = open()
+		f.kindButtons[2]:Click()
+		eq(RV().kind, "deposit")
+		eq(f.kindButtons[2]:GetText(), "> Deposit <")
+		f.amount:SetText("5")
+		f.send:Click()
+		contains(f.status:GetText(), "item link or an item number")
+		f.item:SetText("2589"); f.amount:SetText("3")
+		f.send:Click()
+		eq(S():Get("bankreq", ME .. ":1").kind, "deposit")
+	end)
+
+	it("Cancel cancels the player's own open request and hides it", function()
+		local f = open()
+		f.amount:SetText("5"); f.send:Click()
+		f.area.rows[1].buttons[1]:Click()
+		eq(S():Get("bankreq", ME .. ":1").status, "cancelled")
+		eq(#shown(f.area.rows), 0)
+		f.closed:Click()
+		eq(#shown(f.area.rows), 1)
+		eq(shown(f.area.rows)[1].status:GetText(), "Cancelled")
+	end)
+
+	it("a member sees the requests of others, but only the buttons of their own", function()
+		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "donation",
+			status = "open", itemID = LINEN, count = 9, created = GetServerTime(), history = {} }
+		local f = open()
+		local rows = shown(f.area.rows)
+		eq(#rows, 1); eq(rows[1].name:GetText(), "Bob"); falsy(rows[1].buttons[1]:IsShown())
+		f.mine:Click()
+		eq(#shown(f.area.rows), 0, "only mine")
+	end)
+
+	it("an officer sees Approve, Reject and Fulfilled, and the reason box is the reason of a rejection", function()
+		asOfficer()
+		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw",
+			status = "open", itemID = LINEN, count = 9, created = GetServerTime(), history = { { s = "open", by = BOB, t = GetServerTime() } } }
+		local f = open()
+		local row = shown(f.area.rows)[1]
+		eq(row.buttons[1]:GetText(), "Approve"); eq(row.buttons[2]:GetText(), "Reject"); eq(row.buttons[3]:GetText(), "Fulfilled")
+		row.buttons[1]:Click()
+		eq(S():Get("bankreq", BOB .. ":1").status, "approved")
+		row = shown(f.area.rows)[1]
+		eq(row.status:GetText(), "Approved"); eq(row.buttons[1]:GetText(), "Reject"); eq(row.buttons[2]:GetText(), "Fulfilled")
+		f.reason:SetText("sorry, out of stock")
+		row.buttons[1]:Click()
+		eq(S():Get("bankreq", BOB .. ":1").status, "rejected")
+		eq(S():Get("bankreq", BOB .. ":1").note, "sorry, out of stock")
+	end)
+
+	it("the tooltip of a row gives the history", function()
+		asOfficer()
+		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw",
+			status = "open", itemID = LINEN, count = 9, reason = "gear", created = GetServerTime(), history = { { s = "open", by = BOB, t = GetServerTime() - 7200 } } }
+		local f = open()
+		local row = shown(f.area.rows)[1]
+		row:GetScript("OnEnter")(row)
+		local lines = GameTooltip._lines or {}
+		eq(lines[1], "gear"); eq(lines[2], "Open by Bob, 2 h ago")
+	end)
+end)

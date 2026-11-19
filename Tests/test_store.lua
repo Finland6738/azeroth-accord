@@ -155,11 +155,22 @@ describe("NET-12: authority", function()
 	end)
 
 	it("lets a member open and cancel a request, and only officers decide it", function()
-		truthy(accept("bankreq", R{ id = "Q1", author = BOB, requester = BOB, status = "open", kind = "withdraw" }, "Bob"))
-		eq(select(2, accept("bankreq", R{ id = "Q1", author = BOB, requester = BOB, status = "approved", rev = 2 }, "Bob")), "authority")
-		truthy(accept("bankreq", R{ id = "Q1", author = OFF, requester = BOB, status = "approved", rev = 2 }, "Officer"))
-		eq(select(2, accept("bankreq", R{ id = "Q2", author = MAL, requester = BOB, status = "open" }, "Mallory")), "owner")
-		truthy(accept("bankreq", R{ id = "Q1", author = BOB, requester = BOB, status = "cancelled", rev = 3 }, "Bob"))
+		local function req(n, requester, author, status, rev)
+			return R{ id = requester .. ":" .. n, author = author, requester = requester, kind = "withdraw", status = status, amount = 10000,
+				created = GetServerTime(), history = { { s = "open", by = requester, t = GetServerTime() } }, rev = rev or 1 }
+		end
+		truthy(accept("bankreq", req(1, BOB, BOB, "open"), "Bob"))
+		eq(select(2, accept("bankreq", req(1, BOB, BOB, "approved", 2), "Bob")), "authority")
+		truthy(accept("bankreq", req(1, BOB, OFF, "approved", 2), "Officer"))
+		eq(select(2, accept("bankreq", req(2, BOB, MAL, "open"), "Mallory")), "owner", "a request in somebody else's name")
+		eq(select(2, accept("bankreq", R{ id = "Q1", author = BOB, requester = BOB, status = "open", kind = "withdraw", amount = 1 }, "Bob")), "owner",
+			"an id that does not start with the requester")
+		eq(select(2, accept("bankreq", req(1, BOB, BOB, "cancelled", 3), "Bob")), "older",
+			"a cancel written after the approval does not undo it: the highest status wins")
+		eq(S():Get("bankreq", BOB .. ":1").status, "approved")
+		local changed = req(1, BOB, OFF, "fulfilled", 3)
+		changed.amount = 999999
+		eq(select(2, accept("bankreq", changed, "Officer")), "transition", "the content of a request never changes")
 	end)
 
 	it("restricted bank tabs come only from officers", function()

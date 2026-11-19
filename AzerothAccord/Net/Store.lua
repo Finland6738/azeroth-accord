@@ -180,13 +180,12 @@ Store.SETS = {
 		owner = function(rec) return ns.Bank ~= nil and ns.Bank.ValidRecord(rec) end,
 		expires = function(rec, t) return (rec.time or 0) < t - (rec.kind == "log" and 365 or 90) * DAY end,
 	},
-	bankreq = {    -- requests (M5): the author opens or cancels its own, officers decide
-		maxBytes = 1024,
+	bankreq = {    -- requests (Data/BankRequests.lua): the author opens or cancels its own, officers decide; id = "<requester>:<n>"
+		maxBytes = 1536,
 		authority = function(rec) return rec.status ~= nil and rec.status ~= "open" and rec.status ~= "cancelled" end,
-		owner = function(rec, s)
-			if rec.status ~= nil and rec.status ~= "open" and rec.status ~= "cancelled" then return true end
-			return type(rec.requester) == "string" and s:SameAccount(rec.requester, rec.author)
-		end,
+		owner = function(rec, s) return ns.BankRequests ~= nil and ns.BankRequests.ValidRecord(rec, s) end,
+		compare = function(a, b) return ns.BankRequests.Compare(a, b) end,          -- the highest status wins, not the highest rev
+		transition = function(held, rec) return ns.BankRequests.Transition(held, rec) end,   -- the content of a request never changes
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
 }
@@ -354,12 +353,13 @@ function Store:Accept(set, rec, ctx)
 		end
 		return reject("immutable")
 	end
-	local cmp = Store.Compare(rec, held)
+	local def = Store.SETS[set]
+	if held and def.transition and not def.transition(held, rec) then return reject("transition") end
+	local cmp = def.compare and held and def.compare(rec, held) or Store.Compare(rec, held)
 	if cmp <= 0 then
 		stats.unchanged = stats.unchanged + 1
 		return false, cmp == 0 and "same" or "older"
 	end
-	local def = Store.SETS[set]
 	if def.expires and def.expires(rec, now()) then return reject("expired") end
 	records[rec.id] = copy(rec)
 	stats.accepted = stats.accepted + 1

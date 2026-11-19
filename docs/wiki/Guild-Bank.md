@@ -25,3 +25,12 @@ Open it with the **Bank** button of the panel or `/accord bank`.
 - **Log**: who deposited or withdrew what, newest first. The game keeps only a short history and shows it only at the vault; the addon adds every visit of a guildmate with the addon to the history, without listing the same event twice, so it grows beyond the game's. Search by name or item.
 - **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever, all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
 - **Money**: how the guild's money changed over the last 30 days, from what the addons have seen.
+
+## Requests
+
+In the **Requests** mode of the Bank view you can:
+
+- **Withdraw**: ask for an item from the bank, or for gold; **Deposit**: offer an item; **Donation**: promise items or gold. Paste an item link (or write its number) in the item box, or leave it empty for gold; add how many (or how many gold pieces) and a reason, then press *Send request*. You can have five open requests at once.
+- Every guildmate sees every request. You can **cancel** your own while it is still open.
+- **Officers** answer with *Approve*, *Reject* (the reason box becomes the reason of the rejection) and *Fulfilled*. Hover over a row to read its history. Only officers can change a request's status: the other addons ignore anything else.
+- The addon never moves items or gold: after an approval the item reaches you by mail, trade or at the vault, as the officers decide.

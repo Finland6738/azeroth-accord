@@ -37,7 +37,7 @@
 - Spec: BANK-20–BANK-22; SPEC-03 §7
 - Scope: `Data/BankRequests.lua` and the Requests view: create, cancel, officer status changes with history.
 - Done when:
-  - [ ] Tests: status changes only from officers; simulator convergence.
+  - [x] Tests: status changes only from officers (a member's forged decision or a cancel in somebody else's name is refused by officers and members); simulator convergence (a request reaches everyone, approval and fulfilment converge, a decision racing a cancel ends the same on every client, a late login is served by an officer, an alt may cancel); the Requests mode (`Tests/test_bank_requests.lua`, `Tests/test_store.lua`).
 
 ### M5.6 — Officer inbox and notifications
 - Branch: `step/m5-6-bank-inbox`

@@ -41,6 +41,7 @@ Data\RecipeScan.lua
 Data\Crafters.lua
 Data\Bank.lua
 Data\BankLog.lua
+Data\BankRequests.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua
@@ -59,4 +60,5 @@ UI\GroupMap.lua
 UI\Suggest.lua
 UI\Bank.lua
 UI\BankLog.lua
+UI\BankRequests.lua
 UI\Settings.lua

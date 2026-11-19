@@ -23,3 +23,5 @@
 **Why is a guildmate's recipe list empty?** The game does not always give recipe lists to addons, so the list usually comes from the member's own Azeroth Accord, shared when they open their profession window. If they do not use the addon, or have not opened the profession since installing it, the panel tells you what to ask them. See [[Professions and Recipes|Professions-and-Recipes]].
 
 **Does Request craft send a message by itself?** No. It opens the chat box with the whisper already written; you read it and send it.
+
+**Can the addon take items or gold out of the bank for me?** No. A bank request is only a note that the whole guild sees and officers answer; the item is handed over in the game, by mail, trade or at the vault.

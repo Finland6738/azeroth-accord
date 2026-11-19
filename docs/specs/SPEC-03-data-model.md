@@ -75,12 +75,17 @@ Conservazione: foto e denaro 90 giorni, registri 365 ([SPEC-02 §6](SPEC-02-netw
 
 ## 7. Richieste in banca (`bankreq`)
 
+Id `<GUID del richiedente>:<n>` (n conta le richieste di quel personaggio); l'autore è il richiedente, o l'ufficiale che ha deciso l'ultimo passaggio.
+
 | Campo | Tipo | Note |
 |---|---|---|
-| `kind` | `withdraw` / `deposit` / `donation` | |
-| `itemID`, `count` o `amount` | | oggetto o denaro |
-| `reason` | testo, massimo 120 caratteri | |
-| `status` | `open` → `approved` / `rejected` → `fulfilled`; `cancelled` dall'autore | i passaggi oltre `open` solo da ufficiali |
-| `history` | lista di `{status, by, time}` | |
+| `kind` | `withdraw` / `deposit` / `donation` | prelievo, deposito (oggetto che si offre), donazione (promessa) |
+| `requester` | GUID | chi ha aperto la richiesta |
+| `itemID`, `count` **oppure** `amount` | numeri | oggetto e quantità (1-9999), o oro in rame (fino a 100 000 oro); un deposito vuole un oggetto |
+| `reason` | testo, massimo 120 caratteri | senza caratteri di controllo né `|` |
+| `status` | `open` → `approved` / `rejected` → `fulfilled`; `cancelled` dall'autore | solo `open` e `cancelled` dal richiedente (o da un suo alt, stesso account); `approved`, `rejected`, `fulfilled` solo da ufficiali |
+| `note` | testo, massimo 120 caratteri | il motivo di un rifiuto |
+| `history` | lista di `{s = stato, by = GUID, t = ora}`, al massimo 8 | dalla più vecchia; la prima voce (l'apertura) resta |
+| `created` | ora del server | |
 
-Le richieste chiuse si cancellano dopo 60 giorni.
+Passaggi ammessi: `open` → `approved`, `rejected`, `fulfilled`, `cancelled`; `approved` → `fulfilled`, `rejected`; gli stati chiusi non si muovono. **Versione da tenere**: vince lo stato più alto (`open` < `cancelled` < `approved` < `rejected` < `fulfilled`), poi la `rev`, il `time` e l'autore: una decisione scritta nello stesso momento di un annullamento vince su tutti i client, così convergono. Il **contenuto** (richiedente, tipo, oggetto, quantità, importo, creazione) non può cambiare dopo l'apertura. Un richiedente può avere al massimo 5 richieste aperte. Le richieste chiuse si cancellano dopo 60 giorni. Tutta la gilda vede tutte le richieste.
