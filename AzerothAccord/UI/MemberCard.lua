@@ -34,7 +34,7 @@ function Card.AddSection(id, order, fn)
 end
 
 -- A line of a section: text, muted (grey), guid (a click opens that character's card) or onClick (any other action;
--- `action` colours it like a button).
+-- `action` colours it like a button); a line may also carry `tip` (tooltip lines shown on hover).
 local function line(text, muted, guid, onClick, action)
 	return { text = text, muted = muted or nil, guid = guid, onClick = onClick, action = action or nil }
 end
@@ -233,6 +233,7 @@ local function item(f, i)
 		if self.guid then Card:ShowGUID(self.guid)
 		elseif self.onClick then self.onClick(self) end
 	end)
+	W.SetTooltip(it, function(self) return self.tip end)
 	f.items[i] = it
 	return it
 end
@@ -252,7 +253,7 @@ function Card:Layout()
 	for _, section in ipairs(d.sections) do
 		n = n + 1
 		local head = item(f, n)
-		head.guid, head.onClick = nil, nil
+		head.guid, head.onClick, head.tip = nil, nil, nil
 		head:ClearAllPoints()
 		head:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -y)
 		head:SetSize(inner, 16)
@@ -265,7 +266,7 @@ function Card:Layout()
 		for _, ln in ipairs(section.lines) do
 			n = n + 1
 			local it = item(f, n)
-			it.guid, it.onClick = ln.guid, ln.onClick
+			it.guid, it.onClick, it.tip = ln.guid, ln.onClick, ln.tip
 			it:ClearAllPoints()
 			it:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 4, -y)
 			it.text:SetWidth(inner - 4)
@@ -273,7 +274,7 @@ function Card:Layout()
 			it.text:SetTextColor(Skin.Color(ln.action and "gold" or (ln.guid and "white" or (ln.muted and "grey" or "white"))))
 			local h = max(12, it.text:GetStringHeight() or 12)
 			it:SetSize(inner - 4, h)
-			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil)
+			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil)
 			it:Show()
 			y = y + h + Card.LINE_GAP
 		end

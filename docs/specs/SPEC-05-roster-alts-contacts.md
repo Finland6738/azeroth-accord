@@ -9,7 +9,7 @@
 | Ultimo accesso | `GetGuildRosterLastOnline` | "online" in evidenza |
 | Professione 1, Professione 2 | `C_Club.GetMemberInfo` → `profession1Name/Rank`, `profession2Name/Rank` **[verificare]** S2; altrimenti i dati condivisi | cella cliccabile → ricette ([SPEC-06](SPEC-06-professions-recipes.md)) |
 | Like | libro dei like ([SPEC-07](SPEC-07-reputation-social.md)): totale dell'account, verde se gli hai dato il like, grigio se il tuo like è in attesa | da M4.3, tra le colonne predefinite |
-| Indice sociale | [SPEC-07](SPEC-07-reputation-social.md) | da M4 |
+| Indice sociale | [SPEC-07](SPEC-07-reputation-social.md): l'indice, un trattino sotto le 5 ore | da M4.5, solo per chi vede l'indice degli altri (ufficiali e GM finché Q3 è aperta) |
 | Battle.net, Discord | `contacts` | icona copia |
 | Addon | ha l'addon, versione | piccola icona |
 

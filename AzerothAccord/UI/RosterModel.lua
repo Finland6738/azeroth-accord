@@ -42,7 +42,7 @@ Model.COLUMNS = {
 	{ id = "contacts", label = "COL_CONTACTS", width = 60, available = function() return ns.Contacts ~= nil end },
 	{ id = "addon", label = "COL_ADDON", width = 55 },
 }
-Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "contacts", "addon" }
+Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "social", "contacts", "addon" }
 
 local byId = {}
 for _, c in ipairs(Model.COLUMNS) do byId[c.id] = c end
@@ -123,8 +123,13 @@ function Model.Cell(id, e)
 		local state = x:StateOf(e.guid)
 		return tostring(x:Total(e.guid)), state == "given" and "green" or (state == "pending" and "grey" or nil)
 	elseif id == "social" then
+		-- the index; a dash when the member has group play but under 5 hours (SOC-04)
 		local x = ns.Social
-		return x and x.Index and tostring(x:Index(e.guid) or "") or ""
+		if not (x and x.CanSee and e.guid and x:CanSee(e.guid)) then return "" end
+		local s = x:ForGUID(e.guid)
+		if not s then return "", "muted" end
+		if not s.index then return "-", "muted" end
+		return tostring(s.index)
 	end
 	return ""
 end

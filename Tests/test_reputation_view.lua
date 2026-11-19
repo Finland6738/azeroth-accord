@@ -167,9 +167,11 @@ describe("the view", function()
 		contains(table.concat(Mock.PlainOutput(), " "), "Your like for Dan was not recorded")
 	end)
 
-	it("has a single mode for now, so no mode buttons", function()
+	it("has a button per mode: Likes and Social", function()
 		open()
-		for _, b in ipairs(V().frame.bar.buttons) do falsy(b:IsShown()) end
+		local shown = 0
+		for _, b in ipairs(V().frame.bar.buttons) do if b:IsShown() then shown = shown + 1 end end
+		eq(shown, 2)
 	end)
 end)
 

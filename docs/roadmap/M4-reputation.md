@@ -36,6 +36,8 @@
 - Branch: `step/m4-5-social-ui`
 - Spec: SOC-04, SOC-05
 - Scope: index column, card with effective partners, distinct partners and top 5 shares, explanation tooltip.
+- Done when:
+  - [x] The card shows the index (with its explanation tooltip), effective and distinct partners, the time and the top 5 shares, or "not enough data"; the Social column and the Social mode of the Reputation view exist; members see only their own index and officers everyone's (SPEC-10 Q3 proposal, still open) (covered by `Tests/test_social_ui.lua`).
 
 ### M4.6 — Group map
 - Branch: `step/m4-6-group-map`

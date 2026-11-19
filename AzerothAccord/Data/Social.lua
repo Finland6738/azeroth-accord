@@ -261,8 +261,10 @@ function Social:ForGUID(guid)
 	return r.accounts[accountOf(guid)]
 end
 
--- The index of the account of `guid`, or nil ("not enough data", no data, or nothing computed yet).
+-- The index of the account of `guid`, or nil ("not enough data", no data, nothing computed yet, or not visible to this
+-- player, SPEC-10 Q3).
 function Social:Index(guid)
+	if not self:CanSee(guid) then return nil end
 	local e = self:ForGUID(guid)
 	return e and e.index or nil
 end
@@ -276,6 +278,30 @@ function Social:MinutesBetween(a, b)
 end
 
 function Social:Active() return state.result and state.result.active or 0 end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Who sees what (SPEC-07 SOC-12, SPEC-10 Q3, still OPEN)
+---------------------------------------------------------------------------------------------------------------------
+-- The proposal of SPEC-10 Q3 until the owner decides: every member sees their OWN index and every like total; the index
+-- of the others (card, Social column, the list) and the full group map are for officers and the Guild Master. This is
+-- the one place to change when Q3 is answered: "officers" or "everyone".
+Social.OTHERS_VISIBLE_TO = "officers"
+
+function Social:CanSeeOthers()
+	if Social.OTHERS_VISIBLE_TO == "everyone" then return true end
+	return ns.Role ~= nil and ns.Role:IsOfficer()
+end
+
+-- true when this player may see the social data of `guid`: their own account always, the others per CanSeeOthers.
+function Social:CanSee(guid)
+	if type(guid) ~= "string" then return false end
+	local me = compat().Player.GUID()
+	if me and accountOf(me) == accountOf(guid) then return true end
+	return self:CanSeeOthers()
+end
+
+-- The roster's Social column shows everybody's index, so it exists only for those who may see the others.
+function Social:ColumnVisible() return self:CanSeeOthers() end
 
 function Social:MarkStale() state.stale = true end
 
@@ -305,6 +331,7 @@ if ns.addon then
 	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Social", function() return Social:DebugLines() end) end
 	if ns.Bus then
 		ns.Bus:On("STORE_CHANGED", function(set) if set == "coplay" or set == "accounts" then state.stale = true end end)
+		ns.Bus:On("ROLE_CHANGED", function() emit("SOCIAL_UPDATED") end)   -- what this player may see changed
 		ns.Bus:On("GUILD_CHANGED", function(key)
 			resetState()
 			if key then Social:Start() end

@@ -96,6 +96,13 @@ Realizzazione (`Data/Social.lua`, M4.4; i tre esempi qui sopra sono test numeric
 - **A** = gli account con almeno 60 minuti nella finestra; l'indice c'è solo con almeno 5 ore e `A ≥ 2`.
 - **A pezzi** (SOC-06): una coroutine che si ferma ogni 40 record (o giorni, o account) e riparte al frame dopo con `C_Timer.After(0)`; si ricalcola solo se i dati sono cambiati e l'ultimo calcolo ha più di 10 minuti (o se si chiede esplicitamente), la prima volta 90 s dopo l'accesso. Misura offline: 200 account e 30 giorni (circa 3000 coppie) in circa 10 ms. Il risultato tiene anche il grafo degli account (minuti per coppia di account) per la mappa dei gruppi e i compagni suggeriti.
 
+Interfaccia (`UI/Social.lua`, M4.5):
+
+- **Scheda del membro** (SOC-05): sezione *Social index* con l'indice su 100, i compagni effettivi su quanti giocatori attivi, i compagni diversi, il tempo con compagni di gilda (contato per compagno) e i 5 con cui ha giocato di più con la loro quota; un **tooltip** sulla riga dell'indice spiega cosa misura (e che non dice chi è un buon giocatore, R7). Sotto le 5 ore: "dati insufficienti (x h delle 5 h)"; senza gioco di gruppo: "nessun gioco di gruppo negli ultimi 30 giorni"; prima del primo calcolo: "in calcolo".
+- **Colonna Social** del roster: l'indice, un trattino sotto le 5 ore; solo per chi vede l'indice degli altri.
+- **Vista Reputation, modalità Social**: il proprio indice con lo stesso dettaglio; per chi vede gli altri, l'elenco di tutti per indice (dati insufficienti in fondo), una riga apre la scheda.
+- **Chi vede cosa** (SOC-12, Q3 **ancora aperta**): è attuata la proposta di SPEC-10, ognuno il **proprio** indice, ufficiali e GM quello di **tutti** (e la mappa, M4.6). Il punto da cambiare quando il proprietario decide è uno solo: `Social.OTHERS_VISIBLE_TO` in `Data/Social.lua` (`"officers"` o `"everyone"`). Il calcolo resta locale e uguale per tutti: la regola decide solo cosa si mostra.
+
 ### 3.3 Mappa dei gruppi
 
 - SOC-10: grafo degli account (peso = minuti insieme); comunità con *label propagation* pesata; **modularità** `Q` come indice di mescolanza della gilda ("bassa: tutti giocano con tutti", "alta: gruppetti").

@@ -32,6 +32,10 @@ The social index shows **how many different guildmates someone really plays with
 
 How it is counted, precisely: for the last 30 days, the minutes with each guildmate's **player** (all their characters together, and yours too); when several addons saw the same group, the largest count is used. Time is counted per guildmate, so an hour in a group with four guildmates counts as four hours with guildmates. Below **5 hours** with guildmates the index says *not enough data*. Active players are those with at least one hour with guildmates in the 30 days. Your addon computes it on your computer, at most every ten minutes, a little at a time so the game never stutters.
 
+**Where to see it.** Your own card (click your row in the Roster) and the **Social** button of the Reputation view show your index, your effective partners out of the active players, how many different guildmates you played with, your time with guildmates and the five you played with most, with their share. Hover the index for a short explanation. Under 5 hours it says *not enough data*.
+
+**Who sees it.** Every member sees **their own** index. Officers and the Guild Master see **everyone's**: on the cards, in the **Social** column of the Roster and in a list in the Reputation view. Whether all members should see everyone's index is still an open question for the guild leader; until then this is the rule.
+
 The member card shows the effective partners, the number of different partners and the five guildmates played with most. The **group map** shows the guild's groups and how mixed the guild is. *Play with someone new* suggests online guildmates you have rarely played with.
 
 ## What is recorded already (from the roster version)

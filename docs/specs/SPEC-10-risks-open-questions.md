@@ -18,7 +18,7 @@
 |---|---|---|
 | Q1 | Nomi tecnici: cartella `AzerothAccord`, prefisso `AzAccord`, comandi `/accord` e `/acc` | come proposto |
 | Q2 | Icona della tab: icona del client (per esempio uno stendardo o una stretta di mano) o disegno originale? | icona del client in V1 |
-| Q3 | Mappa dei gruppi e indice degli altri: visibili a tutti o solo a ufficiali e GM? | indice personale e totale dei like per tutti; mappa completa per ufficiali e GM |
+| Q3 | Mappa dei gruppi e indice degli altri: visibili a tutti o solo a ufficiali e GM? | indice personale e totale dei like per tutti; mappa completa per ufficiali e GM. **Attuata così da M4.5 in attesa della risposta**: si cambia in un solo punto (`Social.OTHERS_VISIBLE_TO`, [SPEC-07 §3.2](SPEC-07-reputation-social.md#32-calcolo)) |
 | Q4 | Banca: le schede che un grado non vede nel gioco restano nascoste anche nell'addon? | sì, si rispettano i permessi del gioco |
 | Q5 | Classifica delle donazioni visibile a tutti o solo agli ufficiali? | a tutti, per riconoscere chi aiuta |
 | Q6 | Il sistema di loot personalizzato della gilda: in V2 serve una descrizione per integrarlo | da raccogliere prima di pianificare V2 |

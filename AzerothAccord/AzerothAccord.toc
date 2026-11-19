@@ -51,4 +51,5 @@ UI\MemberCard.lua
 UI\RecipeModel.lua
 UI\Professions.lua
 UI\Reputation.lua
+UI\Social.lua
 UI\Settings.lua
