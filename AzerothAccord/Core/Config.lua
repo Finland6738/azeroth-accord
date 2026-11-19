@@ -201,6 +201,29 @@ function Config.Base64(bytes)
 	return concat(out)
 end
 
+-- The bytes of a standard Base64 text (padding required when the length is not a multiple of 4), or nil when the text
+-- is not valid Base64. Pure Lua, the inverse of Config.Base64 (the guild salt of the likes travels and is kept in it).
+local B64_INDEX = {}
+for i = 1, 64 do B64_INDEX[B64:byte(i)] = i - 1 end
+function Config.Base64Decode(text)
+	if type(text) ~= "string" or #text % 4 ~= 0 then return nil end
+	local out = {}
+	for i = 1, #text, 4 do
+		local a, b, c, d = byte(text, i, i + 3)
+		local va, vb = B64_INDEX[a], B64_INDEX[b]
+		if va == nil or vb == nil then return nil end
+		local last = i + 3 == #text
+		local vc = c == 61 and last and -1 or B64_INDEX[c]
+		local vd = d == 61 and last and -1 or B64_INDEX[d]
+		if vc == nil or vd == nil or (vc == -1 and vd ~= -1) then return nil end
+		local n = va * 262144 + vb * 4096 + (vc > 0 and vc or 0) * 64 + (vd > 0 and vd or 0)
+		out[#out + 1] = char(floor(n / 65536) % 256)
+		if vc ~= -1 then out[#out + 1] = char(floor(n / 256) % 256) end
+		if vd ~= -1 then out[#out + 1] = char(n % 256) end
+	end
+	return concat(out)
+end
+
 -- 16 random bytes. The client's Lua has no secure random source: the seed mixes the server time with the sub-second
 -- clock and the profiler clock, so two accounts that log in at the same second still differ. The token only has to be
 -- unique inside a guild (SPEC-03 §1); nothing secret is derived from it.

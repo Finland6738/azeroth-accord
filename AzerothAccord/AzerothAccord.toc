@@ -32,6 +32,7 @@ Data\Roster.lua
 Data\Accounts.lua
 Data\Contacts.lua
 Data\CoPlay.lua
+Data\Notary.lua
 Data\Recipes.lua
 Data\RecipeScan.lua
 Data\Crafters.lua

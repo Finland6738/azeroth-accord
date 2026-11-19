@@ -77,6 +77,10 @@ describe("HMAC-SHA-256 (RFC 4231)", function()
 		eq(H().HMACHex(rangeBytes(1, 25), ("\205"):rep(50)), "82558a389a443c0ea4cc819899f2083a85f0faa3e578f8077a2e3ff46729665b")
 	end)
 
+	it("test case 5: the output truncated to 128 bits (the likes use truncated pseudonyms)", function()
+		eq(H().HMACHex(("\12"):rep(20), "Test With Truncation"):sub(1, 32), "a3b6167473100ee06e0c796c2955552b")
+	end)
+
 	it("test case 6: a key larger than a block is hashed first", function()
 		eq(H().HMACHex(("\170"):rep(131), "Test Using Larger Than Block-Size Key - Hash Key First"),
 			"60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54")

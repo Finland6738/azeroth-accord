@@ -39,7 +39,7 @@ Codec.SCHEMA = {
 	REC    = { s = "string", r = "table" },   -- one or more records of data set s
 	VOTE   = {},                              -- a like for the notary (M4)
 	LEDGER = {},                              -- entries of the likes ledger (M4)
-	SALT   = {},                              -- the guild secret for the pseudonyms, OFFICER only (M4)
+	SALT   = { k = "string" },                -- the guild secret for the pseudonyms, officers only (Data/Notary.lua)
 }
 
 -- Adds a message type (or replaces its required fields). Type names are upper-case letters and digits.

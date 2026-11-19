@@ -5,7 +5,7 @@
 | Distribuzione | Uso | Note |
 |---|---|---|
 | `GUILD` | dati per tutti i membri | il server consegna solo ai membri online |
-| `OFFICER` | dati riservati (segreto dei like, schede riservate della banca) | **[verificare]** S5: se non funziona per gli addon, quei dati non viaggiano |
+| `OFFICER` | dati riservati (segreto dei like, schede riservate della banca) | **[verificare]** S5: finché il client non ha visto un messaggio addon su `OFFICER`, il segreto dei like viaggia anche in whisper tra ufficiali ([SPEC-07 §2.1](SPEC-07-reputation-social.md#21-il-segreto-e-il-notaio-datanotarylua-m41)); le schede riservate della banca no |
 | `WHISPER` | voto al notaio, richieste puntuali di dati | solo tra compagni di gilda |
 
 Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versioned-protocol.md)).
@@ -22,7 +22,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 | `REC` | uno o più record di un insieme | `GUILD` o `WHISPER` |
 | `VOTE` | voto per un like | `WHISPER` al notaio |
 | `LEDGER` | voci del libro dei like | `GUILD` |
-| `SALT` | segreto di gilda per gli pseudonimi | `OFFICER` |
+| `SALT` | segreto di gilda per gli pseudonimi: `k = "q"` (domanda, `f` = impronte dei salt che si hanno) o `k = "s"` (`s` = lista di `{b = salt in Base64, at = creazione}`) | `OFFICER`; anche `WHISPER` tra ufficiali finché S5 non è provato |
 
 ## 3. Insiemi di dati
 

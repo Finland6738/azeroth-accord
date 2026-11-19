@@ -7,7 +7,7 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 | Your guild | The list of your characters on the realm and your main, your BattleTag, your Discord name, your recipes, the minutes you spent in groups with guildmates, the bank contents you saw, your bank requests |
 | Your guild, as totals only | The likes you receive |
 | The officer who records your like | That the like came from you, at the moment it is delivered; it is then stored under a code that members cannot read |
-| Officers only | Bank tabs reserved to officers |
+| Officers only | Bank tabs reserved to officers, and the guild's secret code that turns a voter into the anonymous code of the likes (kept only by officers' addons, removed when an officer is demoted) |
 
 The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking. There is no switch to turn this off. Contacts received from other players are checked (a BattleTag must look like one, a Discord name must be a plain user name) and shown as plain text, never as links.
 

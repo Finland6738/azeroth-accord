@@ -14,7 +14,7 @@ local SAMPLES = {
 	REC = { s = "accounts", r = { { id = "x", author = "Player-1-A", rev = 3, time = 1767225600 } } },
 	VOTE = { target = "Player-1-B" },
 	LEDGER = { e = {} },
-	SALT = { salt = "secret" },
+	SALT = { k = "s", s = { { b = "secret", at = 1767225600 } } },
 }
 
 describe("round trips", function()

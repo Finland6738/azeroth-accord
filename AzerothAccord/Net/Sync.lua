@@ -550,6 +550,14 @@ function Sync:RequestSet(set, author)
 	return "sent", sentTo
 end
 
+-- The guildmates with the addon heard recently and still online in the roster: name -> { guid, officer }. A copy, for
+-- the modules that pick one of them (the notary of the likes, Data/Notary.lua).
+function Sync:Peers()
+	local out = {}
+	for name, p in pairs(presentPeers()) do out[name] = { guid = p.guid, officer = p.officer } end
+	return out
+end
+
 -- For the top bar of the panel: how many guildmates with the addon are online, when records last arrived.
 function Sync:Status()
 	local n = 0

@@ -20,6 +20,10 @@ The owner wants a guild "appreciation" signal: every player can give **one like*
 - **Votes broadcast on `GUILD`.** Every member would see who voted.
 - **Per-character likes.** A player with five alts would give five likes (rejected by the owner).
 
+## Implementation note (M4.1)
+
+`Data/Notary.lua` keeps the salt only on officers' clients, per guild, and drops it when the character is demoted. Officers ask for it on `OFFICER` after login and share what another officer lacks; while the client has not shown that `OFFICER` carries addon messages (S5, the `officerAddonChannel` capability), the same `SALT` messages also go by whisper to the officers with the addon heard recently. The salt is drawn by `Hash.RandomBytes`, an SHA-256 entropy pool fed with fine clock readings, memory and table addresses and the arrival times of addon messages, because the client has no secure random source. Two officers may create a salt at the same moment: every salt is kept in a ring of at most eight, all officers use the oldest one for new pseudonyms, and the notary checks a vote against all of them, so two salts never allow two votes. The voter's client picks the notary: itself when it is an officer holding a salt, else the officers heard recently ranked by a hash of the two GUIDs, skipping those already tried.
+
 ## Consequences
 
 - Positive: members see only totals; a modified client cannot invent votes or vote twice.

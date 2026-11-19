@@ -8,6 +8,8 @@
 - Branch: `step/m4-1-salt-notary`
 - Spec: LIKE-06, LIKE-07; ADR 0007
 - Scope: salt creation and sharing on `OFFICER` (whisper fallback if S5 says so), choice of the notary among online officers.
+- Done when:
+  - [x] Officers create, share and converge on one salt (also when two create it at once, and by whisper when `OFFICER` carries no addon messages); members never hold it and no `SALT` goes on `GUILD`; the notary is chosen among online officers (covered by `Tests/test_notary.lua`, with the network simulator; HMAC-SHA256 checked against RFC 4231 in `Tests/test_hash.lua`).
 
 ### M4.2 — Votes and the ledger
 - Branch: `step/m4-2-likes-ledger`

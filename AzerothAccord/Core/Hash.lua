@@ -156,4 +156,55 @@ function Hash.Fast(s)
 	return h
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- Random bytes for secrets (the guild salt of the likes, SPEC-07 LIKE-07)
+---------------------------------------------------------------------------------------------------------------------
+-- The client's Lua has no secure random source (no such API in the Forever dump), and math.random is seeded from the
+-- clock, so a secret drawn from it alone could be guessed by somebody who knows roughly when it was made. Here every
+-- draw hashes an entropy pool together with many fresh readings: the sub-millisecond profiler clock taken in a loop
+-- whose timing jitters, the frame and server clocks, Lua memory in use, the addresses of new tables, and whatever the
+-- addon stirred in during the session (Hash.Stir: the arrival times of addon messages). The pool is replaced after
+-- every draw, so an output never reveals the next one. This is the best a client-only addon can do, not a CSPRNG.
+local pool = "AzerothAccord entropy pool"
+local stirred, stirCount = {}, 0
+
+local function clockSample()
+	local fine = type(debugprofilestop) == "function" and debugprofilestop() or 0
+	local frame = type(GetTime) == "function" and GetTime() or 0
+	return format("%.6f|%.6f|%s", fine, frame, tostring(collectgarbage and collectgarbage("count") or 0))
+end
+
+-- Mixes `value` (any value, turned into text) into the pool. Cheap: no hashing here, the last STIR_KEEP readings wait
+-- in a ring and the next draw hashes them all.
+local STIR_KEEP = 256
+function Hash.Stir(value)
+	stirCount = stirCount + 1
+	stirred[(stirCount - 1) % STIR_KEEP + 1] = tostring(value) .. "|" .. clockSample()
+end
+
+-- `n` random bytes (a string), or nil and a reason when the client has no `bit` library.
+function Hash.RandomBytes(n)
+	if not lib() then return nil, "no bit library" end
+	n = tonumber(n) or 32
+	local samples = { concat(stirred, "\n"), tostring(stirCount) }
+	samples[#samples + 1] = format("%s|%s|%s", tostring(type(GetServerTime) == "function" and GetServerTime() or 0),
+		tostring(time and time() or 0), tostring(type(GetFramerate) == "function" and GetFramerate() or 0))
+	for i = 1, 48 do
+		-- a new table per reading: its address and the time it took to make it both vary
+		samples[#samples + 1] = clockSample() .. tostring({}) .. tostring(math.random())
+		if i % 8 == 0 then samples[#samples + 1] = Hash.ToHex(Hash.SHA256(samples[#samples])) end
+	end
+	local seed = concat(samples, "\n")
+	local out, counter = {}, 0
+	local have = 0
+	while have < n do
+		counter = counter + 1
+		local block = Hash.SHA256(pool .. "\1" .. seed .. "\1" .. counter)
+		out[#out + 1] = block
+		have = have + #block
+	end
+	pool = Hash.SHA256("\2" .. pool .. seed)   -- forward: the next draw cannot be derived from this output
+	return sub(concat(out), 1, n)
+end
+
 if ns.addon then ns.addon.Hash = Hash end

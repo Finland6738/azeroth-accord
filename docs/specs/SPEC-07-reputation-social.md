@@ -22,6 +22,16 @@ Decisioni D1 e D2, [ADR 0007](../adr/0007-likes-one-per-account-irreversible-ano
 
 Limiti noti, scritti nella wiki: il notaio vede chi ha votato nel momento in cui riceve il voto; un ufficiale con un addon modificato potrebbe inventare voti (come nel gioco, gli ufficiali sono fidati).
 
+### 2.1 Il segreto e il notaio (`Data/Notary.lua`, M4.1)
+
+- **Chi tiene il salt**: solo ufficiali e GM. Un client tiene i salt (`GuildKey:Data().salts`, per gilda) solo finché il suo personaggio è ufficiale, li cancella se viene retrocesso, e non risponde né accetta un salt da chi non è ufficiale nel **proprio** roster. Un salt = 32 byte casuali, scritti in Base64.
+- **Casualità**: il client non ha una fonte casuale sicura (nessuna API nel dump di Forever). `Hash.RandomBytes` fa l'hash SHA-256 di un serbatoio di entropia con molte letture fresche (l'orologio del profiler in un ciclo che varia, gli orologi del frame e del server, la memoria di Lua, gli indirizzi di tabelle nuove) e con gli orari di arrivo dei messaggi dell'addon raccolti nella sessione (`Hash.Stir`); il serbatoio si rinnova a ogni estrazione. Non è un generatore crittografico, ma il salt non si indovina dall'ora in cui è nato.
+- **Scambio**: messaggi `SALT` su `OFFICER`. 15–30 s dopo l'accesso (o la promozione) un ufficiale chiede (`k = "q"` con le impronte dei salt che ha: 12 cifre esadecimali di un hash, mai il salt); chi ha salt che mancano a chi chiede li manda (`k = "s"`) dopo 0,5–3 s, a meno che un altro ufficiale li abbia già mandati su `OFFICER`. Chi sente impronte che non ha chiede a sua volta (al massimo una volta al minuto). I messaggi `SALT` hanno 60 s di vita: non si salvano per l'accesso dopo.
+- **Ripiego per S5** **[verificare]**: finché il client non ha visto un messaggio addon su `OFFICER` (capacità `officerAddonChannel` diversa da `available`), ogni messaggio `SALT` parte **anche** in whisper a ogni ufficiale con l'addon sentito di recente (`Sync:Peers`), e una domanda arrivata in whisper ha la risposta in whisper.
+- **Creazione**: un ufficiale che 45 s dopo aver chiesto non ha ancora un salt lo crea e lo manda. Se due ufficiali lo creano insieme, si tengono **tutti** (un anello di al massimo 8, i più vecchi) e tutti usano lo stesso salt **corrente**: il più vecchio per data di creazione, poi per impronta. Il notaio controlla il doppio voto con **ogni** salt dell'anello (M4.2), quindi due salt non permettono due voti.
+- **LIKE-07**: se esce l'ultimo ufficiale che ha i salt, il primo ufficiale che chiede senza risposta ne crea uno nuovo; le voci vecchie restano valide, ma il controllo del doppio voto per i voti dati con il salt perso non c'è più (limite scritto nella wiki).
+- **Scelta del notaio**: il client stesso se è un ufficiale con un salt; altrimenti gli ufficiali con l'addon sentiti di recente, in ordine di un hash di GUID dell'ufficiale e GUID del votante (sempre lo stesso per un votante, distribuito tra gli ufficiali), saltando quelli già provati per quel voto (`Notary:Choose`). Nessuno disponibile: il voto resta in coda (LIKE-05).
+
 ## 3. Indice sociale
 
 [ADR 0008](../adr/0008-social-breadth-index-from-co-play.md).
