@@ -59,7 +59,7 @@ The **Someone new** button of the Reputation view suggests guildmates who are **
 
 ![Reputation, Someone new: guildmates online now of a similar level that you have played with the least, with Whisper and Invite](../specs/mockups/previews/reputation-someone-new.webp)
 
-*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
 ## What is recorded (from the roster version on)
 

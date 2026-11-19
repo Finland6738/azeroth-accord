@@ -8,7 +8,7 @@
 - Scope: Settings view and the game's Settings panel: Discord handle, main character, columns, notifications, data sizes and "clear guild data".
 - Done when:
   - [x] `UI/SettingsModel.lua` (the options `notifyOfficer` and `notifyDecision` with defaults, validation and `SETTINGS_CHANGED`; main character choice; Roster columns; sizes of the saved data per data set; "Clear guild data" that keeps what only this computer knows) and `UI/Settings.lua` (one scrolling page drawn in the Settings view of the panel and in a canvas panel registered with `Settings.RegisterCanvasLayoutCategory` when the client has it); the bank notices follow the options; a change in one page shows in the other (`Tests/test_settings.lua`).
-  - [ ] In game: the panel appears in the game's Settings window, the page scrolls, "Clear guild data" refills from the guild (the release check, `docs/checklists/release.md`, written in M6.7).
+  - [ ] In game: the panel appears in the game's Settings window, the page scrolls, "Clear guild data" refills from the guild ([the release check](../checklists/release.md)).
 
 ### M6.2 — Italian interface
 - Branch: `step/m6-2-itit`
@@ -16,7 +16,7 @@
 - Scope: complete `Locale/itIT.lua`; a test that checks every key in both locales.
 - Done when:
   - [x] `Locale/itIT.lua` has all 351 keys (reviewed: the Settings texts, "In arrivo" instead of "Posta" for the officers' inbox, which would be read as the game's mail); `Tests/test_locales.lua` checks keys, placeholders and their order, codes, untranslated strings, the keys the code reads and the key families, and runs an Italian client through every view.
-  - [ ] In game with an Italian client: no English left on screen, no overflowing text (the release check, `docs/checklists/release.md`, comes with M6.7).
+  - [ ] In game with an Italian client: no English left on screen, no overflowing text ([the release check](../checklists/release.md)).
 
 ### M6.3 — Polish and performance
 - Branch: `step/m6-3-polish`
@@ -54,3 +54,6 @@
 ### M6.7 — Release checklist and v1.0.0
 - Branch: `step/m6-7-release`
 - Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v1.0.0` (the tag waits for the owner).
+- Done when:
+  - [x] [`docs/checklists/release.md`](../checklists/release.md) (the order of the checks M1 to M5 and this one, what is not known yet, the package, Settings and the game's settings window, Italian, performance and S11, errors and the report, the pictures, the workflow dry run and test tag, the owner's open decisions, the release steps), the wiki (every page with its images, the Settings page, FAQ, Installation, Reporting), both READMEs, the status of every document.
+  - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 1.0.0`); the tag `v1.0.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)).

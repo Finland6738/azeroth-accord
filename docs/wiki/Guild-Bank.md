@@ -53,7 +53,7 @@ In the **Requests** mode of the Bank view you can:
 
 ![Bank, Inbox: requests waiting for an officer, the counter on the tab, and one chat line per new request](../specs/mockups/previews/bank-inbox.webp)
 
-*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
 - A red mark with a number appears on the Accord tab of the guild window (and "Bank (n)" on the panel button) when requests are waiting for you. Members never see it.
 - The **Inbox** mode lists what waits for an officer, oldest first: open requests to approve or reject, approved ones to mark as *Fulfilled*. When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.

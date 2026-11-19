@@ -8,7 +8,7 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 
 ![The same screen with numbered notes: the tab, the sync state, the navigation, the filters, the sortable columns, a row, and Pop out](../specs/mockups/img/01-accord-tab.webp)
 
-*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](../specs/mockups/previews/README.md)).*
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
 - Clicking it shows the Accord panel over the content of the guild window. Clicking any of the game's tabs goes back to it; closing the window closes the panel.
 - The tab shows only while your **guild** is the selected community, and not in the small (minimized) guild window.

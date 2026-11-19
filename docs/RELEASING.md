@@ -15,7 +15,7 @@ How a version of Azeroth Accord is built and published. The workflow is [release
 | `v0.3.0` | end of M3 | [M3](checklists/M3.md) |
 | `v0.4.0` | end of M4 | [M4](checklists/M4.md) |
 | `v0.9.0` (use `v0.9.0-beta.1` for a first look) | end of M5, the beta | [M5](checklists/M5.md) |
-| `v1.0.0` | end of M6, the first public version | the release check, `docs/checklists/release.md` (written in M6.7) |
+| `v1.0.0` | end of M6, the first public version | [the release check](checklists/release.md) |
 
 The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on the build you mean to tag (one tag then covers them all and the earlier tags are simply skipped). A pre-release suffix (`-alpha`, `-beta`, `-rc`) makes the GitHub Release a pre-release.
 
@@ -62,7 +62,7 @@ Until steps 2 and 4 are both done, tags only publish on GitHub.
 
 ## Releasing a version
 
-1. Everything merged on `main`, CI green, the in-game checklist of the version passed (`docs/checklists/`) and its results reported.
+1. Everything merged on `main`, CI green, the in-game checklist of the version passed ([`docs/checklists/`](checklists/release.md)) and its results reported.
 2. In a normal pull request: promote the changelog with `python -I -X utf8 tools/release_notes.py --promote 1.0.0` (*Unreleased* becomes `## [1.0.0] - <date>` and a new empty *Unreleased* goes on top), and update the status of the README, `README.it.md` and the wiki. Check what the release will say: `python -I -X utf8 tools/release_notes.py v1.0.0`.
 3. Tag the merge commit and push the tag. **Check your git identity first**: an annotated tag records the tagger's name and email, and this repository's rule is the GitHub noreply address ([CLAUDE.md](../CLAUDE.md), Privacy). `git config user.email` must print an `@users.noreply.github.com` address; then:
 
