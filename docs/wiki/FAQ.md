@@ -25,3 +25,5 @@
 **Does Request craft send a message by itself?** No. It opens the chat box with the whisper already written; you read it and send it.
 
 **Can the addon take items or gold out of the bank for me?** No. A bank request is only a note that the whole guild sees and officers answer; the item is handed over in the game, by mail, trade or at the vault.
+
+**Is the addon available in Italian?** Yes. In an Italian game client (`itIT`) the whole interface is in Italian: the panel, the views, the Settings page and the chat lines. Every other client gets English. Names that come from the game (items, recipes, zones, guild ranks) and what players type are never translated, and the `/accord debug` report stays in English on purpose so it can be pasted in a bug report. A mistake in a translation is a normal bug: see [[Reporting Bugs and Feedback|Reporting-Bugs-and-Feedback]].

@@ -14,6 +14,9 @@
 - Branch: `step/m6-2-itit`
 - Spec: ADR 0015
 - Scope: complete `Locale/itIT.lua`; a test that checks every key in both locales.
+- Done when:
+  - [x] `Locale/itIT.lua` has all 351 keys (reviewed: the Settings texts, "In arrivo" instead of "Posta" for the officers' inbox, which would be read as the game's mail); `Tests/test_locales.lua` checks keys, placeholders and their order, codes, untranslated strings, the keys the code reads and the key families, and runs an Italian client through every view.
+  - [ ] In game with an Italian client: no English left on screen, no overflowing text (the release check, `docs/checklists/release.md`, comes with M6.7).
 
 ### M6.3 — Polish and performance
 - Branch: `step/m6-3-polish`

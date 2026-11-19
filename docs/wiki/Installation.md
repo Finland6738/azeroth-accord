@@ -9,4 +9,6 @@ When it is out:
 3. Start the game; at the character screen, open *AddOns* and check that Azeroth Accord is enabled.
 4. In game, open the guild window: the **Accord** tab is under the four tabs of the game. You can also type `/accord`.
 
+The interface follows the language of your game client: English, and Italian in an Italian client (`itIT`).
+
 Every member who installs it adds their own data (characters, contacts, recipes): the more guildmates use it, the more complete it is.
