@@ -57,6 +57,8 @@ local function build()
 
 	f.selectAll = W.Button(f, { text = L["DIAG_SELECT"], width = 120, onClick = function() Box:SelectAll() end })
 	f.selectAll:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 14, 14)
+	f.size = W.Text(f, "small", "grey", "CENTER")
+	f.size:SetPoint("BOTTOM", f, "BOTTOM", 0, 20)
 	f.close = W.Button(f, { text = L["DIAG_CLOSE"], width = 100, onClick = function() Box:Hide() end })
 	f.close:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 14)
 	W.CloseOnEscape(f)
@@ -74,6 +76,8 @@ function Box:Open(text)
 	local f = self:Frame()
 	text = text or ns.Diagnostics.Report()
 	f.text = text
+	local lines = select(2, text:gsub(string.char(10), "")) + 1
+	f.size:SetText(L["DIAG_SIZE"]:format(lines, #text))
 	f.edit:SetText(text)
 	f.edit:SetCursorPosition(0)
 	f.scroll:SetVerticalScroll(0)

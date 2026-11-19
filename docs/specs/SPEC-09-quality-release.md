@@ -61,3 +61,12 @@ Ogni milestone termina con una lista di prove in gioco (`docs/checklists/`), da 
 | passaggio di conservazione (`Store:Prune`) | 0,001 s | 0,5 s |
 
 Il co-play è l'ottanta per cento del file ([SPEC-10 R6](SPEC-10-risks-open-questions.md)): una gilda più attiva di questa fa crescere il file in proporzione ai giorni di conservazione (90) e al numero di osservatori, non ai membri. La pagina Settings mostra le dimensioni per insieme di dati e "Cancella i dati della gilda" le azzera; `/accord debug` riporta anche la memoria che il gioco attribuisce all'addon (`GetAddOnMemoryUsage`, [verificare] in gioco).
+
+## 6. Diagnostica e segnalazioni (M6.4)
+
+`/accord debug` ([SPEC-04 §4](SPEC-04-ui-guild-tab-shell.md)) apre il rapporto (`Core/Diagnostics.lua`, `UI/DiagnosticsBox.lua`) in una casella a sola lettura, già selezionata, con il numero di righe e di caratteri. Regole:
+
+- **Nessun nome.** Il rapporto si costruisce solo da parole fisse e numeri: nessun nome di giocatore, di gilda o di reame, nessun BattleTag o nome Discord, nessun token dell'account, nessun GUID, nessuna cartella del PC. `Tests/test_report.lua` riempie una gilda di nomi (roster, note, account, contatti, richieste con testo, registri) e verifica che nessuno compaia. L'unico testo libero è il messaggio degli errori dell'addon: `Diag.Redact` sostituisce con `<player>` e `<guild>` ogni nome che il client conosce (personaggio, gilda, compagni, BattleTag, Discord, anche nella forma `Nome-Reame`, solo parole intere, almeno 3 caratteri) e qualunque cosa abbia la forma di un BattleTag.
+- **Intestazione allineata al modulo.** Le prime righe (`addon:`, `client:` e `locale:`, `role:`, `guild size:`) sono i campi del modulo "Bug report" (`.github/ISSUE_TEMPLATE/bug_report.yml`), con gli stessi nomi; `tools/check_addon.py` fallisce se una riga dell'intestazione non è nominata nel modulo. Anche il modulo "In-game test report" accetta il rapporto, con l'id della prova (`M3 step 4`).
+- **Limite.** 30.000 caratteri, tagliati sul confine di una riga e con l'avviso; contano le prime sezioni (intestazione, invio, ultimi errori).
+- **Contenuto.** Capacità e API (Compat), stato dell'invio, ultimi errori, dimensioni dei dati salvati e memoria (§5), una sezione per modulo con soli conteggi e stati.

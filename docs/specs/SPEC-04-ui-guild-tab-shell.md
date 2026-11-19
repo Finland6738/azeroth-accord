@@ -39,7 +39,7 @@ Stesso pannello in una finestra mobile e ridimensionabile, aperta da `/accord`, 
 | `/accord` o `/acc` | apre o chiude la finestra autonoma |
 | `/accord roster`, `professions`, `reputation`, `bank` | apre quella vista (`professions` si apre sulla ricerca "who can craft", [SPEC-06 §2.2](SPEC-06-professions-recipes.md); `reputation` sulla classifica dei like, [SPEC-07 §2.3](SPEC-07-reputation-social.md#23-interfaccia-dei-like-uireputationlua-m43)) |
 | `/accord settings` | apre la vista Settings ([§6](#6-impostazioni-m61)) |
-| `/accord debug` | rapporto di diagnostica in una casella già selezionata, da copiare con Ctrl+C |
+| `/accord debug` | rapporto di diagnostica in una casella già selezionata, da copiare con Ctrl+C ([SPEC-09 §6](SPEC-09-quality-release.md#6-diagnostica-e-segnalazioni-m64)) |
 | `/accord help` | elenco dei comandi |
 
 ## 5. Stile

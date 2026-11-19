@@ -122,9 +122,37 @@ def check(problems):
     check_locale(problems)
 
 
+def check_report_form(problems):
+    """The bug report form asks for the facts the /accord debug report starts with, under the same names (M6.4): every
+    header line of Core/Diagnostics.lua is named in .github/ISSUE_TEMPLATE/bug_report.yml, and the form says to paste
+    the report."""
+    diag = os.path.join(ADDON, "Core", "Diagnostics.lua")
+    form = os.path.join(ROOT, ".github", "ISSUE_TEMPLATE", "bug_report.yml")
+    if not (os.path.isfile(diag) and os.path.isfile(form)):
+        return
+    with open(diag, encoding="utf-8") as f:
+        header = re.search(r"function Diag\.HeaderLines\(\).*?\nend\n", f.read(), re.S)
+    if not header:
+        problems.append("Core/Diagnostics.lua: Diag.HeaderLines not found")
+        return
+    keys = re.findall(r'\("([a-z][a-z ]*): %s', header.group(0))
+    with open(form, encoding="utf-8") as f:
+        text = f.read()
+    if not keys:
+        problems.append("Core/Diagnostics.lua: no header line found in Diag.HeaderLines")
+    for key in keys:
+        if key in ("interface", "project id"):   # the build line carries them; the form asks for the client once
+            continue
+        if f"`{key}:`" not in text:
+            problems.append(f".github/ISSUE_TEMPLATE/bug_report.yml does not name the report line `{key}:` (M6.4)")
+    if "/accord debug" not in text:
+        problems.append(".github/ISSUE_TEMPLATE/bug_report.yml does not tell the player to paste /accord debug")
+
+
 def main():
     problems = []
     check(problems)
+    check_report_form(problems)
     for p in problems:
         print(p)
     print(f"Addon check: {len(problems)} problem(s).")

@@ -104,10 +104,14 @@ local function addonVersion()
 	return nil
 end
 
+-- The same facts, in the same order, as the fields of the bug report form (.github/ISSUE_TEMPLATE/bug_report.yml):
+-- addon version, game client and language, role. Plus the size of the guild, which is a number and not a name.
 function Diag.HeaderLines()
 	local c = ns.Compat
 	local build = c and c.BuildInfo and c.BuildInfo() or {}
 	local version = addonVersion()
+	local role = ns.Role and ns.Role:Get() or "?"
+	local members = ns.Roster and ns.Roster.Count and ns.Roster:Count() or nil
 	return {
 		"Azeroth Accord diagnostics",
 		("addon: %s"):format(tostring(version or "unknown")),
@@ -115,6 +119,8 @@ function Diag.HeaderLines()
 		("interface: %s"):format(tostring(build.interface or "?")),
 		("project id: %s%s"):format(tostring(build.projectID or "?"), build.isForever and " (WoW Forever)" or ""),
 		("locale: %s"):format(type(GetLocale) == "function" and tostring(GetLocale()) or "?"),
+		("role: %s"):format(role == "gm" and "guild master" or tostring(role)),
+		("guild size: %s"):format(members and tostring(members) or "unknown"),
 	}
 end
 
@@ -128,12 +134,59 @@ function Diag.SendingLines()
 		readOnly and "yes" or "no", tostring(restriction or "none")) }
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- Names: the one free text of the report is an error message. Everything else is built from fixed words and numbers
+-- (tests/test_report.lua fills a guild with names and checks it), and the error lines are scrubbed of every name this
+-- client knows: the character, the guild, the guildmates, the BattleTag and the Discord name.
+---------------------------------------------------------------------------------------------------------------------
+Diag.MIN_NAME = 3        -- a shorter name would turn ordinary words into placeholders
+
+local function knownNames()
+	local out, seen = {}, {}
+	local function add(name, placeholder)
+		if type(name) == "string" and #name >= Diag.MIN_NAME and not seen[name] then
+			seen[name] = true
+			out[#out + 1] = { name = name, placeholder = placeholder }
+		end
+	end
+	local C = ns.Compat
+	if C then
+		pcall(function()
+			add(C.Guild.GuildName(), "<guild>")
+			add(C.Player.Name(), "<player>")
+			add(C.Player.BattleTag and C.Player.BattleTag(), "<player>")
+		end)
+	end
+	pcall(function()
+		if ns.Contacts then add(ns.Contacts:OwnDiscord(), "<player>") end
+		for _, m in ipairs(ns.Roster and ns.Roster:Members() or {}) do
+			add(m.short, "<player>")
+			add(m.name, "<player>")
+			add(m.discord, "<player>")
+		end
+	end)
+	table.sort(out, function(a, b) return #a.name > #b.name end)   -- "Name-Realm" before "Name"
+	return out
+end
+
+-- `text` with every known name replaced by <player> or <guild>, whole words only.
+function Diag.Redact(text)
+	if type(text) ~= "string" or text == "" then return text end
+	text = text:gsub("[%w_]+#%d%d%d%d+", "<player>")   -- anything shaped like a BattleTag
+	for _, n in ipairs(knownNames()) do
+		local word = "%f[%w_]" .. n.name:gsub("%p", "%%%0")
+		text = text:gsub(word .. "%-[%w']+", n.placeholder)   -- "Name-Realm"
+		text = text:gsub(word .. "%f[^%w_]", n.placeholder)
+	end
+	return text
+end
+
 function Diag.ErrorLines()
 	if #errors == 0 then return { "no addon errors recorded this session" } end
 	local lines = {}
 	for i = #errors, 1, -1 do   -- latest first
 		local e = errors[i]
-		lines[#lines + 1] = ("%s%s"):format(e.count > 1 and ("x" .. e.count .. " ") or "", e.text)
+		lines[#lines + 1] = Diag.Redact(("%s%s"):format(e.count > 1 and ("x" .. e.count .. " ") or "", e.text))
 	end
 	return lines
 end
@@ -154,7 +207,18 @@ function Diag.Collect()
 	return { header = Diag.HeaderLines(), sections = sections }
 end
 
-function Diag.Report() return Diag.Format(Diag.Collect()) end
+-- The text a bug report holds is capped: a box with hundreds of KB is slow and no issue needs it. The first sections
+-- (header, sending, last errors) are the ones that matter, so the cut falls on the last ones.
+Diag.MAX_CHARS = 30000
+local NL = string.char(10)
+function Diag.Report()
+	local text = Diag.Format(Diag.Collect())
+	if #text > Diag.MAX_CHARS then
+		local cut = text:sub(1, Diag.MAX_CHARS):gsub("[^" .. NL .. "]*$", "")
+		text = cut .. (NL .. "... report cut at %d characters"):format(Diag.MAX_CHARS)
+	end
+	return text
+end
 
 -- /accord debug: the copy box when there is one, else the report line by line in the chat.
 function Diag.Show()

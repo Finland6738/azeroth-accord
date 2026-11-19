@@ -42,6 +42,7 @@ L["DIAG_TITLE"] = "Diagnostica di Azeroth Accord"
 L["DIAG_HINT"] = "Premi Ctrl+C per copiare, poi incolla nella segnalazione. Non contiene nomi di giocatori o gilde."
 L["DIAG_SELECT"] = "Seleziona tutto"
 L["DIAG_CLOSE"] = "Chiudi"
+L["DIAG_SIZE"] = "%d righe, %d caratteri"
 
 L["VIEW_ROSTER"] = "Roster"
 L["COL_NAME"] = "Nome"

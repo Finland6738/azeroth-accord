@@ -30,6 +30,9 @@
 ### M6.4 — Diagnostics and bug reports
 - Branch: `step/m6-4-diagnostics`
 - Scope: `/accord debug` report box without names, issue form fields aligned.
+- Spec: SPEC-09 §6
+- Done when:
+  - [x] A guild full of names yields a report with none of them, no token, no character id; a name in an error message is replaced by a placeholder; the header has the form's facts (addon, client, locale, role, guild size); the report is capped and the box shows its size (`Tests/test_report.lua`); the bug and in-game report forms name the report lines and `tools/check_addon.py` checks it.
 
 ### M6.5 — Packaging and release workflow
 - Branch: `step/m6-5-packaging`

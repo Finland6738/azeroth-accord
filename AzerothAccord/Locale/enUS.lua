@@ -46,6 +46,7 @@ L["DIAG_TITLE"] = "Azeroth Accord diagnostics"
 L["DIAG_HINT"] = "Press Ctrl+C to copy, then paste it into your bug report. It contains no player or guild names."
 L["DIAG_SELECT"] = "Select all"
 L["DIAG_CLOSE"] = "Close"
+L["DIAG_SIZE"] = "%d lines, %d characters"
 
 -- The Roster view (SPEC-05 §1)
 L["VIEW_ROSTER"] = "Roster"

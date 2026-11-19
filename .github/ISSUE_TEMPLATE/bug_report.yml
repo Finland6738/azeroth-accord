@@ -13,7 +13,7 @@ body:
     id: version
     attributes:
       label: Addon version
-      description: Shown in the AddOns list at the character screen, or at the top of the `/accord debug` report.
+      description: The `addon:` line at the top of the `/accord debug` report, or the AddOns list at the character screen.
       placeholder: "0.x.y"
     validations:
       required: true
@@ -21,20 +21,27 @@ body:
     id: client
     attributes:
       label: Game client
-      description: WoW Forever build and client language.
-      placeholder: "1.60.1.70862, English"
+      description: The `client:` and `locale:` lines of the `/accord debug` report. WoW Forever build and game language.
+      placeholder: "1.60.1 (build 70170), enUS"
     validations:
       required: true
   - type: dropdown
     id: role
     attributes:
       label: Your role when it happened
+      description: The `role:` line of the `/accord debug` report.
       options:
         - Guild member
         - Officer
         - Guild Master
     validations:
       required: true
+  - type: input
+    id: guild_size
+    attributes:
+      label: Guild size (optional)
+      description: The `guild size:` line of the report, a number of members. It matters for slowness and memory problems.
+      placeholder: "about 200"
   - type: textarea
     id: what
     attributes:
@@ -52,9 +59,9 @@ body:
     validations:
       required: true
   - type: textarea
-    id: errors
+    id: report
     attributes:
-      label: Lua errors and /accord debug output (optional)
+      label: The /accord debug report (please paste it whole)
       description: |
-        Type `/accord debug` in the game: the report opens in a box. Press **Select all**, then Ctrl+C, and paste it here. It holds the versions, the capabilities, the sync state, the last addon errors and your settings, and no player or guild names. If the game showed a Lua error box, paste its text too. Remove any name you do not want to share.
+        Type `/accord debug` in the game: the report opens in a box, already selected. Press Ctrl+C and paste it here, whole: it starts with the lines above (version, client, language, role, guild size) and then holds the capabilities, the sync state, the sizes of the saved data, the memory and the last addon errors. It contains no player or guild names, and names in an error text are replaced by placeholders. If the game also showed a Lua error box, paste its text too. Remove anything else you do not want to share.
       render: text
