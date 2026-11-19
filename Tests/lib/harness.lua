@@ -158,6 +158,7 @@ function H.boot(opts)
 	if addonObject and addonObject.Sync then addonObject.Sync.AUTO = H.autoSync == true end
 	-- Likewise Data/Accounts.lua publishes the character's own record by itself after login (Sim.new option `accounts`).
 	if addonObject and addonObject.Accounts then addonObject.Accounts.AUTO = H.autoAccounts == true end
+	if addonObject and addonObject.Contacts then addonObject.Contacts.AUTO = H.autoContacts == true end
 
 	for name, text in pairs(opts.saved or {}) do E[name] = deserialize(text) end
 

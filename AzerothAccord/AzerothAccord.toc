@@ -30,6 +30,7 @@ Net\Store.lua
 Net\Sync.lua
 Data\Roster.lua
 Data\Accounts.lua
+Data\Contacts.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua
@@ -38,4 +39,6 @@ UI\GuildTab.lua
 UI\DiagnosticsBox.lua
 UI\RosterModel.lua
 UI\Roster.lua
+UI\CopyBox.lua
 UI\MemberCard.lua
+UI\Settings.lua

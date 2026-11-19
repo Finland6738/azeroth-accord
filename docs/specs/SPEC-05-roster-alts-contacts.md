@@ -68,3 +68,14 @@ Realizzazione (`Data/Accounts.lua`, M2.2):
 - CON-02: Discord dal campo nativo `discordInfo` se il server lo riempie **[verificare]** S2, altrimenti scritto dal giocatore nelle impostazioni (solo nome utente).
 - CON-03: un clic sul contatto apre una casella con il testo già selezionato da copiare.
 - CON-04: pulsante **Add BattleTag friend** con `C_Club.SendBattleTagFriendRequest(guildClubId, memberId)`, che funziona anche senza addon dall'altra parte **[verificare]** S8.
+
+Realizzazione (`Data/Contacts.lua`, `UI/CopyBox.lua`, `UI/Settings.lua`, M2.5):
+
+- **Record proprio** (CON-01, CON-02): un record `contacts` (id = GUID del personaggio) con `account` (token), `battleTag` (letto con `BNet_GetBattleTagSelf`, in alternativa `BNGetInfo` **[verificare]** S8) e `discord` (il nome scritto dal giocatore). Si pubblica dieci secondi dopo l'accesso, di nuovo dopo 70 s (il servizio Battle.net può partire tardi), a ogni `BN_CONNECTED` / `BN_INFO_CHANGED` e subito quando si salva il nome Discord; un record identico non genera una nuova `rev`; chi non ha né l'uno né l'altro non pubblica nulla, e chi toglie il proprio nome Discord pubblica un record svuotato per ritirare il vecchio valore. **Sempre condiviso** (D3): nessuna impostazione lo spegne.
+- **Discord nativo** (CON-02): il campo `discordInfo` di `C_Club.GetMemberInfo` lo legge `Data/Roster.lua` per ogni membro, con o senza addon **[verificare]** S2; vince sul nome condiviso (ADR 0010) e la scheda scrive "(from the game)".
+- **Impostazioni**: la vista *Settings* (`/accord settings`) mostra il BattleTag e ha il campo del nome Discord (2–32 caratteri, niente spazi, link, `@`, `/`, `|`); il testo dice che la condivisione è sempre attiva. Il valore sta in `AzerothAccordDB.settings.discord`.
+- **Contatti di un account** (`Contacts:Of(guid)`): i record `contacts` più recenti tra i personaggi del gruppo ([SPEC-03 §2](SPEC-03-data-model.md)), BattleTag e Discord ciascuno dal più recente che sia valido.
+- **Nulla di ricevuto si mostra com'è**: BattleTag e nome Discord degli altri passano per una validazione (forma del BattleTag, regole del nome Discord) e il carattere `|` si raddoppia, perché non possa aprire una sequenza di colore o di link nel testo del gioco; un valore non valido si ignora.
+- **CON-03**: nella scheda un clic sul BattleTag o sul Discord apre la casella di copia (`CopyBox`): una riga con il testo già selezionato, di sola lettura, Esc la chiude.
+- **CON-04**: il pulsante *[Add BattleTag friend]* compare per un membro della gilda che non è il giocatore (serve il suo `memberId` del club) quando `C_Club.SendBattleTagFriendRequest` esiste **[verificare]** S8; il clic chiama `SendBattleTagFriendRequest(club della gilda, memberId)` e scrive l'esito in chat (se il gioco rifiuta la chiamata lo dice). Funziona anche senza addon dall'altra parte.
+- La colonna *Contacts* della tabella mostra "BT" e "DC".

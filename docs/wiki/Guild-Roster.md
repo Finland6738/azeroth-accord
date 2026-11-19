@@ -20,4 +20,6 @@ The grouping cannot be faked: two characters count as one player only if **both*
 
 ## Contacts
 
-The card and the table show the **BattleTag** and the **Discord** name of members who use the addon. Click one to copy it. *Add BattleTag friend* sends the game's own friend request.
+The card shows the **BattleTag** and the **Discord** name of members who use the addon (the Discord name also for everybody when the game provides it, marked *from the game*). **Click a contact** to open a small box with the text already selected: press Ctrl+C to copy it, then Esc. **[Add BattleTag friend]** sends the game's own friend request; it works even if the other player does not use the addon. The table has a *Contacts* column (BT and DC) that you can show or hide.
+
+Your own BattleTag is read from the game. Type your **Discord name** (user name only, up to 32 characters, no links) in *Settings* (`/accord settings`); it is used when the game does not show it already. Both are always shared with your guild.

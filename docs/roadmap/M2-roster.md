@@ -36,6 +36,8 @@
 - Branch: `step/m2-5-contacts`
 - Spec: SPEC-05 §4
 - Scope: `Data/Contacts.lua` (BattleTag, Discord native or typed), copy box, Add BattleTag friend button, Discord field in the settings.
+- Done when:
+  - [x] BattleTag and Discord are published (always) and shown on the card; a click copies, the friend button calls the club API, the Discord field validates (covered by `Tests/test_contacts.lua`).
 
 ### M2.6 — Co-play recording
 - Branch: `step/m2-6-coplay`

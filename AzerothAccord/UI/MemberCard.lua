@@ -33,7 +33,11 @@ function Card.AddSection(id, order, fn)
 	Card.extra[#Card.extra + 1] = { id = id, order = order, fn = fn }
 end
 
-local function line(text, muted, guid) return { text = text, muted = muted or nil, guid = guid } end
+-- A line of a section: text, muted (grey), guid (a click opens that character's card) or onClick (any other action;
+-- `action` colours it like a button).
+local function line(text, muted, guid, onClick, action)
+	return { text = text, muted = muted or nil, guid = guid, onClick = onClick, action = action or nil }
+end
 
 local function now() return ns.Compat and ns.Compat.ServerTime() or time() end
 
@@ -112,6 +116,27 @@ local function accountSection(e)
 	return { id = "account", title = L["CARD_ACCOUNT"], lines = lines }
 end
 
+-- Contacts (SPEC-05 §4): the BattleTag and Discord name a click copies, and the friend request button.
+local function contactsSection(e)
+	local C = ns.Contacts
+	if not C or e.notInGuild then return nil end
+	local lines = {}
+	local c = C:Of(e.guid)
+	local function copy(text, title) return function() if ns.CopyBox then ns.CopyBox:Open(text, title) end end end
+	if c and c.battleTag then
+		lines[#lines + 1] = line(L["CARD_BATTLETAG"]:format(C.Escape(c.battleTag)), false, nil, copy(c.battleTag, L["COPY_TITLE_BATTLETAG"]))
+	end
+	if c and c.discord then
+		local fmt = c.discordSource == "native" and L["CARD_DISCORD_NATIVE"] or L["CARD_DISCORD"]
+		lines[#lines + 1] = line(fmt:format(C.Escape(c.discord)), false, nil, copy(c.discord, L["COPY_TITLE_DISCORD"]))
+	end
+	if #lines == 0 then lines[1] = line(e.hasAddon and L["CARD_NO_CONTACTS"] or L["CARD_NO_CONTACTS_ADDON"], true) end
+	if C:CanSendFriendRequest(e) then
+		lines[#lines + 1] = line(L["CARD_ADD_FRIEND"], false, nil, function() C:SendFriendRequest(e) end, true)
+	end
+	return { id = "contacts", title = L["CARD_CONTACTS"], lines = lines }
+end
+
 function Card.Describe(e)
 	if type(e) ~= "table" then return nil end
 	local classColor = e.classFile
@@ -126,6 +151,8 @@ function Card.Describe(e)
 	d.sections[1] = detailsSection(e)
 	d.sections[2] = professionsSection(e)
 	d.sections[3] = accountSection(e)
+	local contacts = contactsSection(e)
+	if contacts then d.sections[4] = contacts end
 	local extras = {}
 	for _, x in ipairs(Card.extra) do extras[#extras + 1] = x end
 	table.sort(extras, function(a, b) return a.order < b.order end)
@@ -187,7 +214,8 @@ local function item(f, i)
 	it.highlight:SetAllPoints(it)
 	it.highlight:SetColorTexture(1, 1, 1, 0.08)
 	it:SetScript("OnClick", function(self)
-		if self.guid then Card:ShowGUID(self.guid) end
+		if self.guid then Card:ShowGUID(self.guid)
+		elseif self.onClick then self.onClick(self) end
 	end)
 	f.items[i] = it
 	return it
@@ -208,7 +236,7 @@ function Card:Layout()
 	for _, section in ipairs(d.sections) do
 		n = n + 1
 		local head = item(f, n)
-		head.guid = nil
+		head.guid, head.onClick = nil, nil
 		head:ClearAllPoints()
 		head:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -y)
 		head:SetSize(inner, 16)
@@ -221,15 +249,15 @@ function Card:Layout()
 		for _, ln in ipairs(section.lines) do
 			n = n + 1
 			local it = item(f, n)
-			it.guid = ln.guid
+			it.guid, it.onClick = ln.guid, ln.onClick
 			it:ClearAllPoints()
 			it:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 4, -y)
 			it.text:SetWidth(inner - 4)
 			it.text:SetText(ln.text)
-			it.text:SetTextColor(Skin.Color(ln.guid and "white" or (ln.muted and "grey" or "white")))
+			it.text:SetTextColor(Skin.Color(ln.action and "gold" or (ln.guid and "white" or (ln.muted and "grey" or "white"))))
 			local h = max(12, it.text:GetStringHeight() or 12)
 			it:SetSize(inner - 4, h)
-			it:EnableMouse(ln.guid ~= nil)
+			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil)
 			it:Show()
 			y = y + h + Card.LINE_GAP
 		end

@@ -27,7 +27,7 @@ function ACC:Print(msg)
 end
 
 -- The views of the panel (SPEC-04 §2); `/accord <view>` opens one. UI/Shell.lua does the opening (M1.8).
-ACC.VIEWS = { "roster", "professions", "reputation", "bank" }
+ACC.VIEWS = { "roster", "professions", "reputation", "bank", "settings" }
 
 local function viewCommand(view)
 	return function(self) self:OpenView(view) end
@@ -39,6 +39,7 @@ ACC.commands = {
 	{ name = "professions", help = L["HELP_PROFESSIONS"], handler = viewCommand("professions") },
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
+	{ name = "settings", help = L["HELP_SETTINGS"], handler = viewCommand("settings") },
 	{ name = "debug", help = L["HELP_DEBUG"], handler = function(self, input) self:OnDebugCommand(input) end },
 	{ name = "help", help = L["HELP_HELP"], handler = function(self) self:PrintHelp() end },
 }

@@ -68,6 +68,7 @@ Config.rules = {
 	["account.mains"] = { type = "table" },
 	["account.guilds"] = { type = "table" },
 	["account.settings"] = { type = "table" },
+	["account.settings.discord"] = { type = "string", optional = true, maxLen = 32 },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },

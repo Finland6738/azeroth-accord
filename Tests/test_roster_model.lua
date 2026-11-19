@@ -53,21 +53,21 @@ end
 describe("columns", function()
 	before_boot(function() mockGuild() end)
 
-	it("shows the default columns, never likes, social or contacts before their modules exist", function()
+	it("shows the default columns, never likes or social before their modules exist (M4)", function()
 		local m = M().new()
 		local ids = {}
 		for _, c in ipairs(m:VisibleColumns()) do ids[#ids + 1] = c.id end
-		deepEq(ids, { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "addon" })
-		falsy(M().ColumnAvailable("likes")); falsy(M().ColumnAvailable("social")); falsy(M().ColumnAvailable("contacts"))
+		deepEq(ids, { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "contacts", "addon" })
+		falsy(M().ColumnAvailable("likes")); falsy(M().ColumnAvailable("social")); truthy(M().ColumnAvailable("contacts"))
 		falsy(M().ColumnAvailable("nope"))
 	end)
 
 	it("a column appears once its module exists", function()
-		M().enabled = { contacts = true }   -- what ns.Contacts being there does (M2.5)
-		truthy(M().ColumnAvailable("contacts"))
+		M().enabled = { likes = true }   -- what ns.Likes being there does (M4)
+		truthy(M().ColumnAvailable("likes"))
 		local m = M().new()
-		m:SetColumns({ "name", "contacts" })
-		truthy(m:HasColumn("contacts"))
+		m:SetColumns({ "name", "likes" })
+		truthy(m:HasColumn("likes"))
 		M().enabled = nil
 	end)
 

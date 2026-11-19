@@ -23,7 +23,7 @@ Un record per personaggio (`id` = GUID), scritto da lui o da un suo alt; i conta
 |---|---|---|
 | `account` | token | |
 | `battleTag` | stringa | da `BNet_GetBattleTagSelf()` **[verificare]** S8 |
-| `discord` | stringa | `discordInfo` nativo se c'è **[verificare]** S2, altrimenti scritto dal giocatore (massimo 32 caratteri, solo nome utente, niente link) |
+| `discord` | stringa | scritto dal giocatore nelle impostazioni (massimo 32 caratteri, solo nome utente, niente link); il `discordInfo` nativo **[verificare]** S2 lo legge chi mostra i contatti, per ogni membro, e vince sul valore condiviso |
 
 ## 3. Ricette (`recipes`)
 
