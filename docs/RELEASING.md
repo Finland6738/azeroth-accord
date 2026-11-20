@@ -14,14 +14,17 @@ How a version of Azeroth Accord is built and published. The workflow is [release
 | `v0.2.0` | end of M2 | [M2](checklists/M2.md) |
 | `v0.3.0` | end of M3 | [M3](checklists/M3.md) |
 | `v0.4.0` | end of M4 | [M4](checklists/M4.md) |
-| `v0.9.0` (use `v0.9.0-beta.1` for a first look) | end of M5, the beta | [M5](checklists/M5.md) |
-| `v1.0.0` | end of M6, the first public version | [the release check](checklists/release.md) |
+| `v0.5.0` | end of M5 | [M5](checklists/M5.md) |
+| `v0.6.0` | end of M6 | [the release check](checklists/release.md) |
+| `v0.7.0` … `v0.15.0` | end of M7 … M15 ([the plan](roadmap/README.md)) | the milestone's own checklist, written in its last step |
+| `v0.<N>.<F>` | the F-th fix release of milestone N (`v0.6.1`, `v0.6.2`, …) | the checks the fix touches |
+| `v1.0.0` | when every planned milestone, up to M15, is done | [the release check](checklists/release.md), run again over everything |
 
-The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on the build you mean to tag (one tag then covers them all and the earlier tags are simply skipped). A pre-release suffix (`-alpha`, `-beta`, `-rc`) makes the GitHub Release a pre-release.
+Every milestone is released as `v0.<milestone>.0`, and its fixes raise only the last number ([ADR 0020](adr/0020-one-version-per-milestone.md)). The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on the build you mean to tag (one tag then covers them all and the earlier tags are simply skipped). A pre-release suffix (`-alpha`, `-beta`, `-rc`) makes the GitHub Release a pre-release.
 
 ## What a tag does
 
-Pushing a tag `vMAJOR.MINOR.PATCH` (optionally `-alpha`, `-beta` or `-rc`, with `.N`: `v1.0.0`, `v0.9.0-beta.1`) starts the workflow **Release**, which:
+Pushing a tag `vMAJOR.MINOR.PATCH` (optionally `-alpha`, `-beta` or `-rc`, with `.N`: `v0.6.0`, `v0.6.1`, `v0.7.0-beta.1`) starts the workflow **Release**, which:
 
 1. checks what the package will contain (`tools/check_package.py`);
 2. builds the zip with the [BigWigs packager](https://github.com/BigWigsMods/packager): libraries from `.pkgmeta`, `## Version` filled in with the tag, `Tests/`, `docs/`, `tools/` and Markdown left out, `LICENSE` kept, development code switched off;
@@ -63,12 +66,12 @@ Until steps 2 and 4 are both done, tags only publish on GitHub.
 ## Releasing a version
 
 1. Everything merged on `main`, CI green, the in-game checklist of the version passed ([`docs/checklists/`](checklists/release.md)) and its results reported.
-2. In a normal pull request: promote the changelog with `python -I -X utf8 tools/release_notes.py --promote 1.0.0` (*Unreleased* becomes `## [1.0.0] - <date>` and a new empty *Unreleased* goes on top), and update the status of the README, `README.it.md` and the wiki. Check what the release will say: `python -I -X utf8 tools/release_notes.py v1.0.0`.
+2. In a normal pull request: promote the changelog with `python -I -X utf8 tools/release_notes.py --promote 0.6.0` (*Unreleased* becomes `## [0.6.0] - <date>` and a new empty *Unreleased* goes on top), and update the status of the README, `README.it.md` and the wiki. Check what the release will say: `python -I -X utf8 tools/release_notes.py v0.6.0`.
 3. Tag the merge commit and push the tag. **Check your git identity first**: an annotated tag records the tagger's name and email, and this repository's rule is the GitHub noreply address ([CLAUDE.md](../CLAUDE.md), Privacy). `git config user.email` must print an `@users.noreply.github.com` address; then:
 
    ```bash
-   git tag -a v1.0.0 -m "Azeroth Accord 1.0.0"
-   git push origin v1.0.0
+   git tag -a v0.6.0 -m "Azeroth Accord 0.6.0"
+   git push origin v0.6.0
    ```
 
 4. Watch the run in the Actions tab, then open the GitHub Release (and CurseForge) and download the zip once: the folder must be `AzerothAccord/` with the TOC inside.

@@ -1,6 +1,6 @@
 # M6 — Release
 
-**Goal:** `v1.0.0`: settings, Italian interface, polish, packaging, the images of the manual and the full manual.
+**Goal:** `v0.6.0`: settings, Italian interface, polish, packaging, the images of the manual and the full manual.
 
 ### M6.1 — Settings
 - Branch: `step/m6-1-settings`
@@ -51,9 +51,9 @@
   - [x] `tools/make_mockups.py`, `mockup_lib.py`, `mockup_scenes.py`, `mockup_scenes2.py`, `mockup_spec.py` and `docs/specs/mockups/` (`html/accord.css`, `accord.js`, four annotated pages, `render.sh`, `optimize_images.py`, `README.md`) make 24 design previews (the Accord tab, Roster table and grouped, member card, recipes, who can craft, likes, social index, group map, someone new, the seven Bank modes, Settings in two parts, the diagnostics box, the standalone window, three Italian ones) and four annotated mockups in WebP, from the addon's own texts, with original art and invented data and a "Design preview" strip; embedded in every wiki page of a feature, in the Interface Tour and in both READMEs.
   - [ ] Replace a preview with a real screenshot, view by view, as the in-game checks run (ADR 0019 rule 6).
 
-### M6.7 — Release checklist and v1.0.0
+### M6.7 — Release checklist and v0.6.0
 - Branch: `step/m6-7-release`
-- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v1.0.0` (the tag waits for the owner).
+- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v0.6.0` (the tag waits for the owner; `v1.0.0` comes after M15, [ADR 0020](../adr/0020-one-version-per-milestone.md)).
 - Done when:
   - [x] [`docs/checklists/release.md`](../checklists/release.md) (the order of the checks M1 to M5 and this one, what is not known yet, the package, Settings and the game's settings window, Italian, performance and S11, errors and the report, the pictures, the workflow dry run and test tag, the owner's open decisions, the release steps), the wiki (every page with its images, the Settings page, FAQ, Installation, Reporting), both READMEs, the status of every document.
-  - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 1.0.0`); the tag `v1.0.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)).
+  - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 0.6.0`); the tag `v0.6.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)).

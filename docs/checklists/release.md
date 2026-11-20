@@ -1,6 +1,6 @@
-# Release check: settings, Italian, performance, diagnostics, package (M6) and the road to v1.0.0
+# Release check: settings, Italian, performance, diagnostics, package (M6) and v0.6.0
 
-The offline tests prove that the code agrees with our assumptions about the client; this checklist proves that the client agrees with the code, and that the package is what you mean to ship. It is the **exit check of milestone M6** and it is **not done yet**: nobody has run this version on WoW Forever, and **no tag exists**. When it passes, and the checks of M1 to M5 have passed, you tag `v1.0.0` ([docs/RELEASING.md](../RELEASING.md)); until then there is no release.
+The offline tests prove that the code agrees with our assumptions about the client; this checklist proves that the client agrees with the code, and that the package is what you mean to ship. It is the **exit check of milestone M6** and it is **not done yet**: nobody has run this version on WoW Forever, and **no tag exists**. When it passes, and the checks of M1 to M5 have passed, you tag `v0.6.0` ([docs/RELEASING.md](../RELEASING.md)); until then there is no release. The same check is run again over everything before `v1.0.0`, which comes after M15 ([ADR 0020](../adr/0020-one-version-per-milestone.md)).
 
 **Exit criterion of M6:** in game, the settings work and survive a reload, the interface is complete in Italian, a large guild stays fast and small, `/accord debug` is safe to paste, and the zip the release workflow builds installs and loads.
 
@@ -16,8 +16,8 @@ The tag covers every milestone, so every earlier check has to be done on the bui
 | M2: roster, alts, contacts, co-play | [M2.md](M2.md) | `v0.2.0` |
 | M3: professions and recipes | [M3.md](M3.md) | `v0.3.0` |
 | M4: likes, social index, group map | [M4.md](M4.md) | `v0.4.0` |
-| M5: guild bank | [M5.md](M5.md) | `v0.9.0` |
-| This one | `release.md` | `v1.0.0` |
+| M5: guild bank | [M5.md](M5.md) | `v0.5.0` |
+| This one | `release.md` | `v0.6.0` |
 
 You may run them all in one session on the same two or three clients. A check that fails stops the tag it unlocks, and the later ones too, since each builds on the earlier. **The M0 probe results (S1 to S11) are still not in**: the earlier checklists answer them; this one answers S11 (performance) at the end.
 
@@ -96,7 +96,7 @@ Only when steps 1 to 6 pass, and **only you** can do these ([RELEASING](../RELEA
 
 ## 8. The decisions that wait for you (SPEC-10)
 
-Decide, or say "as implemented", before `v1.0.0`; nothing here blocks the checks:
+Decide, or say "as implemented", before `v0.6.0`; nothing here blocks the checks:
 
 | # | Question | Implemented as |
 |---|---|---|
@@ -112,7 +112,7 @@ Decide, or say "as implemented", before `v1.0.0`; nothing here blocks the checks
 ## 9. Releasing (after the results are in)
 
 1. Every box above is ticked, the results are reported, the M1 to M5 checks have passed.
-2. Follow [RELEASING.md](../RELEASING.md), "Releasing a version": promote the changelog (`python -I -X utf8 tools/release_notes.py --promote 1.0.0`), update the status of the READMEs and the wiki, merge, then tag `v1.0.0` **from the merge commit** with the noreply identity and push the tag.
+2. Follow [RELEASING.md](../RELEASING.md), "Releasing a version": promote the changelog (`python -I -X utf8 tools/release_notes.py --promote 0.6.0`), update the status of the READMEs and the wiki, merge, then tag `v0.6.0` **from the merge commit** with the noreply identity and push the tag.
 3. Watch the run, download the release zip once, install it and run steps 1 and 2 of this check on it.
 4. Tick the M6.7 box in [M6-release.md](../roadmap/M6-release.md) and announce.
 

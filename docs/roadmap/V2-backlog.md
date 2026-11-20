@@ -1,17 +1,34 @@
-# V2 backlog
+# Backlog
 
-Ideas for after `v1.0.0`. Each becomes a milestone file when it is planned.
+Ideas not yet planned, and what stays out of the addon. Every idea of the first backlog now has a milestone ([M7 to M15](README.md)).
+
+## Where the first ideas went
+
+| Idea | Milestone |
+|---|---|
+| Raid sign-ups and roster | [M10](M10-calendar-raids.md): events, sign-ups, bench and composition, and the guild's season roster |
+| Attendance | [M10](M10-calendar-raids.md): optional, off by default |
+| Loot integration | [M11](M11-loot-handbook.md): no loot engine; the handbook describes the guild's system and names its addon (SPEC-10 Q6) |
+| Guild board and extra notes | [M14](M14-board-polls.md) (board, MOTD history) and [M8](M8-officer-tools.md) (extended officer notes) |
+| Craft orders | [M13](M13-economy.md) |
+| Guild goals | [M13](M13-economy.md) |
+| Polls | [M14](M14-board-polls.md) |
+| Availability map | [M10](M10-calendar-raids.md) |
+| Officer tools | [M8](M8-officer-tools.md) |
+| Kudos with a reason | [M14](M14-board-polls.md) |
+| Mentors for new members | [M12](M12-recruitment.md) |
+
+## Not planned
 
 | Idea | Notes |
 |---|---|
-| **Raid sign-ups and roster** | Events with roles, bench and composition check; can read the game calendar (`C_Calendar`) |
-| **Attendance** | Recorded automatically from the raid roster inside raid instances |
-| **Loot integration** | Connect the guild's custom loot system; needs its description first (SPEC-10 Q6) |
-| **Guild board and extra notes** | Pinned announcements, MOTD history, longer notes per member |
-| **Craft orders** | Registered requests with status, from "who can craft" |
-| **Guild goals** | Collective targets (materials, gold) with progress from bank logs |
-| **Polls** | Officer polls with one vote per account, reusing the likes notary |
-| **Availability map** | When members usually play, from presence over time |
-| **Officer tools** | Inactive accounts (alts considered), promotion suggestions, export to CSV or Discord-ready text |
-| **Kudos with a reason** | A short optional text with a like, visible to the target only |
-| **Mentors for new members** | Pairing suggestions from the social graph |
+| Guild auctions run by one officer's client | M13.6, only if the owner asks for it after M13.5 |
+
+## Out of scope
+
+These stay out ([ADR 0001](../adr/0001-client-only-addon-guild-only-data.md), [SPEC-00 §3](../specs/SPEC-00-vision-scope.md)):
+- companion apps, Discord bots and web dashboards;
+- data shared with other guilds, including alliances between guilds;
+- exact positions of players;
+- gambling and gold stakes;
+- separate addon packages.

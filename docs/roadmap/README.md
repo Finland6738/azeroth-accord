@@ -10,15 +10,28 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M3** | [M3-professions.md](M3-professions.md) | Recipes per member, "who can craft", craft requests | 6 | final check |
 | **M4** | [M4-reputation.md](M4-reputation.md) | Likes, social index, group map, suggested teammates | 7 | final check |
 | **M5** | [M5-guild-bank.md](M5-guild-bank.md) | Bank snapshots, logs, donations, requests | 7 | final check |
-| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, v1.0.0 | 7 | beta and release checklist |
-| V2 | [V2-backlog.md](V2-backlog.md) | Ideas after v1.0.0 | — | — |
+| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, v0.6.0 | 7 | release checklist |
+| **M7** | [M7-data-trust.md](M7-data-trust.md) | Provenance, guild of alts outside the guild, demo, backup, "what I share", hardening | 8 | final check |
+| **M8** | [M8-officer-tools.md](M8-officer-tools.md) | Roster timeline, inactivity, cleanup wizard, manual-ops queue, notes, export | 7 | final check |
+| **M9** | [M9-action-center.md](M9-action-center.md) | Action Center, notifications, quiet hours, login digest | 6 | final check |
+| **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, events and sign-ups, composition, availability, rallies | 8 | final check |
+| **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented | 7 | final check |
+| **M12** | [M12-recruitment.md](M12-recruitment.md) | Recruitment, trials, onboarding, mentors | 6 | final check |
+| **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, wishlist, buy and sell board, goals | 7 | final check |
+| **M14** | [M14-board-polls.md](M14-board-polls.md) | Board, MOTD history, polls, kudos | 6 | final check |
+| **M15** | [M15-community.md](M15-community.md) | Opt-in community features; v1.0.0 | 7 | final check and full release check |
+| — | [V2-backlog.md](V2-backlog.md) | Where the first ideas went, what is not planned, what stays out | — | — |
 
 ## Order and dependencies
 
 ```mermaid
 flowchart LR
   M0[M0 Spike] --> M1[M1 Foundations] --> M2[M2 Roster] --> M3[M3 Professions] --> M4[M4 Reputation] --> M5[M5 Guild bank] --> M6[M6 Release]
+  M6 --> M7[M7 Data trust] --> M8[M8 Officer tools] --> M9[M9 Action Center] --> M10[M10 Calendar and raids] --> M11[M11 Loot and handbook]
+  M11 --> M12[M12 Recruitment] --> M13[M13 Economy] --> M14[M14 Board and polls] --> M15[M15 Community] --> V1[v1.0.0]
 ```
+
+Every milestone ends with its in-game check and its version, `v0.N.0`; fixes raise the last number; `v1.0.0` follows M15 ([ADR 0020](../adr/0020-one-version-per-milestone.md)). Each milestone from M7 on opens with a step that writes its specification in `docs/specs/` (SPEC-11 to SPEC-19), in Italian, before any code.
 
 M0 can change the plan: each check names the specs and ADRs it may revise. M1 may start on the specification's assumptions while the owner runs the probe; M0.8 then revises what the results contradict.
 

@@ -44,7 +44,7 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 - PRO-02: il clic apre l'**elenco delle ricette** di quel personaggio per quella professione: icona, nome dell'oggetto, livello di difficoltà, tooltip dell'oggetto, ricerca e filtri per categoria.
 - PRO-03: se la ricetta del membro è sconosciuta (nessuna fonte) la vista lo dice e suggerisce di chiedergli di aprire la professione con l'addon.
 - PRO-04: la vista **Professions** offre la ricerca "**who can craft …**": nome dell'oggetto o della ricetta → elenco dei membri che la conoscono, online prima, raggruppati per account.
-- PRO-05: pulsante **Request craft** su una ricetta di un membro: apre un messaggio sussurrato precompilato con il link della ricetta (lo invia il giocatore); in V2 diventa un ordine registrato.
+- PRO-05: pulsante **Request craft** su una ricetta di un membro: apre un messaggio sussurrato precompilato con il link della ricetta (lo invia il giocatore); in M13 diventa un ordine registrato.
 - PRO-06: il proprio elenco di ricette si pubblica quando cambia (hash diverso), al massimo una volta ogni 10 minuti per professione.
 
 ### 2.1 Realizzazione dell'elenco delle ricette (M3.4)
@@ -66,7 +66,7 @@ I risultati della sonda in gioco (M0.4, controllo S3) **non sono ancora disponib
 
 - Un pulsante **Request craft** compare su ogni ricetta dell'elenco di un membro e su ogni persona sotto una ricetta di "who can craft", **solo se il membro è online** e non è il giocatore. Non compare sulla riga d'intestazione della ricetta, sui membri offline (un sussurro non li raggiungerebbe) né sulle proprie ricette.
 - Il clic apre la casella della chat con `/w <nome> Hello! Could you craft <link> for me? Thank you!` (`Recipes:OpenCraftRequest`, `Compat.Chat.OpenWhisper(nome, testo)`): **l'addon non invia nulla**, il giocatore legge, cambia se vuole e preme Invio. Il link è quello dell'incantesimo della ricetta (`C_Spell.GetSpellLink`, altrimenti costruito dal nome); una ricetta senza nome non si può chiedere. Il testo è nella lingua dell'interfaccia del giocatore. Un messaggio di chat ha al massimo 255 caratteri: più lungo non si apre.
-- `CRAFT_REQUESTED(guid, recipeId)` va sul Bus (per la V2, quando la richiesta diventerà un ordine registrato). Nessun dato di una richiesta viene salvato né condiviso.
+- `CRAFT_REQUESTED(guid, recipeId)` va sul Bus (per M13, quando la richiesta diventerà un ordine registrato). Nessun dato di una richiesta viene salvato né condiviso.
 
 ## 3. Dimensioni
 

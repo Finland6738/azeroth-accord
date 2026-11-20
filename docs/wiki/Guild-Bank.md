@@ -1,6 +1,6 @@
 # Guild bank
 
-> Available from the bank version (`v0.9.0`). The addon has not been checked in the real game yet: the first tests are with the owner's guild (the in-game check is [docs/checklists/M5.md](https://github.com/Finland6738/azeroth-accord/blob/main/docs/checklists/M5.md)).
+> Available from the bank version (`v0.5.0`). The addon has not been checked in the real game yet: the first tests are with the owner's guild (the in-game check is [docs/checklists/M5.md](https://github.com/Finland6738/azeroth-accord/blob/main/docs/checklists/M5.md)).
 
 - The game shows the bank only at the vault. Whenever a guildmate with the addon opens it, the addon saves what each tab holds and shares it, so the **Bank** view works anywhere. Each tab shows how old its contents are.
 - Tabs that your rank cannot see in the game stay hidden in the addon too.

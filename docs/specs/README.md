@@ -5,7 +5,7 @@ Addon **non ufficiale** per **WoW: Forever** che aggiunge alla finestra della Gi
 - Stato: **Bozza 1, da revisionare** (2026-11-18)
 - Client di riferimento: WoW Forever `1.60.1`, `## Interface: 16001`, `WOW_PROJECT_ID == WOW_PROJECT_CAMELOT`
 - Distribuzione: GitHub Releases (CurseForge facoltativo), installazione manuale
-- Lingua dell'addon: inglese e italiano dalla `v1.0.0` ([ADR 0015](../adr/0015-interface-and-documentation-languages.md))
+- Lingua dell'addon: inglese e italiano dalla `v0.6.0` ([ADR 0015](../adr/0015-interface-and-documentation-languages.md))
 - Lingua di questi documenti: italiano; nomi di codice, API e testi dell'interfaccia in inglese
 
 ## Indice

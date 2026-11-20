@@ -46,9 +46,9 @@
 - Done when:
   - [x] Officers (and nobody else) see the count of open requests on the tab, the panel button and the compartment tooltip; the inbox lists what waits, oldest first; an officer is told about a new request and the requester about a decision, once, without a flood at install; a request gets a "looks delivered" proposal from the logs, never a change by itself (`Tests/test_bank_inbox.lua`, with the network simulator).
 
-### M5.7 — M5 in-game check and v0.9.0 beta
+### M5.7 — M5 in-game check and v0.5.0
 - Branch: `step/m5-7-check`
-- Scope: `docs/checklists/M5.md`, wiki "Guild Bank", tag `v0.9.0` (beta for the owner's guild).
+- Scope: `docs/checklists/M5.md`, wiki "Guild Bank", tag `v0.5.0` ([ADR 0020](../adr/0020-one-version-per-milestone.md)).
 - Done when:
   - [x] `docs/checklists/M5.md` (the in-game check: capture, sharing, permissions, logs and donations, requests, inbox and notices, taint; it lists every unverified API and behaviour and the S9 questions), the wiki page Guild Bank, README status.
-  - [ ] The in-game check passes with the owner's guild, then the tag `v0.9.0` (not created: it waits for the check, [docs/RELEASING.md](../RELEASING.md)).
+  - [ ] The in-game check passes with the owner's guild, then the tag `v0.5.0` (not created: it waits for the check, [docs/RELEASING.md](../RELEASING.md)).
