@@ -13,7 +13,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Planning
 
 - Development roadmap in `docs/roadmap/`: M0 spike to M6 release (50 steps) with branch, dependencies, scope, acceptance criteria, tests, docs and real-client checks, plus the V2 backlog.
-- Milestones M7 to M15 (62 steps) after the owner's review of a guild-addon specification: data trust and quality (with the guild of alts outside the guild), officer tools and roster history, the Action Center and notifications, calendar, raids and the guild's season roster (MS1 / MS2 / OS, attendance optional and off by default), loot and the guild handbook (editable pages; loot documented with its addon, no loot engine), recruitment and trials, economy, board and polls, community. The V2 backlog now maps each old idea to its milestone and lists what stays out.
+- Milestones M7 to M15 (63 steps) after the owner's review of a guild-addon specification: data trust and quality (with the guild of alts outside the guild), officer tools and roster history, the Action Center and notifications, calendar, raids and the guild's season roster (MS1 / MS2 / OS, attendance optional and off by default), loot and the guild handbook (editable pages; loot documented with its addon, no loot engine), recruitment and trials, economy, board and polls, community. The V2 backlog now maps each old idea to its milestone and lists what stays out.
+- M7.8 planned: an About page in the addon and a Credits section in the READMEs and the wiki (created and designed by Finland, for the Italian guild NEBULA); M7's check becomes M7.9.
 - One version per milestone ([ADR 0020](docs/adr/0020-one-version-per-milestone.md)): `v0.<milestone>.0`, fixes raise the last number, `v1.0.0` after M15. M5 becomes `v0.5.0` (was the `v0.9.0` beta) and M6 `v0.6.0` (was `v1.0.0`).
 
 ### Addon

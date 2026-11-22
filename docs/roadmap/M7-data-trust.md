@@ -1,6 +1,6 @@
 # M7 — Data trust and quality
 
-**Goal:** every value says where it comes from and how old it is. Alts in other guilds show that guild. A demo mode, a personal backup and a "what I share" panel are added. The network is hardened against bad peers and very large guilds. Release: `v0.7.0`.
+**Goal:** every value says where it comes from and how old it is. Alts in other guilds show that guild. A demo mode, a personal backup, a "what I share" panel and an About page with the credits are added. The network is hardened against bad peers and very large guilds. Release: `v0.7.0`.
 
 **Exit criterion:** in game, the member card of a player with an alt in another guild shows "Other guild: <name>" with the date that alt was last seen. The "what I share" panel lists exactly what the player's own records contain.
 
@@ -63,8 +63,26 @@
 - Done when:
   - [ ] Every bad-peer case is refused without errors and without blocking the queue; the burst stays inside the traffic budget; names with spaces round-trip through every data set.
 
-### M7.8 — In-game check and release
-- Branch: `step/m7-8-check`
+### M7.8 — About and credits
+- Branch: `step/m7-8-credits`
+- Spec: SPEC-04 (a new "About" section); SPEC-11
+- Scope: the owner asked (2026-11-22) for a credits and information section, in the addon and in the documentation. It tells the addon's story: it was created and designed by **Finland** (the owner) for the Italian guild **NEBULA**.
+  - In the addon: an **About** page, reached from the Settings view and the game's settings panel, and with `/accord about`. It shows:
+    - the name, the version and two lines on what the addon does;
+    - "Created and designed by Finland";
+    - "Made with the Italian guild NEBULA";
+    - the GPL-3.0 licence;
+    - the repository address as selectable text.
+    It is in English and Italian. The TOC gains `## X-Credits`.
+  - In the documentation: a **Credits** section in `README.md` and `README.it.md`, and a wiki page **About** linked from Home, the sidebar and the footer.
+  - A design preview of the About page is added to the mockups (ADR 0019).
+  - Use only the facts the owner gave. Further details (realm, Discord invite, logo, other people to thank) go in only if the owner provides them.
+- Done when:
+  - [ ] The About page opens from Settings and from `/accord about` in both languages; the texts are locale keys (`Tests/test_locales.lua`); the wiki page and both README sections exist; `tools/check_docs.py` passes.
+- Real client: the page in the Settings view and in the game's settings window.
+
+### M7.9 — In-game check and release
+- Branch: `step/m7-9-check`
 - Scope: `docs/checklists/M7.md` and the README status. The owner releases `v0.7.0`.
 - Done when:
   - [ ] The checklist exists.
