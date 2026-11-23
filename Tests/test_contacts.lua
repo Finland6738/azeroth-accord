@@ -241,7 +241,7 @@ describe("the card, the copy box and the settings", function()
 		Mock.Slash("/accord roster")
 		Mock.Advance(2)
 		A().RosterView.frame:SetWidth(900)
-		for _, r in ipairs(A().RosterView.frame.area.rows) do
+		for _, r in ipairs(A().RosterView.frame.table.rows) do
 			if r:IsShown() and r.cells[1]:GetText() == name then r:Click() return end
 		end
 		fail("no row " .. name)

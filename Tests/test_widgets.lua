@@ -93,6 +93,9 @@ local function builders()
 		{ "Select", true, function(p)
 			return Kit().Select(p, { placeholder = "QZ1", choices = { { id = "a", text = "QZ2" }, { id = "b", text = "QZ3" } } })
 		end },
+		{ "Menu", true, function(p)
+			return Kit().Menu.Show(p, { { text = "QZ1", header = true }, { text = "QZ2", checked = true }, { text = "QZ3" } })
+		end },
 		{ "Snackbar", true, function(p) local s = Kit().Snackbar(p); s:Say("QZ1", "ok"); return s end },
 		{ "Skeleton", false, function(p) return Kit().Skeleton(p, 100, 12) end },
 		{ "ThinBar", false, function(p) local b = Kit().ThinBar(p, { width = 100 }); b:SetFraction(0.5); return b end },
@@ -1172,5 +1175,164 @@ describe("data table", function()
 		near(t.rows[1].line._texture[1], token1("border-subtle", "aurora"), 1e-6)
 		Th().Apply("nebula")
 		eq(snapshot(t), a)
+	end)
+end)
+
+describe("menu", function()
+	local function open(items, width)
+		return Kit().Menu.Show(CreateFrame("Frame"), items, width)
+	end
+
+	it("lists the items under the anchor, with a check on the checked ones and a heading that is not a choice", function()
+		local clicked = {}
+		local m = open({
+			{ text = "Columns", header = true },
+			{ text = "Zone", checked = true, onClick = function() clicked[#clicked + 1] = "zone" end },
+			{ text = "Rank", onClick = function() clicked[#clicked + 1] = "rank" end },
+		})
+		truthy(Kit().Menu.IsOpen())
+		eq(m, Kit().Menu.frame)
+		eq(m.rows[1].label:GetText(), "Columns")
+		falsy(m.rows[1].check:IsShown(), "a heading has no check")
+		truthy(m.rows[2].check:IsShown()); falsy(m.rows[3].check:IsShown())
+		m.rows[1]:Click()
+		eq(#clicked, 0)
+		truthy(Kit().Menu.IsOpen(), "a click on a heading changes nothing")
+		m.rows[3]:Click()
+		deepEq(clicked, { "rank" })
+		falsy(Kit().Menu.IsOpen(), "choosing closes it")
+	end)
+
+	it("keepOpen flips the check and keeps the menu open, a click outside or Esc closes it", function()
+		local n = 0
+		local m = open({ { text = "Zone", checked = false, keepOpen = true, onClick = function() n = n + 1 end } })
+		m.rows[1]:Click()
+		truthy(m.rows[1].check:IsShown()); truthy(Kit().Menu.IsOpen()); eq(n, 1)
+		m.rows[1]:Click()
+		falsy(m.rows[1].check:IsShown()); eq(n, 2)
+		Mock.RunScript(m.catcher, "OnClick")
+		falsy(Kit().Menu.IsOpen())
+		falsy(m.catcher:IsShown())
+		open({ { text = "A" } })
+		truthy(Kit().Menu.IsOpen())
+		local registered = false
+		for _, name in ipairs(UISpecialFrames) do if name == "AzerothAccordKitMenu" then registered = true end end
+		truthy(registered, "Esc closes it")
+	end)
+
+	it("one menu serves every call: another list replaces the rows and the extra rows hide", function()
+		local m = open({ { text = "A" }, { text = "B" }, { text = "C" } })
+		local again = open({ { text = "Only" } })
+		eq(m, again)
+		eq(again.rows[1].label:GetText(), "Only")
+		falsy(again.rows[2]:IsShown()); falsy(again.rows[3]:IsShown())
+		truthy(again:GetHeight() < m.rows[1]:GetHeight() * 3)
+	end)
+
+	it("follows a change of theme", function()
+		local m = open({ { text = "A", checked = true }, { text = "B" } })
+		local before = snapshot(m)
+		Th().Apply("aurora")
+		ne(snapshot(m), before)
+		Th().Apply("nebula")
+		eq(snapshot(m), before)
+	end)
+end)
+
+describe("data table for a caller that sorts and changes columns (M6.13)", function()
+	local function make(sorted)
+		local host = CreateFrame("Frame")
+		host:SetSize(600, 500)
+		local clicks = {}
+		local t = Kit().DataTable(host, {
+			{ id = "name", title = "Name", flex = 1, text = function(d) return d.name end },
+			{ id = "level", title = "Level", width = 60, text = function(d) return d.level end },
+			{ id = "note", title = "Note", width = 60, sortable = false, text = function() return "" end },
+		}, { onSort = function(id) clicks[#clicks + 1] = id end, pool = 10 })
+		t:SetSize(600, 500)
+		return t, clicks
+	end
+	local function data(n)
+		local list = {}
+		for i = 1, n do list[i] = { name = "Z" .. (100 - i), level = i } end   -- already in the order the caller wants
+		return list
+	end
+
+	it("a click on a header calls the caller and does not sort; SetData keeps the given order", function()
+		local t, clicks = make()
+		t:SetData(data(30))
+		Mock.RunScript(t.heads[2], "OnClick")
+		deepEq(clicks, { "level" })
+		eq(t:GetData()[1].level, 1)
+		eq(t:GetData()[30].level, 30)
+		falsy(t.heads[3]:GetScript("OnClick"), "a column that is not sortable has no click")
+	end)
+
+	it("SetSortMark paints the arrow and the title of the sorted column, and clears it for an unknown one", function()
+		local t = make()
+		truthy(t:SetSortMark("level", true))
+		local id, desc = t:GetSort()
+		eq(id, "level"); truthy(desc)
+		truthy(t.heads[2].arrow:IsShown()); falsy(t.heads[1].arrow:IsShown())
+		near((t.heads[2].label:GetTextColor()), token1("accent-text"), 1e-6)
+		near((t.heads[1].label:GetTextColor()), token1("text-3"), 1e-6)
+		falsy(t:SetSortMark("nope"))
+		falsy(t.heads[2].arrow:IsShown())
+		isNil(t:GetSort())
+	end)
+
+	it("SetData keeps the place in the list when the caller sorts, or when asked", function()
+		local t = make()
+		t:SetData(data(100))
+		t:SetOffset(20)
+		t:SetData(data(100))
+		eq(t.offset, 20)
+		t:SetData(data(10))
+		eq(t.offset, 0, "clamped when the list got short")
+		local plain = Kit().DataTable(CreateFrame("Frame"), { { id = "a", title = "A", text = function(d) return d.level end } }, {})
+		plain:SetSize(600, 500)
+		plain:SetData(data(100))
+		plain:SetOffset(20)
+		plain:SetData(data(100))
+		eq(plain.offset, 0, "a table that sorts starts at the top")
+		plain:SetOffset(20)
+		plain:SetData(data(100), true)
+		eq(plain.offset, 20, "unless the caller asks to keep the place")
+	end)
+
+	it("SetColumns gives the table another set of columns, reusing the header buttons and the cells", function()
+		local t = make()
+		t:SetData(data(5))
+		local head1, cell1 = t.heads[1], t.rows[1].cells[1]
+		t:SetColumns({
+			{ id = "level", title = "Lvl", width = 80, mono = true, text = function(d) return d.level end },
+		})
+		t:Refresh()
+		eq(t.heads[1], head1); eq(t.rows[1].cells[1], cell1)
+		eq(head1.label:GetText(), "LVL")
+		falsy(t.heads[2]:IsShown()); falsy(t.heads[3]:IsShown())
+		eq(t.rows[1].cells[1]:GetText(), "1")
+		falsy(t.rows[1].cells[2]:IsShown()); falsy(t.rows[1].cells[3]:IsShown())
+		eq(t.rows[1].cells[1]:GetFontObject(), Th().Font("Mono"))
+		t:SetColumns({
+			{ id = "name", title = "Name", flex = 1, text = function(d) return d.name end },
+			{ id = "level", title = "Level", width = 60, text = function(d) return d.level end },
+			{ id = "x", title = "X", width = 60, text = function() return "x" end },
+		})
+		t:Refresh()
+		truthy(t.heads[3]:IsShown()); truthy(t.rows[1].cells[3]:IsShown())
+		eq(t.rows[1].cells[3]:GetText(), "x")
+		eq(t.rows[1].cells[1]:GetFontObject(), Th().Font("Body"))
+	end)
+
+	it("keeps the sort mark through SetColumns when the column is still there", function()
+		local t = make()
+		t:SetSortMark("level", false)
+		t:SetColumns({ { id = "level", title = "L", width = 60, text = function(d) return d.level end },
+			{ id = "name", title = "N", flex = 1, text = function(d) return d.name end } })
+		truthy(t.heads[1].arrow:IsShown())
+		t:SetColumns({ { id = "name", title = "N", flex = 1, text = function(d) return d.name end } })
+		falsy(t.heads[1].arrow:IsShown())
+		isNil(t:GetSort())
 	end)
 end)

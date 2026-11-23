@@ -119,7 +119,8 @@
 - Spec: SPEC-05; SPEC-06; `ui-style.md`
 - Scope: the Roster in a DataTable (sorting, search, filters with chips, grouped rows), the member card in cards with badges, the Professions view and "who can craft". Behaviour does not change.
 - Done when:
-  - [ ] The existing tests of these views pass unchanged or with only layout changes; wiki pages Guild Roster and Professions and Recipes.
+  - [x] The existing tests of these views pass unchanged or with only layout changes; wiki pages Guild Roster and Professions and Recipes.
+- Real client: how the Roster, the member card and the Professions list look and scroll (9-slice, class marks, clipping of the card, wheel), the Kit.Menu and Kit.Select popups over the guild window, the toolbar width with Italian texts, speed with a real 1000-member guild.
 
 ### M6.14 — Views, part 2: Reputation, Bank, Settings, and the old look removed
 - Branch: `step/m6-14-views-2`

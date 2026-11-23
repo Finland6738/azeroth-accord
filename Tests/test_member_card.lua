@@ -154,7 +154,7 @@ describe("the frame", function()
 	end
 
 	local function rowOf(name)
-		for _, r in ipairs(V().frame.area.rows) do
+		for _, r in ipairs(V().frame.table.rows) do
 			if r:IsShown() and r.cells[1]:GetText() == name then return r end
 		end
 	end
@@ -170,9 +170,9 @@ describe("the frame", function()
 		eq(Card().frame.subtitle:GetText(), "Level 50 Mage")
 		falsy(Card().narrow)
 		eq(Card().frame:GetWidth(), Card().WIDTH)
-		eq(V().inset, Card().WIDTH + 4)
-		local _, _, _, x = V().frame.area:GetPoint(2)
-		eq(x, -14 - (Card().WIDTH + 4))
+		eq(V().inset, Card().WIDTH + 8)
+		local _, _, _, x = V().frame.table:GetPoint(2)
+		eq(x, -(Card().WIDTH + 8))
 		truthy(Card().frame.close:IsShown()); falsy(Card().frame.back:IsShown())
 	end)
 
@@ -182,13 +182,56 @@ describe("the frame", function()
 		local items = Card().frame.items
 		local texts = {}
 		for _, it in ipairs(items) do if it:IsShown() then texts[#texts + 1] = it.text:GetText() end end
-		eq(texts[1], "Details")
+		local heads = {}
+		for _, sec in ipairs(Card().frame.sections) do if sec:IsShown() then heads[#heads + 1] = sec.heading:GetText() end end
+		eq(heads[1], "DETAILS")
+		eq(heads[2], "PROFESSIONS")
+		eq(texts[1], "Zone: Stormwind")
 		contains(table.concat(texts, "|"), "Blacksmithing 75/300 (shared by the member, 3 d ago)")
 		contains(table.concat(texts, "|"), "Elsewhere (12 Hunter) - not in guild")
 		local count = #items
 		rowOf("Ann"):Click()
 		eq(Card().frame.title:GetText(), "Ann")
 		truthy(#items <= count + 4)
+	end)
+
+	it("shows the badges of the member and a count on the sections that list things", function()
+		open()
+		rowOf("Bob"):Click()
+		local f = Card().frame
+		local badges = {}
+		for _, b in ipairs(f.badges) do if b:IsShown() then badges[#badges + 1] = b.label:GetText() end end
+		deepEq(badges, { "MAIN", "0.2.0" })
+		local counts = {}
+		for _, sec in ipairs(f.sections) do if sec:IsShown() and sec.count:IsShown() then counts[sec.heading:GetText()] = sec.count.label:GetText() end end
+		local d = Card().description
+		eq(counts["PROFESSIONS"], tostring(d.sections[2].count))
+		truthy(d.sections[2].count >= 1)
+		eq(counts["CHARACTERS OF THE SAME ACCOUNT"], "2", "Bobalt and the character outside the guild")
+		rowOf("Ann"):Click()
+		local after = 0
+		for _, b in ipairs(f.badges) do if b:IsShown() then after = after + 1 end end
+		eq(after, #Card().Badges(Card().entry), "the badges of the new member only")
+	end)
+
+	it("the card scrolls with the wheel when its sections do not fit, and starts at the top for another member", function()
+		open()
+		V().frame:SetWidth(900)
+		rowOf("Bob"):Click()
+		local f = Card().frame
+		f.content:SetHeight(60)   -- a short card
+		Card():Layout()
+		truthy(Card():MaxScroll() > 0)
+		truthy(f.thumb:IsShown())
+		local first = f.items[1]
+		local _, _, _, _, y0 = first:GetPoint(1)
+		Mock.RunScript(f, "OnMouseWheel", -1)
+		local _, _, _, _, y1 = first:GetPoint(1)
+		truthy(y1 > y0, "the lines moved up by the wheel step")
+		Card():ScrollBy(100000)
+		eq(Card().scroll, Card():MaxScroll())
+		rowOf("Ann"):Click()
+		eq(Card().scroll, 0)
 	end)
 
 	it("is over the table in a narrow panel, with a Back button", function()
@@ -229,7 +272,7 @@ describe("the frame", function()
 		falsy(Card():IsShown())
 		isNil(V().selected)
 		eq(V().inset, 0)
-		for _, r in ipairs(V().frame.area.rows) do falsy(r.selected:IsShown() and r.data.entry.guid == BOB) end
+		for _, r in ipairs(V().frame.table.rows) do falsy(r.selected:IsShown() and r.data.entry.guid == BOB) end
 	end)
 
 	it("follows the data while open and closes when the member leaves the roster", function()

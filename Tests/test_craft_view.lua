@@ -43,7 +43,7 @@ local function type_(text) Mock.TypeInto(Shell().content.bar.search, text) end
 
 local function rows()
 	local out = {}
-	for _, row in ipairs(V().frame.area.rows) do
+	for _, row in ipairs(V().frame.table.rows) do
 		if row:IsShown() then out[#out + 1] = { name = row.name:GetText(), detail = row.detail:IsShown() and row.detail:GetText() or nil, note = row.note:GetText(), row = row } end
 	end
 	return out
@@ -147,7 +147,7 @@ describe("the search", function()
 		truthy(shown > 0 and shown < 40)
 		V():Scroll(30)
 		eq(rows()[1].name:sub(1, 10), "Test Potio")
-		truthy(V().frame.track.thumb:IsShown())
+		truthy(V().frame.table.scroll:IsShown())
 	end)
 end)
 
@@ -193,11 +193,8 @@ describe("from the list of crafters to a member's recipes and back", function()
 	it("the tooltip of a crafter says who they are, what they craft and where the list comes from", function()
 		put(BOB, ALCHEMY, { 2330 })
 		open(); type_("minor healing")
-		local lines = {}
-		GameTooltip.SetText = function(_, text) lines[#lines + 1] = text end
-		GameTooltip.AddLine = function(_, text) lines[#lines + 1] = text end
 		V():ShowTooltip(rows()[2].row)
-		deepEq(lines, { "Bob", "Can craft: Minor Healing Potion", "Alchemy 285/300 - shared by the member's addon, 3 d ago", "Click to see all their recipes." })
+		deepEq(AzerothAccord.Kit.Tooltip.Lines(), { "Bob", "Can craft: Minor Healing Potion", "Alchemy 285/300 - shared by the member's addon, 3 d ago", "Click to see all their recipes." })
 	end)
 
 	it("OpenCraft shows the search with a given text", function()

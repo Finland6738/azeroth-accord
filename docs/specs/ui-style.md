@@ -141,8 +141,26 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   di ridimensionamento è l'icona `dashed` del foglio delle icone (`text-3`, `accent-text` sotto il mouse), nessuna
   texture di Blizzard.
 - **Linguetta.** Icona invariata (SPEC-10 Q2); il badge delle richieste è un cerchio `accent` col numero in `on-accent`.
-- Le viste (corpo del pannello) restano col vecchio aspetto fino a M6.13-M6.14: ognuna riceve un frame semplice che
+- Le viste (corpo del pannello) restano col vecchio aspetto fino a M6.13-M6.14 (M6.13 ha fatto Roster, scheda e Professions): ognuna riceve un frame semplice che
   riempie il corpo, con 16 pt di margine.
+
+**Stato (M6.13).** Fatto: Roster, scheda membro e Professions usano il kit (`UI/Roster.lua`, `UI/MemberCard.lua`,
+`UI/CopyBox.lua`, `UI/Professions.lua`; nessuno usa più `ns.Widgets` né `ns.Skin`). Il kit è cresciuto di due cose
+(restano compatibili con i test di M6.11):
+
+- **`DataTable` con ordinamento del chiamante e colonne variabili.** `opts.onSort(id)`: il clic su un'intestazione
+  chiama il chiamante, `SetData` conserva l'ordine ricevuto e il punto di scorrimento, `SetSortMark(id, discendente)`
+  disegna la freccia (il Roster ordina nel proprio modello, che raggruppa per account). `SetColumns(colonne)`: un altro
+  insieme di colonne riusando intestazioni e celle (il selettore delle colonne del Roster). `SetData(lista, true)`
+  conserva il punto di scorrimento anche in una tabella che ordina da sola (Professions). Il testo vuoto va a capo.
+- **`Kit.Menu`** (`Controls.lua`): un elenco a comparsa di voci con la spunta (`checked`, `keepOpen`, `header`), senza
+  `UIDropDownMenu`; sostituisce `W.ShowMenu` nelle viste di M6.13 (Settings lo usa ancora fino a M6.14).
+
+I filtri a scelta singola sono `Kit.Select` (la prima voce è "tutti"), quelli sì/no `Kit.Chip`. Scelte: la riga del Roster è alta 28 pt (era 18) e la tabella mostra meno righe, ma si legge; la barra degli strumenti
+va a capo se non c'è posto (pannello stretto, scheda aperta); la scheda scorre con la rotellina (le sezioni sono in un
+frame che taglia). **Non provato nel client:** l'aspetto reale (9-slice, bagliori, quadratino di classe), il taglio dei
+figli (`SetClipsChildren`) nella scheda, la rotellina sulla scheda e sulle liste, il popup del `Kit.Menu` e dei `Kit.Select`
+sopra la finestra Gilda, la larghezza della barra con le schede in italiano, il tooltip dell'addon sulle righe.
 
 ## 4. I tre temi
 

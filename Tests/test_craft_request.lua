@@ -92,7 +92,7 @@ describe("the whisper", function()
 end)
 
 local function out() return table.concat(Mock.PlainOutput(), "\n") end
-local function rowFor(i) return V().frame.area.rows[i] end
+local function rowFor(i) return V().frame.table.rows[i] end
 
 describe("the button in the recipe list", function()
 	before_boot(function() guild() end)
@@ -102,7 +102,7 @@ describe("the button in the recipe list", function()
 		local box = capture()
 		V():Open(BOB, ALCHEMY)
 		truthy(rowFor(1).request:IsShown()); truthy(rowFor(2).request:IsShown())
-		eq(rowFor(1).request:GetText() or rowFor(1).request.label:GetText(), "Request craft")
+		eq(rowFor(1).request:GetLabel(), "Request craft")
 		rowFor(2).request:Click()   -- Minor Healing Potion (sorted: Healing Potion first)
 		eq(box.lines[1]:sub(1, 3), "/w ")
 		truthy(box.lines[1]:find("Minor Healing Potion", 1, true))
@@ -151,7 +151,7 @@ describe("the button in who can craft", function()
 		local box = capture()
 		Mock.Slash("/accord professions")
 		Mock.TypeInto(Shell().content.bar.search, "minor healing")
-		local rows = V().frame.area.rows
+		local rows = V().frame.table.rows
 		falsy(rows[1].request:IsShown(), "the recipe row")
 		truthy(rows[2].request:IsShown(), "Bob is online")
 		falsy(rows[3].request:IsShown(), "Ann is not")
@@ -164,7 +164,7 @@ describe("the button in who can craft", function()
 		put(BOB, { 2330 })
 		Mock.Slash("/accord professions")
 		Mock.TypeInto(Shell().content.bar.search, "minor healing")
-		V().frame.area.rows[2]:Click()
+		V().frame.table.rows[2]:Click()
 		eq(V().mode, "recipes")
 	end)
 end)

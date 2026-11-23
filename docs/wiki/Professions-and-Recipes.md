@@ -6,13 +6,15 @@
 
 In the **Roster** table, the **Profession 1** and **Profession 2** cells show the profession and its rank (`Alchemy 285/300` when the maximum is known). Hover a cell to see **where the information comes from** (the game, or the member's addon and how old) and click it: the **Professions** view opens on that member's recipe list. The profession lines of the **member card** do the same.
 
-The list shows an icon and the name of every recipe the member knows, sorted by name, with the game's own tooltip when you hover a recipe. Above it you see the member, the profession and the rank, **where the list comes from and how old it is** (for example "Source: shared by the member's addon, 3 d ago"), and how many recipes match.
+The list is a table with the columns *Recipe*, *Details* and *Status*: an icon and the name of every recipe the member knows, sorted by name, with the game's own tooltip when you hover a recipe. Above it you see the member (in the colour of the class), the profession and the rank, **where the list comes from and how old it is** (for example "Source: shared by the member's addon, 3 d ago"), and how many recipes match. Scroll long lists with the mouse wheel; the list keeps its place when new data arrives.
 
 - **Search**: type in the search box at the top of the panel to filter by recipe name.
-- **Category**: the menu offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
-- **Back to roster** returns to the table.
+- **Category**: the list above the table offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
+- **Back to roster** returns to the table, and **Who can craft** opens the search below.
 
 ![A guildmate's recipe list: the source and age of the list, the search, a category menu, difficulty colours, the game's own tooltip and Request craft](../specs/mockups/previews/professions-recipes.webp)
+
+*This picture still shows the previous look (the game's colours, a menu button for the category): the view now has the colours of the chosen theme, as described here. New pictures come before version `v0.6.0`.*
 
 ## When there is no list
 
@@ -24,11 +26,13 @@ Your own recipes are shared when you open your profession window with the addon:
 
 ## Who can craft
 
-Open the **Professions** view (`/accord professions`, or the **Professions** tab) and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. **Online only** keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
+Open the **Professions** view (`/accord professions`, or the **Professions** tab) and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 
 ![Who can craft: the guildmates who know each recipe, online first, with the source and age of their list and a Request craft button](../specs/mockups/previews/professions-who-can-craft.webp)
+
+*This picture still shows the previous look; it is replaced before version `v0.6.0`.*
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 

@@ -78,7 +78,7 @@ describe("a client that lacks the optional APIs", function()
 			Mock.Advance(2)
 		end
 		A().Shell:OpenView("roster")
-		local rows = A().RosterView.frame.area.rows
+		local rows = A().RosterView.frame.table.rows
 		for _, r in ipairs(rows) do if r:IsShown() then r:Click() break end end
 		Mock.Advance(1)
 		Mock.Slash("/accord debug")

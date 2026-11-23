@@ -10,27 +10,29 @@
 --             search box filters by name; the Category menu; the message in place of the rows when there is no list.
 -- The header has a Back button (to the roster, or to the craft list when the list was opened from it), and in the recipe
 -- list a "Who can craft" button; the source and the age of the list are always in the header.
+-- Drawn with the widget kit (M6.13): ghost / secondary Kit.Buttons, a Kit.Select for the category, a Kit.Chip for "online
+-- only" and one Kit.DataTable (a pool of rows refilled while the list scrolls) for both lists.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
 ns.RecipeView, ns.modules = View, ns.modules or {}
 ns.modules.RecipeView = View
 
-local L, W, Skin, Model = ns.L, ns.Widgets, ns.Skin, ns.RecipeModel
-local type, ipairs, floor, max, min = type, ipairs, math.floor, math.max, math.min
+local L, Kit, Theme, Model = ns.L, ns.Kit, ns.Theme, ns.RecipeModel
+local type, ipairs, max = type, ipairs, math.max
 
-View.ROW_HEIGHT = 22
-View.HEADER_HEIGHT = 58
-View.TOOLBAR_HEIGHT = 28
-View.DEFAULT_ROWS = 14
-View.WHEEL_STEP = 3
+View.ROW_HEIGHT = 30
+View.HEADER_HEIGHT = 72
+View.TOOLBAR_HEIGHT = 36
+View.POOL = 24
+View.ICON = 20
+View.ALL = "all"                 -- the id of "All recipes" in the category select
 View.REFRESH_DELAY = 0.4       -- lists, names and the roster change in bursts; a redraw waits for the burst to end
 
 View.mode = "craft"            -- "craft" or "recipes"
 View.cameFrom = "roster"       -- where Back goes from the recipe list: "roster" or "craft"
 View.model = Model.new()       -- the recipe list being looked at
 View.craft = { query = "", onlineOnly = false, result = nil, rows = nil, dirty = true }
-View.offset = 0
 
 local function classColor(classFile)
 	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
@@ -71,10 +73,15 @@ local function syncSearchBox(self)
 	if (box:GetText() or "") ~= text then box:SetText(text) end
 end
 
+-- The next draw starts at the top of the list.
+function View:ResetScroll()
+	if self.frame and self.frame.table then self.frame.table.offset = 0 end
+end
+
 function View:SetMode(mode)
 	if mode ~= "craft" and mode ~= "recipes" then return false end
 	self.mode = mode
-	self.offset = 0
+	self:ResetScroll()
 	syncSearchBox(self)
 	if mode == "craft" then self.craft.dirty = true end
 	if self.frame then self:Redraw() end
@@ -88,7 +95,7 @@ function View:Open(guid, skillLine, from)
 	self.cameFrom = from == "craft" and "craft" or "roster"
 	self.model:SetTarget(guid, skillLine)
 	self.mode = "recipes"
-	self.offset = 0
+	self:ResetScroll()
 	local shown = true
 	if ns.Shell then shown = ns.Shell:OpenView("professions") end
 	syncSearchBox(self)
@@ -119,10 +126,10 @@ function View:SetSearch(text)
 		if text == self.craft.query then return end
 		self.craft.query = text
 		self.craft.dirty = true
-		self.offset = 0
+		self:ResetScroll()
 		self:Redraw()
 	elseif self.model:SetSearch(text) then
-		self.offset = 0
+		self:ResetScroll()
 		self:Redraw()
 	end
 end
@@ -132,7 +139,7 @@ function View:SetOnlineOnly(on)
 	if self.craft.onlineOnly == on then return end
 	self.craft.onlineOnly = on
 	self.craft.dirty = true
-	self.offset = 0
+	self:ResetScroll()
 	self:Redraw()
 end
 
@@ -156,129 +163,87 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Building
 ---------------------------------------------------------------------------------------------------------------------
-local function categoryMenu(self)
-	local model = self.model
-	local items = {}
-	for _, c in ipairs(model:Categories()) do
-		items[#items + 1] = { text = c.label, checked = model.category == c.key,
-			onClick = function() model:SetCategory(c.key) self.offset = 0 self:Redraw() end }
-	end
-	return items
+local function categoryChoices(self)
+	local out = {}
+	for _, c in ipairs(self.model:Categories()) do out[#out + 1] = { id = c.key or View.ALL, text = c.label } end
+	return out
 end
 
 local function build(self, f)
-	local head = W.Frame(f, 10, View.HEADER_HEIGHT)
+	local head = CreateFrame("Frame", nil, f)
+	head:SetHeight(View.HEADER_HEIGHT)
 	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	head.back = W.Button(head, { text = L["RV_BACK"], width = 110, onClick = function() View:Back() end })
-	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 8, -6)
-	head.craft = W.Button(head, { text = L["CR_BUTTON"], width = 120, onClick = function() View:SetMode("craft") end })
-	head.craft:SetPoint("LEFT", head.back, "RIGHT", 6, 0)
-	head.title = W.Text(head, "title", nil, "LEFT")
-	head.title:SetPoint("LEFT", head.craft, "RIGHT", 12, 0)
-	head.title:SetPoint("RIGHT", head, "RIGHT", -8, 0)
-	head.source = W.Text(head, "small", "grey", "LEFT")
-	head.source:SetPoint("TOPLEFT", head.back, "BOTTOMLEFT", 2, -6)
-	head.source:SetPoint("RIGHT", head, "RIGHT", -8, 0)
+	head.back = Kit.Button(head, { text = L["RV_BACK"], style = "ghost", height = 32, onClick = function() View:Back() end })
+	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
+	head.craft = Kit.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
+	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
+	head.title = Theme.NewText(head, "H1", "text-1")
+	head.title:SetJustifyH("LEFT")
+	head.title:SetPoint("LEFT", head.craft, "RIGHT", 16, 0)
+	head.title:SetPoint("RIGHT", head, "RIGHT", 0, 0)
+	head.source = Theme.NewText(head, "Small", "text-3")
+	head.source:SetJustifyH("LEFT")
+	head.source:SetPoint("TOPLEFT", head.back, "BOTTOMLEFT", 2, -8)
+	head.source:SetPoint("RIGHT", head, "RIGHT", 0, 0)
 	f.head = head
 
-	local bar = W.Frame(f, 10, View.TOOLBAR_HEIGHT)
+	local bar = CreateFrame("Frame", nil, f)
+	bar:SetHeight(View.TOOLBAR_HEIGHT)
 	bar:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, 0)
-	bar.category = W.Button(bar, { text = L["RV_CATEGORY"], width = 130, onClick = function(b) W.ShowMenu(b, categoryMenu(View)) end })
-	bar.category:SetPoint("LEFT", bar, "LEFT", 8, 0)
-	bar.online = W.Check(bar, { text = L["CR_ONLINE_ONLY"], width = 110, checked = View.craft.onlineOnly,
-		tooltip = { L["CR_ONLINE_ONLY"], L["CR_ONLINE_ONLY_TIP"] }, onClick = function(on) View:SetOnlineOnly(on) end })
-	bar.online:SetPoint("LEFT", bar, "LEFT", 8, 0)
-	bar.count = W.Text(bar, "small", "grey", "RIGHT")
-	bar.count:SetPoint("RIGHT", bar, "RIGHT", -20, 0)
+	bar.category = Kit.Select(bar, { width = 220, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
+		View.model:SetCategory(id ~= View.ALL and id or nil)
+		View:ResetScroll()
+		View:Redraw()
+	end })
+	bar.category:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	bar.online = Kit.Chip(bar, { text = L["CR_ONLINE_ONLY"], pad = 24, onClick = function(chip) View:SetOnlineOnly(not chip:IsSelected()) end })
+	bar.online:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	Kit.Tooltip.Attach(bar.online, { L["CR_ONLINE_ONLY"], L["CR_ONLINE_ONLY_TIP"] }, "BOTTOM")
+	bar.count = Theme.NewText(bar, "Small", "text-3")
+	bar.count:SetJustifyH("RIGHT")
+	bar.count:SetPoint("RIGHT", bar, "RIGHT", -8, 0)
 	f.bar = bar
 
-	local area = W.Frame(f, 10, 10)
-	area:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, 0)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area.rows = {}
-	f.area = area
-
-	local track = W.Frame(f, 10, 10)
-	track:SetPoint("TOPRIGHT", bar, "BOTTOMRIGHT", 0, 0)
-	track:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	track:SetWidth(12)
-	track:EnableMouse(true)
-	W.Background(track, "grey", 0.12)
-	track.thumb = track:CreateTexture(nil, "ARTWORK")
-	track.thumb:SetColorTexture(Skin.Color("gold", 0.5))
-	track.thumb:SetWidth(10)
-	track:SetScript("OnMouseDown", function(_, button)
-		if button ~= "LeftButton" then return end
-		local cursorY
-		if GetCursorPosition then _, cursorY = GetCursorPosition() end
-		local top = track:GetTop()
-		local scale = track:GetEffectiveScale() or 1
-		if not (cursorY and top) then return end
-		local y = top - cursorY / (scale > 0 and scale or 1)
-		View:Scroll(y < (View.thumbTop or 0) and -View:VisibleRows() or View:VisibleRows())
-	end)
-	f.track = track
-
-	f.message = W.Text(f, "body", "grey", "CENTER")
-	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
-end
-
-local function newRow(self, area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(View.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-	row.highlight:SetAllPoints(row)
-	row.highlight:SetColorTexture(1, 1, 1, 0.08)
-	row.icon = row:CreateTexture(nil, "ARTWORK")
-	row.icon:SetSize(View.ROW_HEIGHT - 4, View.ROW_HEIGHT - 4)
-	row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
-	row.name = W.Text(row, "body", nil, "LEFT")
-	row.detail = W.Text(row, "small", "grey", "LEFT")
-	row.request = W.Button(row, { text = L["CR_REQUEST"], width = 84, height = View.ROW_HEIGHT - 2,
-		tooltip = function(b) return View.RequestTip(b:GetParent().data) end,
-		onClick = function(b) View:RequestCraft(b:GetParent().data) end })
-	row.request:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row.request:Hide()
-	row.note = W.Text(row, "small", "green", "RIGHT")
-	row.note:SetPoint("RIGHT", row.request, "LEFT", -8, 0)
-	row:SetScript("OnEnter", function(self2) View:ShowTooltip(self2) end)
-	row:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
-	row:SetScript("OnClick", function(self2) View:RowClicked(self2) end)
-	area.rows[i] = row
-	return row
+	-- The one table of both lists: recipe (an icon and a name, or a crafter), details, status, and the request button.
+	local columns = {
+		{ id = "name", title = L["RV_COL_RECIPE"], flex = 1.4, sortable = false, render = function(cell, d, row) View.RenderName(cell, d, row) end },
+		{ id = "detail", title = L["RV_COL_DETAILS"], flex = 1.6, sortable = false, render = function(cell, d) View.RenderDetail(cell, d) end },
+		{ id = "note", title = L["RV_COL_STATUS"], width = 140, align = "RIGHT", sortable = false, render = function(cell, d) View.RenderNote(cell, d) end },
+		{ id = "action", title = "", width = 116, sortable = false, render = function(cell) cell:SetText("") end },
+	}
+	local t = Kit.DataTable(f, columns, {
+		rowHeight = View.ROW_HEIGHT, headerHeight = 28, pool = View.POOL, maxPool = 80,
+		onRowClick = function(d, row) View:RowClicked(row) end,
+		rowSetup = function(row) View.SetupRow(row) end,
+		rowUpdate = function(row, d) View.UpdateRow(row, d) end,
+	})
+	t:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -4)
+	t:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	f.table = t
+	f.message = t.empty   -- the message in place of the rows
 end
 
 -- The game's own tooltip of a recipe (the spell link); the name and the category when it has none. A crafter row says who
 -- they are and where the list comes from.
 function View:ShowTooltip(row)
 	local d = row.data
-	if not (d and GameTooltip) then return end
-	GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+	if not d then return end
 	if d.kind == "member" then
 		local m = d.member
-		GameTooltip:SetText(m.name)
-		GameTooltip:AddLine(L["CR_TIP_RECIPE"]:format(d.recipeName), 1, 1, 1, true)
-		GameTooltip:AddLine(View.MemberDetail(m), 0.6, 0.6, 0.6, true)
-		GameTooltip:AddLine(L["CR_TIP_CLICK"], 1, 1, 1, true)
-		GameTooltip:Show()
+		Kit.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
+			L["CR_TIP_CLICK"] }, "RIGHT")
 		return
 	end
 	local link = ns.Recipes and ns.Recipes.LinkOf(d.id)
-	if link and GameTooltip.SetHyperlink then
-		GameTooltip:SetHyperlink(link)
+	if link and GameTooltip and GameTooltip.SetHyperlink then
+		Kit.Tooltip.Item(row, link, "ANCHOR_RIGHT")
 	else
-		GameTooltip:SetText(d.name)
+		local lines = { d.name }
+		if d.category then lines[2] = { text = d.category, token = "text-3" } end
+		Kit.Tooltip.Show(row, lines, "RIGHT")
 	end
-	if d.category then GameTooltip:AddLine(d.category, 0.6, 0.6, 0.6, true) end
-	GameTooltip:Show()
 end
 
 -- PRO-05: the member and the recipe of a row, for the Request craft button: a recipe of the member whose list is open, or
@@ -320,38 +285,12 @@ function View:Build(f)
 	self.frame = f
 	build(self, f)
 	f:SetScript("OnShow", function() View:Redraw() end)
-	self.offset = 0
 	self:Redraw()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- Drawing
+-- Rows
 ---------------------------------------------------------------------------------------------------------------------
-function View:VisibleRows()
-	local f = self.frame
-	local h = f and f.area and f.area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
-end
-
-local function updateThumb(self, total, visible)
-	local track = self.frame.track
-	if total <= visible then
-		track.thumb:Hide()
-		self.thumbTop = 0
-		return
-	end
-	local h = track:GetHeight() or 0
-	if h <= 0 then h = 300 end
-	local size = max(16, h * visible / total)
-	local top = (h - size) * (self.offset / (total - visible))
-	track.thumb:ClearAllPoints()
-	track.thumb:SetPoint("TOPLEFT", track, "TOPLEFT", 1, -top)
-	track.thumb:SetHeight(size)
-	track.thumb:Show()
-	self.thumbTop = top
-end
-
 -- "Alchemy 285/300, shared by the member's addon, 3 d ago" for a crafter (the profession, its rank and the source).
 function View.MemberDetail(m)
 	local parts = {}
@@ -363,83 +302,100 @@ function View.MemberDetail(m)
 	return table.concat(parts, " - ")
 end
 
-local function fillRecipeRow(self, row, d)
-	row.data = d
+-- A row is made once: the recipe icon, the Request craft button, and short names for the cells the tests and the code use.
+function View.SetupRow(row)
+	row.icon = row:CreateTexture(nil, "ARTWORK")
+	row.icon:SetSize(View.ICON, View.ICON)
+	row.name, row.detail, row.note = row.cells[1], row.cells[2], row.cells[3]
+	row.name:SetJustifyH("LEFT")
+	row.request = Kit.Button(row, { text = L["CR_REQUEST"], style = "secondary", width = 104, height = 24,
+		onClick = function(b) View:RequestCraft(b:GetParent().data) end })
+	row.request:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.request:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+	row.request:Hide()
+	Kit.Tooltip.Attach(row.request, function(b) return View.RequestTip(b:GetParent().data) end, "TOP")
+	row:HookScript("OnEnter", function(self) View:ShowTooltip(self) end)
+	row:HookScript("OnLeave", function() Kit.Tooltip.Hide() Kit.Tooltip.HideItem() end)
+end
+
+-- Anchors a cell `offset` points inside its column (the first column makes room for the icon or the indent).
+local function place(cell, row, col, offset)
+	local pos = View.frame.table.pos and View.frame.table.pos[col]
+	if not pos then return end
+	cell:ClearAllPoints()
+	cell:SetWidth(max(pos.w - offset - 8, 1))
+	cell:SetPoint("LEFT", row, "LEFT", pos.x + offset, 0)
+end
+
+-- column 1: a recipe (icon and name, coloured by difficulty in the recipe list, accent in the craft list) or a crafter
+function View.RenderName(cell, d, row)
+	if d.kind == "member" then
+		local m = d.member
+		cell:SetText(m.name)
+		Theme.ClassText(cell, classColor(m.classFile))
+		place(cell, row, 1, 8 + d.depth * 14)
+		return
+	end
+	cell:SetText(d.name)
+	if d.kind == "recipe" then
+		Theme.Text(cell, "accent-text")
+	else
+		local diff = d.difficulty ~= nil and DIFFICULTY[d.difficulty]
+		if diff then Theme.TextRGB(cell, diff[1], diff[2], diff[3]) else Theme.Text(cell, d.resolved and "text-1" or "text-3") end
+	end
+	place(cell, row, 1, View.ICON + 8)
+end
+
+function View.RenderDetail(cell, d)
+	if d.kind == "member" then cell:SetText(View.MemberDetail(d.member)) else cell:SetText("") end
+	Theme.Text(cell, "text-3")
+end
+
+function View.RenderNote(cell, d)
+	if d.kind == "recipe" then
+		cell:SetText(L["CR_CRAFTERS"]:format(d.count))
+		Theme.Text(cell, "text-3")
+	elseif d.kind == "member" then
+		cell:SetText(d.member.online and L["ONLINE"] or "")
+		Theme.Text(cell, "ok")
+	else
+		cell:SetText(d.known and L["RV_YOU_KNOW"] or "")
+		Theme.Text(cell, "ok")
+	end
+end
+
+-- The icon and the Request button, once the cells are filled.
+function View.UpdateRow(row, d)
+	if d.kind == "member" then
+		row.icon:Hide()
+		row.request:SetShown(d.member.online == true and d.member.isSelf ~= true)
+		return
+	end
 	row.icon:ClearAllPoints()
 	row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
-	row.name:ClearAllPoints()
-	row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
-	row.name:SetPoint("RIGHT", row, "RIGHT", -110, 0)
-	row.detail:Hide()
-	row.name:SetText(d.name)
-	local diff = d.difficulty ~= nil and DIFFICULTY[d.difficulty]
-	if diff then row.name:SetTextColor(diff[1], diff[2], diff[3]) else row.name:SetTextColor(Skin.Color(d.resolved and "white" or "grey")) end
-	if d.icon then
-		row.icon:SetTexture(d.icon)
-		row.icon:Show()
-	else
-		row.icon:Hide()
+	if d.icon then row.icon:SetTexture(d.icon) row.icon:Show() else row.icon:Hide() end
+	if d.kind == "recipe" then
+		row.request:Hide()
+		return
 	end
-	row.note:SetText(d.known and L["RV_YOU_KNOW"] or "")
-	row.note:SetTextColor(Skin.Color("green"))
 	local guid = requestTarget(d)
 	local e = guid and ns.Roster and ns.Roster:ByGUID(guid)
 	row.request:SetShown(e ~= nil and e.online == true and e.isSelf ~= true)
-	row:Show()
 end
 
-local function fillCraftRow(self, row, d)
-	row.data = d
-	row.name:ClearAllPoints()
-	row.detail:ClearAllPoints()
-	if d.kind == "recipe" then
-		row.icon:ClearAllPoints()
-		row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
-		row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
-		row.name:SetPoint("RIGHT", row, "RIGHT", -110, 0)
-		row.name:SetText(d.name)
-		row.name:SetTextColor(Skin.Color("gold"))
-		if d.icon then row.icon:SetTexture(d.icon) row.icon:Show() else row.icon:Hide() end
-		row.detail:Hide()
-		row.request:Hide()
-		row.note:SetText(L["CR_CRAFTERS"]:format(d.count))
-		row.note:SetTextColor(Skin.Color("grey"))
-	else
-		local m = d.member
-		row.icon:Hide()
-		row.name:SetPoint("LEFT", row, "LEFT", 34 + d.depth * 14, 0)
-		row.name:SetWidth(150)
-		row.name:SetText(m.name)
-		row.name:SetTextColor(classColor(m.classFile))
-		row.detail:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
-		row.detail:SetPoint("RIGHT", row, "RIGHT", -190, 0)
-		row.detail:SetText(View.MemberDetail(m))
-		row.detail:Show()
-		row.note:SetText(m.online and L["ONLINE"] or "")
-		row.note:SetTextColor(Skin.Color("green"))
-		row.request:SetShown(m.online == true and m.isSelf ~= true)
-	end
-	row:Show()
+---------------------------------------------------------------------------------------------------------------------
+-- Drawing
+---------------------------------------------------------------------------------------------------------------------
+function View:VisibleRows()
+	local t = self.frame and self.frame.table
+	return t and t:Capacity() or 0
 end
 
--- Draws `rows` (a list) through `fill` in the pool; returns how many rows there are.
-local function drawRows(self, rows, fill)
-	local f = self.frame
-	local total, visible = #rows, self:VisibleRows()
-	self.offset = max(0, min(self.offset or 0, max(0, total - visible)))
-	local drawn = max(0, min(visible + 1, total - self.offset))
-	for i = 1, drawn do
-		local row = f.area.rows[i] or newRow(self, f.area, i)
-		fill(self, row, rows[self.offset + i])
-	end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	updateThumb(self, total, visible)
-	return total
-end
-
-local function hideRows(self)
-	for _, row in ipairs(self.frame.area.rows) do row:Hide() end
-	self.frame.track.thumb:Hide()
+-- Gives the table `rows` (and the message shown when there are none), keeping the place in the list.
+local function setRows(self, rows, message)
+	local t = self.frame.table
+	t:SetEmptyText(message or "")
+	t:SetData(rows, true)
 end
 
 local function redrawCraft(self)
@@ -449,35 +405,30 @@ local function redrawCraft(self)
 	f.head.back:Hide()
 	f.head.craft:Hide()
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("TOPLEFT", f.head, "TOPLEFT", 8, -8)
-	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", -8, 0)
+	f.head.title:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, -6)
+	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.title:SetText(L["CR_TITLE"])
-	f.head.title:SetTextColor(Skin.Color("gold"))
+	Theme.Text(f.head.title, "text-1")
 	f.head.source:ClearAllPoints()
-	f.head.source:SetPoint("TOPLEFT", f.head.title, "BOTTOMLEFT", 0, -6)
-	f.head.source:SetPoint("RIGHT", f.head, "RIGHT", -8, 0)
+	f.head.source:SetPoint("TOPLEFT", f.head.title, "BOTTOMLEFT", 0, -8)
+	f.head.source:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.source:SetText(L["CR_HINT"])
 	f.bar.category:Hide()
 	f.bar.online:Show()
-	f.bar.online:SetChecked(c.onlineOnly)
+	f.bar.online:SetSelected(c.onlineOnly)
 	if result.status == "ok" then
-		local total = drawRows(self, c.rows, fillCraftRow)
-		local crafters = 0
-		for _, r in ipairs(result.recipes) do crafters = crafters + r.count end
+		setRows(self, c.rows, L["CR_NONE"]:format(self.craft.query))
 		f.bar.count:SetText(result.more > 0 and L["CR_COUNT_MORE"]:format(#result.recipes, result.total) or L["CR_COUNT"]:format(result.total))
-		f.message:SetShown(total == 0)
 		return
 	end
-	hideRows(self)
 	f.bar.count:SetText("")
 	if result.status == "short" then
-		f.message:SetText(L["CR_TYPE"])
+		setRows(self, {}, L["CR_TYPE"])
 	elseif result.pending > 0 then
-		f.message:SetText(L["CR_LOADING"])
+		setRows(self, {}, L["CR_LOADING"])
 	else
-		f.message:SetText(L["CR_NONE"]:format(self.craft.query))
+		setRows(self, {}, L["CR_NONE"]:format(self.craft.query))
 	end
-	f.message:Show()
 end
 
 local function redrawRecipes(self)
@@ -486,34 +437,33 @@ local function redrawRecipes(self)
 	f.head.back:Show()
 	f.head.craft:Show()
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 12, 0)
-	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", -8, 0)
+	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 16, 0)
+	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.source:ClearAllPoints()
-	f.head.source:SetPoint("TOPLEFT", f.head.back, "BOTTOMLEFT", 2, -6)
-	f.head.source:SetPoint("RIGHT", f.head, "RIGHT", -8, 0)
+	f.head.source:SetPoint("TOPLEFT", f.head.back, "BOTTOMLEFT", 2, -8)
+	f.head.source:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.bar.online:Hide()
 	local d = model:Describe()
 	local title = L["RV_TITLE"]:format(d.title, d.profession)
 	if d.rank then title = title .. " " .. d.rank .. (d.maxRank and ("/" .. d.maxRank) or "") end
 	f.head.title:SetText(title)
-	f.head.title:SetTextColor(classColor(d.classFile))
+	Theme.ClassText(f.head.title, classColor(d.classFile))
 	f.head.source:SetText(d.sourceText or "")
-	f.bar.category:SetShown(d.status == "list")
-	if d.status ~= "list" or d.total == 0 then
-		hideRows(self)
+	local isList = d.status == "list"
+	f.bar.category:SetShown(isList)
+	if isList then
+		local sel = f.bar.category
+		sel:SetChoices(categoryChoices(self))
+		if not sel:Select(model.category or View.ALL, true) then sel:Select(View.ALL, true) end
+	end
+	if not isList or d.total == 0 then
 		f.bar.count:SetText("")
-		f.message:SetText(d.message or "")
-		f.message:Show()
+		setRows(self, {}, d.message or "")
 		return
 	end
-	local total = drawRows(self, model:Rows(), fillRecipeRow)
-	f.bar.count:SetText(L["RV_COUNT"]:format(total, d.total))
-	if total == 0 then
-		f.message:SetText(L["RV_NO_MATCH"])
-		f.message:Show()
-	else
-		f.message:Hide()
-	end
+	local rows = model:Rows()
+	setRows(self, rows, L["RV_NO_MATCH"])
+	f.bar.count:SetText(L["RV_COUNT"]:format(#rows, d.total))
 end
 
 function View:Redraw()
@@ -525,13 +475,11 @@ function View:Redraw()
 end
 
 function View:Scroll(delta)
-	local total = self.mode == "craft" and (self.craft.rows and #self.craft.rows or 0) or #self.model:Rows()
-	local limit = max(0, total - self:VisibleRows())
-	local target = max(0, min((self.offset or 0) + delta, limit))
-	if target == self.offset then return false end
-	self.offset = target
-	self:Redraw()
-	return true
+	local t = self.frame and self.frame.table
+	if not t then return false end
+	local before = t.offset
+	t:SetOffset(before + delta)
+	return t.offset ~= before
 end
 
 -- Something changed behind what is on screen (a list arrived, names loaded, the roster refreshed): one redraw after the
@@ -568,7 +516,8 @@ if ns.addon then
 		ns.Bus:On("GUILD_CHANGED", function()
 			View.model = Model.new()
 			View.craft = { query = "", onlineOnly = false, result = nil, rows = nil, dirty = true }
-			View.mode, View.offset, View.cameFrom = "craft", 0, "roster"
+			View.mode, View.cameFrom = "craft", "roster"
+			View:ResetScroll()
 			if View.frame then View:Redraw() end
 		end)
 	end

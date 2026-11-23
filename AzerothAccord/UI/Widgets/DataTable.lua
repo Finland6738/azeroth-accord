@@ -10,9 +10,12 @@
 --   "CENTER", sortable? (default true), mono? (numbers), text = function(data) -> string, token? = function(data) -> token,
 --   value? = function(data) -> sort key (default: the text), render? = function(cell, data, row) (custom cell) } }
 -- opts: { rowHeight (30), headerHeight (28), pool (rows made, 40), maxPool (100), emptyText, onRowClick(data, row),
---   rowSetup(row) (a row is created), rowUpdate(row, data) (a row is filled) }
--- Methods: :SetData(list), :SortBy(id, descending), :Refresh(), :SetOffset(n), :VisibleRows(), :GetData(), :GetSort(),
---   :SetEmptyText(text), :Capacity(), :Layout().
+--   rowSetup(row) (a row is created), rowUpdate(row, data) (a row is filled),
+--   onSort(id) (M6.13: the CALLER sorts: a click on a header calls it instead of sorting, :SetData keeps the order it is
+--   given and :SetSortMark paints the arrow; the Roster sorts its rows in its own model, grouped by account) }
+-- Methods: :SetData(list, keepOffset?), :SortBy(id, descending), :SetSortMark(id, descending), :Refresh(), :SetOffset(n), :VisibleRows(),
+--   :GetData(), :GetSort(), :SetEmptyText(text), :Capacity(), :Layout(), :SetColumns(columns) (M6.13: another set of
+--   columns, e.g. the Roster's column chooser; call :SetData or :Refresh after it).
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Kit, Theme, Assets = ns.Kit, ns.Theme, ns.Assets
@@ -49,7 +52,9 @@ function Kit.DataTable(parent, columns, opts)
 	t.list:SetPoint("BOTTOMRIGHT", t, "BOTTOMRIGHT", 0, 0)
 	t.list:EnableMouseWheel(true)
 	t.empty = Theme.NewText(t.list, "Body", "text-3")
+	t.empty:SetJustifyH("LEFT")
 	t.empty:SetPoint("TOPLEFT", t.list, "TOPLEFT", 12, -12)
+	t.empty:SetPoint("TOPRIGHT", t.list, "TOPRIGHT", -12, -12)   -- a long message wraps
 	t.empty:SetText(opts.emptyText or "")
 
 	-- a thin scroll indicator on the right edge (it shows where the window is in a long list; the wheel scrolls)
@@ -90,20 +95,29 @@ function Kit.DataTable(parent, columns, opts)
 
 	-- header: a button per column; the label sits where the cells' text sits, the arrow of the sorted column next to it
 	t.heads = {}
-	for i, c in ipairs(columns) do
+	local function makeHead(i)
 		local b = CreateFrame("Button", nil, t.head)
 		b:SetHeight(headH)
 		b.label = Theme.NewText(b, "Th", "text-3")
-		b.label:SetText((c.title or ""):upper())
 		b.arrow = b:CreateTexture(nil, "OVERLAY")
 		b.arrow:SetTexture(Assets.textures.icons.path)
 		b.arrow:SetSize(10, 10)
 		Theme.Tint(b.arrow, "accent-text")
 		b.arrow:Hide()
-		b.col = c
-		if c.sortable ~= false then b:SetScript("OnClick", function() t:SortBy(c.id) end) end
+		b.index = i
 		t.heads[i] = b
+		return b
 	end
+	local function setHead(b, c)
+		b.col = c
+		-- a column that says sortable = false has no click at all
+		b:SetScript("OnClick", c.sortable ~= false and function()
+			if opts.onSort then opts.onSort(c.id) else t:SortBy(c.id) end
+		end or nil)
+		b.label:SetText((c.title or ""):upper())
+		b:Show()
+	end
+	for i, c in ipairs(columns) do setHead(makeHead(i), c) end
 
 	local function placeHead(b, col, pos)
 		b:ClearAllPoints()
@@ -127,10 +141,25 @@ function Kit.DataTable(parent, columns, opts)
 	function t:Layout()
 		local pos = widths()
 		self.pos = pos
-		for i, b in ipairs(self.heads) do placeHead(b, columns[i], pos[i]) end
+		for i, b in ipairs(self.heads) do if columns[i] then placeHead(b, columns[i], pos[i]) end end
 		for _, r in ipairs(self.rows) do
-			for i, fs in ipairs(r.cells) do place(fs, r, columns[i], pos[i]) end
+			for i, fs in ipairs(r.cells) do if columns[i] then place(fs, r, columns[i], pos[i]) end end
 		end
+	end
+
+	-- the cells a row needs for the current columns (created once, re-fonted when a column is mono or not; extra cells hide)
+	function t.ensureCells(r)
+		for ci, c in ipairs(columns) do
+			local fs = r.cells[ci]
+			if not fs then
+				fs = Theme.NewText(r, c.mono and "Mono" or "Body", "text-1")
+				r.cells[ci] = fs
+			else
+				fs:SetFontObject(Theme.Font(c.mono and "Mono" or "Body"))
+				fs:Show()
+			end
+		end
+		for ci = #columns + 1, #r.cells do r.cells[ci]:Hide() end
 	end
 
 	local function newRow(i)
@@ -147,13 +176,11 @@ function Kit.DataTable(parent, columns, opts)
 		r.line:SetPoint("BOTTOMRIGHT", r, "BOTTOMRIGHT", 0, 0)
 		r.line:SetHeight(Theme.Px(1))
 		r.cells = {}
-		for ci, c in ipairs(columns) do
-			r.cells[ci] = Theme.NewText(r, c.mono and "Mono" or "Body", "text-1")
-		end
+		t.ensureCells(r)
 		r:SetScript("OnEnter", function(self) Theme.Fill(self.hover, "surface-2", 1) end)
 		r:SetScript("OnLeave", function(self) Theme.Fill(self.hover, "surface-2", 0) end)
 		r:SetScript("OnClick", function(self) if opts.onRowClick and self.data then opts.onRowClick(self.data, self) end end)
-		if t.pos then for ci, fs in ipairs(r.cells) do place(fs, r, columns[ci], t.pos[ci]) end end
+		if t.pos then for ci, fs in ipairs(r.cells) do if columns[ci] then place(fs, r, columns[ci], t.pos[ci]) end end end
 		if opts.rowSetup then opts.rowSetup(r) end
 		r:Hide()
 		return r
@@ -173,12 +200,40 @@ function Kit.DataTable(parent, columns, opts)
 		return min(#self.rows, max(floor(h / rowH), 1))
 	end
 
+	-- the sorted column's title in accent-text with the arrow, the others text-3 without
+	local function paintSort(id, descending)
+		for i, b in ipairs(t.heads) do
+			local active = columns[i] ~= nil and columns[i].id == id
+			Theme.Text(b.label, active and "accent-text" or "text-3")
+			b.arrow:SetShown(active)
+			if active then b.arrow:SetTexCoord(Assets.IconCoords(descending and "arrow_down" or "arrow_up")) end
+		end
+	end
+
+	-- Paints the sort arrow without sorting (the caller sorts, opts.onSort). Returns false for an unknown column.
+	function t:SetSortMark(id, descending)
+		for _, c in ipairs(columns) do
+			if c.id == id then
+				self.sortId, self.sortDesc = id, descending and true or false
+				paintSort(id, self.sortDesc)
+				return true
+			end
+		end
+		self.sortId, self.sortDesc = nil, false
+		paintSort(nil, false)
+		return false
+	end
+
 	function t:SortBy(id, descending)
 		local col
 		for _, c in ipairs(columns) do if c.id == id then col = c end end
 		if not col then return false end
 		if descending == nil then descending = (self.sortId == id) and not self.sortDesc or false end
 		self.sortId, self.sortDesc = id, descending
+		if opts.onSort then
+			paintSort(id, descending)
+			return true
+		end
 		local order = {}
 		for i, d in ipairs(self.data) do order[i] = { d = d, i = i, k = keyOf(col, d) } end
 		table.sort(order, function(a, b)
@@ -193,26 +248,36 @@ function Kit.DataTable(parent, columns, opts)
 		end)
 		self.sorted = {}
 		for i, o in ipairs(order) do self.sorted[i] = o.d end
-		for i, b in ipairs(self.heads) do
-			local active = columns[i].id == id
-			Theme.Text(b.label, active and "accent-text" or "text-3")
-			b.arrow:SetShown(active)
-			if active then b.arrow:SetTexCoord(Assets.IconCoords(descending and "arrow_down" or "arrow_up")) end
-		end
+		paintSort(id, descending)
 		self.offset = 0
 		self:Refresh()
 		return true
 	end
 
+	-- Another set of columns (the cells and the header buttons are reused, the extra ones hide).
+	function t:SetColumns(cols)
+		columns = cols or {}
+		self.columns = columns
+		for i, c in ipairs(columns) do setHead(self.heads[i] or makeHead(i), c) end
+		for i = #columns + 1, #self.heads do self.heads[i]:Hide() end
+		for _, r in ipairs(self.rows) do t.ensureCells(r) end
+		if self.sortId and not self:SetSortMark(self.sortId, self.sortDesc) then self.sortId = nil end
+		self:Layout()
+	end
+
 	function t:GetSort() return self.sortId, self.sortDesc end
 	function t:GetData() return self.sorted end
 
-	function t:SetData(list)
+	function t:SetData(list, keepOffset)
 		self.data = list or {}
-		if self.sortId then self:SortBy(self.sortId, self.sortDesc) else
+		local offset = self.offset
+		if self.sortId and not opts.onSort then
+			self:SortBy(self.sortId, self.sortDesc)
+			if keepOffset then self:SetOffset(offset) end
+		else
 			self.sorted = {}
 			for i, d in ipairs(self.data) do self.sorted[i] = d end
-			self.offset = 0
+			if not (opts.onSort or keepOffset) then self.offset = 0 end   -- a caller that sorts keeps the place in its list (Refresh clamps it)
 			self:Refresh()
 		end
 	end

@@ -1,10 +1,13 @@
--- Roster view: the member table of the Accord panel (SPEC-05 §1, SPEC-04 §2). Lua 5.1.
--- The rows come from UI/RosterModel.lua; this file only draws them. Rows are virtual: a pool of as many row frames as the
--- table is tall (plus one) is refilled when the table scrolls, so a guild of 1000 members never creates 1000 frames.
---   toolbar    Online, Mains only, By account (grouped), Class / Rank / Profession menus, Columns, the count
---   header     one clickable title per visible column: sorts, a second click reverses
---   rows       class-coloured names, one cell per column; in the grouped view the main leads its account with a
---              +/- button that shows the alts
+-- Roster view: the member table of the Accord panel (SPEC-05 §1, SPEC-04 §2, docs/specs/ui-style.md §3). Lua 5.1.
+-- The rows come from UI/RosterModel.lua; this file only draws them, with the widget kit (UI/Widgets) and the theme
+-- (UI/Theme.lua): every colour is a token, class colours come from the game. The table is a Kit.DataTable: its rows are a
+-- pool refilled while the list scrolls, so a guild of 1000 members never creates 1000 frames, and the model (not the table)
+-- sorts, because the grouped view orders whole accounts.
+--   toolbar    chips Online, Mains only, By account (grouped); selects Class / Rank / Profession; the column chooser
+--              (Kit.Menu); the count. On a narrow panel the toolbar wraps to a second line.
+--   header     one clickable title per visible column: sorts, a second click reverses (the sorted one in accent with an arrow)
+--   rows       a class mark and the class-coloured name, one cell per column; in the grouped view the main leads its
+--              account with a +/- button that shows the alts
 -- A click on a row selects the member (Bus: ROSTER_SELECT(guid, entry)); the member card of M2.4 listens to it.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -12,14 +15,18 @@ local View = {}
 ns.RosterView, ns.modules = View, ns.modules or {}
 ns.modules.RosterView = View
 
-local L, W, Skin, Model = ns.L, ns.Widgets, ns.Skin, ns.RosterModel
-local type, ipairs, pairs, floor, max, min = type, ipairs, pairs, math.floor, math.max, math.min
+local L, Kit, Theme, Model = ns.L, ns.Kit, ns.Theme, ns.RosterModel
+local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
-View.ROW_HEIGHT = 18
-View.HEADER_HEIGHT = 20
-View.TOOLBAR_HEIGHT = 28
-View.DEFAULT_ROWS = 20          -- rows drawn when the frame has no size yet
-View.WHEEL_STEP = 3
+View.ROW_HEIGHT = 28
+View.HEADER_HEIGHT = 28
+View.TOOLBAR_LINE = 32          -- one line of the toolbar (controls are 28 high)
+View.POOL = 24                  -- row frames made up front (the table grows them when the window gets taller)
+View.NAME_WIDTH = 160           -- the name column carries the class mark and, grouped, the +/- button
+View.DEFAULT_WIDTH = 888        -- the width assumed before the frame has a size
+View.COUNT_WIDTH = 130          -- room kept for the count at the right of the first toolbar line
+View.INDENT = 14                -- an alt of an account is drawn this far in
+View.ALL = "*"                  -- the id of "all" in the filter selects
 
 View.model = nil                -- the RosterModel in use (one per session)
 View.selected = nil             -- GUID of the selected member
@@ -43,61 +50,85 @@ local function classColor(classFile)
 	return 1, 1, 1
 end
 
-local function setCell(fs, text, color, entry)
-	fs:SetText(text or "")
-	if color == "class" then fs:SetTextColor(classColor(entry.classFile))
-	elseif color then fs:SetTextColor(Skin.Color(color))
-	else fs:SetTextColor(Skin.Color("white")) end
+-- The colour hint of RosterModel.Cell as a theme token ("class" is the game's colour, handled apart).
+local TONE = { muted = "text-3", grey = "text-3", green = "ok", red = "err" }
+
+local function paintCell(fs, color, entry)
+	if color == "class" then
+		Theme.ClassText(fs, classColor(entry.classFile))
+	else
+		Theme.Text(fs, TONE[color] or "text-1")
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- Building
+-- Toolbar
 ---------------------------------------------------------------------------------------------------------------------
-local function filterMenu(self, kind, labelAll)
-	local model = self:Model()
-	local items = { { text = labelAll, checked = model.filters[kind] == nil, onClick = function() model:SetFilter(kind, nil) self:Changed() end } }
-	for _, choice in ipairs(model:Choices(kind)) do
-		items[#items + 1] = { text = choice.label, checked = model.filters[kind] == choice.key,
-			onClick = function() model:SetFilter(kind, choice.key) self:Changed() end }
-	end
-	return items
-end
+local FILTERS = {   -- the three selects: kind, the label of "all"
+	{ kind = "class", all = "FILTER_ALL_CLASSES", title = "COL_CLASS" },
+	{ kind = "rank", all = "FILTER_ALL_RANKS", title = "COL_RANK" },
+	{ kind = "profession", all = "FILTER_ALL_PROFESSIONS", title = "FILTER_PROFESSION" },
+}
 
 local function buildToolbar(self, f)
-	local bar = W.Frame(f, 10, View.TOOLBAR_HEIGHT)
+	local bar = CreateFrame("Frame", nil, f)
+	bar:SetHeight(View.TOOLBAR_LINE)
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	local model = self:Model()
-	local x = 6
-	local function place(widget, width)
-		widget:SetPoint("LEFT", bar, "LEFT", x, 0)
-		x = x + width + 6
+	bar.online = Kit.Chip(bar, { text = L["FILTER_ONLINE"], pad = 24, onClick = function(chip)
+		model:SetFilter("online", not chip:IsSelected())
+		View:Changed()
+	end })
+	bar.mains = Kit.Chip(bar, { text = L["FILTER_MAINS"], pad = 24, onClick = function(chip)
+		model:SetFilter("mains", not chip:IsSelected())
+		View:Changed()
+	end })
+	Kit.Tooltip.Attach(bar.mains, { L["FILTER_MAINS"], L["FILTER_MAINS_TIP"] }, "BOTTOM")
+	bar.grouped = Kit.Chip(bar, { text = L["FILTER_GROUPED"], pad = 24, onClick = function(chip)
+		model:SetGrouped(not chip:IsSelected())
+		View:Changed()
+	end })
+	Kit.Tooltip.Attach(bar.grouped, { L["FILTER_GROUPED"], L["FILTER_GROUPED_TIP"] }, "BOTTOM")
+	for _, fl in ipairs(FILTERS) do
+		bar[fl.kind] = Kit.Select(bar, { width = 128, rows = 8, placeholder = L[fl.title], onSelect = function(id)
+			model:SetFilter(fl.kind, id ~= View.ALL and id or nil)
+			View:Changed()
+		end })
 	end
-	bar.online = W.Check(bar, { text = L["FILTER_ONLINE"], width = 64, checked = model.filters.online,
-		onClick = function(on) model:SetFilter("online", on) self:Changed() end })
-	place(bar.online, 64)
-	bar.mains = W.Check(bar, { text = L["FILTER_MAINS"], width = 86, checked = model.filters.mains,
-		tooltip = { L["FILTER_MAINS"], L["FILTER_MAINS_TIP"] },
-		onClick = function(on) model:SetFilter("mains", on) self:Changed() end })
-	place(bar.mains, 86)
-	bar.grouped = W.Check(bar, { text = L["FILTER_GROUPED"], width = 100, checked = model.grouped,
-		tooltip = { L["FILTER_GROUPED"], L["FILTER_GROUPED_TIP"] },
-		onClick = function(on) model:SetGrouped(on) self:Changed() end })
-	place(bar.grouped, 100)
-	local function menuButton(text, kind, all)
-		local b = W.Button(bar, { text = text, width = 84, onClick = function(self2) W.ShowMenu(self2, filterMenu(View, kind, all)) end })
-		place(b, 84)
-		return b
-	end
-	bar.class = menuButton(L["COL_CLASS"], "class", L["FILTER_ALL_CLASSES"])
-	bar.rank = menuButton(L["COL_RANK"], "rank", L["FILTER_ALL_RANKS"])
-	bar.profession = menuButton(L["FILTER_PROFESSION"], "profession", L["FILTER_ALL_PROFESSIONS"])
-	bar.columns = W.Button(bar, { text = L["COLUMNS"], width = 74, tooltip = { L["COLUMNS"], L["COLUMNS_TIP"] },
-		onClick = function(b) View:ShowColumnMenu(b) end })
-	place(bar.columns, 74)
-	bar.count = W.Text(bar, "small", "grey", "RIGHT")
-	bar.count:SetPoint("RIGHT", bar, "RIGHT", -8, 0)
+	bar.columns = Kit.Button(bar, { text = L["COLUMNS"], style = "secondary", height = 28, onClick = function(b) View:ShowColumnMenu(b) end })
+	Kit.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
+	bar.count = Theme.NewText(bar, "Small", "text-3")
+	bar.count:SetJustifyH("RIGHT")
+	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -9)
+	bar:SetScript("OnSizeChanged", function(self)
+		local w = self:GetWidth() or 0
+		if w ~= View.toolbarWidth then View.toolbarWidth = w View:LayoutToolbar() end   -- the height it sets is not a reason to run again
+	end)
 	f.toolbar = bar
+	self.toolbarItems = { bar.online, bar.mains, bar.grouped, bar.class, bar.rank, bar.profession, bar.columns }
+end
+
+-- Puts the controls in line and wraps them to a second line when they do not fit beside the count; the table starts under
+-- the last line.
+function View:LayoutToolbar()
+	local f = self.frame
+	if not (f and f.toolbar and self.toolbarItems) then return end
+	local bar = f.toolbar
+	local width = bar:GetWidth() or 0
+	if width < 100 then width = View.DEFAULT_WIDTH - (self.inset or 0) end
+	local limit = width - View.COUNT_WIDTH
+	local x, line = 0, 0
+	for _, item in ipairs(self.toolbarItems) do
+		local w = item:GetWidth() or 0
+		if x > 0 and x + w > limit and line == 0 then x, line = 0, 1 elseif x + w > width and x > 0 then x, line = 0, line + 1 end
+		item:ClearAllPoints()
+		item:SetPoint("TOPLEFT", bar, "TOPLEFT", x, -line * View.TOOLBAR_LINE - 2)
+		x = x + w + 8
+	end
+	local h = (line + 1) * View.TOOLBAR_LINE
+	bar:SetHeight(h)
+	self.toolbarLines = line + 1
 end
 
 function View:ShowColumnMenu(anchor)
@@ -114,93 +145,30 @@ function View:ShowColumnMenu(anchor)
 		model:Save()
 		View:Changed(true)
 	end }
-	W.ShowMenu(anchor, items)
+	return Kit.Menu.Show(anchor, items)
 end
 
-local function buildHeader(self, f)
-	local header = W.Frame(f, 10, View.HEADER_HEIGHT)
-	header:SetPoint("TOPLEFT", f.toolbar, "BOTTOMLEFT", 0, 0)
-	header:SetPoint("TOPRIGHT", f.toolbar, "BOTTOMRIGHT", -14, 0)
-	W.Background(header, "navSelected", 0.12)
-	header.buttons = {}
-	f.header = header
+-- Chips, selects and their choices follow the model (a filter set elsewhere, the roster changed).
+local function syncToolbar(self)
+	local f = self.frame
+	if not (f and f.toolbar) then return end
+	local bar, model = f.toolbar, self:Model()
+	bar.online:SetSelected(model.filters.online == true)
+	bar.mains:SetSelected(model.filters.mains == true)
+	bar.grouped:SetSelected(model.grouped == true)
+	for _, fl in ipairs(FILTERS) do
+		local sel = bar[fl.kind]
+		local choices = { { id = View.ALL, text = L[fl.all] } }
+		for _, c in ipairs(model:Choices(fl.kind)) do choices[#choices + 1] = { id = c.key, text = c.label } end
+		sel:SetChoices(choices)
+		local want = model.filters[fl.kind]
+		if want == nil or not sel:Select(want, true) then sel:Select(View.ALL, true) end
+	end
 end
 
-local function buildScroll(self, f)
-	local area = W.Frame(f, 10, 10)
-	area:SetPoint("TOPLEFT", f.header, "BOTTOMLEFT", 0, 0)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area.rows = {}
-	f.area = area
-
-	local track = W.Frame(f, 10, 10)
-	track:SetPoint("TOPRIGHT", f.header, "BOTTOMRIGHT", 14, 0)
-	track:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	track:SetWidth(12)
-	track:EnableMouse(true)
-	W.Background(track, "grey", 0.12)
-	track.thumb = track:CreateTexture(nil, "ARTWORK")
-	track.thumb:SetColorTexture(Skin.Color("gold", 0.5))
-	track.thumb:SetWidth(10)
-	-- a click on the track pages up or down; the wheel does the fine work
-	track:SetScript("OnMouseDown", function(_, button)
-		if button ~= "LeftButton" then return end
-		local cursorY
-		if GetCursorPosition then _, cursorY = GetCursorPosition() end
-		local top = track:GetTop()
-		local scale = track:GetEffectiveScale() or 1
-		if not (cursorY and top) then return end
-		local y = top - cursorY / (scale > 0 and scale or 1)
-		local thumbTop = View.thumbTop or 0
-		View:Scroll(y < thumbTop and -View:VisibleRows() or View:VisibleRows())
-	end)
-	f.track = track
-
-	f.empty = W.Text(f, "body", "grey", "CENTER")
-	f.empty:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.empty:SetWidth(340)
-end
-
-local function newRow(self, area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(View.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-	row.highlight:SetAllPoints(row)
-	row.highlight:SetColorTexture(1, 1, 1, 0.08)
-	row.selected = row:CreateTexture(nil, "BACKGROUND")
-	row.selected:SetAllPoints(row)
-	row.selected:SetColorTexture(Skin.Color("navSelected", 0.25))
-	row.selected:Hide()
-	row.cells = {}
-	row.expander = CreateFrame("Button", nil, row)
-	row.expander:SetSize(14, View.ROW_HEIGHT)
-	row.expander.label = W.Text(row.expander, "heading", "gold", "CENTER")
-	row.expander.label:SetAllPoints(row.expander)
-	row.expander:SetScript("OnClick", function(btn)
-		local data = btn:GetParent().data
-		if data and data.group then
-			View:Model():ToggleExpand(data.group.id)
-			View:Changed()
-		end
-	end)
-	row:SetScript("OnClick", function(self2) View:Select(self2.data) end)
-	W.SetTooltip(row, function(self2)
-		local d = self2.data
-		if not d then return nil end
-		local lines = { d.entry.name or "?" }
-		if d.kind == "group" then lines[#lines + 1] = L["ROW_TIP_GROUP"]:format(d.count) end
-		lines[#lines + 1] = L["ROW_TIP_CLICK"]
-		return lines
-	end)
-	area.rows[i] = row
-	return row
-end
-
+---------------------------------------------------------------------------------------------------------------------
+-- Table
+---------------------------------------------------------------------------------------------------------------------
 -- While the table is visible the roster follows the server (Roster:Watch): asked for fresh data at most every 15 s and
 -- rebuilt after a burst of changes. Idempotent, so OnShow and the first draw cannot count twice.
 function View:StartWatch()
@@ -210,89 +178,20 @@ function View:StartWatch()
 end
 
 function View:StopWatch()
-	if W.MenuIsOpen() then W.HideMenu() end
+	if Kit.Menu.IsOpen() then Kit.Menu.Hide() end
 	if not self.watching then return end
 	self.watching = false
 	if ns.Roster then ns.Roster:Unwatch() end
 end
 
--- The table gives room to the member card when it sits beside it (Card:Inset): the toolbar, the rows and the scroll
--- track end that many pixels before the right edge.
-function View:Reflow()
-	local f = self.frame
-	if not f or not f.toolbar then return end
-	local inset = ns.MemberCard and ns.MemberCard:Inset() or 0
-	f.toolbar:ClearAllPoints()
-	f.toolbar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.toolbar:SetPoint("TOPRIGHT", f, "TOPRIGHT", -inset, 0)
-	f.area:ClearAllPoints()
-	f.area:SetPoint("TOPLEFT", f.header, "BOTTOMLEFT", 0, 0)
-	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14 - inset, 0)
-	f.track:ClearAllPoints()
-	f.track:SetPoint("TOPRIGHT", f.header, "BOTTOMRIGHT", 14, 0)
-	f.track:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -inset, 0)
-	self.inset = inset
-end
-
-function View:Build(f)
-	self.frame = f
-	buildToolbar(self, f)
-	buildHeader(self, f)
-	buildScroll(self, f)
-	f:SetScript("OnShow", function() View:StartWatch() View:Changed() end)
-	f:SetScript("OnHide", function() View:StopWatch() end)
-	f:SetScript("OnSizeChanged", function()
-		if ns.MemberCard and ns.MemberCard:IsShown() then ns.MemberCard:Place() ns.MemberCard:Layout() View:Reflow() View:Redraw() end
-	end)
-	self.offset = 0
-	self:Changed(true)
-	if f:IsVisible() then self:StartWatch() end   -- a new frame is shown without an OnShow
-end
-
----------------------------------------------------------------------------------------------------------------------
--- Drawing
----------------------------------------------------------------------------------------------------------------------
-function View:VisibleRows()
-	local f = self.frame
-	local h = f and f.area and f.area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
-end
-
-local function layoutHeader(self)
-	local f, model = self.frame, self:Model()
-	local header, x = f.header, 0
-	local cols = model:VisibleColumns()
-	for i, col in ipairs(cols) do
-		local b = header.buttons[i]
-		if not b then
-			b = CreateFrame("Button", nil, header)
-			b:SetHeight(View.HEADER_HEIGHT)
-			b.label = W.Text(b, "heading", nil, "LEFT")
-			b.label:SetPoint("LEFT", b, "LEFT", 4, 0)
-			b.highlight = b:CreateTexture(nil, "HIGHLIGHT")
-			b.highlight:SetAllPoints(b)
-			b.highlight:SetColorTexture(1, 1, 1, 0.08)
-			b:SetScript("OnClick", function(btn)
-				local m = View:Model()
-				m:SetSort(btn.columnId)
-				m:Save()
-				View:Changed()
-			end)
-			header.buttons[i] = b
-		end
-		b.columnId = col.id
-		b:ClearAllPoints()
-		b:SetPoint("LEFT", header, "LEFT", x, 0)
-		b:SetWidth(col.width)
-		local arrow = ""
-		if model.sort.key == col.id then arrow = model.sort.desc and " v" or " ^" end
-		b.label:SetText(L[col.label] .. arrow)
-		b:Show()
-		x = x + col.width
-	end
-	for i = #cols + 1, #header.buttons do header.buttons[i]:Hide() end
-	self.columnsWidth = x
+-- The tooltip of a row: the name, how many alts a group row hides, and the click.
+local function rowTip(row)
+	local d = row.data
+	if not d then return nil end
+	local lines = { d.entry.name or "?" }
+	if d.kind == "group" then lines[#lines + 1] = L["ROW_TIP_GROUP"]:format(d.count) end
+	lines[#lines + 1] = L["ROW_TIP_CLICK"]
+	return lines
 end
 
 -- The invisible button over a profession cell (PRO-02): a click opens that member's recipe list; the tooltip says where
@@ -317,21 +216,21 @@ local function profButton(row, i)
 		local data = self:GetParent().data
 		if data and self.slot and ns.RecipeView then ns.RecipeView:OpenFor(data.entry, self.slot) end
 	end)
-	W.SetTooltip(b, function(self) return View.ProfessionTip(self:GetParent().data, self.slot) end)
+	Kit.Tooltip.Attach(b, function(self) return View.ProfessionTip(self:GetParent().data, self.slot) end, "RIGHT")
 	row.profButtons[i] = b
 	return b
 end
 
 local function fillProfessionButtons(self, row, data)
-	local e, used = data.entry, {}
-	for i, col in ipairs(self.cols) do
+	local t, e, used = self.frame.table, data.entry, {}
+	for i, col in ipairs(t.columns) do
 		local slot = col.id == "prof1" and 1 or (col.id == "prof2" and 2 or nil)
-		if slot and ns.RecipeView and e.professions and e.professions[slot] then
+		if slot and ns.RecipeView and e.professions and e.professions[slot] and t.pos then
 			local b = profButton(row, i)
 			b.slot = slot
 			b:ClearAllPoints()
-			b:SetPoint("LEFT", row, "LEFT", self.columnX[i], 0)
-			b:SetWidth(col.width)
+			b:SetPoint("LEFT", row, "LEFT", t.pos[i].x, 0)
+			b:SetWidth(max(t.pos[i].w - 4, 1))
 			b:Show()
 			used[i] = true
 		end
@@ -341,57 +240,158 @@ local function fillProfessionButtons(self, row, data)
 	end
 end
 
-local function fillRow(self, row, data)
-	local model, cols = self:Model(), self.cols
-	row.data = data
-	local e = data.entry
-	for i, col in ipairs(cols) do
-		local fs = row.cells[i]
-		if not fs then
-			fs = W.Text(row, "small", nil, "LEFT")
-			row.cells[i] = fs
+-- How far the name is pushed right: the +/- slot (when grouped) and the indent of an alt, then the class mark.
+local function nameOffset(self, data)
+	local slot = self:Model().grouped and 18 or 0
+	return slot + (data.depth or 0) * View.INDENT
+end
+
+-- One cell: the text of RosterModel.Cell in its colour; the name also moves right of the class mark.
+local function renderCell(self, index, id)
+	return function(cell, data, row)
+		local e = data.entry
+		local text, color = Model.Cell(id, e)
+		cell:SetText(text or "")
+		paintCell(cell, color, e)
+		if id == "name" then
+			local t = self.frame.table
+			local pos = t.pos and t.pos[index]
+			if pos then
+				local off = nameOffset(self, data) + 18
+				cell:ClearAllPoints()
+				cell:SetWidth(max(pos.w - off - 8, 1))
+				cell:SetPoint("LEFT", row, "LEFT", pos.x + off, 0)
+			end
 		end
-		local x = self.columnX[i]
-		local indent = (col.id == "name") and (data.depth * 14 + (data.kind == "group" and 14 or 0)) or 0
-		fs:ClearAllPoints()
-		fs:SetPoint("LEFT", row, "LEFT", x + 4 + indent, 0)
-		fs:SetWidth(col.width - 6 - indent)
-		local text, color = Model.Cell(col.id, e)
-		if col.id == "name" and data.kind == "alt" then color = color or "class" end
-		setCell(fs, text, color, e)
-		fs:Show()
 	end
-	for i = #cols + 1, #row.cells do row.cells[i]:Hide() end
-	fillProfessionButtons(self, row, data)
+end
+
+local NUMERIC = { level = true, likes = true, social = true, addon = false }
+
+local function tableColumns(self)
+	local out = {}
+	for i, col in ipairs(self:Model():VisibleColumns()) do
+		out[i] = { id = col.id, title = L[col.label], width = col.id == "name" and View.NAME_WIDTH or col.width,
+			mono = NUMERIC[col.id] or nil, render = renderCell(self, i, col.id) }
+	end
+	return out
+end
+
+local function rowSetup(row)
+	row.selected = row:CreateTexture(nil, "BORDER")
+	Theme.Fill(row.selected, "accent", 0.14)
+	row.selected:SetAllPoints(row)
+	row.selected:Hide()
+	row.selectedBar = row:CreateTexture(nil, "ARTWORK")
+	Theme.Fill(row.selectedBar, "accent")
+	row.selectedBar:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -4)
+	row.selectedBar:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 4)
+	row.selectedBar:SetWidth(2)
+	row.selectedBar:Hide()
+	row.mark = Kit.ClassMark(row, 10)
+	row.expander = CreateFrame("Button", nil, row)
+	row.expander:SetSize(18, View.ROW_HEIGHT)
+	row.expander:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.expander.label = Theme.NewText(row.expander, "BodyMedium", "accent-text")
+	row.expander.label:SetAllPoints(row.expander)
+	row.expander:SetScript("OnClick", function(btn)
+		local data = btn:GetParent().data
+		if data and data.group then
+			View:Model():ToggleExpand(data.group.id)
+			View:Changed()
+		end
+	end)
+	row.expander:Hide()
+	Kit.Tooltip.Attach(row, rowTip, "RIGHT")
+end
+
+local function rowUpdate(row, data)
+	local self = View
+	local t = self.frame.table
+	local e = data.entry
+	local pos1 = t.pos and t.pos[1] or { x = 8 }
+	local indent = (data.depth or 0) * View.INDENT
+	local grouped = self:Model().grouped
+	-- the +/- button of a group (account) row; every row of a grouped table leaves its slot
 	if data.kind == "group" then
 		row.expander:ClearAllPoints()
-		row.expander:SetPoint("LEFT", row, "LEFT", self.columnX[1] + 2, 0)
+		row.expander:SetPoint("LEFT", row, "LEFT", pos1.x + indent - 2, 0)
 		row.expander.label:SetText(data.expanded and "-" or "+")
 		row.expander:SetShown(data.count > 0)
 	else
 		row.expander:Hide()
 	end
-	row.selected:SetShown(self.selected ~= nil and e.guid == self.selected)
-	row:Show()
+	-- the class mark: the game's colour for the class of the character
+	row.mark:ClearAllPoints()
+	row.mark:SetPoint("LEFT", row, "LEFT", pos1.x + indent + (grouped and 18 or 0), 0)
+	if e.classFile then Kit.PaintClassMark(row.mark, classColor(e.classFile)) else Kit.ClearClassMark(row.mark) end
+	local on = self.selected ~= nil and e.guid == self.selected
+	row.selected:SetShown(on)
+	row.selectedBar:SetShown(on)
+	fillProfessionButtons(self, row, data)
 end
 
-local function updateThumb(self, total, visible)
+function View:Build(f)
+	self.frame = f
+	buildToolbar(self, f)
+	local t = Kit.DataTable(f, tableColumns(self), {
+		rowHeight = View.ROW_HEIGHT, headerHeight = View.HEADER_HEIGHT, pool = View.POOL, maxPool = 80,
+		onSort = function(id)
+			local m = View:Model()
+			m:SetSort(id)
+			m:Save()
+			View:Changed()
+		end,
+		onRowClick = function(data) View:Select(data) end,
+		rowSetup = rowSetup, rowUpdate = rowUpdate,
+	})
+	f.table = t
+	self.columnsKey = nil
+	f:SetScript("OnShow", function() View:StartWatch() View:Changed() end)
+	f:SetScript("OnHide", function() View:StopWatch() end)
+	f:SetScript("OnSizeChanged", function()
+		if ns.MemberCard and ns.MemberCard:IsShown() then ns.MemberCard:Place() ns.MemberCard:Layout() end
+		View:Reflow()
+	end)
+	self:Reflow()
+	self:Changed(true)
+	if f:IsVisible() then self:StartWatch() end   -- a new frame is shown without an OnShow
+end
+
+-- The table gives room to the member card when it sits beside it (Card:Inset): the toolbar and the table end that many
+-- pixels before the right edge; the toolbar wraps to what is left.
+function View:Reflow()
 	local f = self.frame
-	local track = f.track
-	if total <= visible then
-		track.thumb:Hide()
-		self.thumbTop = 0
-		return
-	end
-	local h = track:GetHeight() or 0
-	if h <= 0 then h = 300 end
-	local size = max(16, h * visible / total)
-	local top = (h - size) * (self.offset / (total - visible))
-	track.thumb:ClearAllPoints()
-	track.thumb:SetPoint("TOPLEFT", track, "TOPLEFT", 1, -top)
-	track.thumb:SetHeight(size)
-	track.thumb:Show()
-	self.thumbTop = top
+	if not f or not f.toolbar then return end
+	local inset = ns.MemberCard and ns.MemberCard:Inset() or 0
+	self.inset = inset
+	f.toolbar:ClearAllPoints()
+	f.toolbar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.toolbar:SetPoint("TOPRIGHT", f, "TOPRIGHT", -inset, 0)
+	self:LayoutToolbar()
+	f.table:ClearAllPoints()
+	f.table:SetPoint("TOPLEFT", f.toolbar, "BOTTOMLEFT", 0, -8)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -inset, 0)
+	f.table:Layout()
+	f.table:Refresh()   -- Layout puts the cells back where a plain table has them: the name cell moves again
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Drawing
+---------------------------------------------------------------------------------------------------------------------
+-- How many rows the table shows at once.
+function View:VisibleRows()
+	local t = self.frame and self.frame.table
+	return t and t:Capacity() or 0
+end
+
+-- The visible columns changed (the column chooser): the table takes the new set.
+local function applyColumns(self)
+	local model = self:Model()
+	local key = table.concat(model.columns, ",")
+	if key == self.columnsKey then return end
+	self.columnsKey = key
+	self.frame.table:SetColumns(tableColumns(self))
 end
 
 function View:Redraw()
@@ -399,52 +399,37 @@ function View:Redraw()
 	if not f then return end
 	local model = self:Model()
 	local rows = model:Rows()
-	local total, visible = #rows, self:VisibleRows()
-	self.offset = max(0, min(self.offset or 0, max(0, total - visible)))
-	layoutHeader(self)
-	self.cols = model:VisibleColumns()
-	self.columnX = {}
-	local x = 0
-	for i, col in ipairs(self.cols) do self.columnX[i] = x x = x + col.width end
-	local drawn = max(0, min(visible + 1, total - self.offset))
-	for i = 1, drawn do
-		local row = f.area.rows[i] or newRow(self, f.area, i)
-		fillRow(self, row, rows[self.offset + i])
-	end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	updateThumb(self, total, visible)
+	local t = f.table
+	applyColumns(self)
+	t:SetSortMark(model.sort.key, model.sort.desc)
 	local members = #model:Members()
-	f.toolbar.count:SetText(L["ROSTER_COUNT"]:format(total, members))
-	if total == 0 then
-		f.empty:SetText(members == 0 and L["ROSTER_EMPTY"] or L["ROSTER_NO_MATCH"])
-		f.empty:Show()
-	else
-		f.empty:Hide()
-	end
+	t:SetEmptyText(members == 0 and L["ROSTER_EMPTY"] or L["ROSTER_NO_MATCH"])
+	t:SetData(rows)
+	f.toolbar.count:SetText(L["ROSTER_COUNT"]:format(#rows, members))
 	self.drawn = (self.drawn or 0) + 1
 end
 
--- The model changed (a filter, the sort, the data): rebuild the rows and draw; `keepOffset` is the default, a changed
--- row set simply clamps it.
+-- The model changed (a filter, the sort, the data): rebuild the rows and draw; `reset` goes back to the top, otherwise
+-- the table keeps its place (a changed row set simply clamps it).
 function View:Changed(reset)
-	if reset then self.offset = 0 end
+	local f = self.frame
 	self:Model():Invalidate()
+	if f and f.table and reset then f.table.offset = 0 end
+	syncToolbar(self)
 	self:Redraw()
 end
 
 function View:Scroll(delta)
-	local total = #self:Model():Rows()
-	local limit = max(0, total - self:VisibleRows())
-	local target = max(0, min((self.offset or 0) + delta, limit))
-	if target == self.offset then return false end
-	self.offset = target
-	self:Redraw()
-	return true
+	local t = self.frame and self.frame.table
+	if not t then return false end
+	local before = t.offset
+	t:SetOffset(before + delta)
+	return t.offset ~= before
 end
 
 function View:SetSearch(text)
 	if self:Model():SetSearch(text) then
-		self.offset = 0
+		if self.frame then self.frame.table.offset = 0 end
 		self:Redraw()
 	end
 end

@@ -4,7 +4,10 @@
 --
 -- Card.Describe(entry) is a plain function of the roster entry, the account groups and the notes permission, so the
 -- content is covered by offline tests; the frame only draws what it returns:
---   { guid, title, subtitle, classFile, notInGuild, sections = { { id, title, lines = { { text, muted, guid } } } } }
+--   { guid, title, subtitle, classFile, notInGuild, badges = { { text, tone } },
+--     sections = { { id, title, count?, lines = { { text, muted, guid } } } } }
+-- Drawn with the widget kit (M6.13): a Kit.Card with the class mark, the name in the class colour, Kit.Badges (online, main,
+-- alt, addon) and one inner Kit.Card per section; a long card scrolls with the mouse wheel.
 -- Sections: Details (zone, last online, rank, public note, the officers' note only when the game lets the player read it,
 -- the addon), Professions (each with where it comes from: the game, the member's own addon, the player's own),
 -- Characters of the same account (all of them, also outside the guild; a line with a `guid` opens that character's card),
@@ -15,13 +18,16 @@ local Card = {}
 ns.MemberCard, ns.modules = Card, ns.modules or {}
 ns.modules.MemberCard = Card
 
-local L, W, Skin, Model = ns.L, ns.Widgets, ns.Skin, ns.RosterModel
-local type, ipairs, pairs, max = type, ipairs, pairs, math.max
+local L, Kit, Theme, Assets, Model = ns.L, ns.Kit, ns.Theme, ns.Assets, ns.RosterModel
+local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
-Card.WIDTH = 270
+Card.WIDTH = 290
 Card.WIDE = 760            -- a panel at least this wide has room for the card beside the table
-Card.PAD = 10
-Card.LINE_GAP = 3
+Card.PAD = 16
+Card.INNER = 12            -- padding inside a section card
+Card.LINE_GAP = 4
+Card.SECTION_GAP = 10
+Card.WHEEL = 36            -- pixels per wheel notch
 
 Card.extra = {}            -- later steps: { { id, order, fn(entry) -> section | nil } }
 
@@ -86,8 +92,9 @@ local function professionsSection(e)
 		end or nil
 		lines[#lines + 1] = line(("%s (%s)"):format(Model.ProfessionText(p), sourceText(p)), p.source == "shared", nil, open)
 	end
+	local count = #lines
 	if #lines == 0 then lines[1] = line(e.hasAddon and L["CARD_NO_PROF_ADDON"] or L["CARD_NO_PROF"], true) end
-	return { id = "professions", title = L["CARD_PROFESSIONS"], lines = lines }
+	return { id = "professions", title = L["CARD_PROFESSIONS"], lines = lines, count = count > 0 and count or nil }
 end
 
 local function accountSection(e)
@@ -112,6 +119,7 @@ local function accountSection(e)
 			end
 		end
 	end
+	local others = #lines
 	if #lines == 0 then
 		lines[1] = line(L["CARD_NO_ALTS"], true)
 	elseif g.main == e.guid then
@@ -129,7 +137,7 @@ local function accountSection(e)
 			end
 		end
 	end
-	return { id = "account", title = L["CARD_ACCOUNT"], lines = lines }
+	return { id = "account", title = L["CARD_ACCOUNT"], lines = lines, count = others > 0 and others or nil }
 end
 
 -- Contacts (SPEC-05 §4): the BattleTag and Discord name a click copies, and the friend request button.
@@ -153,6 +161,21 @@ local function contactsSection(e)
 	return { id = "contacts", title = L["CARD_CONTACTS"], lines = lines }
 end
 
+-- The badges under the name: where the member stands (online / not in the guild), their place in the account (main / alt)
+-- and the addon. Texts are short and shown in capitals by the badge.
+function Card.Badges(e)
+	local out = {}
+	if e.notInGuild then out[#out + 1] = { text = L["NOT_IN_GUILD_SHORT"], tone = "warn" }
+	elseif e.online then out[#out + 1] = { text = L["ONLINE"], tone = "ok" } end
+	local g = ns.Accounts and e.guid and ns.Accounts:GroupOf(e.guid) or nil
+	if g and #g.members > 1 then
+		if g.main == e.guid then out[#out + 1] = { text = L["CARD_MAIN"], tone = "accent" }
+		else out[#out + 1] = { text = L["CARD_ALT"], tone = "neutral" } end
+	end
+	if e.hasAddon then out[#out + 1] = { text = e.addonVersion or L["COL_ADDON"], tone = "neutral" } end
+	return out
+end
+
 function Card.Describe(e)
 	if type(e) ~= "table" then return nil end
 	local classColor = e.classFile
@@ -164,6 +187,7 @@ function Card.Describe(e)
 		guid = e.guid, title = e.short or e.name or "?", subtitle = table.concat(parts, " "), classFile = classColor,
 		notInGuild = e.notInGuild == true, sections = {},
 	}
+	d.badges = Card.Badges(e)
 	d.sections[1] = detailsSection(e)
 	d.sections[2] = professionsSection(e)
 	d.sections[3] = accountSection(e)
@@ -199,43 +223,114 @@ local function classColor(classFile)
 	return 1, 1, 1
 end
 
+local HEADER = 96       -- the part above the scrolling sections: the name, its subtitle, the badges
+
 function Card:Build(parent)
-	local f = CreateFrame("Frame", nil, parent)
+	local f = Kit.Card(parent, { width = Card.WIDTH, height = 200, shadow = true })
 	f:Hide()
 	f:EnableMouse(true)
-	W.Background(f, "panel", 0.97)
-	f.title = W.Text(f, "title", nil, "LEFT")
-	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -Card.PAD)
-	f.title:SetPoint("RIGHT", f, "RIGHT", -34, 0)
-	f.subtitle = W.Text(f, "small", "grey", "LEFT")
-	f.subtitle:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -2)
-	f.close = W.CloseButton(f, function() Card:Close() end)
-	f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
-	f.back = W.Button(f, { text = L["CARD_BACK"], width = 70, onClick = function() Card:Close() end })
-	f.back:SetPoint("TOPRIGHT", f, "TOPRIGHT", -34, -6)
-	f.items = {}
-	self.frame = f
+	f:EnableMouseWheel(true)
+	f.mark = Kit.ClassMark(f, 12)
+	f.mark:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -23)
+	f.title = Theme.NewText(f, "H1", "text-1")
+	f.title:SetJustifyH("LEFT")
+	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 22, -18)
+	f.subtitle = Theme.NewText(f, "Small", "text-3")
+	f.subtitle:SetJustifyH("LEFT")
+	f.subtitle:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -4)
+	f.subtitle:SetPoint("RIGHT", f, "RIGHT", -Card.PAD, 0)
+	-- close (a cross) and, on a narrow panel, the Back button
+	f.close = CreateFrame("Button", nil, f)
+	f.close:SetSize(28, 28)
+	f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -10)
+	f.close.bg = Theme.Slice(f.close, "rr_fill_8", "surface-3", "BACKGROUND", 0)
+	f.close.bg:SetAllPoints(f.close)
+	f.close.icon = f.close:CreateTexture(nil, "OVERLAY")
+	f.close.icon:SetTexture(Assets.textures.icons.path)
+	f.close.icon:SetTexCoord(Assets.IconCoords("cross"))
+	f.close.icon:SetSize(14, 14)
+	f.close.icon:SetPoint("CENTER")
+	Theme.Tint(f.close.icon, "text-2")
+	f.close:SetScript("OnEnter", function(self) Theme.Tint(self.bg, "surface-3", 1) end)
+	f.close:SetScript("OnLeave", function(self) Theme.Tint(self.bg, "surface-3", 0) end)
+	f.close:SetScript("OnClick", function() Card:Close() end)
+	f.back = Kit.Button(f, { text = L["CARD_BACK"], style = "ghost", height = 28, onClick = function() Card:Close() end })
+	f.back:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -10)
+	f.badges = {}
+	-- the sections scroll under the header: a clipping frame holds them and their lines
+	f.content = CreateFrame("Frame", nil, f)
+	f.content:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -HEADER)
+	f.content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 12)
+	if f.content.SetClipsChildren then f.content:SetClipsChildren(true) end
+	f.sections, f.items = {}, {}
+	f.thumb = f:CreateTexture(nil, "ARTWORK")
+	Theme.Fill(f.thumb, "border-strong")
+	f.thumb:SetWidth(3)
+	f.thumb:Hide()
+	f:SetScript("OnMouseWheel", function(_, delta) Card:ScrollBy(-delta * Card.WHEEL) end)
 	f:SetScript("OnShow", function() Card:Layout() end)
+	self.frame = f
 	return f
 end
 
--- Items are pooled: headings and text lines are font strings, a line that opens another character is a button.
+-- An inner card per section, pooled: a surface-2 card with the heading (and a count badge) at its top.
+local function section(f, i)
+	local s = f.sections[i]
+	if s then return s end
+	s = Kit.Card(f.content, { fill = "surface-2" })
+	s:SetFrameLevel((f.content:GetFrameLevel() or 1) + 1)
+	s.heading = Theme.NewText(s, "Eyebrow", "accent-text")
+	s.heading:SetJustifyH("LEFT")
+	s.heading:SetPoint("TOPLEFT", s, "TOPLEFT", Card.INNER, -Card.INNER)
+	s.count = Kit.Badge(s, "", "neutral")
+	s.count:SetPoint("TOPRIGHT", s, "TOPRIGHT", -Card.INNER, -Card.INNER + 4)
+	s.count:Hide()
+	f.sections[i] = s
+	return s
+end
+
+-- Items are pooled: a line of a section is a button (a link to another character, an action, a tooltip) with its text.
 local function item(f, i)
 	local it = f.items[i]
 	if it then return it end
-	it = CreateFrame("Button", nil, f)
-	it.text = W.Text(it, "small", nil, "LEFT")
+	it = CreateFrame("Button", nil, f.content)
+	it:SetFrameLevel((f.content:GetFrameLevel() or 1) + 3)
+	it.text = Theme.NewText(it, "Small", "text-1")
+	it.text:SetJustifyH("LEFT")
 	it.text:SetPoint("TOPLEFT", it, "TOPLEFT", 0, 0)
 	it.highlight = it:CreateTexture(nil, "HIGHLIGHT")
+	Theme.Fill(it.highlight, "highlight")
 	it.highlight:SetAllPoints(it)
-	it.highlight:SetColorTexture(1, 1, 1, 0.08)
 	it:SetScript("OnClick", function(self)
 		if self.guid then Card:ShowGUID(self.guid)
 		elseif self.onClick then self.onClick(self) end
 	end)
-	W.SetTooltip(it, function(self) return self.tip end)
+	Kit.Tooltip.Attach(it, function(self) return self.tip end, "LEFT")
 	f.items[i] = it
 	return it
+end
+
+-- The token of a line: actions and links to other characters are the accent, muted lines text-3, the rest text-1.
+local function lineToken(ln)
+	if ln.action or ln.guid then return "accent-text" end
+	return ln.muted and "text-3" or "text-1"
+end
+
+local function layoutBadges(f, d)
+	local x = Card.PAD
+	for i, b in ipairs(d.badges or {}) do
+		local badge = f.badges[i]
+		if not badge then
+			badge = Kit.Badge(f, b.text:upper(), b.tone)
+			f.badges[i] = badge
+		end
+		badge:SetBadge(b.text:upper(), b.tone)
+		badge:ClearAllPoints()
+		badge:SetPoint("TOPLEFT", f, "TOPLEFT", x, -64)
+		badge:Show()
+		x = x + (badge:GetWidth() or 40) + 6
+	end
+	for i = #(d.badges or {}) + 1, #f.badges do f.badges[i]:Hide() end
 end
 
 function Card:Layout()
@@ -244,44 +339,81 @@ function Card:Layout()
 	local width = (f:GetWidth() or 0)
 	if width < 100 then width = Card.WIDTH end
 	local inner = width - 2 * Card.PAD
+	local text = inner - 2 * Card.INNER
 	f.title:SetText(d.title)
-	f.title:SetTextColor(classColor(d.classFile))
+	f.title:ClearAllPoints()
+	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 22, -18)
+	f.title:SetPoint("RIGHT", f, "RIGHT", self.narrow and -(Card.PAD + 84) or -48, 0)
+	Theme.ClassText(f.title, classColor(d.classFile))
+	if d.classFile then Kit.PaintClassMark(f.mark, classColor(d.classFile)) else Kit.ClearClassMark(f.mark) end
 	f.subtitle:SetText(d.subtitle or "")
 	f.back:SetShown(self.narrow == true)
 	f.close:SetShown(self.narrow ~= true)
-	local y, n = 48, 0
-	for _, section in ipairs(d.sections) do
-		n = n + 1
-		local head = item(f, n)
-		head.guid, head.onClick, head.tip = nil, nil, nil
-		head:ClearAllPoints()
-		head:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -y)
-		head:SetSize(inner, 16)
-		head.text:SetWidth(inner)
-		head.text:SetText(section.title)
-		head.text:SetTextColor(Skin.Color("gold"))
-		head:EnableMouse(false)
-		head:Show()
-		y = y + 18
-		for _, ln in ipairs(section.lines) do
+	layoutBadges(f, d)
+	local y, n = 0, 0
+	for si, sec in ipairs(d.sections) do
+		local card = section(f, si)
+		card:ClearAllPoints()
+		card:SetPoint("TOPLEFT", f.content, "TOPLEFT", Card.PAD, -(y - (self.scroll or 0)))
+		card:SetWidth(inner)
+		card.heading:SetText((sec.title or ""):upper())
+		if sec.count then card.count:SetBadge(tostring(sec.count), "neutral") card.count:Show() else card.count:Hide() end
+		local top = y
+		local ly = y + Card.INNER + 20
+		for _, ln in ipairs(sec.lines) do
 			n = n + 1
 			local it = item(f, n)
 			it.guid, it.onClick, it.tip = ln.guid, ln.onClick, ln.tip
 			it:ClearAllPoints()
-			it:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 4, -y)
-			it.text:SetWidth(inner - 4)
+			it:SetPoint("TOPLEFT", f.content, "TOPLEFT", Card.PAD + Card.INNER, -(ly - (self.scroll or 0)))
+			it.text:SetWidth(text)
 			it.text:SetText(ln.text)
-			it.text:SetTextColor(Skin.Color(ln.action and "gold" or (ln.guid and "white" or (ln.muted and "grey" or "white"))))
-			local h = max(12, it.text:GetStringHeight() or 12)
-			it:SetSize(inner - 4, h)
+			Theme.Text(it.text, lineToken(ln))
+			local h = max(14, it.text:GetStringHeight() or 14)
+			it:SetSize(text, h)
 			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil)
 			it:Show()
-			y = y + h + Card.LINE_GAP
+			ly = ly + h + Card.LINE_GAP
 		end
-		y = y + 6
+		local h = ly - top + Card.INNER - Card.LINE_GAP
+		card:SetHeight(h)
+		card:Show()
+		y = top + h + Card.SECTION_GAP
 	end
+	for si = #d.sections + 1, #f.sections do f.sections[si]:Hide() end
 	for i = n + 1, #f.items do f.items[i]:Hide() end
 	self.contentHeight = y
+	self:PaintThumb()
+end
+
+-- How far the sections can scroll: what does not fit under the header.
+function Card:MaxScroll()
+	local f = self.frame
+	local view = f and f.content and f.content:GetHeight() or 0
+	if not view or view <= 0 or not self.contentHeight then return 0 end
+	return max(0, self.contentHeight - view)
+end
+
+function Card:PaintThumb()
+	local f = self.frame
+	if not f then return end
+	local limit = self:MaxScroll()
+	if limit <= 0 then f.thumb:Hide() return end
+	local view = f.content:GetHeight()
+	local size = max(16, view * view / self.contentHeight)
+	local top = (view - size) * ((self.scroll or 0) / limit)
+	f.thumb:ClearAllPoints()
+	f.thumb:SetPoint("TOPRIGHT", f, "TOPRIGHT", -3, -(HEADER + top))
+	f.thumb:SetHeight(size)
+	f.thumb:Show()
+end
+
+function Card:ScrollBy(delta)
+	local target = max(0, min((self.scroll or 0) + delta, self:MaxScroll()))
+	if target == (self.scroll or 0) then return false end
+	self.scroll = target
+	self:Layout()
+	return true
 end
 
 -- Where the card goes: beside the table when the panel is wide, over it when narrow.
@@ -292,7 +424,7 @@ function Card:Place()
 	self.narrow = width > 0 and width < Card.WIDE
 	f:ClearAllPoints()
 	if self.narrow then
-		f:SetPoint("TOPLEFT", v.toolbar, "BOTTOMLEFT", 0, 0)
+		f:SetPoint("TOPLEFT", v.toolbar, "BOTTOMLEFT", 0, -8)
 		f:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", 0, 0)
 	else
 		f:SetPoint("TOPRIGHT", v, "TOPRIGHT", 0, 0)
@@ -303,7 +435,7 @@ function Card:Place()
 end
 
 function Card:Inset()
-	if self.frame and self.frame:IsShown() and not self.narrow then return Card.WIDTH + 4 end
+	if self.frame and self.frame:IsShown() and not self.narrow then return Card.WIDTH + 8 end
 	return 0
 end
 
@@ -311,6 +443,7 @@ function Card:Show(entry)
 	local v = ns.RosterView
 	if not (v and v.frame) or not entry then return false end
 	if not self.frame then self:Build(v.frame) end
+	if not self.entry or self.entry.guid ~= entry.guid then self.scroll = 0 end
 	self.entry = entry
 	self.description = Card.Describe(entry)
 	self:Place()

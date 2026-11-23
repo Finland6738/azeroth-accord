@@ -1,5 +1,5 @@
--- Widget kit, part 2: Switch, Slider, Select (a dropdown without UIDropDownMenu, which taints), Snackbar, Skeleton and the
--- class mark (the glowing square next to a player's name): the remaining components of docs/specs/ui-style.md §3 (M6.11).
+-- Widget kit, part 2: Switch, Slider, Select (a dropdown without UIDropDownMenu, which taints), Menu (a popup of checks, M6.13),
+-- Snackbar, Skeleton and the class mark (the glowing square next to a player's name): the remaining components of docs/specs/ui-style.md §3 (M6.11).
 -- Adapted from Finland Dragon Credit Points (UI/Widgets/Controls.lua), same owner, GPL-3.0 (ADR 0021). Ordinary unprotected
 -- frames; every colour is a theme token; text comes in already translated. Lua 5.1.
 local ADDON_NAME, ns = ...
@@ -293,4 +293,101 @@ end
 function Kit.ClearClassMark(square)
 	square:Hide()
 	if square.glow then Theme.GlowShow(square.glow, false) end
+end
+
+-- --- Menu -------------------------------------------------------------------------------------------------------------
+
+-- A popup list under an anchor, for the choices that are checks rather than one pick (the Roster's column chooser): no
+-- UIDropDownMenu, which taints. items = { { text, checked, onClick(item), keepOpen, header, token? } }: a click runs onClick and
+-- closes the menu, unless the item has keepOpen (its check flips and the menu stays: several columns in a row); a `header`
+-- is a heading, not a choice. One menu is open at a time; a click anywhere else or Esc closes it.
+-- Kit.Menu.Show(anchor, items, width) -> the frame, .Hide(), .IsOpen(), .frame (rows in .frame.rows, the items in .frame.items).
+local Menu = {}
+Kit.Menu = Menu
+local MENU_ROW, MENU_WIDTH, MENU_NAME = 28, 220, "AzerothAccordKitMenu"
+
+local function buildMenu()
+	local menu = CreateFrame("Frame", MENU_NAME, UIParent)
+	menu:SetFrameStrata("FULLSCREEN_DIALOG")
+	menu:SetClampedToScreen(true)
+	menu:EnableMouse(true)
+	menu.parts = Theme.Panel(menu, { radius = 8, fill = "raised", border = "border-strong", shadow = true })
+	menu.rows, menu.items = {}, {}
+	menu.catcher = CreateFrame("Button", nil, UIParent)
+	menu.catcher:SetAllPoints(UIParent)
+	menu.catcher:SetFrameStrata("FULLSCREEN")
+	menu.catcher:SetScript("OnClick", function() Menu.Hide() end)
+	menu.catcher:Hide()
+	menu:SetScript("OnHide", function() menu.catcher:Hide() end)
+	menu:Hide()
+	Kit.CloseOnEscape(MENU_NAME)
+	return menu
+end
+
+local function menuRow(menu, i)
+	local row = CreateFrame("Button", nil, menu)
+	row:SetHeight(MENU_ROW)
+	row.hover = row:CreateTexture(nil, "BACKGROUND")
+	Theme.Fill(row.hover, "surface-3", 0)
+	row.hover:SetAllPoints(row)
+	row.check = row:CreateTexture(nil, "ARTWORK")
+	row.check:SetTexture(Assets.textures.icons.path)
+	row.check:SetTexCoord(Assets.IconCoords("check"))
+	row.check:SetSize(14, 14)
+	row.check:SetPoint("LEFT", row, "LEFT", 10, 0)
+	Theme.Tint(row.check, "accent-text")
+	row.label = Theme.NewText(row, "Body", "text-1")
+	row.label:SetPoint("LEFT", row, "LEFT", 32, 0)
+	row.label:SetPoint("RIGHT", row, "RIGHT", -10, 0)
+	row.label:SetJustifyH("LEFT")
+	row:SetScript("OnEnter", function(self) if self.item and not self.item.header then Theme.Fill(self.hover, "surface-3", 1) end end)
+	row:SetScript("OnLeave", function(self) Theme.Fill(self.hover, "surface-3", 0) end)
+	row:SetScript("OnClick", function(self)
+		local it = self.item
+		if not it or it.header then return end
+		if it.onClick then it.onClick(it) end
+		if it.keepOpen then
+			it.checked = not it.checked
+			self.check:SetShown(it.checked == true)
+		else
+			Menu.Hide()
+		end
+	end)
+	menu.rows[i] = row
+	return row
+end
+
+function Menu.Show(anchor, items, width)
+	local menu = Menu.frame
+	if not menu then menu = buildMenu(); Menu.frame = menu end
+	menu.items, menu.width = items or {}, width or MENU_WIDTH
+	menu:SetSize(menu.width, 12 + #menu.items * MENU_ROW)
+	menu:ClearAllPoints()
+	menu:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -4)
+	for i, item in ipairs(menu.items) do
+		local row = menu.rows[i] or menuRow(menu, i)
+		row.item = item
+		row:SetWidth(menu.width - 8)
+		row:ClearAllPoints()
+		row:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, -6 - (i - 1) * MENU_ROW)
+		row.check:SetShown(item.checked == true and not item.header)
+		row.label:SetText(item.text or "")
+		Theme.Text(row.label, item.header and "accent-text" or item.token or "text-1")
+		Theme.Fill(row.hover, "surface-3", 0)
+		row:Show()
+	end
+	for i = #menu.items + 1, #menu.rows do menu.rows[i].item = nil; menu.rows[i]:Hide() end
+	menu:SetFrameLevel(max((anchor.GetFrameLevel and anchor:GetFrameLevel() or 1) + 10, 1))
+	menu.catcher:Show()
+	menu:Show()
+	Motion.FadeIn(menu, Motion.FAST)
+	return menu
+end
+
+function Menu.Hide()
+	if Menu.frame then Menu.frame:Hide() end
+end
+
+function Menu.IsOpen()
+	return Menu.frame ~= nil and Menu.frame:IsShown() == true
 end

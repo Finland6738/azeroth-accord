@@ -189,14 +189,14 @@ local function openRoster()
 end
 
 local function rowOf(guid)
-	for _, row in ipairs(AzerothAccord.RosterView.frame.area.rows) do
+	for _, row in ipairs(AzerothAccord.RosterView.frame.table.rows) do
 		if row:IsShown() and row.data and row.data.entry.guid == guid then return row end
 	end
 end
 
 local function visibleNames()
 	local out = {}
-	for _, row in ipairs(V().frame.area.rows) do if row:IsShown() then out[#out + 1] = row.name:GetText() end end
+	for _, row in ipairs(V().frame.table.rows) do if row:IsShown() then out[#out + 1] = row.name:GetText() end end
 	return out
 end
 
@@ -226,7 +226,7 @@ describe("the Professions view", function()
 		eq(V().frame.bar.count:GetText(), "3 of 3 recipes")
 		deepEq(visibleNames(), { "Healing Potion", "Minor Healing Potion", "Minor Rejuvenation Potion" })
 		falsy(V().frame.message:IsShown())
-		eq(V().frame.area.rows[1].icon:GetTexture(), 100000 + 3447)
+		eq(V().frame.table.rows[1].icon:GetTexture(), 100000 + 3447)
 	end)
 
 	it("shows the message in place of the rows when there is no list, and the list when it arrives", function()
@@ -256,16 +256,16 @@ describe("the Professions view", function()
 		eq(#visibleNames(), 4)
 	end)
 
-	it("the category menu offers the comparison with the player's own recipes and filters", function()
+	it("the category select offers the comparison with the player's own recipes and filters", function()
 		spells()
 		put(BOB, ALCHEMY, { 2330, 2332, 3447, 4000 })
 		put(ME, ALCHEMY, { 2330 })
 		V():Open(BOB, ALCHEMY)
 		V().frame.bar.category:Click()
-		local menu = AzerothAccord.Widgets.menu
-		truthy(AzerothAccord.Widgets.MenuIsOpen())
-		eq(menu.rows[3].label:GetText(), "Recipes I do not know")
-		menu.rows[3]:Click()
+		local sel = V().frame.bar.category
+		truthy(sel:IsOpen())
+		eq(sel.list.rows[3].label:GetText(), "Recipes I do not know")
+		sel.list.rows[3]:Click()
 		eq(#visibleNames(), 3)
 		eq(V().frame.bar.count:GetText(), "3 of 4 recipes")
 		V():Open(BOB, ALCHEMY)
@@ -278,7 +278,7 @@ describe("the Professions view", function()
 		put(ME, ALCHEMY, { 2330 })
 		C_TradeSkillUI.GetRecipeInfo = function(id) return { recipeID = id, relativeDifficulty = id == 3447 and 1 or nil } end
 		V():Open(BOB, ALCHEMY)
-		local rows = V().frame.area.rows
+		local rows = V().frame.table.rows
 		eq(rows[1].note:GetText(), "")          -- Healing Potion: not known by the player
 		eq(rows[2].note:GetText(), "you know it") -- Minor Healing Potion
 	end)
@@ -289,7 +289,7 @@ describe("the Professions view", function()
 		V():Open(BOB, ALCHEMY)
 		local linked
 		GameTooltip.SetHyperlink = function(_, link) linked = link end
-		V():ShowTooltip(V().frame.area.rows[1])
+		V():ShowTooltip(V().frame.table.rows[1])
 		eq(linked, "|cff71d5ff|Hspell:2330|h[Minor Healing Potion]|h|r")
 	end)
 
@@ -300,12 +300,44 @@ describe("the Professions view", function()
 		V():Open(BOB, ALCHEMY)
 		local shown = #visibleNames()
 		truthy(shown > 0 and shown < 40, "a pool as tall as the view: " .. shown)
-		eq(V().frame.area.rows[1].name:GetText(), "Recipe 10001")
+		eq(V().frame.table.rows[1].name:GetText(), "Recipe 10001")
 		V():Scroll(50)
-		eq(V().frame.area.rows[1].name:GetText(), "Recipe 10051")
-		truthy(V().frame.track.thumb:IsShown())
+		eq(V().frame.table.rows[1].name:GetText(), "Recipe 10051")
+		truthy(V().frame.table.scroll:IsShown())
 		falsy(V():Scroll(1000) and false)
-		eq(V().offset, 300 - V():VisibleRows())
+		eq(V().frame.table.offset, 300 - V():VisibleRows())
+	end)
+
+	it("the list keeps its place when the data changes and starts at the top for another search or member (M6.13)", function()
+		local ids = {}
+		for i = 1, 300 do ids[i] = 10000 + i end
+		put(BOB, ALCHEMY, ids)
+		V():Open(BOB, ALCHEMY)
+		V():Scroll(50)
+		V():Redraw()
+		eq(V().frame.table.offset, 50, "a redraw does not jump to the top")
+		Mock.TypeInto(Shell().content.bar.search, "Recipe 10002")
+		eq(V().frame.table.offset, 0, "a new search starts at the top")
+		Mock.TypeInto(Shell().content.bar.search, "")
+		V():Scroll(30)
+		V():Open(BOB, ALCHEMY)
+		eq(V().frame.table.offset, 0, "opening a list starts at the top")
+	end)
+
+	it("the names follow the theme: difficulty colours stay the game's, the other recipes use tokens (M6.13)", function()
+		spells()
+		put(BOB, ALCHEMY, { 2330, 3447 })
+		C_TradeSkillUI.GetRecipeInfo = function(id) return { recipeID = id, relativeDifficulty = id == 3447 and 1 or nil } end
+		V():Open(BOB, ALCHEMY)
+		local rows = V().frame.table.rows
+		local function color(fs) local r, g, b = fs:GetTextColor() return { r, g, b } end
+		deepEq(color(rows[1].name), { 1, 1, 0 })   -- Healing Potion: yellow, the game's own order
+		local before = color(rows[2].name)
+		AzerothAccord.Theme.Apply("aurora")
+		deepEq(color(rows[1].name), { 1, 1, 0 }, "a game colour survives a change of theme")
+		local r, g, b = AzerothAccord.Theme.Color("text-1", "aurora")
+		deepEq(color(rows[2].name), { r, g, b })
+		ne(color(rows[2].name)[1], before[1])
 	end)
 
 	it("names that load later redraw the list once", function()
