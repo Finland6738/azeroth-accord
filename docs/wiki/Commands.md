@@ -17,6 +17,6 @@ A view that is not in your version yet answers "This part is coming soon".
 
 Other ways to open the window:
 
-- the **AddOn Compartment** (the addon list button next to the minimap): click *Azeroth Accord*;
+- the **AddOn Compartment** (the addon list button next to the minimap): click *Azeroth Accord* (it carries the addon's logo, as does the window);
 - a **key binding**: *Options → Keybindings → AddOns → Azeroth Accord*, "Open or close Azeroth Accord";
 - the **Accord tab** of the guild window, then **Pop out** for the larger window.

@@ -1,7 +1,7 @@
 """Offline check of what the release package contains (ADR 0011, docs/RELEASING.md). No network, no secrets.
 
-Adapted from Azeroth Guild Finder (tools/check_package.py), same owner, GPL-3.0 (ADR 0018). Azeroth Accord bundles no font, so the
-font-licence rules of the original are left out.
+Adapted from Azeroth Guild Finder (tools/check_package.py), same owner, GPL-3.0 (ADR 0018). Since M6.9 Azeroth Accord bundles
+textures and fonts (AzerothAccord/Media/), so the package must hold every one of them and every font's licence text.
 
 Two modes:
 
@@ -37,6 +37,14 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import fetch_libs  # noqa: E402  (the one parser of the externals block)
 
 PKGMETA = os.path.join(ROOT, ".pkgmeta")
+
+# Media the package must carry (tools/make_media.py and tools/make_fonts.py write them; docs/third-party.md describes them).
+TEXTURES = ["rr_fill_8", "rr_fill_12", "rr_fill_18", "rr_ring_8", "rr_ring_12", "rr_ring_18", "shadow", "glow_s", "glow_l",
+            "pill", "circle", "blob_radial", "icons", "logo_256", "logo_64", "nebula_dark_256", "nebula_light_256"]
+FONT_FILES = {"Outfit": ["Regular", "Medium", "SemiBold"], "JetBrainsMono": ["Regular", "Medium"], "Orbitron": ["Bold"]}
+REQUIRED_MEDIA = ([f"Media/{t}.tga" for t in TEXTURES]
+                  + [f"Media/Fonts/{fam}-{style}.ttf" for fam, styles in FONT_FILES.items() for style in styles]
+                  + [f"Media/Fonts/{fam}-OFL.txt" for fam in FONT_FILES])
 LICENSE_FIRST_LINE = "GNU GENERAL PUBLIC LICENSE"
 
 # Never in a package, whatever .pkgmeta says (matched on the path inside the package, folder by folder).
@@ -177,6 +185,11 @@ def check_contents(files, texts, problems, zip_mode, tag=None):
         problems.append("LICENSE (the GPL-3.0 text) does not ship: do not ignore it in .pkgmeta")
     elif LICENSE_FIRST_LINE not in texts.get("LICENSE", LICENSE_FIRST_LINE):
         problems.append("LICENSE is not the GPL text")
+
+    # Textures, fonts and the licence of every font (SIL OFL 1.1 asks for its text to travel with the font).
+    for rel in REQUIRED_MEDIA:
+        if rel not in files:
+            problems.append(f"{rel} is not in the package (textures, fonts and font licences must ship; do not ignore Media/ in .pkgmeta)")
 
     # The TOC and what it loads.
     meta, listed = toc_info(texts.get(toc_name, ""))
@@ -323,6 +336,7 @@ GOOD = {
     "AzerothAccord/Libs/Ace3/x.lua": "-- lib\n",
     "AzerothAccord/Core/Config.lua": "Config.DEV = false\n--[==[@debug@\nConfig.DEV = true\n--@end-debug@]==]\n",
     "AzerothAccord/LICENSE": "GNU GENERAL PUBLIC LICENSE\n",
+    **{f"AzerothAccord/{rel}": "" for rel in REQUIRED_MEDIA},
 }
 
 
@@ -346,6 +360,8 @@ def self_test(problems):
                                 "did not fill it in"),
         "development mode left on": ({**GOOD, "AzerothAccord/Core/Config.lua": "Config.DEV = true\n"}, "DEV = true"),
         "a Lua file nothing loads": ({**GOOD, "AzerothAccord/Extra.lua": ""}, "nothing loads it"),
+        "a missing font licence": ({k: v for k, v in GOOD.items() if not k.endswith("Orbitron-OFL.txt")}, "Orbitron-OFL.txt"),
+        "a missing texture": ({k: v for k, v in GOOD.items() if not k.endswith("icons.tga")}, "icons.tga"),
         "no Libs": ({k: v for k, v in GOOD.items() if "/Libs/" not in k}, "Libs"),
     }
     for label, (files, expect) in cases.items():

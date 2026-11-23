@@ -1,8 +1,9 @@
 """Offline checks of the addon folder: TOC interface and fields, listed files, embeds.xml (Libs only when fetched),
 Bindings.xml, and the locale tables.
 
-Adapted from Azeroth Guild Finder (tools/check_addon.py), same owner, GPL-3.0 (ADR 0018). Azeroth Accord has no media
-of its own (it uses the client's textures, SPEC-04 §5), so the texture and font checks of the original are left out.
+Adapted from Azeroth Guild Finder (tools/check_addon.py), same owner, GPL-3.0 (ADR 0018). The media checks (M6.9)
+come from Finland Dragon Credit Points: every media path the code uses exists, every file of Media/ is listed in
+docs/third-party.md and every font family has its OFL text.
 
 Locale rules (ADR 0015): every L["KEY"] used in the code has an English string in Locale/enUS.lua (AceLocale answers
 with the key itself for a missing one, which would hide the mistake), and Locale/itIT.lua has exactly the English keys
@@ -26,6 +27,64 @@ LUA_DIRS = ("Core", "Data", "Net", "UI")
 
 def _path(base, rel):
     return os.path.join(base, *re.split(r"[\\/]", rel.strip()))
+
+
+FONT_FAMILIES = ("Outfit", "JetBrainsMono", "Orbitron")
+MEDIA_PATH = re.compile(r"Media[\\/]+([A-Za-z0-9_.\\/-]+?)(?=[\"'\s]|$)")
+
+
+def media_files():
+    """Paths of the files of Media/ relative to it (forward slashes)."""
+    media = os.path.join(ADDON, "Media")
+    found = []
+    for folder, _, names in os.walk(media):
+        for name in names:
+            found.append(os.path.relpath(os.path.join(folder, name), media).replace(os.sep, "/"))
+    return sorted(found)
+
+
+def referenced_media():
+    """(table exists, {path relative to Media/ without extension -> where}). Before M6.10 the references are the
+    the `Media/<name>` strings of the TOC and of the Lua files; from M6.10 on UI/Assets.lua is the one table and
+    this reads only that file (the one place to switch)."""
+    table = os.path.join(ADDON, "UI", "Assets.lua")
+    sources = [table] if os.path.isfile(table) else [TOC] + list(lua_files())
+    found = {}
+    for path in sources:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+        for m in MEDIA_PATH.finditer(text):
+            rel = m.group(1).replace("\\", "/")
+            found[os.path.splitext(rel)[0]] = os.path.relpath(path, ROOT).replace(os.sep, "/")
+    return os.path.isfile(table), found
+
+
+def check_media(problems):
+    """Every media path the addon uses exists; every file of Media/ is used (once UI/Assets.lua exists, because until
+    then the textures wait for it) and described in docs/third-party.md; every font family has its OFL text."""
+    files = media_files()
+    have = {os.path.splitext(f)[0] for f in files}
+    has_table, used = referenced_media()
+    for rel, where in sorted(used.items()):
+        if rel not in have:
+            problems.append(f"{where} uses Media/{rel} but the file is missing")
+    third = os.path.join(ROOT, "docs", "third-party.md")
+    text = ""
+    if os.path.isfile(third):
+        with open(third, encoding="utf-8") as f:
+            text = f.read()
+    else:
+        problems.append("docs/third-party.md is missing")
+    for rel in files:
+        if has_table and not rel.endswith("-OFL.txt") and os.path.splitext(rel)[0] not in used:
+            problems.append(f"Media/{rel} is not listed in UI/Assets.lua")
+        if os.path.basename(rel) not in text:
+            problems.append(f"Media/{rel} is not described in docs/third-party.md (its source and licence)")
+    for family in FONT_FAMILIES:
+        if not os.path.isfile(os.path.join(ADDON, "Media", "Fonts", family + "-OFL.txt")):
+            problems.append(f"Media/Fonts/{family}-OFL.txt (the licence) is missing")
+        if not any(f.startswith(f"Fonts/{family}-") and f.endswith(".ttf") for f in files):
+            problems.append(f"Media/Fonts has no {family} font file")
 
 
 def check_embeds(embeds, problems):
@@ -120,6 +179,9 @@ def check(problems):
     if not os.path.isfile(os.path.join(ADDON, "Bindings.xml")):
         problems.append("AzerothAccord/Bindings.xml is missing")
     check_locale(problems)
+    check_media(problems)
+    if not (meta.get("IconTexture") or "").lower().endswith("media\\logo_64"):
+        problems.append("TOC ## IconTexture must be the addon's logo (Interface\\AddOns\\AzerothAccord\\Media\\logo_64, M6.9)")
 
 
 def check_report_form(problems):

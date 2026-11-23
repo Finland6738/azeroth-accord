@@ -79,7 +79,7 @@
   - `docs/third-party.md` with every font, texture and logo and its licence; the NEBULA logos are used with the guild's permission.
   - The logo becomes the icon of the AddOn Compartment and of the window. SPEC-10 Q2 (the tab's icon) gets the logo as a proposal for the owner.
 - Done when:
-  - [ ] Running the two tools again changes no file; `tools/check_package.py` finds every texture and font in the package and every font's licence; `tools/check_addon.py` fails on a media file missing from `docs/third-party.md`.
+  - [x] Running the two tools again changes no file; `tools/check_package.py` finds every texture and font in the package and every font's licence; `tools/check_addon.py` fails on a media file missing from `docs/third-party.md`.
 - Real client: the TGA textures and the fonts load on Forever.
 
 ### M6.10 — Theme, assets and motion

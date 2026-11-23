@@ -47,6 +47,10 @@ Everything stays **inside your guild**: the addon talks only over the guild's hi
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Issues, pull requests and public docs are in English; the specification is in Italian.
 
+## Font credits
+
+The addon bundles three font families under the [SIL Open Font License 1.1](https://openfontlicense.org/) (the licence texts are next to the files in `AzerothAccord/Media/Fonts/`): **Outfit** (The Outfit Project Authors), **JetBrains Mono** (The JetBrains Mono Project Authors) and **Orbitron** (Matt McInerney, shipped unmodified because it declares a Reserved Font Name). Every font, the icon sheet, the textures, the logos and the libraries are listed with their licences in [docs/third-party.md](docs/third-party.md).
+
 ## Licence
 
 [GNU GPL v3.0](LICENSE). Fan-made addon, not affiliated with Blizzard Entertainment.

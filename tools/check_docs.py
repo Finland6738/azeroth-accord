@@ -25,6 +25,7 @@ WIKI_LINK = re.compile(r"\[\[(?:[^\]|]*\|)?([^\]]+)\]\]")
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PERSONAL_PATH = re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/](?:Users|Documents|repository|Program|Blizzard|SteamLibrary)"
                            r"|/home/[a-z]|/Users/[A-Za-z]", re.IGNORECASE)
+THIRD_PARTY_LICENCES = ("AzerothAccord/Media/Fonts/",)
 ALLOWED_EMAIL = ("users.noreply.github.com", "example.com", "noreply@anthropic.com")
 
 
@@ -102,6 +103,8 @@ def check_text_files(files, problems):
         if path == "tools/check_docs.py":
             continue   # this file contains the patterns themselves
         for m in EMAIL.finditer(text):
+            if path.startswith(THIRD_PARTY_LICENCES):
+                break   # the unmodified licence text of a font author (an OFL.txt may name its author's address)
             if not m.group(0).lower().endswith(ALLOWED_EMAIL):
                 problems.append(f"{path}: email address -> {m.group(0)}")
         for m in PERSONAL_PATH.finditer(text):

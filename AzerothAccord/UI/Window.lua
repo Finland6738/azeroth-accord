@@ -55,7 +55,7 @@ end
 
 local function setPortrait(f)
 	local portrait = f.portrait or (f.PortraitContainer and f.PortraitContainer.portrait)
-	if portrait and portrait.SetTexture then pcall(portrait.SetTexture, portrait, ns.Skin.ICON) end
+	if portrait and portrait.SetTexture then pcall(portrait.SetTexture, portrait, ns.Skin.LOGO) end
 end
 
 local function build()

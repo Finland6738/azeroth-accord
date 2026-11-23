@@ -64,8 +64,11 @@ Skin.TEMPLATES = {
 	navButton = { "" },
 }
 
--- The icon of the Accord tab and the AddOn Compartment entry.
+-- The icon of the Accord tab in the guild window (SPEC-10 Q2: the logo is proposed, the owner decides).
 Skin.ICON = "Interface\\Icons\\INV_Shirt_GuildTabard_01"
 Skin.ICON_FALLBACK = 134400   -- the question-mark icon, by file id
+-- The addon's logo (Media/, tools/make_media.py): the AddOn Compartment icon (TOC ## IconTexture), the window's portrait
+-- and the empty state. M6.10 moves the path into UI/Assets.lua.
+Skin.LOGO = "Interface\\AddOns\\AzerothAccord\\Media\\logo_64"
 
 if ns.addon then ns.addon.Skin = Skin end

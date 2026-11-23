@@ -9,7 +9,7 @@
 ## AddonCompartmentFunc: AzerothAccord_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: AzerothAccord_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: AzerothAccord_OnAddonCompartmentLeave
-## IconTexture: Interface\Icons\INV_Shirt_GuildTabard_01
+## IconTexture: Interface\AddOns\AzerothAccord\Media\logo_64
 ## X-Website: https://github.com/Finland6738/azeroth-accord
 ## X-License: GPL-3.0
 # CurseForge project ID (the number on the project's About page). The packager reads it from the line below, which
