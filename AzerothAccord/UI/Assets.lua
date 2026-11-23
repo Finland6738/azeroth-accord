@@ -1,0 +1,93 @@
+-- Assets: the one table of every texture, logo and font file of the addon (docs/specs/ui-style.md §1, §4, §7). Lua 5.1.
+-- Adapted from Finland Dragon Credit Points (UI/Assets.lua), same owner, GPL-3.0 (ADR 0021).
+-- * tools/check_addon.py reads this file: every path below exists in Media/ and every file of Media/ is listed here
+--   (so each path is written out in full, not built from the addon name); the sizes are those of the TGA headers.
+-- * All textures are white: the theme tints them (UI/Theme.lua). `slice` is the 9-slice margin in texels.
+local ADDON_NAME, ns = ...
+ns = ns or {}
+
+local Assets = {}
+ns.Assets = Assets
+if ns.addon then ns.addon.Assets = Assets end   -- also reachable from tests
+
+Assets.textures = {
+	rr_fill_8   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_8.tga",   w = 64,  h = 64,  slice = 8 },
+	rr_fill_12  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_12.tga",  w = 64,  h = 64,  slice = 12 },
+	rr_fill_18  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_18.tga",  w = 64,  h = 64,  slice = 18 },
+	rr_ring_8   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_8.tga",   w = 64,  h = 64,  slice = 8 },
+	rr_ring_12  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_12.tga",  w = 64,  h = 64,  slice = 12 },
+	rr_ring_18  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_18.tga",  w = 64,  h = 64,  slice = 18 },
+	shadow      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\shadow.tga",      w = 128, h = 128, slice = 48 },
+	glow_s      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\glow_s.tga",      w = 128, h = 128, slice = 48 },
+	glow_l      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\glow_l.tga",      w = 128, h = 128, slice = 56 },
+	pill        = { path = "Interface\\AddOns\\AzerothAccord\\Media\\pill.tga",        w = 64,  h = 32,  slice = 16 },
+	circle      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\circle.tga",      w = 64,  h = 64 },
+	blob_radial = { path = "Interface\\AddOns\\AzerothAccord\\Media\\blob_radial.tga", w = 128, h = 128 },
+	icons       = { path = "Interface\\AddOns\\AzerothAccord\\Media\\icons.tga",       w = 256, h = 256, cell = 16 },
+}
+
+-- The addon's logo (the AddOn Compartment icon is the TOC's `## IconTexture`, logo_64) and the logos of the Italian
+-- guild NEBULA for the credits (used with the guild's permission, docs/third-party.md): the dark one on the dark themes.
+Assets.logos = {
+	logo_256     = { path = "Interface\\AddOns\\AzerothAccord\\Media\\logo_256.tga",         w = 256, h = 256 },
+	logo_64      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\logo_64.tga",          w = 64,  h = 64 },
+	nebula_dark  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\nebula_dark_256.tga",  w = 256, h = 256 },
+	nebula_light = { path = "Interface\\AddOns\\AzerothAccord\\Media\\nebula_light_256.tga", w = 256, h = 256 },
+}
+
+-- Cells of the icon sheet, in the order of tools/make_media.py (16 per row): 40 icons drawn for this addon.
+Assets.icons = { "chevron", "check", "cross", "dashed", "skull", "shield", "heal", "sword", "star", "gear", "arrow_up",
+	"arrow_down", "lock", "eye", "dot", "plus",
+	"info", "warn", "search", "filter", "copy", "trash", "edit", "calendar", "clock", "user", "users", "crown",
+	"coin", "refresh", "download", "upload",
+	"bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left" }
+
+-- Fonts (docs/third-party.md). Orbitron ships whole (it declares a Reserved Font Name): it is used for the title only, in
+-- capitals, and has no middle dot or arrow. `fallback` is the game font used when SetFont fails or the player chose the
+-- game's fonts ("FRIZQT" for the display face, "STANDARD" for the others).
+Assets.fonts = {
+	display      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\Orbitron-Bold.ttf",         fallback = "FRIZQT" },
+	text         = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\Outfit-Regular.ttf",        fallback = "STANDARD" },
+	textMedium   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\Outfit-Medium.ttf",         fallback = "STANDARD" },
+	textSemiBold = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\Outfit-SemiBold.ttf",       fallback = "STANDARD" },
+	mono         = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\JetBrainsMono-Regular.ttf", fallback = "STANDARD" },
+	monoMedium   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\Fonts\\JetBrainsMono-Medium.ttf",  fallback = "STANDARD" },
+}
+
+-- The logo that goes with a theme's credits: the NEBULA logo for a dark or a light surface.
+function Assets.NebulaLogo(dark)
+	return dark and Assets.logos.nebula_dark or Assets.logos.nebula_light
+end
+
+-- Every file path of the tables, sorted: for the offline check and the probes.
+function Assets.AllPaths()
+	local out = {}
+	for _, group in ipairs({ Assets.textures, Assets.logos, Assets.fonts }) do
+		for _, t in pairs(group) do out[#out + 1] = t.path end
+	end
+	table.sort(out)
+	return out
+end
+
+-- Every texture file (textures and logos, not fonts): what the probes ask the client to load.
+function Assets.TexturePaths()
+	local out = {}
+	for _, group in ipairs({ Assets.textures, Assets.logos }) do
+		for _, t in pairs(group) do out[#out + 1] = t.path end
+	end
+	table.sort(out)
+	return out
+end
+
+-- Texture coordinates of an icon of the sheet: left, right, top, bottom.
+function Assets.IconCoords(name)
+	for i, n in ipairs(Assets.icons) do
+		if n == name then
+			local sheet = Assets.textures.icons
+			local per = sheet.w / sheet.cell
+			local col, row = (i - 1) % per, math.floor((i - 1) / per)
+			local s = sheet.cell / sheet.w
+			return col * s, (col + 1) * s, row * s, (row + 1) * s
+		end
+	end
+end

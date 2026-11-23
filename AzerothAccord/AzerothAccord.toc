@@ -47,6 +47,9 @@ Data\Bank.lua
 Data\BankLog.lua
 Data\BankRequests.lua
 Data\BankInbox.lua
+UI\Assets.lua
+UI\Theme.lua
+UI\Motion.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

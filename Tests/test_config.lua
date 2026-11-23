@@ -10,10 +10,10 @@ local function debugText()
 end
 
 describe("defaults", function()
-	it("creates both variables with schema 1 and every default", function()
+	it("creates both variables with schema 2 and every default", function()
 		local C = config()
-		eq(AzerothAccordDB.schemaVersion, 1)
-		eq(AzerothAccordCharDB.schemaVersion, 1)
+		eq(AzerothAccordDB.schemaVersion, 2)
+		eq(AzerothAccordCharDB.schemaVersion, 2)
 		eq(#C.issues, 0)
 		deepEq(AzerothAccordDB.chars, {})
 		deepEq(AzerothAccordDB.guilds, {})
@@ -143,7 +143,7 @@ describe("damaged data", function()
 	it("replaces a variable that is not a table", function()
 		T.boot(function() AzerothAccordDB = "garbage"; AzerothAccordCharDB = 12 end)
 		eq(type(AzerothAccordDB), "table")
-		eq(AzerothAccordCharDB.schemaVersion, 1)
+		eq(AzerothAccordCharDB.schemaVersion, 2)
 		contains(issuesText(), "not a table")
 		eq(#Mock.errors, 0)
 	end)
@@ -155,8 +155,8 @@ describe("damaged data", function()
 		end)
 		eq(config().loadedVersion.account, 0)
 		eq(config().loadedVersion.char, 0)
-		eq(AzerothAccordDB.schemaVersion, 1)
-		eq(AzerothAccordCharDB.schemaVersion, 1)
+		eq(AzerothAccordDB.schemaVersion, 2)
+		eq(AzerothAccordCharDB.schemaVersion, 2)
 		eq(AzerothAccordDB.guilds["R/G"].kept, true, "user data is kept")
 		falsy(config():IsReadOnly())
 	end)
@@ -183,32 +183,32 @@ end)
 describe("migrations", function()
 	it("runs the steps in order from the stored version", function()
 		T.boot(function()
-			AzerothAccordDB = { schemaVersion = 1, settings = { oldName = 7 } }
+			AzerothAccordDB = { schemaVersion = 2, settings = { oldName = 7 } }
 		end)
 		local C = config()
 		local calls = {}
-		C.SCHEMA_VERSION = 3
-		C.migrations.account[2] = function(db) calls[#calls + 1] = 2; db.settings.newName = db.settings.newName or db.settings.oldName; db.settings.oldName = nil end
-		C.migrations.account[3] = function(db) calls[#calls + 1] = 3 end
+		C.SCHEMA_VERSION = 4
+		C.migrations.account[3] = function(db) calls[#calls + 1] = 3; db.settings.newName = db.settings.newName or db.settings.oldName; db.settings.oldName = nil end
+		C.migrations.account[4] = function(db) calls[#calls + 1] = 4 end
 		C:Load()
-		deepEq(calls, { 2, 3 })
-		eq(AzerothAccordDB.schemaVersion, 3)
+		deepEq(calls, { 3, 4 })
+		eq(AzerothAccordDB.schemaVersion, 4)
 		eq(AzerothAccordDB.settings.newName, 7)
 		isNil(AzerothAccordDB.settings.oldName)
 		falsy(C:IsReadOnly("account"))
 		-- a second load changes nothing and runs no step
 		C:Load()
-		deepEq(calls, { 2, 3 })
+		deepEq(calls, { 3, 4 })
 		eq(AzerothAccordDB.settings.newName, 7)
 	end)
 
 	it("a failing step leaves the saved data untouched and goes read-only", function()
-		T.boot(function() AzerothAccordDB = { schemaVersion = 1, settings = { flag = false } } end)
+		T.boot(function() AzerothAccordDB = { schemaVersion = 2, settings = { flag = false } } end)
 		local C = config()
-		C.SCHEMA_VERSION = 2
-		C.migrations.account[2] = function(db) db.settings.flag = true; error("boom") end
+		C.SCHEMA_VERSION = 3
+		C.migrations.account[3] = function(db) db.settings.flag = true; error("boom") end
 		C:Load()
-		eq(AzerothAccordDB.schemaVersion, 1)
+		eq(AzerothAccordDB.schemaVersion, 2)
 		eq(AzerothAccordDB.settings.flag, false)
 		truthy(C:IsReadOnly("account"))
 		contains(issuesText(), "migration")
@@ -276,7 +276,141 @@ describe("sizes", function()
 		eq(C.EstimateSize("abc"), 5)
 		truthy(C.EstimateSize({ a = 1, b = { "x" } }) > 10)
 		local text = debugText()
-		contains(text, "AzerothAccordDB: schema found 1, current 1, about ")
+		contains(text, "AzerothAccordDB: schema found 2, current 2, about ")
 		contains(text, "KB")
+	end)
+end)
+
+-- M6.10: the look of the panel is saved per account (docs/specs/ui-style.md §2); schema version 2 adds it.
+describe("look settings", function()
+	local LOOK = { theme = "nebula", effects = true, animations = true, font = "addon" }
+
+	it("are in the defaults and in the rules, with their allowed values", function()
+		local C = config()
+		deepEq({ C.defaults.account.settings.theme, C.defaults.account.settings.effects,
+			C.defaults.account.settings.animations, C.defaults.account.settings.font }, { "nebula", true, true, "addon" })
+		for _, key in ipairs({ "theme", "effects", "animations", "font" }) do
+			notNil(C.rules["account.settings." .. key], key)
+			eq(C:Get("account.settings." .. key), LOOK[key], key)
+		end
+		deepEq(C.rules["account.settings.theme"].enum, { "nebula", "aurora", "accord" })
+		deepEq(C.rules["account.settings.font"].enum, { "addon", "game" })
+		isNil(C.rules["char.ui.theme"], "nothing of the look is per character")
+	end)
+
+	it("Set takes the allowed values, refuses the others and announces the change on the Bus", function()
+		local C = config()
+		local seen = {}
+		AzerothAccord.Bus:On("CONFIG_CHANGED", function(path) seen[#seen + 1] = path end)
+		truthy(C:Set("account.settings.theme", "accord"))
+		truthy(C:Set("account.settings.effects", false))
+		truthy(C:Set("account.settings.animations", false))
+		truthy(C:Set("account.settings.font", "game"))
+		falsy((C:Set("account.settings.theme", "drago")))
+		falsy((C:Set("account.settings.effects", "no")))
+		falsy((C:Set("account.settings.font", "serif")))
+		deepEq(seen, { "account.settings.theme", "account.settings.effects", "account.settings.animations", "account.settings.font" })
+		eq(AzerothAccordDB.settings.theme, "accord")
+	end)
+end)
+
+describe("migration 1 to 2: an account of version 1", function()
+	before_boot(function()
+		AzerothAccordDB = { schemaVersion = 1, token = "AAECAwQFBgcICQoLDA0ODw==",
+			settings = { notifyOfficer = false, discord = "Finland#1234" },
+			guilds = { ["Realm/Guild"] = { a = 1 } } }
+		AzerothAccordCharDB = { schemaVersion = 1, ui = { lastView = "bank", grouped = true } }
+	end)
+
+	it("gets the four values, keeps everything else and is at version 2", function()
+		local C = config()
+		eq(C.loadedVersion.account, 1)
+		eq(C.loadedVersion.char, 1)
+		local s = AzerothAccordDB.settings
+		eq(s.theme, "nebula"); eq(s.effects, true); eq(s.animations, true); eq(s.font, "addon")
+		eq(s.notifyOfficer, false, "an existing setting is not touched")
+		eq(s.discord, "Finland#1234")
+		eq(AzerothAccordDB.token, "AAECAwQFBgcICQoLDA0ODw==")
+		eq(AzerothAccordDB.guilds["Realm/Guild"].a, 1)
+		eq(AzerothAccordDB.schemaVersion, 2)
+		eq(AzerothAccordCharDB.schemaVersion, 2)
+		eq(AzerothAccordCharDB.ui.lastView, "bank")
+		eq(AzerothAccordCharDB.ui.grouped, true)
+		eq(#C.issues, 0, "a migration is not a problem")
+		falsy(C:IsReadOnly())
+	end)
+
+	it("is idempotent: the step run again on its own result changes nothing", function()
+		local C = config()
+		local db = C.Copy(AzerothAccordDB)
+		C.migrations.account[2](db)
+		C.migrations.account[2](db)
+		deepEq(db, AzerothAccordDB)
+		C:Load()
+		deepEq(db, AzerothAccordDB)
+		eq(#C.issues, 0)
+	end)
+
+	it("a round trip through /reload twice changes nothing more", function()
+		Mock.Reload()
+		local first = Mock.savedText.AzerothAccordDB
+		Mock.Reload()
+		eq(Mock.savedText.AzerothAccordDB, first)
+		eq(AzerothAccordDB.settings.theme, "nebula")
+	end)
+end)
+
+describe("migration 1 to 2: what a version-1 account may hold", function()
+	it("keeps a valid look value that is already there (a build that saved it early)", function()
+		T.boot(function()
+			AzerothAccordDB = { schemaVersion = 1, settings = { theme = "aurora", effects = false } }
+		end)
+		local s = AzerothAccordDB.settings
+		eq(s.theme, "aurora"); eq(s.effects, false); eq(s.animations, true); eq(s.font, "addon")
+		eq(#config().issues, 0)
+	end)
+
+	it("resets a wrong value to its default and says so", function()
+		T.boot(function()
+			AzerothAccordDB = { schemaVersion = 1, settings = { theme = "drago", font = 7, effects = "yes" } }
+		end)
+		local s = AzerothAccordDB.settings
+		eq(s.theme, "nebula"); eq(s.font, "addon"); eq(s.effects, true)
+		contains(issuesText(), "account.settings.theme: reset")
+		contains(issuesText(), "account.settings.font: reset")
+		contains(issuesText(), "account.settings.effects: reset")
+	end)
+
+	it("makes the settings table when it is missing or not a table", function()
+		T.boot(function() AzerothAccordDB = { schemaVersion = 1 } end)
+		eq(AzerothAccordDB.settings.theme, "nebula")
+		T.boot(function() AzerothAccordDB = { schemaVersion = 1, settings = "x" } end)
+		eq(type(AzerothAccordDB.settings), "table")
+		eq(AzerothAccordDB.settings.font, "addon")
+	end)
+
+	it("data without a version is migrated like version 0 and gets the look too", function()
+		T.boot(function() AzerothAccordDB = { guilds = { ["R/G"] = { kept = true } } } end)
+		eq(AzerothAccordDB.schemaVersion, 2)
+		eq(AzerothAccordDB.settings.theme, "nebula")
+		eq(AzerothAccordDB.guilds["R/G"].kept, true)
+	end)
+
+	it("a version-2 account is not migrated again and keeps its choices", function()
+		T.boot(function()
+			AzerothAccordDB = { schemaVersion = 2, token = "AAECAwQFBgcICQoLDA0ODw==", settings = { theme = "accord", font = "game",
+				notifyOfficer = true, notifyDecision = true, effects = false, animations = false } }
+		end)
+		local s = AzerothAccordDB.settings
+		eq(s.theme, "accord"); eq(s.font, "game"); eq(s.effects, false); eq(s.animations, false)
+		eq(config().loadedVersion.account, 2)
+		eq(#config().issues, 0)
+	end)
+
+	it("an account of a newer version keeps its look unread and is not rewritten", function()
+		T.boot(function() AzerothAccordDB = { schemaVersion = 9, settings = { theme = "future" } } end)
+		eq(AzerothAccordDB.settings.theme, "future", "the saved table is untouched")
+		eq(config():Get("account.settings.theme"), "nebula", "the working copy is sanitized")
+		truthy(config():IsReadOnly("account"))
 	end)
 end)

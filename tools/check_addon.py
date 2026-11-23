@@ -44,9 +44,9 @@ def media_files():
 
 
 def referenced_media():
-    """(table exists, {path relative to Media/ without extension -> where}). Before M6.10 the references are the
-    the `Media/<name>` strings of the TOC and of the Lua files; from M6.10 on UI/Assets.lua is the one table and
-    this reads only that file (the one place to switch)."""
+    """(table exists, {path relative to Media/ without extension -> where}). Without UI/Assets.lua the references are
+    the `Media/<name>` strings of the TOC and of the Lua files; with it (M6.10) UI/Assets.lua is the one table and
+    this reads only that file."""
     table = os.path.join(ADDON, "UI", "Assets.lua")
     sources = [table] if os.path.isfile(table) else [TOC] + list(lua_files())
     found = {}
@@ -54,9 +54,34 @@ def referenced_media():
         with open(path, encoding="utf-8") as f:
             text = f.read()
         for m in MEDIA_PATH.finditer(text):
-            rel = m.group(1).replace("\\", "/")
+            rel = re.sub(r"[\\/]+", "/", m.group(1)).strip("/")   # Lua source writes each backslash twice
+            if not rel:
+                continue
             found[os.path.splitext(rel)[0]] = os.path.relpath(path, ROOT).replace(os.sep, "/")
     return os.path.isfile(table), found
+
+
+ASSET_TEXTURE = re.compile(r'path\s*=\s*"[^"]*?Media[\\/]+([A-Za-z0-9_]+\.tga)"\s*,\s*w\s*=\s*(\d+)\s*,\s*h\s*=\s*(\d+)')
+
+
+def check_asset_sizes(problems):
+    """The w and h that UI/Assets.lua gives a texture are the ones in the TGA header of the file (the 9-slice margins and
+    the icon coordinates are computed from them)."""
+    table = os.path.join(ADDON, "UI", "Assets.lua")
+    if not os.path.isfile(table):
+        return
+    with open(table, encoding="utf-8") as f:
+        text = f.read()
+    for name, w, h in ASSET_TEXTURE.findall(text):
+        path = os.path.join(ADDON, "Media", name)
+        if not os.path.isfile(path):
+            continue   # reported by check_media
+        with open(path, "rb") as f:
+            header = f.read(18)
+        real = (header[12] | header[13] << 8, header[14] | header[15] << 8) if len(header) == 18 else None
+        if real != (int(w), int(h)):
+            problems.append(f"UI/Assets.lua says Media/{name} is {w}x{h}, its header says {real[0]}x{real[1]}" if real
+                            else f"Media/{name} is not a TGA file")
 
 
 def check_media(problems):
@@ -180,6 +205,7 @@ def check(problems):
         problems.append("AzerothAccord/Bindings.xml is missing")
     check_locale(problems)
     check_media(problems)
+    check_asset_sizes(problems)
     if not (meta.get("IconTexture") or "").lower().endswith("media\\logo_64"):
         problems.append("TOC ## IconTexture must be the addon's logo (Interface\\AddOns\\AzerothAccord\\Media\\logo_64, M6.9)")
 

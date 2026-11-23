@@ -26,7 +26,7 @@ text accompanies them and a modified version does not reuse a Reserved Font Name
 
 The 40 icons of the sheet are **drawn for this addon** by `tools/make_media.py` from simple Pillow shapes (lines, arcs,
 ellipses, polygons). No third-party artwork is copied or traced; they are covered by the addon's GPL-3.0. The order of the
-cells will be mirrored in `UI/Assets.lua` (M6.10).
+cells are mirrored in `UI/Assets.lua` (M6.10).
 
 ## Textures (`Media/*.tga`)
 

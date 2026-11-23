@@ -5,6 +5,10 @@
 --
 -- Events (arguments in order):
 --   CONFIG_LOADED()                                   Core/Config.lua; the SavedVariables are loaded and sanitized.
+--   CONFIG_CHANGED(path)                              Core/Config.lua; Config:Set stored a value ("account.settings.theme"). The
+--                                                     look (UI/Theme.lua) repaints from it; SETTINGS_CHANGED below is the
+--                                                     one the settings page emits for an option the player changed.
+--   THEME_CHANGED(themeId)                            UI/Theme.lua; the theme was applied (every themed region is repainted).
 --   FEATURE_CHANGED(id, state)                        Core/Compat.lua; a module learned whether a feature capability
 --                                                     works ("available", "missing", "unknown"), SPEC-01 §5.
 --   ROLE_CHANGED(role, guildKey, oldRole, oldGuildKey) Core/Role.lua; role is "none"|"member"|"officer"|"gm", emitted

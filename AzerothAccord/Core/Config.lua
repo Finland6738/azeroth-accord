@@ -2,7 +2,7 @@
 -- Adapted from Azeroth Guild Finder (Core/Config.lua), same owner, GPL-3.0 (ADR 0018).
 --
 --   AzerothAccordDB      (account)   = { schemaVersion, token, chars[realm][guid], mains[realm], guilds[guildKey], settings }
---   AzerothAccordCharDB  (character) = { schemaVersion, ui }
+--   AzerothAccordCharDB  (character) = { schemaVersion, ui, outbox }
 --
 -- Load() runs on ADDON_LOADED (from Init's OnInitialize): defaults are merged without overwriting anything, old data
 -- is migrated step by step, bad values are reset and listed in Config.issues. Data from a NEWER schema is never
@@ -21,7 +21,7 @@ local type, pairs, ipairs, pcall, tostring, next, select = type, pairs, ipairs, 
 local floor, huge = math.floor, math.huge
 local byte, char, concat = string.byte, string.char, table.concat
 
-Config.SCHEMA_VERSION = 1
+Config.SCHEMA_VERSION = 2   -- 2 (M6.10): the look settings of the account (theme, effects, animations, font)
 
 -- Development build. A checkout of the repository is one; the BigWigs packager comments out the block between the
 -- debug markers below in every packaged build, so a release has DEV = false (tools/check_package.py checks it).
@@ -40,6 +40,10 @@ Config.LIMITS = {
 
 Config.VIEWS = { "roster", "professions", "reputation", "bank", "settings" }
 
+-- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
+Config.THEMES = { "nebula", "aurora", "accord" }
+Config.FONT_SOURCES = { "addon", "game" }
+
 Config.defaults = {
 	account = {
 		schemaVersion = Config.SCHEMA_VERSION,
@@ -47,7 +51,8 @@ Config.defaults = {
 		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, seen, added, answered } }: Data/Accounts.lua
 		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
-		settings = { notifyOfficer = true, notifyDecision = true },   -- plus discord (typed, optional): UI/SettingsModel.lua
+		settings = { notifyOfficer = true, notifyDecision = true,     -- plus discord (typed, optional): UI/SettingsModel.lua
+			theme = "nebula", effects = true, animations = true, font = "addon" },   -- the look (M6.10), UI/Theme.lua
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
@@ -71,6 +76,10 @@ Config.rules = {
 	["account.settings.discord"] = { type = "string", optional = true, maxLen = 32 },
 	["account.settings.notifyOfficer"] = { type = "boolean" },
 	["account.settings.notifyDecision"] = { type = "boolean" },
+	["account.settings.theme"] = { type = "string", enum = Config.THEMES },
+	["account.settings.effects"] = { type = "boolean" },
+	["account.settings.animations"] = { type = "boolean" },
+	["account.settings.font"] = { type = "string", enum = Config.FONT_SOURCES },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },
@@ -85,9 +94,19 @@ Config.rules = {
 -- Migrations: Config.migrations[scope][n] brings data from version n-1 to n. Each step must be idempotent (running it
 -- on data that already has the new shape changes nothing). Version 1 is the first schema: data without a version is
 -- treated as 0 and only needs the defaults and the rules, so step 1 has nothing to do.
+-- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
+-- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
 Config.migrations = {
-	account = { [1] = function(db) end },
-	char = { [1] = function(db) end },
+	account = {
+		[1] = function(db) end,
+		[2] = function(db)
+			if type(db.settings) ~= "table" then db.settings = {} end
+			for _, key in ipairs({ "theme", "effects", "animations", "font" }) do
+				if db.settings[key] == nil then db.settings[key] = Config.defaults.account.settings[key] end
+			end
+		end,
+	},
+	char = { [1] = function(db) end, [2] = function(db) end },
 }
 
 Config.issues = {}          -- problems found and fixed by the last Load (text only, no names)
@@ -451,6 +470,7 @@ function Config:Set(path, value)
 	if not parent then return false, "parent missing" end
 	if rule.type == "timestamp" and value > now() then value = now() end
 	parent[leaf] = value
+	if ns.Bus then ns.Bus:Emit("CONFIG_CHANGED", key) end
 	return true
 end
 

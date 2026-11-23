@@ -68,7 +68,6 @@ Skin.TEMPLATES = {
 Skin.ICON = "Interface\\Icons\\INV_Shirt_GuildTabard_01"
 Skin.ICON_FALLBACK = 134400   -- the question-mark icon, by file id
 -- The addon's logo (Media/, tools/make_media.py): the AddOn Compartment icon (TOC ## IconTexture), the window's portrait
--- and the empty state. M6.10 moves the path into UI/Assets.lua.
-Skin.LOGO = "Interface\\AddOns\\AzerothAccord\\Media\\logo_64"
+-- and the empty state. The path is ns.Assets.logos.logo_64.path (UI/Assets.lua), not a Skin field.
 
 if ns.addon then ns.addon.Skin = Skin end

@@ -91,7 +91,7 @@
   - The mock client gains what the theme needs (textures and slice margins, animation groups, font objects), from FDCP's mocks.
 - Tests: `Tests/test_theme.lua`: every theme has every token; a change of theme repaints every registered region; effects off hides the glows; animations off makes every motion immediate; a missing font falls back to the game's.
 - Done when:
-  - [ ] The tests pass; nothing on screen changes yet.
+  - [x] The tests pass; nothing on screen changes yet.
 - Real client: the fonts, the 9-slice and `Px()` at several UI scales.
 
 ### M6.11 — Widgets

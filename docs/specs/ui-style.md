@@ -55,6 +55,8 @@ personaggio, e le impostazioni personali di Accord (notifiche, Discord) stanno g
 - Si cambiano dalla scheda **Aspetto** di Settings (M6.14). Una modifica emette `SETTINGS_CHANGED` come le altre.
 - La posizione e la dimensione della finestra restano per personaggio (`char.ui`), come ora.
 
+**Stato (M6.10).** Fatto: le quattro chiavi sono in `Config` (regole con enumerazione, predefiniti, migrazione 1 → 2 idempotente per l'account; il passo 2 del personaggio non cambia nulla e porta solo la versione a 2). `Config:Set` emette `CONFIG_CHANGED(percorso)` sul Bus e `UI/Theme.lua` lo ascolta: tema, effetti e font si vedono subito (il font, come detto sopra, si rilegge davvero solo al riavvio); `Theme.Apply` emette `THEME_CHANGED(idTema)`. `Theme.Set(id)` salva e applica un tema; `Theme.EffectsOn()` e `Theme.AnimationsOn()` leggono gli interruttori (rispondono «sì» finché i dati non sono caricati). Gli `<Id>` dei font sono quelli di FDCP: `Display`, `DisplaySmall`, `H1`, `H2`, `Body`, `BodyMedium`, `Small`, `Eyebrow`, `Th`, `Tab`, `Button`, `Mono`, `MonoMedium`, `MonoSmall` (oggetti `AzerothAccordFont<Id>`). La scheda Aspetto che li cambia e il relativo `SETTINGS_CHANGED` arrivano con M6.14; finora nessun comando li cambia.
+
 ## 3. Le viste come schede
 
 Le cinque viste diventano le **schede** orizzontali di FDCP §6 (sostituiscono la navigazione a sinistra di
@@ -146,8 +148,8 @@ le superfici indicate:
 | `ok`, `warn`, `err` su `surface-3` e `raised` | 3:1 | `err`: **3,77** (`ok` 5,21, `warn` 5,67) |
 | `accent` su `bg` (elementi non testuali) | 3:1 | **9,34** |
 
-Tutte le regole sono rispettate con margine; nessun valore va corretto. I valori si ricalcolano in M6.10 dal test
-reale (la tabella di questa pagina e `UI/Theme.lua` devono dire la stessa cosa).
+Tutte le regole sono rispettate con margine; nessun valore va corretto. I valori sono ricalcolati dal test
+reale di M6.10 (`Tests/test_theme.lua`: tabella di questa pagina e `UI/Theme.lua` dicono la stessa cosa, e i peggiori casi sono quelli della tabella).
 
 ## 5. Logo e crediti
 

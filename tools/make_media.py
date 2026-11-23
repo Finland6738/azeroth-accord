@@ -20,7 +20,7 @@ file belongs to a theme. All files are 32-bit uncompressed TGA with power-of-two
                              the guild's permission): 256 wide, aspect ratio kept by padding with transparency
 
 Usage: python -X utf8 tools/make_media.py   (needs Pillow; rewrites the files; the committed result is what ships)
-The list of files and their slice margins is mirrored in AzerothAccord/UI/Assets.lua (arriving in M6.10), which
+The list of files and their slice margins is mirrored in AzerothAccord/UI/Assets.lua (M6.10), which
 tools/check_addon.py compares with the folder.
 """
 import os
