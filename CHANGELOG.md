@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Look
+
+- The addon's logo (`assets/logo-source.webp`) at the top of both READMEs and of the manual's Home page, as in Finland Dragon Credit Points. The NEBULA community logos for the dark and light themes (`assets/nebula-logo-dark.png`, `assets/nebula-logo-light.png`) are added for the credits of the coming About page; the game textures made from them come with the interface work.
+
 ### Design
 
 - Specification of the first version in `docs/specs/` (SPEC-00 to SPEC-10, in Italian): scope, roles and the owner's decisions; platform and architecture; guild-only network protocol and trust rules; data model; the Accord tab in the guild window; extended roster, alts and contacts; professions and recipes; likes and the social index; guild bank; quality, spike and release; risks and open questions.
