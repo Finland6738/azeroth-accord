@@ -68,7 +68,7 @@
   - Themes: **Nebula** (default) and **Aurora** (light) with FDCP's tokens unchanged; a third theme, **Accord**, from the logo's palette (dark teal-green, gold, mint), as FDCP's "Drago" comes from its own logo. Token names stay FDCP's.
   - ADR 0021 "The interface follows the ecosystem style of FDCP"; the notes it adds to SPEC-04 (the game's own look in `UI/Skin.lua` is replaced) and to ADR 0019 (previews in the new look).
 - Done when:
-  - [ ] `docs/specs/ui-style.md` and ADR 0021 exist and are indexed; SPEC-04 points to them; `tools/check_docs.py` passes.
+  - [x] `docs/specs/ui-style.md` and ADR 0021 exist and are indexed; SPEC-04 points to them; `tools/check_docs.py` passes.
 
 ### M6.9 — Media, fonts and licences
 - Branch: `step/m6-9-media`

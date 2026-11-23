@@ -28,3 +28,4 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0018](0018-reuse-azeroth-guild-finder-foundations.md) | Reuse the foundations of Azeroth Guild Finder | accepted |
 | [0019](0019-design-previews-original-art-invented-data.md) | Design previews: original art, invented data, drawn from the addon's texts | accepted |
 | [0020](0020-one-version-per-milestone.md) | One version per milestone; `v1.0.0` after the last milestone | accepted |
+| [0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md) | The interface follows the ecosystem style of FDCP | accepted |

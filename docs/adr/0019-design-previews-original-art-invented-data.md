@@ -16,6 +16,10 @@ The wiki and the READMEs should show what the interface looks like, as Azeroth G
 5. WebP, quality 80; the files live under `docs/specs/mockups/` (outside the addon package) and are linked with relative paths from the wiki sources and the READMEs; `tools/sync_wiki.py` copies the ones the wiki shows.
 6. When the owner's in-game checks produce real screenshots, they may replace the previews of a view; the previews then stay as the drawing of the states a screenshot cannot show easily (empty, loading, officer-only).
 
+## Update (M6.8)
+
+Rule 4 (the look is the game's guild window) is superseded by [ADR 0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md): the interface takes the ecosystem style of FDCP, so the previews are redrawn in the new look (Nebula, with a few in Aurora and Accord, plus the About page) in step M6.16. The other rules stay: design previews and not screenshots, original art, invented data, drawn from the addon's texts.
+
 ## Consequences
 
 - Positive: a manual with pictures before the first run in the game; no licensing question about game art; reproducible, light and translatable (the Italian previews come from the Italian locale).

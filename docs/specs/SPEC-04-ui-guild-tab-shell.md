@@ -44,6 +44,8 @@ Stesso pannello in una finestra mobile e ridimensionabile, aperta da `/accord`, 
 
 ## 5. Stile
 
+> **Aggiornamento (M6.8, [ADR 0021](../adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md)).** L'aspetto "del gioco" descritto qui sotto (`UI/Skin.lua`, modelli e font del client) viene **sostituito** dallo stile della famiglia FDCP, specificato in [`ui-style.md`](ui-style.md): temi Nebula, Aurora e Accord, viste come schede, barra del titolo nella finestra autonoma, pannello con i colori del tema dentro la finestra Gilda (che resta solo osservata). Il testo seguente descrive lo stato fino a M6.7 e si riscrive quando i passi M6.12-M6.14 sono fatti; i punti di §2 e §3 sulla navigazione a sinistra e sulla barra superiore passano alle schede secondo `ui-style.md` §3.
+
 Aspetto coerente con la finestra della Gilda di Blizzard (bordi, font e colori del client), così la tab sembra nativa. Icone del client per classi, professioni e oggetti, per fileID o atlas.
 
 **Anteprime di progetto (M6.6).** Prima che l'addon giri nel client vero, l'aspetto di ogni vista principale è mostrato in immagini disegnate dal layout e dai testi dell'addon, con la grafica originale e dati inventati ([`mockups/`](mockups/README.md)): l'aspetto è quello della finestra Gilda del gioco, non una pergamena personalizzata come in Azeroth Guild Finder. Non sono screenshot; ogni immagine lo dice nella striscia in basso. Sono incorporate nel wiki e nei README.
