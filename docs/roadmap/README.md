@@ -10,8 +10,8 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M3** | [M3-professions.md](M3-professions.md) | Recipes per member, "who can craft", craft requests | 6 | final check |
 | **M4** | [M4-reputation.md](M4-reputation.md) | Likes, social index, group map, suggested teammates | 7 | final check |
 | **M5** | [M5-guild-bank.md](M5-guild-bank.md) | Bank snapshots, logs, donations, requests | 7 | final check |
-| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, v0.6.0 | 7 | release checklist |
-| **M7** | [M7-data-trust.md](M7-data-trust.md) | Provenance, guild of alts outside the guild, demo, backup, "what I share", hardening, About and credits | 9 | final check |
+| **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, the ecosystem look of FDCP, About and credits, Italian wiki, v0.6.0 | 17 | release checklist |
+| **M7** | [M7-data-trust.md](M7-data-trust.md) | Provenance, guild of alts outside the guild, demo, backup, "what I share", hardening | 8 | final check |
 | **M8** | [M8-officer-tools.md](M8-officer-tools.md) | Roster timeline, inactivity, cleanup wizard, manual-ops queue, notes, export | 7 | final check |
 | **M9** | [M9-action-center.md](M9-action-center.md) | Action Center, notifications, quiet hours, login digest | 6 | final check |
 | **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, events and sign-ups, composition, availability, rallies | 8 | final check |

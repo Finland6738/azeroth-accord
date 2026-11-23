@@ -32,7 +32,7 @@ La finestra della Gilda di WoW Forever è scarna: un elenco di nomi, gradi e not
 | Professioni | clic sulla professione di un membro → elenco delle sue ricette; ricerca "chi sa fare X"; richiesta di crafting | M3 |
 | Reputazione | like da account ad account, irrevocabili e anonimi; indice sociale; mappa dei gruppi; compagni suggeriti | M4 |
 | Banca | foto per scheda, ricerca, registri, donazioni, richieste di prelievo/deposito/donazione con approvazione degli ufficiali | M5 |
-| Rilascio | impostazioni, inglese e italiano, pacchetto, wiki | M6 |
+| Rilascio | impostazioni, inglese e italiano, pacchetto, wiki (anche in italiano), l'aspetto di Finland Dragon Credit Points, la pagina Informazioni con i crediti | M6 |
 
 ### Seconda parte: M7–M15 (da `v0.7.0` a `v0.15.0`, poi `v1.0.0`)
 
