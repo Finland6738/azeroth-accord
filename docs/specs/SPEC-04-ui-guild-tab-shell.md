@@ -41,6 +41,7 @@ Da M6.12 la finestra è un frame dell'addon senza modello di Blizzard ([`ui-styl
 | `/accord` o `/acc` | apre o chiude la finestra autonoma |
 | `/accord roster`, `professions`, `reputation`, `bank` | apre quella vista (`professions` si apre sulla ricerca "who can craft", [SPEC-06 §2.2](SPEC-06-professions-recipes.md); `reputation` sulla classifica dei like, [SPEC-07 §2.3](SPEC-07-reputation-social.md#23-interfaccia-dei-like-uireputationlua-m43)) |
 | `/accord settings` | apre la vista Settings ([§6](#6-impostazioni-m61)) |
+| `/accord about` | apre la pagina Info delle Impostazioni ([§7](#7-informazioni-m615)); `/accord about chat` scrive i crediti in chat |
 | `/accord debug` | rapporto di diagnostica in una casella già selezionata, da copiare con Ctrl+C ([SPEC-09 §6](SPEC-09-quality-release.md#6-diagnostica-e-segnalazioni-m64)) |
 | `/accord help` | elenco dei comandi |
 
@@ -69,3 +70,16 @@ La vista **Settings** (`/accord settings`) e un pannello **Azeroth Accord** nell
 **Cancella i dati della gilda** (`GuildKey:Clear`) toglie dalla tabella della gilda corrente tutto tranne ciò che **solo questo computer sa** e la gilda non può rimandare: le chiavi dei like dell'ufficiale (`salts`: perderne l'unica copia permetterebbe di dare di nuovo un like già dato, [ADR 0007](../adr/0007-likes-one-per-account-irreversible-anonymous.md)), la memoria dei like dati dall'account (`likes`) e la tabella `bank` (storico del denaro osservato alla banca e avvisi già mostrati, così un reinvio non viene annunciato di nuovo). Non tocca mai il token dell'account, i personaggi, il main, le impostazioni, le impostazioni del personaggio né i dati di un'altra gilda, e si rifiuta con i dati salvati in sola lettura (schema più nuovo). Poi emette di nuovo `GUILD_CHANGED` con la stessa chiave: i moduli si azzerano e ripartono come dopo un cambio di gilda (HELLO, richiesta dei dati, roster).
 
 **Aspetto (M6.14).** La pagina è una colonna di card (`Widgets.Card`) che prendono l'altezza di ciò che mostrano, con la card **Aspetto** in cima; le opzioni sì/no sono interruttori (`Widgets.Switch`), le colonne del Roster chip, il menu del main `Widgets.Menu`. La card Aspetto salva con `SettingsModel.SetLook(chiave, valore)`, che passa da `Config:Set` (`CONFIG_CHANGED`: `UI/Theme.lua` ridipinge subito) ed emette `SETTINGS_CHANGED(chiave)`; un rifiuto (dati in sola lettura) si dice sotto la card e il valore mostrato torna quello salvato. Nel pannello del gioco la pagina sta sul fondo `bg` del tema. `SettingsView.AddPage(id, def)` aggiunge una sotto-pagina accanto a *Settings* (un selettore a pillole compare dalla seconda: *Info*, M6.15).
+
+## 7. Informazioni (M6.15)
+
+La pagina **Info** (`UI/About.lua`) è la seconda pagina della vista Settings, dopo la pagina delle opzioni: si sceglie con il selettore (`Widgets.Segmented`) in alto, in entrambe le istanze (vista del pannello e pannello nella finestra Impostazioni del gioco), si registra con `SettingsView.AddPage("info", …)` e si costruisce la prima volta che viene mostrata. `/accord about` apre la vista Settings su Info; `/accord about chat` scrive gli stessi crediti nella chat (fuori dalla gilda, dove la vista non si apre, scrive in chat in ogni caso).
+
+La pagina è una colonna di quattro schede (larghezza 520, come le Impostazioni), che scorre con la rotella:
+
+1. **L'addon**: il logo (`logo_256`, 72 punti), il nome, la versione (quella del TOC, "sviluppo" quando il TOC non è ancora impacchettato) e due righe su che cosa fa.
+2. **Crediti**: "Creato e progettato da Finland" e "Realizzato con la gilda italiana NEBULA", con il logo di NEBULA (64 punti) scelto dal tema, scuro in Nebula e Accord e chiaro in Aurora, che segue `Theme.Apply` senza `/reload`; sotto, la nota "Il logo di NEBULA è usato con il permesso della gilda".
+3. **Link**: quattro caselle di sola lettura da copiare (il gioco non apre pagine web): il repository, le issue, la pagina di NEBULA e Ko-fi. Un clic seleziona il testo; scrivere nella casella lo rimette com'era.
+4. **Licenza e note**: GPL-3.0, il rinvio a `docs/third-party.md` e l'avviso che l'addon è creato dai fan e non è né realizzato né affiliato a Blizzard Entertainment.
+
+Ogni parola è una chiave di localizzazione (enUS e itIT); i nomi "Finland" e "NEBULA" e i link sono costanti del file, passate come argomenti. Il TOC ha `## X-Credits` e `## X-Website`. Solo i fatti decisi dal proprietario (PR #58): nessun nome reale, nessun indirizzo e-mail. Test: `Tests/test_ui_about.lua`.

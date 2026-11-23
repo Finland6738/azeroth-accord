@@ -86,7 +86,9 @@ describe("an Italian client on screen", function()
 	local ME, BOB, OFF = "Player-1-0000A001", "Player-1-00000B0B", "Player-1-00000C0C"
 	local LINEN, POTION = 2589, 118
 	local DATA = { "Accord", "Bob", "Boss", "Testchar", "Linen Cloth", "Minor Healing Potion", "Consumables", "Alchemy",
-		"Azeroth Accord", "AZEROTH ACCORD" }
+		"Azeroth Accord", "AZEROTH ACCORD",
+		"Finland", "NEBULA", "GPL-3.0", "https://github.com/Finland6738/azeroth-accord", "https://github.com/Finland6738/azeroth-accord/issues",
+		"https://nebula-community.github.io/giochi/wow-forever/", "https://ko-fi.com/finland6738" }
 
 	before_boot(function(M)
 		M.player.locale = "itIT"
@@ -179,6 +181,8 @@ describe("an Italian client on screen", function()
 			truthy(A().Shell:OpenView(view), view)
 			look(view, content())
 		end
+		A().SettingsView:ShowPage(A().SettingsView.frame, "info")   -- the Info page (M6.15)
+		look("settings info", content())
 		A().Shell:OpenView("reputation")
 		for _, m in ipairs(A().ReputationView:ModeList()) do
 			A().ReputationView:SetMode(m.id)

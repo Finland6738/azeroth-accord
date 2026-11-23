@@ -15,4 +15,5 @@
 **Reference**
 - [[Privacy and Data|Privacy-and-Data]]
 - [[FAQ|FAQ]]
+- [[About and credits|About]] ([[Informazioni|About-it]])
 - [[Reporting Bugs and Feedback|Reporting-Bugs-and-Feedback]]

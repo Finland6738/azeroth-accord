@@ -11,6 +11,7 @@
 ## AddonCompartmentFuncOnLeave: AzerothAccord_OnAddonCompartmentLeave
 ## IconTexture: Interface\AddOns\AzerothAccord\Media\logo_64
 ## X-Website: https://github.com/Finland6738/azeroth-accord
+## X-Credits: Created and designed by Finland. Made with the Italian guild NEBULA.
 ## X-License: GPL-3.0
 # CurseForge project ID (the number on the project's About page). The packager reads it from the line below, which
 # has to start with two # signs to count: replace "# ## X-Curse-Project-ID: 0" with "## X-Curse-Project-ID: 12345".
@@ -74,3 +75,4 @@ UI\BankLog.lua
 UI\BankRequests.lua
 UI\SettingsModel.lua
 UI\Settings.lua
+UI\About.lua

@@ -47,6 +47,14 @@ Everything stays **inside your guild**: the addon talks only over the guild's hi
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Issues, pull requests and public docs are in English; the specification is in Italian.
 
+## Credits
+
+- **Created and designed by Finland.**
+- **Made with the Italian guild NEBULA** ([the guild's page](https://nebula-community.github.io/giochi/wow-forever/)). The NEBULA logo is used with the guild's permission.
+- Support the project on [Ko-fi](https://ko-fi.com/finland6738); report a problem or suggest something in the [issues](https://github.com/Finland6738/azeroth-accord/issues).
+- In the game the same credits are on the **Info** page of Settings (`/accord about`); `/accord about chat` prints them in the chat. The manual has them too: [About and credits](docs/wiki/About.md).
+- Azeroth Accord is a fan-made addon, not made by and not affiliated with Blizzard Entertainment.
+
 ## Font credits
 
 The addon bundles three font families under the [SIL Open Font License 1.1](https://openfontlicense.org/) (the licence texts are next to the files in `AzerothAccord/Media/Fonts/`): **Outfit** (The Outfit Project Authors), **JetBrains Mono** (The JetBrains Mono Project Authors) and **Orbitron** (Matt McInerney, shipped unmodified because it declares a Reserved Font Name). Every font, the icon sheet, the textures, the logos and the libraries are listed with their licences in [docs/third-party.md](docs/third-party.md).

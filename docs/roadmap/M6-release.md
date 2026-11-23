@@ -152,7 +152,7 @@
   - Only the facts the owner gave; no real names.
 - Tests: `Tests/test_ui_about.lua`: the page in both languages and in every theme, the logo follows the theme, every text is a locale key, the chat command.
 - Done when:
-  - [ ] The tests pass; the README sections and both wiki pages exist; `tools/check_docs.py` passes.
+  - [x] The tests pass; the README sections and both wiki pages exist; `tools/check_docs.py` passes.
 - Real client: the page in the Settings view and in the game's settings window; selecting and copying a link.
 
 ### M6.16 — Design previews and the release check

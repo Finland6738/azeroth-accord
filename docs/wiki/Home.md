@@ -22,3 +22,4 @@
 | See the bank or ask for an item | [[Guild Bank|Guild-Bank]] |
 | Change my main, my Discord name or the notices | [[Settings|Settings]] |
 | Know what is shared | [[Privacy and Data|Privacy-and-Data]] |
+| See who made it and the links | [[About and credits|About]] (in Italian: [[Informazioni e crediti|About-it]]) |
