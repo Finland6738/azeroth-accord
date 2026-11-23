@@ -24,7 +24,7 @@ una chiave di locale, `enUS` e `itIT`), nessun colore scritto fuori da `UI/Theme
 | Cartella dell'addon e percorso dei media | `FinlandDragonCreditPoints/Media/` | `AzerothAccord/Media/` (`Interface\AddOns\AzerothAccord\Media\`) |
 | Tabella globale dei dati salvati | `FDCPDB` | `AzerothAccordDB` (account) e `AzerothAccordCharDB` (personaggio), come in [SPEC-03](SPEC-03-data-model.md) |
 | Oggetti font (`CreateFont`) | `FDCPFont<Id>` | `AzerothAccordFont<Id>` (`Display`, `Title`, `Body`, `Medium`, `SemiBold`, `Mono`, `MonoMedium`, `Eyebrow`, `Header`…, gli stessi `<Id>` di FDCP) |
-| Spazio dei nomi del codice | `FDCP.Theme`, `FDCP.Assets`… | `ns.Theme`, `ns.Assets`, `ns.Motion`, `ns.Widgets` (e `ns.addon.Theme`… per i test, come in FDCP) |
+| Spazio dei nomi del codice | `FDCP.Theme`, `FDCP.Assets`… | `ns.Theme`, `ns.Assets`, `ns.Motion` e, per i widget, `ns.Kit` fino a M6.14, poi `ns.Widgets` (e `ns.addon.Theme`… per i test, come in FDCP) |
 | Nomi dei frame globali | `FDCP…` | `AzerothAccord…` |
 | Chiavi di locale | quelle di FDCP | quelle di Accord (`Locale/enUS.lua`, `itIT.lua`); i testi nuovi di questa famiglia (temi, Aspetto, Info, crediti) hanno chiavi proprie e un test controlla che nulla arrivi a schermo senza chiave (M6.14) |
 | Slash command | `/fdcp` | `/accord`, `/acc` (invariati, [SPEC-04 §4](SPEC-04-ui-guild-tab-shell.md)) |
@@ -93,6 +93,33 @@ colonne scelte dal giocatore e il pulsante **Pop out** apre la stessa vista nell
 
 Densità: come FDCP (righe di 36-40 pt, testo 13 pt). Una gilda di 1000 membri resta sulle righe riciclate da un pool
 (DataTable, M6.11): nessuna regione creata durante un aggiornamento.
+
+**Stato (M6.11).** Fatto: i widget di FDCP §3 sono in `UI/Widgets/` (`Core.lua`: Button, Card, Badge, Tabs, Segmented,
+Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Select, Snackbar, Skeleton, ClassMark;
+`DataTable.lua`, `ThinBar.lua`, `Tooltip.lua`). Scelte, tutte da provare in gioco:
+
+- **Nome.** Il vecchio aspetto (`UI/Widgets/Base.lua`, usato da tutte le viste) tiene `ns.Widgets` fino a M6.14, e i
+  nomi coincidono (`Button`…): i widget nuovi stanno in **`ns.Kit`** (`AzerothAccord.Kit` nei test). M6.14 toglie
+  `Base.lua` e rinomina `Kit` in `Widgets` nelle prime righe dei cinque file.
+- **DataTable senza ScrollBox.** Come in FDCP la tabella è un pool proprio di righe, con la **rotellina**, che si
+  comporta allo stesso modo su ogni client: non serve né `ScrollBox`/`DataProvider` né il ripiego `FauxScrollFrame` (la
+  riga «ScrollBox + DataProvider» del verdetto di §5 si legge così). L'intestazione sta fuori dalla lista, la colonna
+  ordinata ha freccia e `accent-text`, un indicatore sottile a destra mostra dove si è in una lista lunga (non si trascina).
+  Un ordinamento calcola la chiave di ogni riga una volta sola; un aggiornamento o uno scorrimento riempie al massimo il
+  pool (40 righe, che cresce fino a 100 solo se la finestra si fa più alta) e non crea regioni. Le colonne fisse e
+  flessibili restano; le colonne **fisse a sinistra e a destra come liste sincronizzate** non sono state fatte (nessuna
+  vista di Accord ne ha bisogno: i pannelli sono stretti e le colonne le sceglie il giocatore).
+- **Schede.** L'indicatore da 2 pt **scorre** da una scheda all'altra in 200 ms (`Translation`, poi si posa) e si
+  dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
+  Banca: `Tabs:SetBadge(id, testo|nil, tono)`; il testo lo passa il chiamante).
+- **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): fondo
+  `text-1`, testo `bg`, larghezza fino a 280 pt, il mouse lo attraversa. `Tooltip.Attach(frame, testo|righe|funzione)`;
+  il `GameTooltip` del gioco solo per gli oggetti (`Tooltip.Item`, `AttachItem`) e mai riskinnato.
+- **Testi e colori.** Un widget non contiene frasi: ogni testo lo passa il chiamante già tradotto; ogni colore è un
+  token del tema, tranne il bianco dello strato di passaggio del mouse (`-- theme-ok`). `tools/check_addon.py` fallisce
+  su un testo o un colore scritti dentro i cinque file.
+- **Segno di classe.** Il quadratino con bagliore resta nascosto finché `PaintClassMark` non gli dà il colore del
+  gioco (che `Theme.Apply` non tocca); `ClearClassMark` lo nasconde di nuovo per le righe riciclate.
 
 ## 4. I tre temi
 
@@ -180,7 +207,8 @@ personale in nessun file ([CLAUDE.md](../../CLAUDE.md), privacy).
 Questa specifica è solo documentazione: **nulla è stato provato nel client vero**. Come in FDCP §7, da provare in
 gioco ancora prima di fidarsi dei dettagli: caricamento di TGA e font su Forever (M6.9); qualità del 9-slice a scala
 frazionaria e `Px()` a più scale dell'interfaccia; fusione `ADD` dei bagliori; propagazione del colore degli oggetti
-font; template ScrollBox e ripiego `FauxScrollFrame`; menu senza `UIDropDownMenu`. In più, per Accord:
+font; menu senza `UIDropDownMenu` (il template `ScrollBox` e il ripiego `FauxScrollFrame` non servono più: DataTable è un pool
+proprio, §3). In più, per Accord:
 
 - il pannello a tinte di tema **dentro** `CommunitiesFrame` (sfondo, ordine degli strati sopra `Inset`, clic, ridimensionamento della finestra Gilda) senza taint e senza nuovi errori in combattimento;
 - l'aspetto del tema **Accord** su schermo (i colori sono scelti da un'immagine, non da una prova);

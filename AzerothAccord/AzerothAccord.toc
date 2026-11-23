@@ -50,6 +50,11 @@ Data\BankInbox.lua
 UI\Assets.lua
 UI\Theme.lua
 UI\Motion.lua
+UI\Widgets\Core.lua
+UI\Widgets\Controls.lua
+UI\Widgets\DataTable.lua
+UI\Widgets\ThinBar.lua
+UI\Widgets\Tooltip.lua
 UI\Skin.lua
 UI\Widgets\Base.lua
 UI\Shell.lua

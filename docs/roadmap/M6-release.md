@@ -97,10 +97,10 @@
 ### M6.11 — Widgets
 - Branch: `step/m6-11-widgets`
 - Spec: `ui-style.md` §3
-- Scope: `UI/Widgets/` from FDCP: Button, Card, Badge, Tabs (with the moving indicator), Segmented, Chip, TitleBar, Dialog, EditBox, ChoiceList, Switch, Slider, Select (menus without `UIDropDownMenu`), Snackbar, Skeleton, ClassMark, ThinBar, the addon's own Tooltip, and DataTable (ScrollBox and DataProvider, FauxScrollFrame where the client lacks them). The old `UI/Widgets/Base.lua` stays until M6.14.
+- Scope: `UI/Widgets/` from FDCP: Button, Card, Badge, Tabs (with the moving indicator and an optional count badge), Segmented, Chip, TitleBar, Dialog, EditBox, ChoiceList, Switch, Slider, Select (menus without `UIDropDownMenu`), Snackbar, Skeleton, ClassMark, ThinBar, the addon's own Tooltip, and DataTable (FDCP's own pooled table with a thin scroll indicator, which behaves the same on every client; no ScrollBox, so no `FauxScrollFrame` fallback is needed, see `ui-style.md` §3). The old `UI/Widgets/Base.lua` stays until M6.14 and keeps `ns.Widgets`: the new widgets live in `ns.Kit`, which becomes `ns.Widgets` in M6.14.
 - Tests: `Tests/test_widgets.lua`: every widget builds in every theme, follows a change of theme, and takes its texts only from locale keys.
 - Done when:
-  - [ ] The tests pass.
+  - [x] The tests pass.
 
 ### M6.12 — Window, title bar and tabs
 - Branch: `step/m6-12-window`

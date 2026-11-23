@@ -210,6 +210,30 @@ def check(problems):
         problems.append("TOC ## IconTexture must be the addon's logo (Interface\\AddOns\\AzerothAccord\\Media\\logo_64, M6.9)")
 
 
+KIT_FILES = ("Core", "Controls", "DataTable", "ThinBar", "Tooltip")
+KIT_TEXT = re.compile(r"""SetText\(\s*(["'])[^"']*[A-Za-z]""")
+KIT_COLOUR = re.compile(r"\b(SetVertexColor|SetColorTexture|SetTextColor)\(\s*[-0-9.]")
+
+
+def check_widget_kit(problems):
+    """The widget kit of M6.11 (UI/Widgets/Core, Controls, DataTable, ThinBar, Tooltip): a widget never contains a
+    sentence (every text comes from the caller, already translated) and writes no colour of its own (every colour is a
+    theme token); the one exception is the white of the hover layer, marked `theme-ok`."""
+    for name in KIT_FILES:
+        path = os.path.join(ADDON, "UI", "Widgets", name + ".lua")
+        if not os.path.isfile(path):
+            problems.append(f"AzerothAccord/UI/Widgets/{name}.lua is missing (the widget kit, M6.11)")
+            continue
+        with open(path, encoding="utf-8") as f:
+            for number, line in enumerate(f.read().splitlines(), 1):
+                code = line.split("--", 1)[0]
+                where = f"AzerothAccord/UI/Widgets/{name}.lua:{number}"
+                if KIT_TEXT.search(code):
+                    problems.append(f"{where}: a widget writes its own text; the caller passes every text")
+                if KIT_COLOUR.search(code) and "theme-ok" not in line:
+                    problems.append(f"{where}: a colour written in a widget; use a theme token (Theme.Tint, Theme.Fill, Theme.Text)")
+
+
 def check_report_form(problems):
     """The bug report form asks for the facts the /accord debug report starts with, under the same names (M6.4): every
     header line of Core/Diagnostics.lua is named in .github/ISSUE_TEMPLATE/bug_report.yml, and the form says to paste
@@ -241,6 +265,7 @@ def main():
     problems = []
     check(problems)
     check_report_form(problems)
+    check_widget_kit(problems)
     for p in problems:
         print(p)
     print(f"Addon check: {len(problems)} problem(s).")
