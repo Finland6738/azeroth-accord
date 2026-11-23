@@ -8,7 +8,20 @@ The page scrolls with the mouse wheel.
 
 ![The lower part of the page: the saved data sizes and Clear guild data](../specs/mockups/previews/settings-saved-data.webp)
 
-*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)). They still show the previous look (one long page in the game's colours, without the Appearance card): the page is now a column of cards in the colours of the chosen theme, with switches for the options. New pictures come before version `v0.6.0`.*
+
+## Appearance
+
+The first card sets how Azeroth Accord looks. The choice is saved **per account**, so every character of yours looks the same, and a change shows at once, without `/reload`.
+
+| Option | Choices | Default |
+|---|---|---|
+| Theme | **Nebula** (dark, violet and orange), **Aurora** (light, blue and teal), **Accord** (dark, green and gold, the colours of the logo) | Nebula |
+| Neon effects | on / off: the glows of the dark themes; off gives flat colours, a little lighter for the computer | on |
+| Animations | on / off: fades, slides and the press of the buttons; off makes every change immediate | on |
+| Font | **Accord's fonts** (Orbitron, Outfit, JetBrains Mono) or the **game font** | Accord's fonts |
+
+Hover a switch for a short explanation. A font the game has not loaded yet shows everywhere after `/reload` (the game reads new font files only then). Class colours and item colours are the game's own and do not change with the theme; on the light theme a player's name is dark and the small square next to it carries the class colour.
 
 ## Contacts shared with your guild
 
@@ -28,11 +41,11 @@ Pick which of your characters is your **main**. It leads your characters in the 
 | Tell me in chat about new bank requests | officers only | on |
 | Tell me in chat when my bank requests are decided | everyone | on |
 
-These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
+Each option is a switch. These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
 
 ## Roster columns
 
-Tick the columns the Roster table shows; the name column is always there. *Default columns* puts them back. The choice is saved **per character**.
+Click the chips of the columns the Roster table shows (a filled chip is shown); the name column is always there. *Default columns* puts them back. The choice is saved **per character**.
 
 ## Saved data
 

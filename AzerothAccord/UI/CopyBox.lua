@@ -6,14 +6,14 @@ local Box = {}
 ns.CopyBox, ns.modules = Box, ns.modules or {}
 ns.modules.CopyBox = Box
 
-local L, Kit, Theme = ns.L, ns.Kit, ns.Theme
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 Box.NAME = "AzerothAccordCopyBox"
 Box.WIDTH, Box.HEIGHT = 380, 196
 
--- A Kit.Dialog (a veil over the screen and a centred card, Esc closes it): the title, the hint, one read-only field with
+-- A Widgets.Dialog (a veil over the screen and a centred card, Esc closes it): the title, the hint, one read-only field with
 -- its text selected, and a Close button.
 local function build()
-	local f = Kit.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
+	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
 	f.title = Theme.NewText(card, "H2", "text-1")
 	f.title:SetJustifyH("LEFT")
@@ -24,7 +24,7 @@ local function build()
 	f.hint:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
 	f.hint:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	f.hint:SetText(L["COPY_HINT"])
-	f.field = Kit.EditBox(card, { width = Box.WIDTH - 48, height = 32, maxLetters = 64 })
+	f.field = Widgets.EditBox(card, { width = Box.WIDTH - 48, height = 32, maxLetters = 64 })
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -76)
 	local edit = f.field.edit
 	-- read-only: what the player types is undone at once and the text stays selected
@@ -37,7 +37,7 @@ local function build()
 	edit:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:HookScript("OnEscapePressed", function() Box:Hide() end)
 	f.edit = edit
-	f.close = Kit.Button(card, { text = L["COPY_CLOSE"], style = "secondary", onClick = function() Box:Hide() end })
+	f.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "secondary", onClick = function() Box:Hide() end })
 	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
 	return f
 end

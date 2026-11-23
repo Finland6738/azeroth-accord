@@ -15,7 +15,7 @@ ns.modules.BankLogView = Mode
 
 local View = ns.BankView
 if not View then return end
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 local concat = table.concat
 
@@ -25,11 +25,6 @@ Mode.days = 30
 
 local function lower(s) return type(s) == "string" and s:lower() or "" end
 local function now() return ns.Compat and ns.Compat.ServerTime() or 0 end
-local function classColor(classFile)
-	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
-	if c then return c.r, c.g, c.b end
-	return 1, 1, 1
-end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Rows
@@ -85,7 +80,7 @@ local function visibleRows(area)
 	return max(1, floor(h / View.ROW_HEIGHT))
 end
 
--- def = { columns = { { key, width, style, color, justify }, ... }, rows() -> list, fill(row, data, cells), empty }
+-- def = { columns = { { key, width, font (a Theme font id), token, justify }, ... }, rows() -> list, fill(row, data), empty }
 local function listMode(def)
 	local mode = {}
 	local function newRow(area, i)
@@ -93,18 +88,16 @@ local function listMode(def)
 		row:SetHeight(View.ROW_HEIGHT)
 		row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
 		row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-		row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-		row.highlight:SetAllPoints(row)
-		row.highlight:SetColorTexture(1, 1, 1, 0.08)
 		row.cells = {}
 		local prev
 		for n, c in ipairs(def.columns) do
-			local fs = W.Text(row, c.style or "body", c.color, c.justify or "LEFT")
+			local fs = Widgets.Text(row, c.font or "Body", c.token or "text-1", c.justify or "LEFT")
 			if prev then fs:SetPoint("LEFT", prev, "RIGHT", 8, 0) else fs:SetPoint("LEFT", row, "LEFT", 6, 0) end
 			if c.width then fs:SetWidth(c.width) else fs:SetPoint("RIGHT", row, "RIGHT", -4, 0) end
 			row.cells[c.key] = fs
 			prev = fs
 		end
+		Widgets.RowHover(row)
 		area.rows[i] = row
 		return row
 	end
@@ -112,15 +105,16 @@ local function listMode(def)
 	function mode.build(f)
 		local top = 4
 		if def.toolbar then top = def.toolbar(f) end
-		local area = W.Frame(f, 10, 10)
+		local area = CreateFrame("Frame", nil, f)
 		area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
-		area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
+		area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+		area:SetClipsChildren(true)
 		area:EnableMouseWheel(true)
 		area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
 		area:SetScript("OnSizeChanged", function() View:Redraw() end)
 		area.rows = {}
 		f.area = area
-		f.message = W.Text(f, "body", "grey", "CENTER")
+		f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 		f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
 		f.message:SetWidth(380)
 	end
@@ -154,13 +148,13 @@ end
 -- Log
 ---------------------------------------------------------------------------------------------------------------------
 local logMode = listMode({
-	columns = { { key = "when", width = 80, style = "small", color = "grey" }, { key = "tab", width = 90, style = "small", color = "grey" },
-		{ key = "name", width = 120 }, { key = "kind", width = 90, style = "small" }, { key = "detail" } },
+	columns = { { key = "when", width = 80, font = "MonoSmall", token = "text-3" }, { key = "tab", width = 90, font = "Small", token = "text-3" },
+		{ key = "name", width = 120, font = "BodyMedium" }, { key = "kind", width = 90, font = "Small" }, { key = "detail", token = "text-2" } },
 	rows = function() return Mode.LogRows({ search = View.search }) end,
 	fill = function(row, d)
 		row.cells.when:SetText(d.when); row.cells.tab:SetText(d.tabName); row.cells.name:SetText(d.name)
 		row.cells.kind:SetText(d.text)
-		row.cells.kind:SetTextColor(Skin.Color(d.kind == "withdraw" and "red" or (d.kind == "deposit" and "green" or "grey")))
+		Theme.Text(row.cells.kind, d.kind == "withdraw" and "err" or (d.kind == "deposit" and "ok" or "text-3"))
 		row.cells.detail:SetText(d.detail)
 	end,
 	empty = function() return View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKLOG_EMPTY"] end,
@@ -170,43 +164,40 @@ View.AddMode("log", { label = L["BANK_MODE_LOG"], order = 30, build = logMode.bu
 ---------------------------------------------------------------------------------------------------------------------
 -- Donations
 ---------------------------------------------------------------------------------------------------------------------
-local function pickButton(f, key, labels, get, set, x)
+-- A row of chips for one choice of the mode (the period, the order): f.picks[key] = { buttons, get, labels, bar }.
+local function pickRow(f, key, labels, get, set, anchor, dx)
 	f.picks = f.picks or {}
-	local buttons = {}
-	for i, item in ipairs(labels) do
-		local b = W.Button(f, { text = item[2], width = 96, height = 20, onClick = function() set(item[1]); View:Redraw() end })
-		b:SetPoint("TOPLEFT", f, "TOPLEFT", x + (i - 1) * 100, -4)
-		b.value = item[1]
-		buttons[i] = b
-	end
-	f.picks[key] = { buttons = buttons, get = get, labels = labels }
+	local bar = Widgets.ChipRow(f, function(id) set(id); View:Redraw() end, { height = 26 })
+	if anchor then bar:SetPoint("LEFT", anchor, "RIGHT", dx or 24, 0) else bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0) end
+	local items = {}
+	for i, item in ipairs(labels) do items[i] = { id = item[1], text = item[2] } end
+	bar:SetItems(items, get())
+	bar:SetWidth(bar.width)
+	for i, b in ipairs(bar.buttons) do b.value = labels[i][1] end
+	f.picks[key] = { buttons = bar.buttons, get = get, labels = labels, bar = bar }
+	return bar
 end
 
 local function refreshPicks(f)
-	for _, pick in pairs(f.picks or {}) do
-		for i, b in ipairs(pick.buttons) do
-			local text = pick.labels[i][2]
-			b:SetLabel(b.value == pick.get() and ("> " .. text .. " <") or text)
-		end
-	end
+	for _, pick in pairs(f.picks or {}) do pick.bar:Select(pick.get()) end
 end
 
 local donationMode = listMode({
 	toolbar = function(f)
-		pickButton(f, "window", { { "d30", L["BANKLOG_D30"] }, { "d365", L["BANKLOG_D365"] }, { "all", L["BANKLOG_ALL"] } },
-			function() return Mode.window end, function(v) Mode.window = v View.offset = 0 end, 8)
-		pickButton(f, "sort", { { "gold", L["BANKLOG_GOLD"] }, { "items", L["BANKLOG_ITEMS"] } },
-			function() return Mode.sort end, function(v) Mode.sort = v View.offset = 0 end, 330)
-		return 30
+		local first = pickRow(f, "window", { { "d30", L["BANKLOG_D30"] }, { "d365", L["BANKLOG_D365"] }, { "all", L["BANKLOG_ALL"] } },
+			function() return Mode.window end, function(v) Mode.window = v View.offset = 0 end)
+		pickRow(f, "sort", { { "gold", L["BANKLOG_GOLD"] }, { "items", L["BANKLOG_ITEMS"] } },
+			function() return Mode.sort end, function(v) Mode.sort = v View.offset = 0 end, first, 24)
+		return 36
 	end,
 	beforeRefresh = refreshPicks,
-	columns = { { key = "place", width = 28, style = "small", color = "grey", justify = "RIGHT" }, { key = "name", width = 160 },
-		{ key = "gold", width = 120, color = "gold", justify = "RIGHT" }, { key = "items", width = 90, justify = "RIGHT" },
-		{ key = "deposits", style = "small", color = "grey" } },
+	columns = { { key = "place", width = 28, font = "MonoSmall", token = "text-3", justify = "RIGHT" }, { key = "name", width = 160, font = "BodyMedium" },
+		{ key = "gold", width = 120, font = "MonoMedium", token = "accent-text", justify = "RIGHT" }, { key = "items", width = 90, font = "Mono", justify = "RIGHT" },
+		{ key = "deposits", font = "Small", token = "text-3" } },
 	rows = Mode.DonationRows,
 	fill = function(row, d)
 		row.cells.place:SetText(tostring(d.place))
-		row.cells.name:SetText(d.name); row.cells.name:SetTextColor(classColor(d.classFile))
+		row.cells.name:SetText(d.name); Widgets.PaintName(row.cells.name, d.classFile)
 		row.cells.gold:SetText(d.gold > 0 and View.MoneyText(d.gold) or "-")
 		row.cells.items:SetText(d.items > 0 and L["BANKLOG_ITEMS_N"]:format(d.items) or "-")
 		row.cells.deposits:SetText(L["BANKLOG_DEPOSITS"]:format(d.deposits))
@@ -225,24 +216,32 @@ Mode.BARS = 30
 local money = {}
 
 function money.build(f)
-	f.title = W.Text(f, "small", "grey", "LEFT")
-	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -6)
-	f.title:SetPoint("RIGHT", f, "RIGHT", -8, 0)
-	f.chart = W.Frame(f, Mode.BARS * 14, 180)
-	f.chart:SetPoint("TOPLEFT", f, "TOPLEFT", 12, -50)
+	f.card = Widgets.Card(f, { width = Mode.BARS * 14 + 48, height = 290 })
+	f.card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.title = Widgets.Text(f.card, "H2", "text-1", "LEFT")
+	f.title:SetPoint("TOPLEFT", f.card, "TOPLEFT", 24, -18)
+	f.title:SetPoint("RIGHT", f.card, "RIGHT", -24, 0)
+	f.chart = CreateFrame("Frame", nil, f.card)
+	f.chart:SetSize(Mode.BARS * 14, 180)
+	f.chart:SetPoint("TOPLEFT", f.card, "TOPLEFT", 24, -72)
+	f.chart.base = f.chart:CreateTexture(nil, "BORDER")
+	Theme.Fill(f.chart.base, "border")
+	f.chart.base:SetHeight(1)
+	f.chart.base:SetPoint("BOTTOMLEFT", f.chart, "BOTTOMLEFT", 0, -1)
+	f.chart.base:SetPoint("BOTTOMRIGHT", f.chart, "BOTTOMRIGHT", 0, -1)
 	f.chart.bars = {}
 	for i = 1, Mode.BARS do
 		local t = f.chart:CreateTexture(nil, "ARTWORK")
-		t:SetColorTexture(Skin.Color("gold"))
+		Theme.Fill(t, "accent")
 		t:SetWidth(12)
 		t:SetPoint("BOTTOMLEFT", f.chart, "BOTTOMLEFT", (i - 1) * 14, 0)
 		f.chart.bars[i] = t
 	end
-	f.low = W.Text(f, "small", "grey", "LEFT")
-	f.low:SetPoint("TOPLEFT", f.chart, "BOTTOMLEFT", 0, -4)
-	f.high = W.Text(f, "small", "grey", "LEFT")
-	f.high:SetPoint("BOTTOMLEFT", f.chart, "TOPLEFT", 0, 4)
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.low = Widgets.Text(f.card, "MonoSmall", "text-3", "LEFT")
+	f.low:SetPoint("TOPLEFT", f.chart, "BOTTOMLEFT", 0, -6)
+	f.high = Widgets.Text(f.card, "MonoSmall", "text-3", "LEFT")
+	f.high:SetPoint("BOTTOMLEFT", f.chart, "TOPLEFT", 0, 6)
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", f, "CENTER", 0, 0)
 	f.message:SetWidth(380)
 end
@@ -266,12 +265,12 @@ function money.refresh(f)
 	local heights = Mode.Chart(series)
 	View.rowsShown = {}
 	if not heights then
-		f.chart:Hide(); f.low:Hide(); f.high:Hide(); f.title:Hide()
+		f.card:Hide(); f.chart:Hide(); f.low:Hide(); f.high:Hide(); f.title:Hide()
 		f.message:SetText(L["BANKLOG_NO_MONEY"])
 		f.message:Show()
 		return 0
 	end
-	f.message:Hide(); f.chart:Show(); f.low:Show(); f.high:Show(); f.title:Show()
+	f.message:Hide(); f.card:Show(); f.chart:Show(); f.low:Show(); f.high:Show(); f.title:Show()
 	f.title:SetText(L["BANKLOG_MONEY_TITLE"]:format(Mode.days))
 	for i = 1, Mode.BARS do
 		local bar = f.chart.bars[i]

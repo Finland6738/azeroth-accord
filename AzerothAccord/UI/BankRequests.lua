@@ -15,13 +15,13 @@ ns.modules.BankRequestsView = Mode
 
 local View = ns.BankView
 if not View then return end
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, tonumber, floor, max, min = type, ipairs, pairs, tostring, tonumber, math.floor, math.max, math.min
 
 Mode.kind = "withdraw"
 Mode.onlyMine = false
 Mode.showClosed = false
-Mode.FORM_HEIGHT = 120
+Mode.FORM_HEIGHT = 156
 
 local OPEN_STATES = { open = true, approved = true }
 local function now() return ns.Compat and ns.Compat.ServerTime() or 0 end
@@ -33,7 +33,7 @@ local function print_(msg) if ns.addon and msg then ns.addon:Print(msg) end end
 ---------------------------------------------------------------------------------------------------------------------
 function Mode.KindText(kind) return L["BANKREQ_KIND_" .. tostring(kind):upper()] end
 function Mode.StatusText(status) return L["BANKREQ_STATUS_" .. tostring(status):upper()] end
-local STATUS_COLOR = { open = "gold", approved = "green", fulfilled = "green", rejected = "red", cancelled = "grey" }
+local STATUS_TOKEN = { open = "accent-text", approved = "ok", fulfilled = "ok", rejected = "err", cancelled = "text-3" }
 
 -- What a request is about: "Linen Cloth x20" or "12g 50s".
 function Mode.WhatText(r)
@@ -116,19 +116,17 @@ end
 local mode = {}
 
 local function editBox(parent, width, maxLetters)
-	local edit = W.Create("EditBox", nil, parent, { "InputBoxTemplate", "" })
-	edit:SetSize(width, 22)
-	edit:SetAutoFocus(false)
-	edit:SetMaxLetters(maxLetters or 60)
-	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-	return edit
+	return Widgets.EditBox(parent, { width = width, height = 28, maxLetters = maxLetters or 60 })
 end
 
-local function label(parent, text, anchor, dx, dy)
-	local fs = W.Text(parent, "small", "grey", "LEFT")
-	fs:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", dx or 0, dy or -2)
-	fs:SetText(text)
-	return fs
+-- The lines of a row's tooltip: what, the reason, the history, the officer's note (Widgets.Tooltip content).
+function Mode.TooltipLines(d)
+	if type(d) ~= "table" then return nil end
+	local lines = { d.what or "" }
+	if d.reason then lines[#lines + 1] = d.reason end
+	for _, h in ipairs(d.history or {}) do lines[#lines + 1] = { text = Mode.HistoryLine(h), token = "text-3" } end
+	if d.note then lines[#lines + 1] = { text = L["BANKREQ_NOTE"]:format(d.note), token = "err" } end
+	return lines
 end
 
 local function newRow(area, i)
@@ -136,48 +134,35 @@ local function newRow(area, i)
 	row:SetHeight(View.ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-	row.highlight:SetAllPoints(row)
-	row.highlight:SetColorTexture(1, 1, 1, 0.08)
-	row.status = W.Text(row, "small", nil, "LEFT")
+	row.status = Widgets.Text(row, "Small", "text-2", "LEFT")
 	row.status:SetPoint("LEFT", row, "LEFT", 6, 0)
 	row.status:SetWidth(74)
-	row.name = W.Text(row, "body", nil, "LEFT")
+	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
 	row.name:SetPoint("LEFT", row.status, "RIGHT", 4, 0)
 	row.name:SetWidth(96)
-	row.kind = W.Text(row, "small", "grey", "LEFT")
+	row.kind = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.kind:SetPoint("LEFT", row.name, "RIGHT", 4, 0)
 	row.kind:SetWidth(66)
-	row.what = W.Text(row, "body", "gold", "LEFT")
+	row.what = Widgets.Text(row, "Body", "accent-text", "LEFT")
 	row.what:SetPoint("LEFT", row.kind, "RIGHT", 4, 0)
 	row.what:SetWidth(170)
-	row.reason = W.Text(row, "small", "grey", "LEFT")
+	row.reason = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.reason:SetPoint("LEFT", row.what, "RIGHT", 4, 0)
 	row.reason:SetWidth(130)
 	row.buttons = {}
-	local x = 0
 	for n = 1, 3 do
-		local b = W.Button(row, { width = 78, height = View.ROW_HEIGHT - 2, onClick = function(self)
+		local b = Widgets.Button(row, { style = "secondary", width = 80, height = View.ROW_HEIGHT - 6, onClick = function(self)
 			local d = self:GetParent().data
 			if not (d and self.action) then return end
 			local ok, why = Mode.Act(d.id, self.action, Mode.noteText and Mode.noteText() or nil)
 			if not ok then print_(L["BANKREQ_ERR_ACT"]:format(tostring(why))) end
 			View:Redraw()
 		end })
-		b:SetPoint("RIGHT", row, "RIGHT", -(4 + (3 - n) * 80), 0)
+		b:SetPoint("RIGHT", row, "RIGHT", -(4 + (3 - n) * 84), 0)
 		row.buttons[n] = b
 	end
-	row:SetScript("OnEnter", function(self)
-		local d = self.data
-		if not (d and GameTooltip) then return end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		GameTooltip:SetText(d.what or "")
-		if d.reason then GameTooltip:AddLine(d.reason, 1, 1, 1, true) end
-		for _, h in ipairs(d.history) do GameTooltip:AddLine(Mode.HistoryLine(h)) end
-		if d.note then GameTooltip:AddLine(L["BANKREQ_NOTE"]:format(d.note), 1, 0.4, 0.4, true) end
-		GameTooltip:Show()
-	end)
-	row:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+	Widgets.Tooltip.Attach(row, function(self) return Mode.TooltipLines(self.data) end, "RIGHT")
+	Widgets.RowHover(row)
 	area.rows[i] = row
 	return row
 end
@@ -187,16 +172,16 @@ local BUTTON_TEXT = { cancel = "BANKREQ_CANCEL", approved = "BANKREQ_APPROVE", r
 local function fillRow(row, d)
 	row.data = d
 	row.status:SetText(d.statusText)
-	row.status:SetTextColor(Skin.Color(STATUS_COLOR[d.status] or "white"))
+	Theme.Text(row.status, STATUS_TOKEN[d.status] or "text-2")
 	row.name:SetText(d.name or "?")
 	row.kind:SetText(d.kindText)
 	row.what:SetText(d.what)
 	if d.suggestion then
 		row.reason:SetText(Mode.SuggestionText(d.suggestion))
-		row.reason:SetTextColor(Skin.Color("gold"))
+		Theme.Text(row.reason, "accent-text")
 	else
 		row.reason:SetText(d.reason or "")
-		row.reason:SetTextColor(Skin.Color("grey"))
+		Theme.Text(row.reason, "text-3")
 	end
 	local actions = {}
 	if d.canCancel then actions[#actions + 1] = "cancel" end
@@ -204,22 +189,28 @@ local function fillRow(row, d)
 	for n, b in ipairs(row.buttons) do
 		local action = actions[n]
 		b.action = action
-		if action then b:SetLabel(L[BUTTON_TEXT[action]]) b:Show() else b:Hide() end
+		if action then
+			b:SetLabel(L[BUTTON_TEXT[action]])
+			b:Show()
+		else
+			b:Hide()
+		end
 	end
 	row:Show()
 end
 
 -- The list under the form (or at the top of a mode without one): virtual rows and the empty-list message.
 local function buildArea(f, top)
-	local area = W.Frame(f, 10, 10)
+	local area = CreateFrame("Frame", nil, f)
 	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
+	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	area:SetClipsChildren(true)
 	area:EnableMouseWheel(true)
 	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
 	area:SetScript("OnSizeChanged", function() View:Redraw() end)
 	area.rows = {}
 	f.area = area
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
 	f.message:SetWidth(380)
 end
@@ -246,61 +237,76 @@ local function drawRows(f, rows, emptyText)
 	return total
 end
 
+local function caption(parent, text)
+	local fs = Widgets.Text(parent, "Eyebrow", "text-3", "LEFT")
+	if text then fs:SetText(text) end
+	return fs
+end
+
+-- The form is a card: the kind (chips) and its hint, the three fields with their captions, Send and the status line;
+-- under the card the two filter chips and the list.
 function mode.build(f)
-	f.kindButtons = {}
-	local x = 8
-	for i, kind in ipairs(ns.BankRequests and ns.BankRequests.KINDS or { "withdraw", "deposit", "donation" }) do
-		local b = W.Button(f, { text = Mode.KindText(kind), width = 96, height = 20, onClick = function() Mode.kind = kind View:Redraw() end })
-		b:SetPoint("TOPLEFT", f, "TOPLEFT", x + (i - 1) * 100, -4)
-		b.kind = kind
-		f.kindButtons[i] = b
-	end
-	f.tip = W.Text(f, "small", "grey", "LEFT")
-	f.tip:SetPoint("LEFT", f.kindButtons[3], "RIGHT", 10, 0)
-	f.tip:SetPoint("RIGHT", f, "RIGHT", -8, 0)
-	f.itemLabel = W.Text(f, "small", "grey", "LEFT")
-	f.itemLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 12, -30)
-	f.itemLabel:SetText(L["BANKREQ_ITEM"])
-	f.item = editBox(f, 210, 120)
-	f.item:SetPoint("TOPLEFT", f.itemLabel, "BOTTOMLEFT", 0, -2)
-	f.amount = editBox(f, 70, 9)
-	f.amount:SetPoint("LEFT", f.item, "RIGHT", 14, 0)
-	f.amountLabel = W.Text(f, "small", "grey", "LEFT")
-	f.amountLabel:SetPoint("BOTTOMLEFT", f.amount, "TOPLEFT", 0, 2)
-	f.reason = editBox(f, 210, 120)
-	f.reason:SetPoint("LEFT", f.amount, "RIGHT", 14, 0)
-	f.reasonLabel = W.Text(f, "small", "grey", "LEFT")
-	f.reasonLabel:SetPoint("BOTTOMLEFT", f.reason, "TOPLEFT", 0, 2)
-	f.reasonLabel:SetText(L["BANKREQ_REASON"])
-	f.send = W.Button(f, { text = L["BANKREQ_SEND"], width = 110, height = 22, onClick = function()
+	f.card = Widgets.Card(f, { height = Mode.FORM_HEIGHT - 44 })
+	f.card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.card:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	local card = f.card
+	local kinds = ns.BankRequests and ns.BankRequests.KINDS or { "withdraw", "deposit", "donation" }
+	f.kinds = Widgets.ChipRow(card, function(kind) Mode.kind = kind View:Redraw() end, { height = 26 })
+	f.kinds:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -12)
+	local items = {}
+	for i, kind in ipairs(kinds) do items[i] = { id = kind, text = Mode.KindText(kind) } end
+	f.kinds:SetItems(items, Mode.kind)
+	f.kinds:SetWidth(f.kinds.width)
+	f.kindButtons = f.kinds.buttons
+	for i, b in ipairs(f.kindButtons) do b.kind = kinds[i] end
+	f.tip = Widgets.Text(card, "Small", "text-3", "LEFT")
+	f.tip:SetPoint("LEFT", f.kinds, "RIGHT", 12, 0)
+	f.tip:SetPoint("RIGHT", card, "RIGHT", -16, 0)
+	f.itemLabel = caption(card, L["BANKREQ_ITEM"])
+	f.itemLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -48)
+	f.item = editBox(card, 210, 120)
+	f.item:SetPoint("TOPLEFT", f.itemLabel, "BOTTOMLEFT", 0, -4)
+	f.amount = editBox(card, 70, 9)
+	f.amount:SetPoint("LEFT", f.item, "RIGHT", 12, 0)
+	f.amountLabel = caption(card)
+	f.amountLabel:SetPoint("BOTTOMLEFT", f.amount, "TOPLEFT", 0, 4)
+	f.reason = editBox(card, 210, 120)
+	f.reason:SetPoint("LEFT", f.amount, "RIGHT", 12, 0)
+	f.reasonLabel = caption(card, L["BANKREQ_REASON"])
+	f.reasonLabel:SetPoint("BOTTOMLEFT", f.reason, "TOPLEFT", 0, 4)
+	f.send = Widgets.Button(card, { text = L["BANKREQ_SEND"], style = "primary", height = 28, onClick = function()
 		local ok, text = Mode.Submit({ kind = Mode.kind, item = f.item:GetText(), amount = f.amount:GetText(), reason = f.reason:GetText() })
 		f.status:SetText(text or "")
-		f.status:SetTextColor(Skin.Color(ok and "green" or "red"))
+		Theme.Text(f.status, ok and "ok" or "err")
 		if ok then f.item:SetText("") f.amount:SetText("") f.reason:SetText("") end
 		View:Redraw()
 	end })
-	f.send:SetPoint("LEFT", f.reason, "RIGHT", 10, 0)
-	f.status = W.Text(f, "small", nil, "LEFT")
-	f.status:SetPoint("TOPLEFT", f.item, "BOTTOMLEFT", 0, -4)
-	f.status:SetPoint("RIGHT", f, "RIGHT", -8, 0)
-	f.mine = W.Check(f, { text = L["BANKREQ_ONLY_MINE"], width = 150, onClick = function(checked) Mode.onlyMine = checked View.offset = 0 View:Redraw() end })
-	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 12, -Mode.FORM_HEIGHT + 22)
-	f.closed = W.Check(f, { text = L["BANKREQ_SHOW_CLOSED"], width = 170, onClick = function(checked) Mode.showClosed = checked View.offset = 0 View:Redraw() end })
-	f.closed:SetPoint("LEFT", f.mine, "RIGHT", 12, 0)
+	f.send:SetPoint("LEFT", f.reason, "RIGHT", 12, 0)
+	f.mine = Widgets.Chip(f, { text = L["BANKREQ_ONLY_MINE"], height = 26, onClick = function(chip)
+		chip:SetSelected(not chip:IsSelected())
+		Mode.onlyMine = chip:IsSelected() View.offset = 0 View:Redraw()
+	end })
+	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Mode.FORM_HEIGHT + 30)
+	f.closed = Widgets.Chip(f, { text = L["BANKREQ_SHOW_CLOSED"], height = 26, onClick = function(chip)
+		chip:SetSelected(not chip:IsSelected())
+		Mode.showClosed = chip:IsSelected() View.offset = 0 View:Redraw()
+	end })
+	f.closed:SetPoint("LEFT", f.mine, "RIGHT", 8, 0)
+	-- what Send answered, on the line of the filters
+	f.status = Widgets.Text(f, "Small", "text-2", "LEFT")
+	f.status:SetPoint("LEFT", f.closed, "RIGHT", 16, 0)
+	f.status:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	buildArea(f, Mode.FORM_HEIGHT)
 	Mode.noteText = function() return f.reason:GetText() end
 end
 
 function mode.refresh(f)
 	Mode.noteText = function() return f.reason:GetText() end
-	for _, b in ipairs(f.kindButtons) do
-		local text = Mode.KindText(b.kind)
-		b:SetLabel(b.kind == Mode.kind and ("> " .. text .. " <") or text)
-	end
+	f.kinds:Select(Mode.kind)
 	f.tip:SetText(L["BANKREQ_TIP_" .. Mode.kind:upper()])
 	f.amountLabel:SetText(L["BANKREQ_AMOUNT_ITEM"])
-	f.mine:SetChecked(Mode.onlyMine)
-	f.closed:SetChecked(Mode.showClosed)
+	f.mine:SetSelected(Mode.onlyMine)
+	f.closed:SetSelected(Mode.showClosed)
 	local rows = Mode.Rows({ search = View.search, onlyMine = Mode.onlyMine, showClosed = Mode.showClosed })
 	return drawRows(f, rows, View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKREQ_EMPTY"])
 end
@@ -342,11 +348,11 @@ end
 local inbox = {}
 
 function inbox.build(f)
-	f.explain = W.Text(f, "small", "grey", "LEFT")
-	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANKREQ_INBOX_EXPLAIN"])
-	buildArea(f, 26)
+	buildArea(f, 24)
 	Mode.noteText = Mode.noteText or function() return "" end
 end
 

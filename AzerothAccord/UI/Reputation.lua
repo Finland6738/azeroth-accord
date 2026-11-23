@@ -19,11 +19,12 @@ local View = {}
 ns.ReputationView, ns.modules = View, ns.modules or {}
 ns.modules.ReputationView = View
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
-View.ROW_HEIGHT = 22
-View.TOOLBAR_HEIGHT = 30
+View.ROW_HEIGHT = 28
+View.HEAD_HEIGHT = 28
+View.TOOLBAR_HEIGHT = 40
 View.DEFAULT_ROWS = 14
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
@@ -141,12 +142,12 @@ function View.LikeRows(opts)
 	return out
 end
 
--- The text and colour of the action column for a state other than "can".
+-- The text and colour (a theme token) of the action column for a state other than "can".
 function View.StateText(state)
-	if state == "given" then return L["REP_LIKED"], "green" end
-	if state == "pending" then return L["REP_PENDING"], "grey" end
-	if state == "self" then return L["REP_YOU"], "grey" end
-	return "", "grey"
+	if state == "given" then return L["REP_LIKED"], "ok" end
+	if state == "pending" then return L["REP_PENDING"], "text-3" end
+	if state == "self" then return L["REP_YOU"], "text-3" end
+	return "", "text-3"
 end
 
 -- The first click on [Like] arms it, the second one within LIKE_CONFIRM seconds gives the like. Returns "armed",
@@ -197,28 +198,28 @@ local function newRow(area, i)
 	row:SetHeight(View.ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-	row.highlight:SetAllPoints(row)
-	row.highlight:SetColorTexture(1, 1, 1, 0.08)
-	row.place = W.Text(row, "small", "grey", "RIGHT")
+	row.place = Widgets.Text(row, "MonoSmall", "text-3", "RIGHT")
 	row.place:SetPoint("LEFT", row, "LEFT", 4, 0)
 	row.place:SetWidth(28)
-	row.name = W.Text(row, "body", nil, "LEFT")
-	row.name:SetPoint("LEFT", row.place, "RIGHT", 10, 0)
-	row.name:SetWidth(150)
-	row.chars = W.Text(row, "small", "grey", "LEFT")
+	row.mark = Widgets.ClassMark(row, 8)
+	row.mark:SetPoint("LEFT", row.place, "RIGHT", 10, 0)
+	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
+	row.name:SetPoint("LEFT", row.mark, "RIGHT", 8, 0)
+	row.name:SetWidth(140)
+	row.chars = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.chars:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
 	row.chars:SetWidth(110)
-	row.total = W.Text(row, "body", "gold", "RIGHT")
+	row.total = Widgets.Text(row, "MonoMedium", "accent-text", "RIGHT")
 	row.total:SetPoint("LEFT", row.chars, "RIGHT", 6, 0)
 	row.total:SetWidth(50)
-	row.like = W.Button(row, { text = L["REP_LIKE"], width = 96, height = View.ROW_HEIGHT - 2,
-		tooltip = { L["REP_LIKE"], L["REP_LIKE_TIP"] },
+	row.like = Widgets.Button(row, { text = L["REP_LIKE"], style = "secondary", width = 100, height = View.ROW_HEIGHT - 6,
 		onClick = function(b) View:LikeClicked(b:GetParent().data.guid) end })
 	row.like:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
-	row.state = W.Text(row, "small", "grey", "LEFT")
+	Widgets.Tooltip.Attach(row.like, { L["REP_LIKE"], L["REP_LIKE_TIP"] }, "RIGHT")
+	row.state = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.state:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
 	row:SetScript("OnClick", function(self) View:OpenCard(self.data) end)
+	Widgets.RowHover(row)
 	area.rows[i] = row
 	return row
 end
@@ -227,47 +228,74 @@ local function fillRow(row, d)
 	row.data = d
 	row.place:SetText(tostring(d.place))
 	row.name:SetText(d.name)
-	row.name:SetTextColor(classColor(d.classFile))
+	Widgets.PaintName(row.name, d.classFile)
+	local c = RAID_CLASS_COLORS and d.classFile and RAID_CLASS_COLORS[d.classFile]
+	if c then Widgets.PaintClassMark(row.mark, c.r, c.g, c.b) else Widgets.ClearClassMark(row.mark) end
 	row.chars:SetText(d.chars > 1 and L["REP_CHARS"]:format(d.chars) or "")
 	row.total:SetText(tostring(d.total))
 	if d.state == "can" then
-		row.like:SetLabel(View:IsArmed(d.guid) and L["REP_CONFIRM"] or L["REP_LIKE"])
+		local armed = View:IsArmed(d.guid)
+		row.like:SetLabel(armed and L["REP_CONFIRM"] or L["REP_LIKE"])
+		row.like.armed = armed
 		row.like:Show()
 		row.state:Hide()
 	else
 		row.like:Hide()
-		local text, color = View.StateText(d.state)
+		local text, token = View.StateText(d.state)
 		row.state:SetText(text)
-		row.state:SetTextColor(Skin.Color(color))
+		Theme.Text(row.state, token)
 		row.state:Show()
 	end
 	row:Show()
 end
 
+-- A header button of the list (the look of the DataTable header: Th, text-3; accent-text with an arrow when sorted).
+local function headButton(head, text, width, onClick)
+	local b = CreateFrame("Button", nil, head)
+	b:SetSize(width, View.HEAD_HEIGHT)
+	b.label = Widgets.Text(b, "Th", "text-3", "LEFT")
+	b.label:SetPoint("LEFT", b, "LEFT", 0, 0)
+	b.label:SetText(text)
+	b:SetScript("OnClick", onClick)
+	return b
+end
+
 function likes.build(f)
-	f.explain = W.Text(f, "small", "grey", "LEFT")
-	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["REP_LIKES_EXPLAIN"])
-	local head = W.Frame(f, 10, 22)
-	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -34)
-	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", -14, -34)
-	head.name = W.Button(head, { text = L["REP_COL_NAME"], width = 150, height = 20, onClick = function() likes.SortBy("name") end })
-	head.name:SetPoint("LEFT", head, "LEFT", 42, 0)
-	head.likes = W.Button(head, { text = L["REP_COL_LIKES"], width = 70, height = 20, onClick = function() likes.SortBy("likes") end })
-	head.likes:SetPoint("LEFT", head.name, "RIGHT", 96, 0)
+	local head = CreateFrame("Frame", nil, f)
+	head:SetHeight(View.HEAD_HEIGHT)
+	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
+	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -36)
+	head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
+	head.fill:SetAllPoints(head)
+	head.name = headButton(head, L["REP_COL_NAME"], 150, function() likes.SortBy("name") end)
+	head.name:SetPoint("LEFT", head, "LEFT", 58, 0)
+	head.likes = headButton(head, L["REP_COL_LIKES"], 50, function() likes.SortBy("likes") end)
+	head.likes:SetPoint("LEFT", head, "LEFT", 320, 0)
+	head.likes.label:ClearAllPoints()
+	head.likes.label:SetPoint("RIGHT", head.likes, "RIGHT", 0, 0)   -- over the right-aligned totals
 	f.head = head
-	local area = W.Frame(f, 10, 10)
+	local area = CreateFrame("Frame", nil, f)
 	area:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -2)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
+	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	area:EnableMouseWheel(true)
 	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
 	area:SetScript("OnSizeChanged", function() View:Redraw() end)
+	area:SetClipsChildren(true)   -- the last row is drawn even when it is cut
 	area.rows = {}
 	f.area = area
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
 	f.message:SetWidth(380)
+end
+
+-- The sorted column of the header in accent-text.
+local function paintHead(head)
+	Theme.Text(head.name.label, View.sort.key == "name" and "accent-text" or "text-3")
+	Theme.Text(head.likes.label, View.sort.key == "likes" and "accent-text" or "text-3")
 end
 
 local function visibleRows(area)
@@ -279,6 +307,7 @@ end
 function likes.refresh(f)
 	local rows = likesRows()
 	View.rowsShown = rows
+	paintHead(f.head)
 	local total, visible = #rows, visibleRows(f.area)
 	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
 	local drawn = max(0, min(visible + 1, total - View.offset))
@@ -306,25 +335,15 @@ end
 
 function View:Build(f)
 	self.frame = f
-	local bar = W.Frame(f, 10, View.TOOLBAR_HEIGHT)
+	local bar = Widgets.ChipRow(f, function(id) View:SetMode(id) end)
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	bar.buttons = {}
 	f.bar = bar
-	f.body = W.Frame(f, 10, 10)
-	f.body:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, 0)
+	f.body = CreateFrame("Frame", nil, f)
+	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)
 	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
-end
-
-local function modeButton(bar, i)
-	local b = bar.buttons[i]
-	if b then return b end
-	b = W.Button(bar, { width = 120, height = 22, onClick = function(self) View:SetMode(self.modeId) end })
-	b:SetPoint("LEFT", bar, "LEFT", 8 + (i - 1) * 124, 0)
-	bar.buttons[i] = b
-	return b
 end
 
 function View:Redraw()
@@ -336,19 +355,19 @@ function View:Redraw()
 		current = list[1]
 		self.mode = current and current.id or "likes"
 	end
-	for i, m in ipairs(list) do
-		local b = modeButton(f.bar, i)
-		b.modeId = m.id
-		b:SetLabel(m.id == self.mode and ("> " .. m.label .. " <") or m.label)
-		b:SetShown(#list > 1)
-	end
-	for i = #list + 1, #f.bar.buttons do f.bar.buttons[i]:Hide() end
+	local items = {}
+	for i, m in ipairs(list) do items[i] = { id = m.id, text = m.label } end
+	f.bar:SetItems(items, self.mode)
+	f.bar:SetShown(#list > 1)
+	f.body:ClearAllPoints()
+	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, #list > 1 and -View.TOOLBAR_HEIGHT or 0)
+	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	for id, m in pairs(self.modes) do
 		if m.frame and id ~= self.mode then m.frame:Hide() end
 	end
 	if current then
 		if not current.frame then
-			current.frame = W.Frame(f.body, 10, 10)
+			current.frame = CreateFrame("Frame", nil, f.body)
 			current.frame:SetAllPoints(f.body)
 			current.build(current.frame)
 		end

@@ -158,7 +158,89 @@ describe("the Settings view", function()
 		Mock.RunScript(f.scroll, "OnMouseWheel", 1)
 		eq(f.scroll:GetVerticalScroll(), 0)
 		for _ = 1, 100 do Mock.RunScript(f.scroll, "OnMouseWheel", -1) end
-		eq(f.scroll:GetVerticalScroll(), A().SettingsView.PAGE_HEIGHT - 400)
+		eq(f.scroll:GetVerticalScroll(), f.pageHeight - 400)
+	end)
+end)
+
+describe("the Appearance card (M6.14)", function()
+	before_boot(function() guild(3) end)
+
+	local function Th() return AzerothAccord.Theme end
+
+	it("is the first card and shows the saved look: Nebula, effects and animations on, Accord's fonts", function()
+		local f = open()
+		eq(f.cards[1], f.lookCard)
+		eq(f.lookTitle:GetText(), "Appearance")
+		eq(f.theme.seg:Active(), "nebula")
+		eq(f.font.seg:Active(), "addon")
+		truthy(f.effects:GetChecked()); truthy(f.animations:GetChecked())
+		local labels = {}
+		for _, id in ipairs(f.theme.seg.order) do labels[#labels + 1] = f.theme.seg.buttons[id].label:GetText() end
+		deepEq(labels, { "Nebula", "Aurora", "Accord" })
+	end)
+
+	it("a theme chosen on the card is saved for the account, applied at once and announced as SETTINGS_CHANGED", function()
+		local f = open()
+		local heard = {}
+		A().Bus:On("SETTINGS_CHANGED", function(key) heard[#heard + 1] = key end)
+		f.theme.seg.buttons.aurora:Click()
+		eq(A().Config:Get("account.settings.theme"), "aurora")
+		eq(Th().Current(), "aurora")
+		deepEq(heard, { "theme" })
+		eq((f.lookTitle:GetTextColor()), (Th().Color("text-1", "aurora")), "the page itself is repainted")
+		f.theme.seg.buttons.accord:Click()
+		eq(Th().Current(), "accord")
+		Mock.Reload()
+		eq(A().Theme.Current(), "accord", "kept after /reload")
+	end)
+
+	it("the switches save the neon effects and the animations", function()
+		local f = open()
+		local heard = {}
+		A().Bus:On("SETTINGS_CHANGED", function(key) heard[#heard + 1] = key end)
+		f.effects:Click()
+		eq(A().Config:Get("account.settings.effects"), false)
+		falsy(Th().EffectsOn())
+		f.animations:Click()
+		eq(A().Config:Get("account.settings.animations"), false)
+		falsy(Th().AnimationsOn())
+		deepEq(heard, { "effects", "animations" })
+		f.effects:Click()
+		truthy(Th().EffectsOn())
+	end)
+
+	it("the game font replaces the addon's fonts at once", function()
+		local f = open()
+		f.font.seg.buttons.game:Click()
+		eq(A().Config:Get("account.settings.font"), "game")
+		eq(M().GetLook("font"), "game")
+		for id, status in pairs(Th().fontStatus) do eq(status, "game", id) end
+	end)
+
+	it("a value from elsewhere shows on every page, and wrong values are refused", function()
+		local f = open()
+		truthy(M().SetLook("theme", "aurora"))
+		eq(f.theme.seg:Active(), "aurora")
+		truthy(M().SetLook("animations", false))
+		falsy(f.animations:GetChecked())
+		local ok, why = M().SetLook("theme", "pink")
+		falsy(ok); eq(why, "bad value")
+		ok, why = M().SetLook("effects", "yes")
+		falsy(ok); eq(why, "bad value")
+		ok, why = M().SetLook("size", 3)
+		falsy(ok); eq(why, "unknown")
+		A().Config.db.account.settings.theme = "garbage"
+		eq(M().GetLook("theme"), "nebula", "a damaged value reads as its default")
+	end)
+
+	it("read-only saved data refuses the change, says so and keeps the shown value", function()
+		local f = open()
+		A().Config.readOnly.account = true
+		f.theme.seg.buttons.aurora:Click()
+		eq(Th().Current(), "nebula")
+		eq(f.theme.seg:Active(), "nebula")
+		matches(f.lookStatus:GetText(), "^The change could not be saved %(read%-only%)")
+		eq(#Mock.errors, 0)
 	end)
 end)
 
@@ -186,7 +268,7 @@ describe("the main character", function()
 		local f = open()
 		matches(f.main:GetText(), "^Main: Otherchar %(level 70%)")
 		A().SettingsView:ChooseMain(f, f.mainChoose)
-		local menu = A().Widgets.menu
+		local menu = A().Widgets.Menu.frame
 		truthy(menu:IsShown())
 		local picked
 		for i, it in ipairs(menu.items) do
@@ -210,7 +292,7 @@ describe("the main character", function()
 		local f = open()
 		A().Config.readOnly.account = true
 		A().SettingsView:ChooseMain(f, f.mainChoose)
-		local menu = A().Widgets.menu
+		local menu = A().Widgets.Menu.frame
 		for _, it in ipairs(menu.items) do
 			if it.text:find("Testchar", 1, true) then it.onClick(it) end
 		end
@@ -228,7 +310,7 @@ describe("the Roster columns", function()
 		local zone
 		for i, c in ipairs(f.columnChoices) do if c.id == "zone" then zone = i end end
 		notNil(zone)
-		truthy(f.columnChecks[zone]:GetChecked())
+		truthy(f.columnChecks[zone]:IsSelected())
 		f.columnChecks[zone]:Click()
 		local now = A().Config:Get("char.ui.columns")
 		for _, id in ipairs(now) do ne(id, "zone") end

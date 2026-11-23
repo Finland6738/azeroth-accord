@@ -6,8 +6,8 @@
 -- content is covered by offline tests; the frame only draws what it returns:
 --   { guid, title, subtitle, classFile, notInGuild, badges = { { text, tone } },
 --     sections = { { id, title, count?, lines = { { text, muted, guid } } } } }
--- Drawn with the widget kit (M6.13): a Kit.Card with the class mark, the name in the class colour, Kit.Badges (online, main,
--- alt, addon) and one inner Kit.Card per section; a long card scrolls with the mouse wheel.
+-- Drawn with the widget kit (M6.13): a Widgets.Card with the class mark, the name in the class colour, Widgets.Badges (online, main,
+-- alt, addon) and one inner Widgets.Card per section; a long card scrolls with the mouse wheel.
 -- Sections: Details (zone, last online, rank, public note, the officers' note only when the game lets the player read it,
 -- the addon), Professions (each with where it comes from: the game, the member's own addon, the player's own),
 -- Characters of the same account (all of them, also outside the guild; a line with a `guid` opens that character's card),
@@ -18,7 +18,7 @@ local Card = {}
 ns.MemberCard, ns.modules = Card, ns.modules or {}
 ns.modules.MemberCard = Card
 
-local L, Kit, Theme, Assets, Model = ns.L, ns.Kit, ns.Theme, ns.Assets, ns.RosterModel
+local L, Widgets, Theme, Assets, Model = ns.L, ns.Widgets, ns.Theme, ns.Assets, ns.RosterModel
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
 Card.WIDTH = 290
@@ -226,11 +226,11 @@ end
 local HEADER = 96       -- the part above the scrolling sections: the name, its subtitle, the badges
 
 function Card:Build(parent)
-	local f = Kit.Card(parent, { width = Card.WIDTH, height = 200, shadow = true })
+	local f = Widgets.Card(parent, { width = Card.WIDTH, height = 200, shadow = true })
 	f:Hide()
 	f:EnableMouse(true)
 	f:EnableMouseWheel(true)
-	f.mark = Kit.ClassMark(f, 12)
+	f.mark = Widgets.ClassMark(f, 12)
 	f.mark:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -23)
 	f.title = Theme.NewText(f, "H1", "text-1")
 	f.title:SetJustifyH("LEFT")
@@ -254,7 +254,7 @@ function Card:Build(parent)
 	f.close:SetScript("OnEnter", function(self) Theme.Tint(self.bg, "surface-3", 1) end)
 	f.close:SetScript("OnLeave", function(self) Theme.Tint(self.bg, "surface-3", 0) end)
 	f.close:SetScript("OnClick", function() Card:Close() end)
-	f.back = Kit.Button(f, { text = L["CARD_BACK"], style = "ghost", height = 28, onClick = function() Card:Close() end })
+	f.back = Widgets.Button(f, { text = L["CARD_BACK"], style = "ghost", height = 28, onClick = function() Card:Close() end })
 	f.back:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -10)
 	f.badges = {}
 	-- the sections scroll under the header: a clipping frame holds them and their lines
@@ -277,12 +277,12 @@ end
 local function section(f, i)
 	local s = f.sections[i]
 	if s then return s end
-	s = Kit.Card(f.content, { fill = "surface-2" })
+	s = Widgets.Card(f.content, { fill = "surface-2" })
 	s:SetFrameLevel((f.content:GetFrameLevel() or 1) + 1)
 	s.heading = Theme.NewText(s, "Eyebrow", "accent-text")
 	s.heading:SetJustifyH("LEFT")
 	s.heading:SetPoint("TOPLEFT", s, "TOPLEFT", Card.INNER, -Card.INNER)
-	s.count = Kit.Badge(s, "", "neutral")
+	s.count = Widgets.Badge(s, "", "neutral")
 	s.count:SetPoint("TOPRIGHT", s, "TOPRIGHT", -Card.INNER, -Card.INNER + 4)
 	s.count:Hide()
 	f.sections[i] = s
@@ -305,7 +305,7 @@ local function item(f, i)
 		if self.guid then Card:ShowGUID(self.guid)
 		elseif self.onClick then self.onClick(self) end
 	end)
-	Kit.Tooltip.Attach(it, function(self) return self.tip end, "LEFT")
+	Widgets.Tooltip.Attach(it, function(self) return self.tip end, "LEFT")
 	f.items[i] = it
 	return it
 end
@@ -321,7 +321,7 @@ local function layoutBadges(f, d)
 	for i, b in ipairs(d.badges or {}) do
 		local badge = f.badges[i]
 		if not badge then
-			badge = Kit.Badge(f, b.text:upper(), b.tone)
+			badge = Widgets.Badge(f, b.text:upper(), b.tone)
 			f.badges[i] = badge
 		end
 		badge:SetBadge(b.text:upper(), b.tone)
@@ -345,7 +345,7 @@ function Card:Layout()
 	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 22, -18)
 	f.title:SetPoint("RIGHT", f, "RIGHT", self.narrow and -(Card.PAD + 84) or -48, 0)
 	Theme.ClassText(f.title, classColor(d.classFile))
-	if d.classFile then Kit.PaintClassMark(f.mark, classColor(d.classFile)) else Kit.ClearClassMark(f.mark) end
+	if d.classFile then Widgets.PaintClassMark(f.mark, classColor(d.classFile)) else Widgets.ClearClassMark(f.mark) end
 	f.subtitle:SetText(d.subtitle or "")
 	f.back:SetShown(self.narrow == true)
 	f.close:SetShown(self.narrow ~= true)

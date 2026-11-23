@@ -18,7 +18,7 @@
 --   columns, e.g. the Roster's column chooser; call :SetData or :Refresh after it).
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Kit, Theme, Assets = ns.Kit, ns.Theme, ns.Assets
+local Widgets, Theme, Assets = ns.Widgets, ns.Theme, ns.Assets
 
 local floor, max, min, ceil = math.floor, math.max, math.min, math.ceil
 
@@ -33,7 +33,7 @@ local function keyOf(col, data)
 	return tonumber(v) or v:lower()
 end
 
-function Kit.DataTable(parent, columns, opts)
+function Widgets.DataTable(parent, columns, opts)
 	opts = opts or {}
 	local rowH, headH = opts.rowHeight or 30, opts.headerHeight or 28
 	local t = CreateFrame("Frame", nil, parent)

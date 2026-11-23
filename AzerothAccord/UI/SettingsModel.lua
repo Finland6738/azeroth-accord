@@ -6,9 +6,11 @@
 -- Options saved per ACCOUNT (AzerothAccordDB.settings), so every character of the player behaves the same:
 --   notifyOfficer   a chat line when a bank request arrives that an officer has not seen (officers only)
 --   notifyDecision  a chat line when a bank request of the player was approved, rejected or fulfilled
+-- The look (theme, effects, animations, font: account.settings.*, M6.14) has its own small table, Model.LOOK, read by the
+-- Appearance card; UI/Theme.lua applies a change at once.
 -- Elsewhere, and only listed here for the page: the Discord name (account.settings.discord, Data/Contacts.lua), the main
 -- character (Data/Accounts.lua) and the Roster columns (char.ui.columns, per character, UI/RosterModel.lua).
--- Bus: SETTINGS_CHANGED(key) after a change of an option, a main character or the columns.
+-- Bus: SETTINGS_CHANGED(key) after a change of an option, a look value, a main character or the columns.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Model = {}
@@ -73,6 +75,45 @@ function Model.Visible(key)
 	local o = byKey[key]
 	if not o then return false end
 	if o.officersOnly then return ns.Role ~= nil and ns.Role:IsOfficer() end
+	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Appearance (M6.14, docs/specs/ui-style.md §2): the look, saved per account; UI/Theme.lua repaints on CONFIG_CHANGED
+---------------------------------------------------------------------------------------------------------------------
+-- key -> { path, values (the allowed strings) | nil for a boolean }. The values come from Config (THEMES, FONT_SOURCES).
+Model.LOOK = {
+	theme = { path = "account.settings.theme", values = ns.Config and ns.Config.THEMES or { "nebula", "aurora", "accord" } },
+	effects = { path = "account.settings.effects" },
+	animations = { path = "account.settings.animations" },
+	font = { path = "account.settings.font", values = ns.Config and ns.Config.FONT_SOURCES or { "addon", "game" } },
+}
+Model.LOOK_ORDER = { "theme", "effects", "animations", "font" }
+
+local function allowed(spec, value)
+	if not spec.values then return type(value) == "boolean" end
+	for _, v in ipairs(spec.values) do if v == value then return true end end
+	return false
+end
+
+-- The saved look value; a value never saved or damaged is its default.
+function Model.GetLook(key)
+	local spec = Model.LOOK[key]
+	if not spec then return nil end
+	local v = ns.Config and ns.Config.db and ns.Config:Get(spec.path)
+	if v == nil or not allowed(spec, v) then return defaultAt(spec.path) end
+	return v
+end
+
+-- Saves a look value: Config emits CONFIG_CHANGED (the theme, the effects and the font repaint at once), then
+-- SETTINGS_CHANGED(key) for the pages. Returns true, or false and the reason.
+function Model.SetLook(key, value)
+	local spec = Model.LOOK[key]
+	if not spec then return false, "unknown" end
+	if not allowed(spec, value) then return false, "bad value" end
+	local ok, why = ns.Config:Set(spec.path, value)
+	if not ok then return false, why end
+	emit("SETTINGS_CHANGED", key)
 	return true
 end
 

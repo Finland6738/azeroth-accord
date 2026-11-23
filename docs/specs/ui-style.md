@@ -24,7 +24,7 @@ una chiave di locale, `enUS` e `itIT`), nessun colore scritto fuori da `UI/Theme
 | Cartella dell'addon e percorso dei media | `FinlandDragonCreditPoints/Media/` | `AzerothAccord/Media/` (`Interface\AddOns\AzerothAccord\Media\`) |
 | Tabella globale dei dati salvati | `FDCPDB` | `AzerothAccordDB` (account) e `AzerothAccordCharDB` (personaggio), come in [SPEC-03](SPEC-03-data-model.md) |
 | Oggetti font (`CreateFont`) | `FDCPFont<Id>` | `AzerothAccordFont<Id>` (`Display`, `Title`, `Body`, `Medium`, `SemiBold`, `Mono`, `MonoMedium`, `Eyebrow`, `Header`…, gli stessi `<Id>` di FDCP) |
-| Spazio dei nomi del codice | `FDCP.Theme`, `FDCP.Assets`… | `ns.Theme`, `ns.Assets`, `ns.Motion` e, per i widget, `ns.Kit` fino a M6.14, poi `ns.Widgets` (e `ns.addon.Theme`… per i test, come in FDCP) |
+| Spazio dei nomi del codice | `FDCP.Theme`, `FDCP.Assets`… | `ns.Theme`, `ns.Assets`, `ns.Motion` e, per i widget, `ns.Widgets` (fino a M6.14 si chiamava `ns.Kit`; `ns.addon.Theme`… per i test, come in FDCP) |
 | Nomi dei frame globali | `FDCP…` | `AzerothAccord…` |
 | Chiavi di locale | quelle di FDCP | quelle di Accord (`Locale/enUS.lua`, `itIT.lua`); i testi nuovi di questa famiglia (temi, Aspetto, Info, crediti) hanno chiavi proprie e un test controlla che nulla arrivi a schermo senza chiave (M6.14) |
 | Slash command | `/fdcp` | `/accord`, `/acc` (invariati, [SPEC-04 §4](SPEC-04-ui-guild-tab-shell.md)) |
@@ -55,7 +55,7 @@ personaggio, e le impostazioni personali di Accord (notifiche, Discord) stanno g
 - Si cambiano dalla scheda **Aspetto** di Settings (M6.14). Una modifica emette `SETTINGS_CHANGED` come le altre.
 - La posizione e la dimensione della finestra restano per personaggio (`char.ui`), come ora.
 
-**Stato (M6.10).** Fatto: le quattro chiavi sono in `Config` (regole con enumerazione, predefiniti, migrazione 1 → 2 idempotente per l'account; il passo 2 del personaggio non cambia nulla e porta solo la versione a 2). `Config:Set` emette `CONFIG_CHANGED(percorso)` sul Bus e `UI/Theme.lua` lo ascolta: tema, effetti e font si vedono subito (il font, come detto sopra, si rilegge davvero solo al riavvio); `Theme.Apply` emette `THEME_CHANGED(idTema)`. `Theme.Set(id)` salva e applica un tema; `Theme.EffectsOn()` e `Theme.AnimationsOn()` leggono gli interruttori (rispondono «sì» finché i dati non sono caricati). Gli `<Id>` dei font sono quelli di FDCP: `Display`, `DisplaySmall`, `H1`, `H2`, `Body`, `BodyMedium`, `Small`, `Eyebrow`, `Th`, `Tab`, `Button`, `Mono`, `MonoMedium`, `MonoSmall` (oggetti `AzerothAccordFont<Id>`). La scheda Aspetto che li cambia e il relativo `SETTINGS_CHANGED` arrivano con M6.14; finora nessun comando li cambia.
+**Stato (M6.10).** Fatto: le quattro chiavi sono in `Config` (regole con enumerazione, predefiniti, migrazione 1 → 2 idempotente per l'account; il passo 2 del personaggio non cambia nulla e porta solo la versione a 2). `Config:Set` emette `CONFIG_CHANGED(percorso)` sul Bus e `UI/Theme.lua` lo ascolta: tema, effetti e font si vedono subito (il font, come detto sopra, si rilegge davvero solo al riavvio); `Theme.Apply` emette `THEME_CHANGED(idTema)`. `Theme.Set(id)` salva e applica un tema; `Theme.EffectsOn()` e `Theme.AnimationsOn()` leggono gli interruttori (rispondono «sì» finché i dati non sono caricati). Gli `<Id>` dei font sono quelli di FDCP: `Display`, `DisplaySmall`, `H1`, `H2`, `Body`, `BodyMedium`, `Small`, `Eyebrow`, `Th`, `Tab`, `Button`, `Mono`, `MonoMedium`, `MonoSmall` (oggetti `AzerothAccordFont<Id>`). La scheda Aspetto che li cambia e il relativo `SETTINGS_CHANGED` sono arrivati con M6.14 (vedi lo stato di M6.14 in §3).
 
 ## 3. Le viste come schede
 
@@ -98,9 +98,9 @@ Densità: come FDCP (righe di 36-40 pt, testo 13 pt). Una gilda di 1000 membri r
 Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Select, Snackbar, Skeleton, ClassMark;
 `DataTable.lua`, `ThinBar.lua`, `Tooltip.lua`). Scelte, tutte da provare in gioco:
 
-- **Nome.** Il vecchio aspetto (`UI/Widgets/Base.lua`, usato da tutte le viste) tiene `ns.Widgets` fino a M6.14, e i
-  nomi coincidono (`Button`…): i widget nuovi stanno in **`ns.Kit`** (`AzerothAccord.Kit` nei test). M6.14 toglie
-  `Base.lua` e rinomina `Kit` in `Widgets` nelle prime righe dei cinque file.
+- **Nome.** Il vecchio aspetto (`UI/Widgets/Base.lua`, usato da tutte le viste) teneva `ns.Widgets` fino a M6.14, e i
+  nomi coincidevano (`Button`…): i widget nuovi stavano in **`ns.Kit`**. M6.14 ha tolto `Base.lua` e rinominato `Kit` in
+  `Widgets` (vedi lo stato di M6.14); qui sotto i nomi `Kit.` sono quelli di allora.
 - **DataTable senza ScrollBox.** Come in FDCP la tabella è un pool proprio di righe, con la **rotellina**, che si
   comporta allo stesso modo su ogni client: non serve né `ScrollBox`/`DataProvider` né il ripiego `FauxScrollFrame` (la
   riga «ScrollBox + DataProvider» del verdetto di §5 si legge così). L'intestazione sta fuori dalla lista, la colonna
@@ -154,13 +154,46 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   insieme di colonne riusando intestazioni e celle (il selettore delle colonne del Roster). `SetData(lista, true)`
   conserva il punto di scorrimento anche in una tabella che ordina da sola (Professions). Il testo vuoto va a capo.
 - **`Kit.Menu`** (`Controls.lua`): un elenco a comparsa di voci con la spunta (`checked`, `keepOpen`, `header`), senza
-  `UIDropDownMenu`; sostituisce `W.ShowMenu` nelle viste di M6.13 (Settings lo usa ancora fino a M6.14).
+  `UIDropDownMenu`; sostituisce `W.ShowMenu` nelle viste di M6.13 (e in Settings da M6.14).
 
 I filtri a scelta singola sono `Kit.Select` (la prima voce è "tutti"), quelli sì/no `Kit.Chip`. Scelte: la riga del Roster è alta 28 pt (era 18) e la tabella mostra meno righe, ma si legge; la barra degli strumenti
 va a capo se non c'è posto (pannello stretto, scheda aperta); la scheda scorre con la rotellina (le sezioni sono in un
 frame che taglia). **Non provato nel client:** l'aspetto reale (9-slice, bagliori, quadratino di classe), il taglio dei
 figli (`SetClipsChildren`) nella scheda, la rotellina sulla scheda e sulle liste, il popup del `Kit.Menu` e dei `Kit.Select`
 sopra la finestra Gilda, la larghezza della barra con le schede in italiano, il tooltip dell'addon sulle righe.
+
+**Stato (M6.14).** Fatto: tutte le viste usano il kit e il tema; `UI/Skin.lua` e `UI/Widgets/Base.lua` non esistono più
+e il kit si chiama **`ns.Widgets`** (`AzerothAccord.Widgets` nei test; nei file la variabile locale è `Widgets`).
+
+- **Reputation** (like, indice sociale, mappa dei gruppi, compagni suggeriti) e **Bank** (le sette modalità): le
+  modalità sono una fila di **chip** (`Widgets.ChipRow`, nuovo: uno selezionato, `:SetItems`, `:Select`, `.buttons`),
+  e così le schede della banca, il periodo e l'ordine delle donazioni e il tipo di richiesta. Gli elenchi restano pool di
+  righe propri (righe da 28-30 pt, `Widgets.RowHover`, l'ultima riga tagliata da `SetClipsChildren`); i like hanno
+  l'intestazione della `DataTable` (Th, `text-3`, la colonna ordinata in `accent-text`). La mappa dei gruppi è una card;
+  i colori dei gruppi sono token (`Theme.SERIES`: `accent`, `neon`, `ok`, `warn`, `accent-2`, `grad-4`, `err`,
+  `text-3`). Le caselle della banca sono quadrati arrotondati `surface-2` con il bordo `accent` al passaggio del mouse;
+  il grafico del denaro è una card con barre `accent`; il modulo delle richieste è una card con tre `Widgets.EditBox` e
+  i due filtri sono chip. Il tooltip di una richiesta è quello dell'addon; quello degli oggetti resta quello del gioco.
+- **Settings**: una colonna di card che prende l'altezza di ciò che mostra (`stackCard`), con la nuova card **Aspetto**
+  in cima: tema (un `Widgets.Segmented` Nebula / Aurora / Accord), effetti neon e animazioni (`Widgets.Switch`), font
+  (Segmented: font di Accord / font del gioco). Ogni modifica passa da `SettingsModel.SetLook(chiave, valore)`:
+  `Config:Set` (che emette `CONFIG_CHANGED`, così `Theme` ridipinge subito) e poi `SETTINGS_CHANGED(chiave)`. Le notifiche
+  sono interruttori, le colonne del Roster chip; il menu del main è `Widgets.Menu`. `SettingsView.AddPage(id, def)`
+  prepara le sotto-pagine (il selettore a pillole compare dalla seconda pagina: M6.15 aggiunge *Info*).
+- **Diagnostica**: la finestra di `/accord debug` è un `Widgets.Dialog` come la `CopyBox`.
+- **Scheda nella finestra Gilda**: l'icona è il logo dell'addon (SPEC-10 Q2) e il tooltip quello dell'addon.
+- **Colori**: `tools/check_addon.py` ha `check_ui_colours` (come FDCP): nessun colore esadecimale, codice `|c`, numero dato
+  a un `Set…Color`/`SetColorTexture`/`SetGradient`/`CreateColor` o riga di tooltip colorata con numeri fuori da
+  `UI/Theme.lua`; `-- theme-ok` esenta una riga. I colori del tooltip del gioco (bianco, grigio, oro) vengono da
+  `Theme.GameColor`; il colore di classe da `Widgets.PaintName` (`Theme.ClassText`), quello di qualità da `Theme.TextRGB`.
+- **Testi**: `Tests/test_ui_texts.lua` controlla che nessun file di `UI/` dia a un widget una parola propria e che un
+  client italiano mostri, in ogni vista, modalità, scheda e finestra, solo pezzi di stringhe italiane e i dati della
+  gilda (nomi, oggetti, gradi, zone, classi del gioco, nomi degli insiemi di dati salvati).
+
+**Non provato nel client:** l'aspetto reale di tutte queste viste (9-slice, chip, interruttori, card che si adattano
+all'altezza del testo: in gioco `GetStringHeight` dipende dal font), lo scorrimento e il taglio degli elenchi, il
+cambio di tema, effetti, animazioni e font dalla card Aspetto senza `/reload`, la pagina nella finestra Impostazioni del
+gioco (sfondo `bg` dentro la cornice di Blizzard), il logo come icona della scheda della finestra Gilda.
 
 ## 4. I tre temi
 

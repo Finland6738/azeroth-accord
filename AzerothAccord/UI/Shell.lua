@@ -3,14 +3,14 @@
 -- One content frame, shown in one host at a time: the panel of the Accord tab in the guild window (UI/GuildTab.lua) or
 -- the standalone window (UI/Window.lua). The host draws what is around it (the window: its panel and title bar; the
 -- guild window: a fill of the theme over Blizzard's content area). The content has
---   * the tab bar (ns.Kit.Tabs, 44 pt, the 2 pt indicator under the active tab): one tab per registered view (Roster,
+--   * the tab bar (ns.Widgets.Tabs, 44 pt, the 2 pt indicator under the active tab): one tab per registered view (Roster,
 --     Professions, Reputation, Bank, Settings), in order; views of later milestones register themselves, so a view that
 --     is not ready never shows; a view's `badge` function puts a count on its tab (the Bank: requests waiting);
 --   * at the right of the tabs: the search box, while the selected view can search, and Pop out in the guild window;
 --   * the body: the selected view, or a welcome text while no view exists;
 --   * in the guild window only, a line under the body with the sync state (the window has it in its title bar).
--- Every colour is a token of UI/Theme.lua, so Theme.Apply repaints the shell without /reload. The views still draw with
--- the old ns.Widgets until M6.13 and M6.14 restyle them: each gets a plain frame that fills the body.
+-- Every colour is a token of UI/Theme.lua, so Theme.Apply repaints the shell without /reload. The views draw with
+-- the widget kit: each gets a plain frame that fills the body.
 -- The panel holds no protected action, so it opens and closes in combat too (GT-06).
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -18,13 +18,13 @@ local Shell = {}
 ns.Shell, ns.modules = Shell, ns.modules or {}
 ns.modules.Shell = Shell
 
-local L, Kit, Theme = ns.L, ns.Kit, ns.Theme
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, pairs, ipairs, tostring, floor, pcall = type, pairs, ipairs, tostring, math.floor, pcall
 
 Shell.NAME = "AzerothAccordShell"
 Shell.PAD = 16            -- between the edge of the host and the tabs, the body
 Shell.TOP = 4             -- above the tab bar
-Shell.TAB_BAR = 44        -- the height of Kit.Tabs
+Shell.TAB_BAR = 44        -- the height of Widgets.Tabs
 Shell.GAP = 12            -- between the tab bar and the body
 Shell.FOOTER = 24         -- the sync-state line of the guild window
 Shell.SEARCH_WIDTH = { window = 200, tab = 150 }
@@ -99,13 +99,13 @@ local function buildBar(content)
 	bar:SetHeight(Shell.TAB_BAR)
 	bar:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -Shell.TOP)
 	bar:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
-	-- the search box: the Kit field is `searchField`; `search` is its edit box, where the views and the tests type
-	bar.searchField = Kit.EditBox(bar, { width = Shell.SEARCH_WIDTH.window, height = 28, placeholder = L["SEARCH_PLACEHOLDER"],
+	-- the search box: the Widgets field is `searchField`; `search` is its edit box, where the views and the tests type
+	bar.searchField = Widgets.EditBox(bar, { width = Shell.SEARCH_WIDTH.window, height = 28, placeholder = L["SEARCH_PLACEHOLDER"],
 		onChange = function(text, user) if user then Shell:OnSearch(text or "") end end })
 	bar.search = bar.searchField.edit
-	bar.popOut = Kit.Button(bar, { text = L["POP_OUT"], style = "secondary", height = 28, onClick = function() Shell:PopOut() end })
+	bar.popOut = Widgets.Button(bar, { text = L["POP_OUT"], style = "secondary", height = 28, onClick = function() Shell:PopOut() end })
 	bar.popOut:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
-	if Kit.Tooltip then Kit.Tooltip.Attach(bar.popOut, { L["POP_OUT"], L["POP_OUT_TIP"] }, "BOTTOM") end
+	if Widgets.Tooltip then Widgets.Tooltip.Attach(bar.popOut, { L["POP_OUT"], L["POP_OUT_TIP"] }, "BOTTOM") end
 	content.bar = bar
 end
 
@@ -159,7 +159,7 @@ function Shell:Content()
 	return content
 end
 
--- The tab bar for the views in `list`. Kit.Tabs takes its tabs when it is made, so a view that registers later (or a
+-- The tab bar for the views in `list`. Widgets.Tabs takes its tabs when it is made, so a view that registers later (or a
 -- changed label) makes a new bar; the old one is hidden. A click on a tab goes through Shell:Select with `retry`, so a
 -- click on the tab of a view that failed builds it again (the bar itself does not call back for the active tab).
 local function tabsKey(list)
@@ -174,7 +174,7 @@ local function buildTabs(content, list)
 	if content.tabs then content.tabs:Hide() end
 	local defs = {}
 	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id } end
-	local tabs = Kit.Tabs(content.bar, defs)
+	local tabs = Widgets.Tabs(content.bar, defs)
 	tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
 	tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
 	for id, b in pairs(tabs.buttons) do
@@ -394,10 +394,18 @@ end
 
 -- The AddOn Compartment tooltip (Core/Init.lua adds the title).
 function Shell.FillTooltip(tooltip)
-	tooltip:AddLine(L["COMPARTMENT_HINT"], 1, 1, 1, true)
-	if inGuild() then tooltip:AddLine(Shell.StatusText(), 0.6, 0.6, 0.6, true) end
+	local Theme = ns.Theme   -- the game's tooltip is Blizzard's dark frame: the game's own colours (Theme.GameColor)
+	local r, g, b = Theme.GameColor("text")
+	tooltip:AddLine(L["COMPARTMENT_HINT"], r, g, b, true)
+	if inGuild() then
+		r, g, b = Theme.GameColor("muted")
+		tooltip:AddLine(Shell.StatusText(), r, g, b, true)
+	end
 	local waiting = ns.BankInbox and ns.BankInbox.PendingCount() or 0
-	if waiting > 0 then tooltip:AddLine(L["BANKNOTE_WAITING"]:format(waiting), 1, 0.82, 0, true) end
+	if waiting > 0 then
+		r, g, b = Theme.GameColor("gold")
+		tooltip:AddLine(L["BANKNOTE_WAITING"]:format(waiting), r, g, b, true)
+	end
 end
 
 if ns.addon then

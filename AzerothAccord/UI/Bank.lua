@@ -1,10 +1,10 @@
 -- Bank view (SPEC-08 BANK-04, SPEC-04 §2). Lua 5.1.
 --
 -- The view shows the guild bank as the guild's addons last saw it (Data/Bank.lua: the newest snapshot of each tab that this
--- character's rank may see). It has modes, one button each in its toolbar; a mode is { label, order, available() -> bool,
+-- character's rank may see). It has modes, one chip each in its toolbar (Widgets.ChipRow); a mode is { label, order, available() -> bool,
 -- build(frame), refresh(frame) } and later steps add theirs with View.AddMode (logs, donations, requests).
 --
--- Tabs    the tab buttons (only the tabs this rank may see), the guild money, how old the tab is and who read it ("seen
+-- Tabs    a chip per tab (only the tabs this rank may see), the guild money, how old the tab is and who read it ("seen
 --         2 h ago by Bob"), and the tab as the game draws it: 14 columns of 7 slots, an icon and a count, the item tooltip
 --         on hover.
 -- Items   one row per item over every visible tab: its total, and the tabs and counts it is in; the panel's search box
@@ -18,12 +18,12 @@ local View = {}
 ns.BankView, ns.modules = View, ns.modules or {}
 ns.modules.BankView = View
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 local concat, sort = table.concat, table.sort
 
-View.ROW_HEIGHT = 22
-View.TOOLBAR_HEIGHT = 30
+View.ROW_HEIGHT = 28
+View.TOOLBAR_HEIGHT = 40
 View.DEFAULT_ROWS = 12
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
@@ -84,10 +84,10 @@ function View.ItemInfo(itemID)
 	return { icon = C.Item.Icon(itemID) }
 end
 
-local function qualityColor(quality)
+-- An item name in the colour of its quality (the game's colour, Theme.TextRGB), text-1 when the quality is unknown.
+function View.PaintQuality(fs, quality)
 	local c = ITEM_QUALITY_COLORS and quality and ITEM_QUALITY_COLORS[quality]
-	if c then return c.r, c.g, c.b end
-	return 1, 1, 1
+	if c then Theme.TextRGB(fs, c.r, c.g, c.b) else Theme.Text(fs, "text-1") end
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -198,18 +198,17 @@ local function newSlot(grid, i)
 	local b = CreateFrame("Button", nil, grid)
 	b:SetSize(View.CELL - 2, View.CELL - 2)
 	b:SetPoint("TOPLEFT", grid, "TOPLEFT", col * View.CELL, -row * View.CELL)
-	b.bg = b:CreateTexture(nil, "BACKGROUND")
+	b.bg = Theme.Slice(b, "rr_fill_8", "surface-2", "BACKGROUND")
 	b.bg:SetAllPoints(b)
-	b.bg:SetColorTexture(0, 0, 0, 0.35)
+	b.ring = Theme.Slice(b, "rr_ring_8", "border-subtle", "BORDER")
+	b.ring:SetAllPoints(b)
 	b.icon = b:CreateTexture(nil, "ARTWORK")
-	b.icon:SetPoint("TOPLEFT", b, "TOPLEFT", 1, -1)
-	b.icon:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -1, 1)
-	b.count = W.Text(b, "small", "white", "RIGHT", "OVERLAY")
-	b.count:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -2, 2)
-	b.highlight = b:CreateTexture(nil, "HIGHLIGHT")
-	b.highlight:SetAllPoints(b)
-	b.highlight:SetColorTexture(1, 1, 1, 0.2)
+	b.icon:SetPoint("TOPLEFT", b, "TOPLEFT", 2, -2)
+	b.icon:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -2, 2)
+	b.count = Widgets.Text(b, "MonoSmall", "text-1", "RIGHT", "OVERLAY")
+	b.count:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -3, 3)
 	b:SetScript("OnEnter", function(self)
+		Theme.Tint(self.ring, "accent")
 		local d = self.data
 		if not (d and GameTooltip) then return end
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -219,35 +218,30 @@ local function newSlot(grid, i)
 		end
 		GameTooltip:Show()
 	end)
-	b:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+	b:SetScript("OnLeave", function(self)
+		Theme.Tint(self.ring, "border-subtle")
+		if GameTooltip then GameTooltip:Hide() end
+	end)
 	grid.slots[i] = b
 	return b
 end
 
 function tabs.build(f)
-	f.bar = W.Frame(f, 10, 24)
-	f.bar:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", -8, -4)
-	f.bar.buttons = {}
-	f.info = W.Text(f, "small", "grey", "LEFT")
-	f.info:SetPoint("TOPLEFT", f.bar, "BOTTOMLEFT", 0, -6)
-	f.info:SetPoint("RIGHT", f, "RIGHT", -8, 0)
-	f.grid = W.Frame(f, View.COLUMNS * View.CELL, View.ROWS * View.CELL)
-	f.grid:SetPoint("TOPLEFT", f.info, "BOTTOMLEFT", 0, -8)
+	-- the tabs of the bank: an underline bar would compete with the panel's own tabs, so they are chips
+	f.bar = Widgets.ChipRow(f, function(id) View.tab = id; View:Redraw() end, { height = 26 })
+	f.bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	f.info = Widgets.Text(f, "MonoSmall", "text-3", "LEFT")
+	f.info:SetPoint("TOPLEFT", f.bar, "BOTTOMLEFT", 0, -8)
+	f.info:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+	f.grid = CreateFrame("Frame", nil, f)
+	f.grid:SetSize(View.COLUMNS * View.CELL, View.ROWS * View.CELL)
+	f.grid:SetPoint("TOPLEFT", f.info, "BOTTOMLEFT", 0, -10)
 	f.grid.slots = {}
 	for i = 1, View.COLUMNS * View.ROWS do newSlot(f.grid, i) end
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", f, "CENTER", 0, 0)
 	f.message:SetWidth(420)
-end
-
-local function tabButton(bar, i)
-	local b = bar.buttons[i]
-	if b then return b end
-	b = W.Button(bar, { width = 104, height = 22, onClick = function(self) View.tab = self.tabIndex; View:Redraw() end })
-	b:SetPoint("LEFT", bar, "LEFT", (i - 1) * 108, 0)
-	bar.buttons[i] = b
-	return b
 end
 
 -- The tab shown: the chosen one when it is still visible, else the first.
@@ -268,13 +262,9 @@ function tabs.refresh(f)
 	f.message:Hide(); f.bar:Show(); f.info:Show(); f.grid:Show()
 	local current = chosen(list)
 	View.tab = current.tab
-	for i, t in ipairs(list) do
-		local b = tabButton(f.bar, i)
-		b.tabIndex = t.tab
-		b:SetLabel(t.tab == current.tab and ("> " .. (t.name or L["BANK_TAB_N"]:format(t.tab)) .. " <") or (t.name or L["BANK_TAB_N"]:format(t.tab)))
-		b:Show()
-	end
-	for i = #list + 1, #f.bar.buttons do f.bar.buttons[i]:Hide() end
+	local chips = {}
+	for i, t in ipairs(list) do chips[i] = { id = t.tab, text = t.name or L["BANK_TAB_N"]:format(t.tab) } end
+	f.bar:SetItems(chips, current.tab)
 	local money = Bank:Money()
 	local line = {}
 	if money then line[#line + 1] = L["BANK_MONEY"]:format(View.MoneyText(money.money), View.SeenText(money)) end
@@ -309,19 +299,16 @@ local function newRow(area, i)
 	row:SetHeight(View.ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.highlight = row:CreateTexture(nil, "HIGHLIGHT")
-	row.highlight:SetAllPoints(row)
-	row.highlight:SetColorTexture(1, 1, 1, 0.08)
 	row.icon = row:CreateTexture(nil, "ARTWORK")
-	row.icon:SetSize(18, 18)
-	row.icon:SetPoint("LEFT", row, "LEFT", 4, 0)
-	row.name = W.Text(row, "body", nil, "LEFT")
-	row.name:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
+	row.icon:SetSize(20, 20)
+	row.icon:SetPoint("LEFT", row, "LEFT", 6, 0)
+	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
+	row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
 	row.name:SetWidth(210)
-	row.total = W.Text(row, "body", "gold", "RIGHT")
+	row.total = Widgets.Text(row, "MonoMedium", "accent-text", "RIGHT")
 	row.total:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
 	row.total:SetWidth(56)
-	row.where = W.Text(row, "small", "grey", "LEFT")
+	row.where = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.where:SetPoint("LEFT", row.total, "RIGHT", 12, 0)
 	row.where:SetPoint("RIGHT", row, "RIGHT", -4, 0)
 	row:SetScript("OnEnter", function(self)
@@ -332,6 +319,7 @@ local function newRow(area, i)
 		GameTooltip:Show()
 	end)
 	row:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+	Widgets.RowHover(row)
 	area.rows[i] = row
 	return row
 end
@@ -340,26 +328,27 @@ local function fillRow(row, d)
 	row.data = d
 	if d.icon then row.icon:SetTexture(d.icon) end
 	row.name:SetText(d.name or L["BANK_ITEM_LOADING"]:format(d.itemID))
-	row.name:SetTextColor(qualityColor(d.quality))
+	View.PaintQuality(row.name, d.quality)
 	row.total:SetText(tostring(d.total))
 	row.where:SetText(View.TabsText(d))
 	row:Show()
 end
 
 function items.build(f)
-	f.explain = W.Text(f, "small", "grey", "LEFT")
-	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANK_ITEMS_EXPLAIN"])
-	local area = W.Frame(f, 10, 10)
-	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -26)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 0)
+	local area = CreateFrame("Frame", nil, f)
+	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -24)
+	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	area:SetClipsChildren(true)
 	area:EnableMouseWheel(true)
 	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
 	area:SetScript("OnSizeChanged", function() View:Redraw() end)
 	area.rows = {}
 	f.area = area
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
 	f.message:SetWidth(380)
 end
@@ -394,25 +383,15 @@ View.AddMode("items", { label = L["BANK_MODE_ITEMS"], order = 20, build = items.
 ---------------------------------------------------------------------------------------------------------------------
 function View:Build(f)
 	self.frame = f
-	local bar = W.Frame(f, 10, View.TOOLBAR_HEIGHT)
+	local bar = Widgets.ChipRow(f, function(id) View:SetMode(id) end)
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	bar.buttons = {}
 	f.bar = bar
-	f.body = W.Frame(f, 10, 10)
-	f.body:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, 0)
+	f.body = CreateFrame("Frame", nil, f)
+	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)
 	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
-end
-
-local function modeButton(bar, i)
-	local b = bar.buttons[i]
-	if b then return b end
-	b = W.Button(bar, { width = 110, height = 22, onClick = function(self) View:SetMode(self.modeId) end })
-	b:SetPoint("LEFT", bar, "LEFT", 8 + (i - 1) * 114, 0)
-	bar.buttons[i] = b
-	return b
 end
 
 function View:Redraw()
@@ -424,19 +403,15 @@ function View:Redraw()
 		current = list[1]
 		self.mode = current and current.id or "tabs"
 	end
-	for i, m in ipairs(list) do
-		local b = modeButton(f.bar, i)
-		b.modeId = m.id
-		b:SetLabel(m.id == self.mode and ("> " .. m.label .. " <") or m.label)
-		b:Show()
-	end
-	for i = #list + 1, #f.bar.buttons do f.bar.buttons[i]:Hide() end
+	local items = {}
+	for i, m in ipairs(list) do items[i] = { id = m.id, text = m.label } end
+	f.bar:SetItems(items, self.mode)
 	for id, m in pairs(self.modes) do
 		if m.frame and id ~= self.mode then m.frame:Hide() end
 	end
 	if current then
 		if not current.frame then
-			current.frame = W.Frame(f.body, 10, 10)
+			current.frame = CreateFrame("Frame", nil, f.body)
 			current.frame:SetAllPoints(f.body)
 			current.build(current.frame)
 		end

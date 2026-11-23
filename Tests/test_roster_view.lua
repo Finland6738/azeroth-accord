@@ -19,8 +19,8 @@ local function open(n)
 	return V()
 end
 
-local function menuOpen() return AzerothAccord.Kit.Menu.IsOpen() end
-local function menu() return AzerothAccord.Kit.Menu.frame end
+local function menuOpen() return AzerothAccord.Widgets.Menu.IsOpen() end
+local function menu() return AzerothAccord.Widgets.Menu.frame end
 
 local function nameAt(i)
 	local row = V().frame.table.rows[i]

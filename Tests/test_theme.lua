@@ -486,9 +486,9 @@ describe("assets table", function()
 		truthy(seen["Interface\\AddOns\\AzerothAccord\\Media\\nebula_light_256.tga"])
 	end)
 
-	it("the logo of the window is the one of the table; Skin has none of its own", function()
+	it("the logo of the window is the one of the table (UI/Skin.lua is gone, M6.14)", function()
 		eq(AzerothAccord.Assets.logos.logo_64.w, 64)
-		isNil(AzerothAccord.Skin.LOGO)
+		isNil(AzerothAccord.Skin)
 	end)
 
 	it("the NEBULA logo that goes with a surface: the dark one on the dark themes", function()

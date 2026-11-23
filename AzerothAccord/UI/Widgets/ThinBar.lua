@@ -1,10 +1,10 @@
 -- Widget kit, part 4: ThinBar, the 4 pt bar of docs/specs/ui-style.md §3 (the Bank's fill, progress and timers): a subtle
 -- track and a fill with the two-colour gradient of the theme (the first and third colour of `grad`: accent -> accent-2).
 -- Adapted from Finland Dragon Credit Points (UI/Widgets/ThinBar.lua), same owner, GPL-3.0 (ADR 0021). Lua 5.1.
---   bar = Kit.ThinBar(parent, { height = 4, width = 200 }); bar:SetFraction(0..1); bar:GetFraction()
+--   bar = Widgets.ThinBar(parent, { height = 4, width = 200 }); bar:SetFraction(0..1); bar:GetFraction()
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Kit, Theme = ns.Kit, ns.Theme
+local Widgets, Theme = ns.Widgets, ns.Theme
 
 local function color(token)
 	local r, g, b, a = Theme.Color(token)
@@ -12,7 +12,7 @@ local function color(token)
 	return { r = r, g = g, b = b, a = a }
 end
 
-function Kit.ThinBar(parent, opts)
+function Widgets.ThinBar(parent, opts)
 	opts = opts or {}
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetHeight(opts.height or 4)

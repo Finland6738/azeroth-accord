@@ -10,15 +10,15 @@
 --             search box filters by name; the Category menu; the message in place of the rows when there is no list.
 -- The header has a Back button (to the roster, or to the craft list when the list was opened from it), and in the recipe
 -- list a "Who can craft" button; the source and the age of the list are always in the header.
--- Drawn with the widget kit (M6.13): ghost / secondary Kit.Buttons, a Kit.Select for the category, a Kit.Chip for "online
--- only" and one Kit.DataTable (a pool of rows refilled while the list scrolls) for both lists.
+-- Drawn with the widget kit (M6.13): ghost / secondary Widgets.Buttons, a Widgets.Select for the category, a Widgets.Chip for "online
+-- only" and one Widgets.DataTable (a pool of rows refilled while the list scrolls) for both lists.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
 ns.RecipeView, ns.modules = View, ns.modules or {}
 ns.modules.RecipeView = View
 
-local L, Kit, Theme, Model = ns.L, ns.Kit, ns.Theme, ns.RecipeModel
+local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RecipeModel
 local type, ipairs, max = type, ipairs, math.max
 
 View.ROW_HEIGHT = 30
@@ -174,9 +174,9 @@ local function build(self, f)
 	head:SetHeight(View.HEADER_HEIGHT)
 	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	head.back = Kit.Button(head, { text = L["RV_BACK"], style = "ghost", height = 32, onClick = function() View:Back() end })
+	head.back = Widgets.Button(head, { text = L["RV_BACK"], style = "ghost", height = 32, onClick = function() View:Back() end })
 	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
-	head.craft = Kit.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
+	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
 	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
 	head.title = Theme.NewText(head, "H1", "text-1")
 	head.title:SetJustifyH("LEFT")
@@ -192,15 +192,15 @@ local function build(self, f)
 	bar:SetHeight(View.TOOLBAR_HEIGHT)
 	bar:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, 0)
-	bar.category = Kit.Select(bar, { width = 220, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
+	bar.category = Widgets.Select(bar, { width = 220, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
 		View.model:SetCategory(id ~= View.ALL and id or nil)
 		View:ResetScroll()
 		View:Redraw()
 	end })
 	bar.category:SetPoint("LEFT", bar, "LEFT", 0, 0)
-	bar.online = Kit.Chip(bar, { text = L["CR_ONLINE_ONLY"], pad = 24, onClick = function(chip) View:SetOnlineOnly(not chip:IsSelected()) end })
+	bar.online = Widgets.Chip(bar, { text = L["CR_ONLINE_ONLY"], pad = 24, onClick = function(chip) View:SetOnlineOnly(not chip:IsSelected()) end })
 	bar.online:SetPoint("LEFT", bar, "LEFT", 0, 0)
-	Kit.Tooltip.Attach(bar.online, { L["CR_ONLINE_ONLY"], L["CR_ONLINE_ONLY_TIP"] }, "BOTTOM")
+	Widgets.Tooltip.Attach(bar.online, { L["CR_ONLINE_ONLY"], L["CR_ONLINE_ONLY_TIP"] }, "BOTTOM")
 	bar.count = Theme.NewText(bar, "Small", "text-3")
 	bar.count:SetJustifyH("RIGHT")
 	bar.count:SetPoint("RIGHT", bar, "RIGHT", -8, 0)
@@ -213,7 +213,7 @@ local function build(self, f)
 		{ id = "note", title = L["RV_COL_STATUS"], width = 140, align = "RIGHT", sortable = false, render = function(cell, d) View.RenderNote(cell, d) end },
 		{ id = "action", title = "", width = 116, sortable = false, render = function(cell) cell:SetText("") end },
 	}
-	local t = Kit.DataTable(f, columns, {
+	local t = Widgets.DataTable(f, columns, {
 		rowHeight = View.ROW_HEIGHT, headerHeight = 28, pool = View.POOL, maxPool = 80,
 		onRowClick = function(d, row) View:RowClicked(row) end,
 		rowSetup = function(row) View.SetupRow(row) end,
@@ -232,17 +232,17 @@ function View:ShowTooltip(row)
 	if not d then return end
 	if d.kind == "member" then
 		local m = d.member
-		Kit.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
+		Widgets.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
 			L["CR_TIP_CLICK"] }, "RIGHT")
 		return
 	end
 	local link = ns.Recipes and ns.Recipes.LinkOf(d.id)
 	if link and GameTooltip and GameTooltip.SetHyperlink then
-		Kit.Tooltip.Item(row, link, "ANCHOR_RIGHT")
+		Widgets.Tooltip.Item(row, link, "ANCHOR_RIGHT")
 	else
 		local lines = { d.name }
 		if d.category then lines[2] = { text = d.category, token = "text-3" } end
-		Kit.Tooltip.Show(row, lines, "RIGHT")
+		Widgets.Tooltip.Show(row, lines, "RIGHT")
 	end
 end
 
@@ -308,14 +308,14 @@ function View.SetupRow(row)
 	row.icon:SetSize(View.ICON, View.ICON)
 	row.name, row.detail, row.note = row.cells[1], row.cells[2], row.cells[3]
 	row.name:SetJustifyH("LEFT")
-	row.request = Kit.Button(row, { text = L["CR_REQUEST"], style = "secondary", width = 104, height = 24,
+	row.request = Widgets.Button(row, { text = L["CR_REQUEST"], style = "secondary", width = 104, height = 24,
 		onClick = function(b) View:RequestCraft(b:GetParent().data) end })
 	row.request:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
 	row.request:SetPoint("RIGHT", row, "RIGHT", -8, 0)
 	row.request:Hide()
-	Kit.Tooltip.Attach(row.request, function(b) return View.RequestTip(b:GetParent().data) end, "TOP")
+	Widgets.Tooltip.Attach(row.request, function(b) return View.RequestTip(b:GetParent().data) end, "TOP")
 	row:HookScript("OnEnter", function(self) View:ShowTooltip(self) end)
-	row:HookScript("OnLeave", function() Kit.Tooltip.Hide() Kit.Tooltip.HideItem() end)
+	row:HookScript("OnLeave", function() Widgets.Tooltip.Hide() Widgets.Tooltip.HideItem() end)
 end
 
 -- Anchors a cell `offset` points inside its column (the first column makes room for the icon or the indent).

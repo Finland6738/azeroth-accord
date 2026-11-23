@@ -1,47 +1,52 @@
 -- Diagnostics box: `/accord debug` opens the report (Core/Diagnostics.lua) in a read-only multi-line edit box, selected,
 -- so the player presses Ctrl+C and pastes it into a bug report (addons cannot reach the clipboard). Esc closes it.
--- Adapted from Azeroth Guild Finder (UI/DiagnosticsBox.lua), same owner, GPL-3.0 (ADR 0018), drawn with the client's
--- own window template. Lua 5.1.
+-- Adapted from Azeroth Guild Finder (UI/DiagnosticsBox.lua), same owner, GPL-3.0 (ADR 0018); drawn as a Widgets.Dialog (the veil
+-- and the centred card of the CopyBox, M6.14). Lua 5.1.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Box = {}
 ns.DiagnosticsBox, ns.modules = Box, ns.modules or {}
 ns.modules.DiagnosticsBox = Box
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 Box.NAME = "AzerothAccordDiagnosticsBox"
 Box.WIDTH, Box.HEIGHT = 640, 460
+Box.WHEEL_STEP = 40
 
 local function build()
-	local f, template = W.Create("Frame", Box.NAME, UIParent, { "BasicFrameTemplateWithInset", "" })
-	f:SetSize(Box.WIDTH, Box.HEIGHT)
-	f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
-	f:SetFrameStrata("DIALOG")
-	f:SetClampedToScreen(true)
-	f:SetMovable(true)
-	f:EnableMouse(true)
-	f:RegisterForDrag("LeftButton")
-	f:SetScript("OnDragStart", function(frame) frame:StartMoving() end)
-	f:SetScript("OnDragStop", function(frame) frame:StopMovingOrSizing() end)
-	if template == "" then W.Background(f, "panel", 0.97) end
-
-	f.title = W.Text(f, "heading", "gold", "LEFT")
-	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -6)
+	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
+	local card = f.card
+	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
+	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
 	f.title:SetText(L["DIAG_TITLE"])
-	f.hint = W.Text(f, "small", nil, "LEFT")
-	f.hint:SetPoint("TOPLEFT", f, "TOPLEFT", 16, -32)
-	f.hint:SetPoint("RIGHT", f, "RIGHT", -16, 0)
+	f.hint = Widgets.Text(card, "Small", "text-3", "LEFT")
+	f.hint:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
+	f.hint:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	f.hint:SetText(L["DIAG_HINT"])
 
-	local scroll = W.Create("ScrollFrame", nil, f, "scroll")
-	scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 16, -56)
-	scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -34, 46)
+	-- the report: a multi-line edit box in a surface-2 field that scrolls with the wheel
+	f.field = CreateFrame("Frame", nil, card)
+	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -72)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 64)
+	f.field.fill = Theme.Slice(f.field, "rr_fill_8", "surface-2", "BACKGROUND")
+	f.field.fill:SetAllPoints(f.field)
+	f.field.ring = Theme.Slice(f.field, "rr_ring_8", "border", "BORDER")
+	f.field.ring:SetAllPoints(f.field)
+	local scroll = CreateFrame("ScrollFrame", nil, f.field)
+	scroll:SetPoint("TOPLEFT", f.field, "TOPLEFT", 10, -8)
+	scroll:SetPoint("BOTTOMRIGHT", f.field, "BOTTOMRIGHT", -10, 8)
+	scroll:EnableMouseWheel(true)
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local range = self.GetVerticalScrollRange and self:GetVerticalScrollRange() or 0
+		local v = (self:GetVerticalScroll() or 0) - delta * Box.WHEEL_STEP
+		self:SetVerticalScroll(math.min(range, math.max(0, v)))
+	end)
 	local edit = CreateFrame("EditBox", nil, scroll)
 	edit:SetMultiLine(true)
 	edit:SetAutoFocus(false)
-	local font = Skin.Font("mono")
-	if font then edit:SetFontObject(font) end
-	edit:SetWidth(Box.WIDTH - 60)
+	edit:SetFontObject(Theme.Font("MonoSmall"))
+	Theme.Text(edit, "text-1")
+	edit:SetWidth(Box.WIDTH - 68)
 	scroll:SetScrollChild(edit)
 	f.scroll, f.edit = scroll, edit
 
@@ -55,14 +60,12 @@ local function build()
 	edit:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() Box:Hide() end)
 
-	f.selectAll = W.Button(f, { text = L["DIAG_SELECT"], width = 120, onClick = function() Box:SelectAll() end })
-	f.selectAll:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 14, 14)
-	f.size = W.Text(f, "small", "grey", "CENTER")
-	f.size:SetPoint("BOTTOM", f, "BOTTOM", 0, 20)
-	f.close = W.Button(f, { text = L["DIAG_CLOSE"], width = 100, onClick = function() Box:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -14, 14)
-	W.CloseOnEscape(f)
-	f:Hide()
+	f.selectAll = Widgets.Button(card, { text = L["DIAG_SELECT"], style = "secondary", onClick = function() Box:SelectAll() end })
+	f.selectAll:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	f.size = Widgets.Text(card, "MonoSmall", "text-3", "CENTER")
+	f.size:SetPoint("BOTTOM", card, "BOTTOM", 0, 30)
+	f.close = Widgets.Button(card, { text = L["DIAG_CLOSE"], style = "primary", onClick = function() Box:Hide() end })
+	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
 	return f
 end
 
@@ -81,7 +84,7 @@ function Box:Open(text)
 	f.edit:SetText(text)
 	f.edit:SetCursorPosition(0)
 	f.scroll:SetVerticalScroll(0)
-	f:Show()
+	f:Open()
 	self:SelectAll()
 	return text
 end

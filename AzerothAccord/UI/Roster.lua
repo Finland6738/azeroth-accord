@@ -1,10 +1,10 @@
 -- Roster view: the member table of the Accord panel (SPEC-05 §1, SPEC-04 §2, docs/specs/ui-style.md §3). Lua 5.1.
 -- The rows come from UI/RosterModel.lua; this file only draws them, with the widget kit (UI/Widgets) and the theme
--- (UI/Theme.lua): every colour is a token, class colours come from the game. The table is a Kit.DataTable: its rows are a
+-- (UI/Theme.lua): every colour is a token, class colours come from the game. The table is a Widgets.DataTable: its rows are a
 -- pool refilled while the list scrolls, so a guild of 1000 members never creates 1000 frames, and the model (not the table)
 -- sorts, because the grouped view orders whole accounts.
 --   toolbar    chips Online, Mains only, By account (grouped); selects Class / Rank / Profession; the column chooser
---              (Kit.Menu); the count. On a narrow panel the toolbar wraps to a second line.
+--              (Widgets.Menu); the count. On a narrow panel the toolbar wraps to a second line.
 --   header     one clickable title per visible column: sorts, a second click reverses (the sorted one in accent with an arrow)
 --   rows       a class mark and the class-coloured name, one cell per column; in the grouped view the main leads its
 --              account with a +/- button that shows the alts
@@ -15,7 +15,7 @@ local View = {}
 ns.RosterView, ns.modules = View, ns.modules or {}
 ns.modules.RosterView = View
 
-local L, Kit, Theme, Model = ns.L, ns.Kit, ns.Theme, ns.RosterModel
+local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RosterModel
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
 View.ROW_HEIGHT = 28
@@ -76,28 +76,28 @@ local function buildToolbar(self, f)
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	local model = self:Model()
-	bar.online = Kit.Chip(bar, { text = L["FILTER_ONLINE"], pad = 24, onClick = function(chip)
+	bar.online = Widgets.Chip(bar, { text = L["FILTER_ONLINE"], pad = 24, onClick = function(chip)
 		model:SetFilter("online", not chip:IsSelected())
 		View:Changed()
 	end })
-	bar.mains = Kit.Chip(bar, { text = L["FILTER_MAINS"], pad = 24, onClick = function(chip)
+	bar.mains = Widgets.Chip(bar, { text = L["FILTER_MAINS"], pad = 24, onClick = function(chip)
 		model:SetFilter("mains", not chip:IsSelected())
 		View:Changed()
 	end })
-	Kit.Tooltip.Attach(bar.mains, { L["FILTER_MAINS"], L["FILTER_MAINS_TIP"] }, "BOTTOM")
-	bar.grouped = Kit.Chip(bar, { text = L["FILTER_GROUPED"], pad = 24, onClick = function(chip)
+	Widgets.Tooltip.Attach(bar.mains, { L["FILTER_MAINS"], L["FILTER_MAINS_TIP"] }, "BOTTOM")
+	bar.grouped = Widgets.Chip(bar, { text = L["FILTER_GROUPED"], pad = 24, onClick = function(chip)
 		model:SetGrouped(not chip:IsSelected())
 		View:Changed()
 	end })
-	Kit.Tooltip.Attach(bar.grouped, { L["FILTER_GROUPED"], L["FILTER_GROUPED_TIP"] }, "BOTTOM")
+	Widgets.Tooltip.Attach(bar.grouped, { L["FILTER_GROUPED"], L["FILTER_GROUPED_TIP"] }, "BOTTOM")
 	for _, fl in ipairs(FILTERS) do
-		bar[fl.kind] = Kit.Select(bar, { width = 128, rows = 8, placeholder = L[fl.title], onSelect = function(id)
+		bar[fl.kind] = Widgets.Select(bar, { width = 128, rows = 8, placeholder = L[fl.title], onSelect = function(id)
 			model:SetFilter(fl.kind, id ~= View.ALL and id or nil)
 			View:Changed()
 		end })
 	end
-	bar.columns = Kit.Button(bar, { text = L["COLUMNS"], style = "secondary", height = 28, onClick = function(b) View:ShowColumnMenu(b) end })
-	Kit.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
+	bar.columns = Widgets.Button(bar, { text = L["COLUMNS"], style = "secondary", height = 28, onClick = function(b) View:ShowColumnMenu(b) end })
+	Widgets.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
 	bar.count = Theme.NewText(bar, "Small", "text-3")
 	bar.count:SetJustifyH("RIGHT")
 	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -9)
@@ -145,7 +145,7 @@ function View:ShowColumnMenu(anchor)
 		model:Save()
 		View:Changed(true)
 	end }
-	return Kit.Menu.Show(anchor, items)
+	return Widgets.Menu.Show(anchor, items)
 end
 
 -- Chips, selects and their choices follow the model (a filter set elsewhere, the roster changed).
@@ -178,7 +178,7 @@ function View:StartWatch()
 end
 
 function View:StopWatch()
-	if Kit.Menu.IsOpen() then Kit.Menu.Hide() end
+	if Widgets.Menu.IsOpen() then Widgets.Menu.Hide() end
 	if not self.watching then return end
 	self.watching = false
 	if ns.Roster then ns.Roster:Unwatch() end
@@ -216,7 +216,7 @@ local function profButton(row, i)
 		local data = self:GetParent().data
 		if data and self.slot and ns.RecipeView then ns.RecipeView:OpenFor(data.entry, self.slot) end
 	end)
-	Kit.Tooltip.Attach(b, function(self) return View.ProfessionTip(self:GetParent().data, self.slot) end, "RIGHT")
+	Widgets.Tooltip.Attach(b, function(self) return View.ProfessionTip(self:GetParent().data, self.slot) end, "RIGHT")
 	row.profButtons[i] = b
 	return b
 end
@@ -288,7 +288,7 @@ local function rowSetup(row)
 	row.selectedBar:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 4)
 	row.selectedBar:SetWidth(2)
 	row.selectedBar:Hide()
-	row.mark = Kit.ClassMark(row, 10)
+	row.mark = Widgets.ClassMark(row, 10)
 	row.expander = CreateFrame("Button", nil, row)
 	row.expander:SetSize(18, View.ROW_HEIGHT)
 	row.expander:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
@@ -302,7 +302,7 @@ local function rowSetup(row)
 		end
 	end)
 	row.expander:Hide()
-	Kit.Tooltip.Attach(row, rowTip, "RIGHT")
+	Widgets.Tooltip.Attach(row, rowTip, "RIGHT")
 end
 
 local function rowUpdate(row, data)
@@ -324,7 +324,7 @@ local function rowUpdate(row, data)
 	-- the class mark: the game's colour for the class of the character
 	row.mark:ClearAllPoints()
 	row.mark:SetPoint("LEFT", row, "LEFT", pos1.x + indent + (grouped and 18 or 0), 0)
-	if e.classFile then Kit.PaintClassMark(row.mark, classColor(e.classFile)) else Kit.ClearClassMark(row.mark) end
+	if e.classFile then Widgets.PaintClassMark(row.mark, classColor(e.classFile)) else Widgets.ClearClassMark(row.mark) end
 	local on = self.selected ~= nil and e.guid == self.selected
 	row.selected:SetShown(on)
 	row.selectedBar:SetShown(on)
@@ -334,7 +334,7 @@ end
 function View:Build(f)
 	self.frame = f
 	buildToolbar(self, f)
-	local t = Kit.DataTable(f, tableColumns(self), {
+	local t = Widgets.DataTable(f, tableColumns(self), {
 		rowHeight = View.ROW_HEIGHT, headerHeight = View.HEADER_HEIGHT, pool = View.POOL, maxPool = 80,
 		onSort = function(id)
 			local m = View:Model()

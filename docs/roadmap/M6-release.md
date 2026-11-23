@@ -132,7 +132,8 @@
   - `tools/check_addon.py` gains `check_ui_colours` (no colour written outside `UI/Theme.lua`, as in FDCP).
 - Tests: a test that no text reaches the screen without a locale key; `Tests/test_settings.lua` covers the Appearance card.
 - Done when:
-  - [ ] All tests and checks pass; wiki pages Likes and Social Index, Guild Bank, Settings.
+  - [x] All tests and checks pass; wiki pages Likes and Social Index, Guild Bank, Settings.
+- Real client: every restyled view (pills, slots, cards that fit their text, switches), the Appearance card changing theme, effects, animations and font without `/reload`, the Settings page in the game's settings window, the logo on the guild-window tab.
 
 ### M6.15 — About and credits
 - Branch: `step/m6-15-credits`

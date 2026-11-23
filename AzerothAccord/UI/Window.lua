@@ -11,7 +11,7 @@ local Window = {}
 ns.Window, ns.modules = Window, ns.modules or {}
 ns.modules.Window = Window
 
-local L, Kit, Theme = ns.L, ns.Kit, ns.Theme
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, tonumber, min, max = type, tonumber, math.min, math.max
 
 Window.NAME = "AzerothAccordWindow"
@@ -53,7 +53,7 @@ local function place(f)
 end
 
 local function buildTitleBar(f)
-	local bar = Kit.TitleBar(f, { title = L["WINDOW_TITLE"], subtitle = "", closeLabel = L["WINDOW_CLOSE"],
+	local bar = Widgets.TitleBar(f, { title = L["WINDOW_TITLE"], subtitle = "", closeLabel = L["WINDOW_CLOSE"],
 		onClose = function() Window:Close() end })
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
@@ -63,10 +63,10 @@ local function buildTitleBar(f)
 	bar:SetScript("OnDragStart", function() f:StartMoving() end)
 	bar:SetScript("OnDragStop", function() f:StopMovingOrSizing() savePosition(f) end)
 	-- Pop in, left of the close button, only while the guild window can take the panel (Window:UpdatePopIn)
-	bar.popIn = Kit.Button(bar, { text = L["POP_IN"], style = "ghost", height = 28, onClick = function() ns.Shell:PopIn() end })
+	bar.popIn = Widgets.Button(bar, { text = L["POP_IN"], style = "ghost", height = 28, onClick = function() ns.Shell:PopIn() end })
 	bar.popIn:SetPoint("RIGHT", bar.close, "LEFT", -8, 0)
 	bar.popIn:Hide()
-	if Kit.Tooltip then Kit.Tooltip.Attach(bar.popIn, { L["POP_IN"], L["POP_IN_TIP"] }, "BOTTOM") end
+	if Widgets.Tooltip then Widgets.Tooltip.Attach(bar.popIn, { L["POP_IN"], L["POP_IN_TIP"] }, "BOTTOM") end
 	f.titleBar = bar
 end
 
@@ -83,7 +83,7 @@ local function buildGrip(f)
 	Theme.Tint(grip.icon, "text-3", 0.6)
 	grip:SetScript("OnEnter", function(self) Theme.Tint(self.icon, "accent-text") end)
 	grip:SetScript("OnLeave", function(self) Theme.Tint(self.icon, "text-3", 0.6) end)
-	if Kit.Tooltip then Kit.Tooltip.Attach(grip, L["WINDOW_RESIZE"], "TOP") end
+	if Widgets.Tooltip then Widgets.Tooltip.Attach(grip, L["WINDOW_RESIZE"], "TOP") end
 	grip:SetScript("OnMouseDown", function() f:StartSizing("BOTTOMRIGHT") end)
 	grip:SetScript("OnMouseUp", function() f:StopMovingOrSizing() saveSize(f) savePosition(f) end)
 	f.grip = grip
@@ -117,7 +117,7 @@ local function build()
 	}
 	f:SetScript("OnShow", function() ns.Shell:Attach(Window.host) Window:UpdatePopIn() end)
 	f:SetScript("OnHide", function() ns.Shell:Detach(Window.host) end)
-	Kit.CloseOnEscape(Window.NAME)
+	Widgets.CloseOnEscape(Window.NAME)
 	f:Hide()
 	place(f)
 	return f

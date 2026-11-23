@@ -194,7 +194,7 @@ describe("from the list of crafters to a member's recipes and back", function()
 		put(BOB, ALCHEMY, { 2330 })
 		open(); type_("minor healing")
 		V():ShowTooltip(rows()[2].row)
-		deepEq(AzerothAccord.Kit.Tooltip.Lines(), { "Bob", "Can craft: Minor Healing Potion", "Alchemy 285/300 - shared by the member's addon, 3 d ago", "Click to see all their recipes." })
+		deepEq(AzerothAccord.Widgets.Tooltip.Lines(), { "Bob", "Can craft: Minor Healing Potion", "Alchemy 285/300 - shared by the member's addon, 3 d ago", "Click to see all their recipes." })
 	end)
 
 	it("OpenCraft shows the search with a given text", function()

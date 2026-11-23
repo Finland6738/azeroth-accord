@@ -11,13 +11,13 @@ local Suggest = {}
 ns.Suggest, ns.modules = Suggest, ns.modules or {}
 ns.modules.Suggest = Suggest
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min, abs = type, ipairs, pairs, tostring, math.floor, math.max, math.min, math.abs
 
 Suggest.LEVEL_GAP = 5
 Suggest.NEW_MINUTES = 30
 Suggest.LIMIT = 12
-Suggest.ROW_HEIGHT = 24
+Suggest.ROW_HEIGHT = 30
 
 -- The suggestions: { guid, name, classFile, level, zone, minutes } sorted by minutes together, then level closeness, then
 -- name. opts.limit (default LIMIT).
@@ -84,12 +84,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local mode = {}
 
-local function classColor(classFile)
-	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
-	if c then return c.r, c.g, c.b end
-	return 1, 1, 1
-end
-
 function Suggest.MinutesText(minutes)
 	if not minutes or minutes <= 0 then return L["NEW_NEVER"] end
 	return L["NEW_MINUTES"]:format(minutes)
@@ -97,36 +91,40 @@ end
 
 function mode.build(f)
 	Suggest.frame = f
-	f.explain = W.Text(f, "small", "grey", "LEFT")
-	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.explain:SetPoint("RIGHT", f, "RIGHT", -8, 0)
+	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
+	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
+	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["NEW_EXPLAIN"]:format(Suggest.LEVEL_GAP, Suggest.NEW_MINUTES))
-	f.area = W.Frame(f, 10, 10)
-	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
-	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, 0)
+	f.area = CreateFrame("Frame", nil, f)
+	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -40)
+	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	f.area:SetClipsChildren(true)
 	f.area.rows = {}
-	f.message = W.Text(f, "body", "grey", "CENTER")
+	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
 	f.message:SetPoint("CENTER", f.area, "CENTER", 0, 0)
 	f.message:SetWidth(380)
 end
 
 local function newRow(area, i)
-	local row = CreateFrame("Frame", nil, area)
+	local row = CreateFrame("Button", nil, area)
 	row:SetHeight(Suggest.ROW_HEIGHT)
 	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
-	row.name = W.Text(row, "body", nil, "LEFT")
-	row.name:SetPoint("LEFT", row, "LEFT", 10, 0)
+	row.mark = Widgets.ClassMark(row, 8)
+	row.mark:SetPoint("LEFT", row, "LEFT", 8, 0)
+	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
+	row.name:SetPoint("LEFT", row.mark, "RIGHT", 8, 0)
 	row.name:SetWidth(130)
-	row.detail = W.Text(row, "small", "grey", "LEFT")
+	row.detail = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.detail:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
-	row.detail:SetPoint("RIGHT", row, "RIGHT", -190, 0)
-	row.invite = W.Button(row, { text = L["NEW_INVITE"], width = 84, height = Suggest.ROW_HEIGHT - 2,
+	row.detail:SetPoint("RIGHT", row, "RIGHT", -200, 0)
+	row.invite = Widgets.Button(row, { text = L["NEW_INVITE"], style = "primary", width = 90, height = Suggest.ROW_HEIGHT - 6,
 		onClick = function(b) Suggest:Invite(b:GetParent().guid) end })
 	row.invite:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row.whisper = W.Button(row, { text = L["NEW_WHISPER"], width = 84, height = Suggest.ROW_HEIGHT - 2,
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "secondary", width = 90, height = Suggest.ROW_HEIGHT - 6,
 		onClick = function(b) Suggest:Whisper(b:GetParent().guid) end })
-	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -6, 0)
+	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -8, 0)
+	Widgets.RowHover(row)
 	area.rows[i] = row
 	return row
 end
@@ -142,7 +140,9 @@ function mode.refresh(f)
 		local row = f.area.rows[i] or newRow(f.area, i)
 		row.guid = s.guid
 		row.name:SetText(s.name)
-		row.name:SetTextColor(classColor(s.classFile))
+		Widgets.PaintName(row.name, s.classFile)
+		local c = RAID_CLASS_COLORS and s.classFile and RAID_CLASS_COLORS[s.classFile]
+		if c then Widgets.PaintClassMark(row.mark, c.r, c.g, c.b) else Widgets.ClearClassMark(row.mark) end
 		row.detail:SetText(L["NEW_DETAIL"]:format(s.level, s.zone or "?", Suggest.MinutesText(s.minutes)))
 		row:Show()
 	end

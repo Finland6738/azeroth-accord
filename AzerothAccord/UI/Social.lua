@@ -16,10 +16,10 @@ local UI = {}
 ns.SocialUI, ns.modules = UI, ns.modules or {}
 ns.modules.SocialUI = UI
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
-UI.ROW_HEIGHT = 20
+UI.ROW_HEIGHT = 22
 UI.LIST_MAX = 400
 
 local function hours(minutes)
@@ -113,12 +113,13 @@ local function line(f, i)
 	if fs then return fs end
 	fs = CreateFrame("Button", nil, f.scroll)
 	fs:SetHeight(UI.ROW_HEIGHT)
-	fs.text = W.Text(fs, "body", nil, "LEFT")
-	fs.text:SetPoint("LEFT", fs, "LEFT", 0, 0)
+	fs.text = Widgets.Text(fs, "Body", "text-1", "LEFT")
+	fs.text:SetPoint("LEFT", fs, "LEFT", 4, 0)
 	fs.text:SetPoint("RIGHT", fs, "RIGHT", 0, 0)
-	fs.extra = W.Text(fs, "small", "grey", "RIGHT")
+	fs.extra = Widgets.Text(fs, "MonoSmall", "text-3", "RIGHT")
 	fs.extra:SetPoint("RIGHT", fs, "RIGHT", -4, 0)
-	W.SetTooltip(fs, function(self) return self.tip end)
+	Widgets.Tooltip.Attach(fs, function(self) return self.tip end, "RIGHT")
+	Widgets.RowHover(fs)
 	fs:SetScript("OnClick", function(self)
 		if self.key and ns.ReputationView then ns.ReputationView:OpenCard({ guid = self.key }) end
 	end)
@@ -127,9 +128,12 @@ local function line(f, i)
 end
 
 function mode.build(f)
-	f.scroll = W.Frame(f, 10, 10)
-	f.scroll:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -6)
-	f.scroll:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -10, 0)
+	f.card = Widgets.Card(f, {})
+	f.card:SetAllPoints(f)
+	f.scroll = CreateFrame("Frame", nil, f.card)
+	f.scroll:SetPoint("TOPLEFT", f.card, "TOPLEFT", 20, -16)
+	f.scroll:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -20, 12)
+	f.scroll:SetClipsChildren(true)
 	f.scroll:EnableMouseWheel(true)
 	f.scroll:SetScript("OnMouseWheel", function(_, delta) UI:Scroll(-delta * 3) end)
 	f.lines = {}
@@ -161,12 +165,6 @@ function UI.ModeLines()
 	return out
 end
 
-local function classColor(classFile)
-	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
-	if c then return c.r, c.g, c.b end
-	return Skin.Color("white")
-end
-
 function mode.refresh(f)
 	local list = UI.ModeLines()
 	UI.shown = list
@@ -181,12 +179,14 @@ function mode.refresh(f)
 		fs:SetPoint("TOPLEFT", f.scroll, "TOPLEFT", l.extra and 12 or 0, -(i - 1) * UI.ROW_HEIGHT)
 		fs:SetPoint("TOPRIGHT", f.scroll, "TOPRIGHT", 0, -(i - 1) * UI.ROW_HEIGHT)
 		fs.text:SetText(l.text)
-		if l.heading then fs.text:SetTextColor(Skin.Color("gold"))
-		elseif l.classFile then fs.text:SetTextColor(classColor(l.classFile))
-		else fs.text:SetTextColor(Skin.Color(l.muted and "grey" or "white")) end
+		fs.text:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
+		if l.heading then Theme.Text(fs.text, "text-1")
+		elseif l.classFile then Widgets.PaintName(fs.text, l.classFile)
+		else Theme.Text(fs.text, l.muted and "text-3" or "text-2") end
 		fs.extra:SetText(l.extra or "")
 		fs.tip, fs.key = l.tip, l.key
 		fs:EnableMouse(l.tip ~= nil or l.key ~= nil)
+		fs.hover:SetShown(l.key ~= nil)   -- only a player opens something
 		fs:Show()
 	end
 	for i = drawn + 1, #f.lines do f.lines[i]:Hide() end

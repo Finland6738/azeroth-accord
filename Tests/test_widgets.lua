@@ -4,7 +4,7 @@
 -- effects and animations preferences off. Nothing is on screen yet: the views move to the kit in M6.12 - M6.14.
 -- Adapted from FDCP's Tests/test_controls.lua and the widget parts of its UI tests, same owner, GPL-3.0 (ADR 0021).
 
-local function Kit() return AzerothAccord.Kit end
+local function Widgets() return AzerothAccord.Widgets end
 local function Th() return AzerothAccord.Theme end
 local function M() return AzerothAccord.Motion end
 local function C() return AzerothAccord.Config end
@@ -62,45 +62,45 @@ local function builders()
 	local members = {}
 	for i = 1, 5 do members[i] = { name = "QZ" .. i, level = i * 10 } end
 	return {
-		{ "Button primary", true, function(p) return Kit().Button(p, { text = "QZ1", style = "primary" }) end },
-		{ "Button secondary", true, function(p) return Kit().Button(p, { text = "QZ1", style = "secondary" }) end },
-		{ "Button ghost", true, function(p) return Kit().Button(p, { text = "QZ1", style = "ghost" }) end },
-		{ "Button neon", true, function(p) return Kit().Button(p, { text = "QZ1", style = "neon" }) end },
-		{ "Card", false, function(p) return Kit().Card(p, { hover = true, shadow = true }) end },
-		{ "Badge", true, function(p) return Kit().Badge(p, "QZ1", "ok") end },
+		{ "Button primary", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "primary" }) end },
+		{ "Button secondary", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "secondary" }) end },
+		{ "Button ghost", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "ghost" }) end },
+		{ "Button neon", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "neon" }) end },
+		{ "Card", false, function(p) return Widgets().Card(p, { hover = true, shadow = true }) end },
+		{ "Badge", true, function(p) return Widgets().Badge(p, "QZ1", "ok") end },
 		{ "Tabs", true, function(p)
-			local t = Kit().Tabs(p, { { id = "a", text = "QZ1", badge = "QZ2" }, { id = "b", text = "QZ3" } })
+			local t = Widgets().Tabs(p, { { id = "a", text = "QZ1", badge = "QZ2" }, { id = "b", text = "QZ3" } })
 			t:Select("a")
 			return t
 		end },
 		{ "Segmented", true, function(p)
-			local s = Kit().Segmented(p, { { id = "a", text = "QZ1" }, { id = "b", text = "QZ2" } })
+			local s = Widgets().Segmented(p, { { id = "a", text = "QZ1" }, { id = "b", text = "QZ2" } })
 			s:Select("a")
 			return s
 		end },
-		{ "Chip", true, function(p) local c = Kit().Chip(p, { text = "QZ1" }); c:SetSelected(true); return c end },
-		{ "TitleBar", true, function(p) return Kit().TitleBar(p, { title = "QZ1", subtitle = "QZ2", closeLabel = "QZ3" }) end },
-		{ "Dialog", false, function(p) return Kit().Dialog(p, nil, {}) end },
-		{ "EditBox", true, function(p) return Kit().EditBox(p, { placeholder = "QZ1" }) end },
+		{ "Chip", true, function(p) local c = Widgets().Chip(p, { text = "QZ1" }); c:SetSelected(true); return c end },
+		{ "TitleBar", true, function(p) return Widgets().TitleBar(p, { title = "QZ1", subtitle = "QZ2", closeLabel = "QZ3" }) end },
+		{ "Dialog", false, function(p) return Widgets().Dialog(p, nil, {}) end },
+		{ "EditBox", true, function(p) return Widgets().EditBox(p, { placeholder = "QZ1" }) end },
 		{ "ChoiceList", true, function(p)
-			local l = Kit().ChoiceList(p, {})
+			local l = Widgets().ChoiceList(p, {})
 			l:SetChoices({ { id = 1, text = "QZ1" }, { id = 2, text = "QZ2" } })
 			l:Select(1)
 			return l
 		end },
-		{ "Switch", false, function(p) return Kit().Switch(p, { on = true }) end },
-		{ "Slider", false, function(p) return Kit().Slider(p, { min = 0, max = 10, value = 4 }) end },
+		{ "Switch", false, function(p) return Widgets().Switch(p, { on = true }) end },
+		{ "Slider", false, function(p) return Widgets().Slider(p, { min = 0, max = 10, value = 4 }) end },
 		{ "Select", true, function(p)
-			return Kit().Select(p, { placeholder = "QZ1", choices = { { id = "a", text = "QZ2" }, { id = "b", text = "QZ3" } } })
+			return Widgets().Select(p, { placeholder = "QZ1", choices = { { id = "a", text = "QZ2" }, { id = "b", text = "QZ3" } } })
 		end },
 		{ "Menu", true, function(p)
-			return Kit().Menu.Show(p, { { text = "QZ1", header = true }, { text = "QZ2", checked = true }, { text = "QZ3" } })
+			return Widgets().Menu.Show(p, { { text = "QZ1", header = true }, { text = "QZ2", checked = true }, { text = "QZ3" } })
 		end },
-		{ "Snackbar", true, function(p) local s = Kit().Snackbar(p); s:Say("QZ1", "ok"); return s end },
-		{ "Skeleton", false, function(p) return Kit().Skeleton(p, 100, 12) end },
-		{ "ThinBar", false, function(p) local b = Kit().ThinBar(p, { width = 100 }); b:SetFraction(0.5); return b end },
+		{ "Snackbar", true, function(p) local s = Widgets().Snackbar(p); s:Say("QZ1", "ok"); return s end },
+		{ "Skeleton", false, function(p) return Widgets().Skeleton(p, 100, 12) end },
+		{ "ThinBar", false, function(p) local b = Widgets().ThinBar(p, { width = 100 }); b:SetFraction(0.5); return b end },
 		{ "DataTable", true, function(p)
-			local t = Kit().DataTable(p, {
+			local t = Widgets().DataTable(p, {
 				{ id = "name", title = "QZ1", text = function(d) return d.name end },
 				{ id = "level", title = "QZ2", mono = true, align = "RIGHT", text = function(d) return "QZ" .. d.level end,
 					value = function(d) return d.level end },
@@ -113,18 +113,19 @@ local function builders()
 end
 
 describe("the kit", function()
-	it("lives in its own table: the old look keeps ns.Widgets until M6.14", function()
-		truthy(AzerothAccord.Kit)
-		truthy(AzerothAccord.Widgets, "the old widgets are still there")
-		ne(AzerothAccord.Kit, AzerothAccord.Widgets)
+	it("is ns.Widgets: the old look (Skin, Base) is gone (M6.14)", function()
+		truthy(AzerothAccord.Widgets)
+		isNil(rawget(AzerothAccord, "Kit"), "no second name for the kit (ns.Kit until M6.14)")
+		isNil(AzerothAccord.Skin, "UI/Skin.lua is gone")
 		for _, name in ipairs({ "Button", "Card", "Badge", "Tabs", "Segmented", "Chip", "TitleBar", "Dialog", "EditBox",
 			"ChoiceList", "Switch", "Slider", "Select", "Snackbar", "Skeleton", "ClassMark", "PaintClassMark", "ThinBar",
-			"DataTable" }) do
-			eq(type(Kit()[name]), "function", name)
+			"DataTable", "Text", "RowHover", "PaintName", "ChipRow" }) do
+			eq(type(Widgets()[name]), "function", name)
 		end
-		eq(type(Kit().Tooltip.Show), "function")
-		eq(type(AzerothAccord.Widgets.Button), "function")
-		ne(Kit().Button, AzerothAccord.Widgets.Button)
+		eq(type(Widgets().Tooltip.Show), "function")
+		eq(type(Widgets().Menu.Show), "function")
+		isNil(Widgets().ShowMenu, "the old menu is gone")
+		isNil(Widgets().SetTooltip, "the old tooltip is gone")
 	end)
 end)
 
@@ -160,9 +161,9 @@ describe("every widget in every theme", function()
 
 	it("shows tokens of the current theme: surfaces, text and the accent", function()
 		local parent = CreateFrame("Frame")
-		local card = Kit().Card(parent, {})
-		local badge = Kit().Badge(parent, "QZ1", "err")
-		local bar = Kit().ThinBar(parent, { width = 100 })
+		local card = Widgets().Card(parent, {})
+		local badge = Widgets().Badge(parent, "QZ1", "err")
+		local bar = Widgets().ThinBar(parent, { width = 100 })
 		for _, id in ipairs(Th().List()) do
 			Th().Apply(id)
 			near(r1(card.parts.fill), token1("surface-1", id), 1e-6, id)
@@ -191,9 +192,9 @@ describe("text comes only from the caller", function()
 	it("a widget built without texts shows none", function()
 		local parent = CreateFrame("Frame")
 		local frames = {
-			Kit().Button(parent, {}), Kit().Chip(parent, {}), Kit().TitleBar(parent, {}), Kit().EditBox(parent, {}),
-			Kit().Select(parent, {}), Kit().Tabs(parent, { { id = "a" } }), Kit().Segmented(parent, { { id = "a" } }),
-			Kit().DataTable(parent, { { id = "x", text = function() return nil end } }, {}),
+			Widgets().Button(parent, {}), Widgets().Chip(parent, {}), Widgets().TitleBar(parent, {}), Widgets().EditBox(parent, {}),
+			Widgets().Select(parent, {}), Widgets().Tabs(parent, { { id = "a" } }), Widgets().Segmented(parent, { { id = "a" } }),
+			Widgets().DataTable(parent, { { id = "x", text = function() return nil end } }, {}),
 		}
 		for i, f in ipairs(frames) do eq(#texts(f), 0, "widget " .. i) end
 	end)
@@ -203,7 +204,7 @@ describe("button", function()
 	local function button(style, opts)
 		opts = opts or {}
 		opts.text, opts.style = opts.text or "Go", style
-		return Kit().Button(CreateFrame("Frame"), opts)
+		return Widgets().Button(CreateFrame("Frame"), opts)
 	end
 
 	it("hover lays 8 % white, pressed 12 %, both faded in 120 ms", function()
@@ -288,21 +289,21 @@ end)
 describe("effects off", function()
 	it("glows, shadows and the title glow go away and come back with the preference", function()
 		local parent = CreateFrame("Frame")
-		local primary = Kit().Button(parent, { style = "primary" })
-		local card = Kit().Card(parent, { shadow = true })
-		local bar = Kit().TitleBar(parent, { title = "QZ1" })
+		local primary = Widgets().Button(parent, { style = "primary" })
+		local card = Widgets().Card(parent, { shadow = true })
+		local bar = Widgets().TitleBar(parent, { title = "QZ1" })
 		truthy(primary.glow:IsShown()); truthy(card.parts.shadow:IsShown()); truthy(bar.logoGlow:IsShown())
 		C():Set("account.settings.effects", false)
 		falsy(primary.glow:IsShown()); falsy(card.parts.shadow:IsShown()); falsy(bar.logoGlow:IsShown())
 		falsy(bar.titleGlow:IsShown())
-		local later = Kit().Button(parent, { style = "neon" })
+		local later = Widgets().Button(parent, { style = "neon" })
 		falsy(later.glow:IsShown(), "a glow made while the effects are off is off")
 		C():Set("account.settings.effects", true)
 		truthy(primary.glow:IsShown()); truthy(card.parts.shadow:IsShown()); truthy(later.glow:IsShown())
 	end)
 
 	it("the light theme draws the glows as soft shadows, not additive light", function()
-		local b = Kit().Button(CreateFrame("Frame"), { style = "primary" })
+		local b = Widgets().Button(CreateFrame("Frame"), { style = "primary" })
 		truthy(b.glow._additive)
 		Th().Apply("aurora")
 		falsy(b.glow._additive)
@@ -311,7 +312,7 @@ end)
 
 describe("card, badge and chip", function()
 	it("a card with hover takes the strong border while the mouse is over it", function()
-		local c = Kit().Card(CreateFrame("Frame"), { hover = true })
+		local c = Widgets().Card(CreateFrame("Frame"), { hover = true })
 		Mock.RunScript(c, "OnEnter")
 		near(r1(c.parts.ring), token1("border-strong"), 1e-6)
 		Mock.RunScript(c, "OnLeave")
@@ -320,7 +321,7 @@ describe("card, badge and chip", function()
 	end)
 
 	it("a badge fits its text, takes the tone, and can change both", function()
-		local b = Kit().Badge(CreateFrame("Frame"), "QZ1", "ok")
+		local b = Widgets().Badge(CreateFrame("Frame"), "QZ1", "ok")
 		eq(b:GetHeight(), 24); eq(b:GetWidth(), #"QZ1" * 6 + 20)
 		b:SetBadge("A longer badge text", "warn")
 		eq(b:GetWidth(), #"A longer badge text" * 6 + 20)
@@ -331,7 +332,7 @@ describe("card, badge and chip", function()
 
 	it("a chip is filled with the accent when selected and reports clicks only while enabled", function()
 		local n = 0
-		local c = Kit().Chip(CreateFrame("Frame"), { text = "QZ1", onClick = function() n = n + 1 end })
+		local c = Widgets().Chip(CreateFrame("Frame"), { text = "QZ1", onClick = function() n = n + 1 end })
 		falsy(c:IsSelected())
 		c:SetSelected(true)
 		truthy(c:IsSelected())
@@ -348,7 +349,7 @@ end)
 
 describe("tabs", function()
 	local function tabs(onSelect)
-		local bar = Kit().Tabs(CreateFrame("Frame"), {
+		local bar = Widgets().Tabs(CreateFrame("Frame"), {
 			{ id = "roster", text = "Roster" }, { id = "prof", text = "Professions" }, { id = "bank", text = "Bank" },
 		}, onSelect)
 		return bar
@@ -432,7 +433,7 @@ describe("tabs", function()
 	end)
 
 	it("a badge given with the tab is there from the start, and the tab text can change", function()
-		local bar = Kit().Tabs(CreateFrame("Frame"), { { id = "bank", text = "Bank", badge = "5", tone = "err" } })
+		local bar = Widgets().Tabs(CreateFrame("Frame"), { { id = "bank", text = "Bank", badge = "5", tone = "err" } })
 		truthy(bar.buttons.bank.badge:IsShown())
 		bar:SetTabText("bank", "Banca")
 		eq(bar.buttons.bank.label:GetText(), "Banca")
@@ -451,7 +452,7 @@ end)
 describe("segmented", function()
 	it("selects one segment at a time, clears, and locks", function()
 		local seen = {}
-		local seg = Kit().Segmented(CreateFrame("Frame"), { { id = "a", text = "Settings" }, { id = "b", text = "Info" } },
+		local seg = Widgets().Segmented(CreateFrame("Frame"), { { id = "a", text = "Settings" }, { id = "b", text = "Info" } },
 			function(id) seen[#seen + 1] = id end)
 		falsy(seg.thumb:IsShown())
 		truthy(seg:Select("a")); truthy(seg:Select("b")); truthy(seg:Select("b"))
@@ -471,7 +472,7 @@ end)
 describe("title bar", function()
 	it("has the logo, the title in the display face, the subtitle and a close button", function()
 		local closed = 0
-		local bar = Kit().TitleBar(CreateFrame("Frame"), { title = "Azeroth Accord", subtitle = "sync", onClose = function() closed = closed + 1 end })
+		local bar = Widgets().TitleBar(CreateFrame("Frame"), { title = "Azeroth Accord", subtitle = "sync", onClose = function() closed = closed + 1 end })
 		eq(bar:GetHeight(), 52)
 		eq(bar.logo:GetTexture(), AzerothAccord.Assets.logos.logo_64.path)
 		eq(bar.title:GetText(), "Azeroth Accord"); eq(bar.subtitle:GetText(), "sync")
@@ -483,27 +484,27 @@ describe("title bar", function()
 	end)
 
 	it("the title glow is a text shadow on the dark themes and none on the light one", function()
-		local bar = Kit().TitleBar(CreateFrame("Frame"), { title = "QZ1" })
+		local bar = Widgets().TitleBar(CreateFrame("Frame"), { title = "QZ1" })
 		truthy(bar.title._glowing)
 		Th().Apply("aurora")
 		falsy(bar.title._glowing)
 	end)
 
 	it("the close button has a tooltip when it is given a label", function()
-		local bar = Kit().TitleBar(CreateFrame("Frame"), { title = "QZ1", closeLabel = "Close" })
+		local bar = Widgets().TitleBar(CreateFrame("Frame"), { title = "QZ1", closeLabel = "Close" })
 		Mock.RunScript(bar.close, "OnEnter")
-		truthy(Kit().Tooltip.IsShown())
-		deepEq(Kit().Tooltip.Lines(), { "Close" })
+		truthy(Widgets().Tooltip.IsShown())
+		deepEq(Widgets().Tooltip.Lines(), { "Close" })
 		Mock.RunScript(bar.close, "OnLeave")
-		falsy(Kit().Tooltip.IsShown())
+		falsy(Widgets().Tooltip.IsShown())
 	end)
 end)
 
 describe("dialog", function()
 	it("Esc closes it: its name is in UISpecialFrames, once", function()
-		local d = Kit().Dialog(nil, "AzerothAccordTestDialog", {})
+		local d = Widgets().Dialog(nil, "AzerothAccordTestDialog", {})
 		contains(UISpecialFrames, "AzerothAccordTestDialog")
-		Kit().CloseOnEscape("AzerothAccordTestDialog")
+		Widgets().CloseOnEscape("AzerothAccordTestDialog")
 		local n = 0
 		for _, name in ipairs(UISpecialFrames) do if name == "AzerothAccordTestDialog" then n = n + 1 end end
 		eq(n, 1)
@@ -519,7 +520,7 @@ describe("dialog", function()
 	end)
 
 	it("a veil on the DIALOG strata with a centred card that rises while it fades in", function()
-		local d = Kit().Dialog(CreateFrame("Frame"), nil, { width = 300, height = 150 })
+		local d = Widgets().Dialog(CreateFrame("Frame"), nil, { width = 300, height = 150 })
 		eq(d:GetFrameStrata(), "DIALOG")
 		eq(d.card:GetWidth(), 300); eq(d.card:GetHeight(), 150)
 		near(d.veil._texture[1], token1("scrim"), 1e-6)
@@ -536,7 +537,7 @@ describe("dialog", function()
 
 	it("with Animations off it opens at once, in place", function()
 		C():Set("account.settings.animations", false)
-		local d = Kit().Dialog(CreateFrame("Frame"), nil, {})
+		local d = Widgets().Dialog(CreateFrame("Frame"), nil, {})
 		d:Open()
 		local _, _, _, _, y = d.card:GetPoint(1)
 		eq(y, 0); eq(d.card:GetAlpha(), 1)
@@ -544,14 +545,14 @@ describe("dialog", function()
 	end)
 
 	it("the card is made of the panel regions only", function()
-		local d = Kit().Dialog(CreateFrame("Frame"), nil, {})
+		local d = Widgets().Dialog(CreateFrame("Frame"), nil, {})
 		eq(d.content, d.card)
 		truthy(d.card.parts.fill and d.card.parts.ring and d.card.parts.shadow and d.card.parts.highlight)
 	end)
 end)
 
 describe("edit box", function()
-	local function box(opts) return Kit().EditBox(CreateFrame("Frame"), opts or {}) end
+	local function box(opts) return Widgets().EditBox(CreateFrame("Frame"), opts or {}) end
 
 	it("shows its placeholder while empty and unfocused, and gets out of the way", function()
 		local b = box({ placeholder = "Search" })
@@ -597,7 +598,7 @@ end)
 describe("choice list", function()
 	it("selects one row, reports a change once and scrolls the rest with the wheel", function()
 		local picked = {}
-		local list = Kit().ChoiceList(CreateFrame("Frame"), { rows = 3, onSelect = function(id) picked[#picked + 1] = id end })
+		local list = Widgets().ChoiceList(CreateFrame("Frame"), { rows = 3, onSelect = function(id) picked[#picked + 1] = id end })
 		local choices = {}
 		for i = 1, 8 do choices[i] = { id = i, text = "Row " .. i } end
 		list:SetChoices(choices)
@@ -620,7 +621,7 @@ describe("choice list", function()
 	end)
 
 	it("a new list keeps the selection only when it is still there", function()
-		local list = Kit().ChoiceList(CreateFrame("Frame"), { rows = 2 })
+		local list = Widgets().ChoiceList(CreateFrame("Frame"), { rows = 2 })
 		list:SetChoices({ { id = "a", text = "A" }, { id = "b", text = "B" } })
 		list:Select("b")
 		list:SetChoices({ { id = "b", text = "B" } })
@@ -633,7 +634,7 @@ describe("choice list", function()
 	end)
 
 	it("a choice can carry its own token for its text", function()
-		local list = Kit().ChoiceList(CreateFrame("Frame"), { rows = 2 })
+		local list = Widgets().ChoiceList(CreateFrame("Frame"), { rows = 2 })
 		list:SetChoices({ { id = "a", text = "A", token = "err" } })
 		near((list.rows[1].label:GetTextColor()), token1("err"), 1e-6)
 	end)
@@ -642,7 +643,7 @@ end)
 describe("switch", function()
 	it("toggles on click, reports the change and slides the thumb", function()
 		local seen
-		local s = Kit().Switch(CreateFrame("Frame"), { onChange = function(on) seen = on end })
+		local s = Widgets().Switch(CreateFrame("Frame"), { onChange = function(on) seen = on end })
 		falsy(s:IsOn())
 		Mock.RunScript(s, "OnClick")
 		truthy(s:IsOn()); eq(seen, true)
@@ -657,7 +658,7 @@ describe("switch", function()
 
 	it("SetOn with silent does not call back, and a disabled switch ignores clicks", function()
 		local n = 0
-		local s = Kit().Switch(CreateFrame("Frame"), { onChange = function() n = n + 1 end })
+		local s = Widgets().Switch(CreateFrame("Frame"), { onChange = function() n = n + 1 end })
 		s:SetOn(true, true)
 		eq(n, 0); truthy(s:IsOn())
 		s:SetEnabled(false)
@@ -667,7 +668,7 @@ describe("switch", function()
 	end)
 
 	it("starts on when asked, takes the accent and follows the theme", function()
-		local s = Kit().Switch(CreateFrame("Frame"), { on = true })
+		local s = Widgets().Switch(CreateFrame("Frame"), { on = true })
 		truthy(s:IsOn())
 		near(r1(s.track), token1("accent"), 1e-6)
 		Th().Apply("accord")
@@ -678,7 +679,7 @@ describe("switch", function()
 
 	it("with Animations off the thumb is at its place at once", function()
 		C():Set("account.settings.animations", false)
-		local s = Kit().Switch(CreateFrame("Frame"), {})
+		local s = Widgets().Switch(CreateFrame("Frame"), {})
 		s:SetOn(true)
 		falsy(s.thumb._animGroups)
 		local _, _, _, x = s.thumb:GetPoint(1)
@@ -689,7 +690,7 @@ end)
 describe("slider", function()
 	it("rounds to the step, clamps, and reports a user change", function()
 		local got
-		local s = Kit().Slider(CreateFrame("Frame"), { min = 0, max = 10, step = 2, value = 3, onChange = function(v, user) got = { v, user } end })
+		local s = Widgets().Slider(CreateFrame("Frame"), { min = 0, max = 10, step = 2, value = 3, onChange = function(v, user) got = { v, user } end })
 		eq(s:GetValue(), 4)
 		s:Set(99); eq(s:GetValue(), 10)
 		s:Set(-5); eq(s:GetValue(), 0)
@@ -700,7 +701,7 @@ describe("slider", function()
 	end)
 
 	it("the fill follows the value and the thumb takes the text colour", function()
-		local s = Kit().Slider(CreateFrame("Frame"), { min = 0, max = 100, value = 50, width = 200 })
+		local s = Widgets().Slider(CreateFrame("Frame"), { min = 0, max = 100, value = 50, width = 200 })
 		eq(s.fill:GetWidth(), 100)
 		s:Set(100); eq(s.fill:GetWidth(), 200)
 		s:Set(0); eq(s.fill:GetWidth(), 1)
@@ -712,7 +713,7 @@ end)
 
 describe("select", function()
 	local function make(onSelect)
-		return Kit().Select(CreateFrame("Frame"), { width = 160, onSelect = onSelect, placeholder = "Pick",
+		return Widgets().Select(CreateFrame("Frame"), { width = 160, onSelect = onSelect, placeholder = "Pick",
 			choices = { { id = "a", text = "Alpha" }, { id = "b", text = "Beta" } } })
 	end
 
@@ -766,7 +767,7 @@ describe("select", function()
 
 	it("the arrow turns while it opens, and a value given at the start is shown without a callback", function()
 		local called = false
-		local s = Kit().Select(CreateFrame("Frame"), { value = "a", onSelect = function() called = true end,
+		local s = Widgets().Select(CreateFrame("Frame"), { value = "a", onSelect = function() called = true end,
 			choices = { { id = "a", text = "Alpha" } } })
 		eq(s.label:GetText(), "Alpha"); falsy(called)
 		s:Open()
@@ -796,7 +797,7 @@ end)
 
 describe("snackbar", function()
 	it("shows the text with the tone, fades in and goes away after 4 s", function()
-		local sb = Kit().Snackbar(CreateFrame("Frame"))
+		local sb = Widgets().Snackbar(CreateFrame("Frame"))
 		falsy(sb:IsShown())
 		sb:Say("Saved", "ok")
 		truthy(sb:IsShown()); eq(sb:Message(), "Saved")
@@ -808,7 +809,7 @@ describe("snackbar", function()
 	end)
 
 	it("a newer message is not cut short by the timer of the older one", function()
-		local sb = Kit().Snackbar(CreateFrame("Frame"))
+		local sb = Widgets().Snackbar(CreateFrame("Frame"))
 		sb:Say("One", "ok", 4)
 		Mock.Advance(3)
 		sb:Say("Two", "err", 4)
@@ -820,7 +821,7 @@ describe("snackbar", function()
 
 	it("Dismiss takes it away at once, with Animations off too", function()
 		C():Set("account.settings.animations", false)
-		local sb = Kit().Snackbar(CreateFrame("Frame"))
+		local sb = Widgets().Snackbar(CreateFrame("Frame"))
 		sb:Say("x", "warn")
 		eq(sb:GetAlpha(), 1)
 		sb:Dismiss()
@@ -830,7 +831,7 @@ end)
 
 describe("skeleton, class mark and thin bar", function()
 	it("a skeleton pulses while shown and stops when hidden", function()
-		local sk = Kit().Skeleton(CreateFrame("Frame"), 100, 12)
+		local sk = Widgets().Skeleton(CreateFrame("Frame"), 100, 12)
 		Mock.RunScript(sk, "OnShow")
 		truthy(groupOf(sk):IsPlaying())
 		Mock.RunScript(sk, "OnHide")
@@ -839,7 +840,7 @@ describe("skeleton, class mark and thin bar", function()
 
 	it("a skeleton rests at the middle with Animations off", function()
 		C():Set("account.settings.animations", false)
-		local sk = Kit().Skeleton(CreateFrame("Frame"), 100, 12)
+		local sk = Widgets().Skeleton(CreateFrame("Frame"), 100, 12)
 		Mock.RunScript(sk, "OnShow")
 		falsy(groupOf(sk):IsPlaying())
 		near(sk:GetAlpha(), 0.675, 1e-9)
@@ -847,21 +848,21 @@ describe("skeleton, class mark and thin bar", function()
 
 	it("the class mark is hidden until painted, then the colour of the class with a glow of the same colour", function()
 		local f = CreateFrame("Frame")
-		local m = Kit().ClassMark(f)
+		local m = Widgets().ClassMark(f)
 		falsy(m:IsShown()); falsy(m.glow:IsShown())
-		Kit().PaintClassMark(m, 0.25, 0.78, 0.92)
+		Widgets().PaintClassMark(m, 0.25, 0.78, 0.92)
 		truthy(m:IsShown()); truthy(m.glow:IsShown())
 		near(r1(m), 0.25, 1e-6)
 		near((m.glow:GetVertexColor()), 0.25, 1e-6)
 		truthy(m.glow._glow)
 		eq(m:GetWidth(), 10)
-		Kit().ClearClassMark(m)
+		Widgets().ClearClassMark(m)
 		falsy(m:IsShown()); falsy(m.glow:IsShown())
 	end)
 
 	it("the class colour is the game's, not the theme's: it survives a change of theme and the effects switch", function()
-		local m = Kit().ClassMark(CreateFrame("Frame"), 12)
-		Kit().PaintClassMark(m, 0.77, 0.12, 0.23)
+		local m = Widgets().ClassMark(CreateFrame("Frame"), 12)
+		Widgets().PaintClassMark(m, 0.77, 0.12, 0.23)
 		for _, id in ipairs(Th().List()) do
 			Th().Apply(id)
 			near(r1(m), 0.77, 1e-6, id)
@@ -873,7 +874,7 @@ describe("skeleton, class mark and thin bar", function()
 	end)
 
 	it("a thin bar fills a fraction of its width, clamped, and hides its fill at zero", function()
-		local bar = Kit().ThinBar(CreateFrame("Frame"), { width = 200 })
+		local bar = Widgets().ThinBar(CreateFrame("Frame"), { width = 200 })
 		eq(bar:GetHeight(), 4)
 		falsy(bar.fill:IsShown())
 		bar:SetFraction(0.25); eq(bar.fill:GetWidth(), 50); truthy(bar.fill:IsShown())
@@ -889,7 +890,7 @@ end)
 describe("tooltip", function()
 	it("shows the caller's lines in an inverted frame of its own: text-1 behind bg text", function()
 		local owner = CreateFrame("Frame")
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		falsy(tip.IsShown())
 		local f = tip.Show(owner, { "Title", "One line", { text = "Warning", token = "err" } })
 		truthy(f); truthy(tip.IsShown()); eq(tip.Owner(), owner)
@@ -908,7 +909,7 @@ describe("tooltip", function()
 
 	it("takes a string or a list, grows to its longest line up to a maximum and anchors where asked", function()
 		local owner = CreateFrame("Frame")
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		local f = tip.Show(owner, "Shorter text")
 		eq(f:GetWidth(), #"Shorter text" * 6 + 20)
 		f = tip.Show(owner, { "Title", string.rep("x", 200) })
@@ -928,7 +929,7 @@ describe("tooltip", function()
 
 	it("the same frame serves every tooltip: a shorter one hides the extra lines", function()
 		local owner = CreateFrame("Frame")
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		local f = tip.Show(owner, { "a", "b", "c" })
 		local g = tip.Show(owner, { "d" })
 		eq(f, g)
@@ -938,7 +939,7 @@ describe("tooltip", function()
 
 	it("Attach shows it on hover from a string, a list or a function, and hides it on leave and on hide", function()
 		local owner = CreateFrame("Button")
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		local nothing = false
 		tip.Attach(owner, function(self) if nothing then return nil end return { "Live", tostring(self == owner) } end)
 		Mock.RunScript(owner, "OnEnter")
@@ -959,7 +960,7 @@ describe("tooltip", function()
 	end)
 
 	it("nothing to show hides it, and a frame's own scripts survive Attach", function()
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		local owner = CreateFrame("Button")
 		local own = 0
 		owner:SetScript("OnEnter", function() own = own + 1 end)
@@ -973,7 +974,7 @@ describe("tooltip", function()
 	end)
 
 	it("the game's GameTooltip is for items only, and only through Item", function()
-		local tip = Kit().Tooltip
+		local tip = Widgets().Tooltip
 		local owner = CreateFrame("Button")
 		truthy(tip.Item(owner, "item:19019"))
 		truthy(GameTooltip:IsShown())
@@ -1010,7 +1011,7 @@ describe("data table", function()
 	local function table_(n, opts, calls)
 		local host = CreateFrame("Frame")
 		host:SetSize(600, 500)
-		local t = Kit().DataTable(host, columns(calls), opts or { emptyText = "Nobody" })
+		local t = Widgets().DataTable(host, columns(calls), opts or { emptyText = "Nobody" })
 		t:SetSize(600, 500)
 		t:SetData(people(n or 100))
 		return t
@@ -1050,7 +1051,7 @@ describe("data table", function()
 
 	it("equal keys keep their original order (a stable sort) and numbers sort before text", function()
 		local host = CreateFrame("Frame")
-		local t = Kit().DataTable(host, { { id = "k", title = "K", text = function(d) return d.k end } }, {})
+		local t = Widgets().DataTable(host, { { id = "k", title = "K", text = function(d) return d.k end } }, {})
 		t:SetData({ { k = "b", n = 1 }, { k = "a", n = 2 }, { k = "b", n = 3 }, { k = "a", n = 4 }, { k = "10", n = 5 }, { k = "9", n = 6 } })
 		t:SortBy("k", false)
 		local order = {}
@@ -1122,14 +1123,14 @@ describe("data table", function()
 		eq(#t:VisibleRows(), 3)
 		t:SetData(nil)
 		truthy(t.empty:IsShown())
-		local bare = Kit().DataTable(CreateFrame("Frame"), columns(), {})
+		local bare = Widgets().DataTable(CreateFrame("Frame"), columns(), {})
 		eq(bare.empty:GetText(), "", "no text of its own")
 	end)
 
 	it("clicks, custom cells, row hooks, the colour of a cell and the fixed and flexible widths", function()
 		local clicked, setups, updates = nil, 0, 0
 		local host = CreateFrame("Frame")
-		local t = Kit().DataTable(host, {
+		local t = Widgets().DataTable(host, {
 			{ id = "a", title = "A", width = 100, text = function(d) return d.a end, token = function(d) return d.hot and "err" or nil end },
 			{ id = "b", title = "B", flex = 1, render = function(cell, d) cell:SetText("<" .. d.a .. ">") end },
 			{ id = "c", title = "C", flex = 3, text = function() return "c" end },
@@ -1155,7 +1156,7 @@ describe("data table", function()
 	end)
 
 	it("a click on a header sorts, a column that says sortable = false does not", function()
-		local t = Kit().DataTable(CreateFrame("Frame"), {
+		local t = Widgets().DataTable(CreateFrame("Frame"), {
 			{ id = "a", title = "A", text = function(d) return d.a end },
 			{ id = "b", title = "B", sortable = false, text = function(d) return d.a end },
 		}, {})
@@ -1180,7 +1181,7 @@ end)
 
 describe("menu", function()
 	local function open(items, width)
-		return Kit().Menu.Show(CreateFrame("Frame"), items, width)
+		return Widgets().Menu.Show(CreateFrame("Frame"), items, width)
 	end
 
 	it("lists the items under the anchor, with a check on the checked ones and a heading that is not a choice", function()
@@ -1190,31 +1191,31 @@ describe("menu", function()
 			{ text = "Zone", checked = true, onClick = function() clicked[#clicked + 1] = "zone" end },
 			{ text = "Rank", onClick = function() clicked[#clicked + 1] = "rank" end },
 		})
-		truthy(Kit().Menu.IsOpen())
-		eq(m, Kit().Menu.frame)
+		truthy(Widgets().Menu.IsOpen())
+		eq(m, Widgets().Menu.frame)
 		eq(m.rows[1].label:GetText(), "Columns")
 		falsy(m.rows[1].check:IsShown(), "a heading has no check")
 		truthy(m.rows[2].check:IsShown()); falsy(m.rows[3].check:IsShown())
 		m.rows[1]:Click()
 		eq(#clicked, 0)
-		truthy(Kit().Menu.IsOpen(), "a click on a heading changes nothing")
+		truthy(Widgets().Menu.IsOpen(), "a click on a heading changes nothing")
 		m.rows[3]:Click()
 		deepEq(clicked, { "rank" })
-		falsy(Kit().Menu.IsOpen(), "choosing closes it")
+		falsy(Widgets().Menu.IsOpen(), "choosing closes it")
 	end)
 
 	it("keepOpen flips the check and keeps the menu open, a click outside or Esc closes it", function()
 		local n = 0
 		local m = open({ { text = "Zone", checked = false, keepOpen = true, onClick = function() n = n + 1 end } })
 		m.rows[1]:Click()
-		truthy(m.rows[1].check:IsShown()); truthy(Kit().Menu.IsOpen()); eq(n, 1)
+		truthy(m.rows[1].check:IsShown()); truthy(Widgets().Menu.IsOpen()); eq(n, 1)
 		m.rows[1]:Click()
 		falsy(m.rows[1].check:IsShown()); eq(n, 2)
 		Mock.RunScript(m.catcher, "OnClick")
-		falsy(Kit().Menu.IsOpen())
+		falsy(Widgets().Menu.IsOpen())
 		falsy(m.catcher:IsShown())
 		open({ { text = "A" } })
-		truthy(Kit().Menu.IsOpen())
+		truthy(Widgets().Menu.IsOpen())
 		local registered = false
 		for _, name in ipairs(UISpecialFrames) do if name == "AzerothAccordKitMenu" then registered = true end end
 		truthy(registered, "Esc closes it")
@@ -1244,7 +1245,7 @@ describe("data table for a caller that sorts and changes columns (M6.13)", funct
 		local host = CreateFrame("Frame")
 		host:SetSize(600, 500)
 		local clicks = {}
-		local t = Kit().DataTable(host, {
+		local t = Widgets().DataTable(host, {
 			{ id = "name", title = "Name", flex = 1, text = function(d) return d.name end },
 			{ id = "level", title = "Level", width = 60, text = function(d) return d.level end },
 			{ id = "note", title = "Note", width = 60, sortable = false, text = function() return "" end },
@@ -1289,7 +1290,7 @@ describe("data table for a caller that sorts and changes columns (M6.13)", funct
 		eq(t.offset, 20)
 		t:SetData(data(10))
 		eq(t.offset, 0, "clamped when the list got short")
-		local plain = Kit().DataTable(CreateFrame("Frame"), { { id = "a", title = "A", text = function(d) return d.level end } }, {})
+		local plain = Widgets().DataTable(CreateFrame("Frame"), { { id = "a", title = "A", text = function(d) return d.level end } }, {})
 		plain:SetSize(600, 500)
 		plain:SetData(data(100))
 		plain:SetOffset(20)

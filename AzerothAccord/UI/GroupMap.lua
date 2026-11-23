@@ -2,7 +2,7 @@
 -- A "Groups" mode, only for those who may see the others' index (officers and the Guild Master until Q3 is answered):
 --   * a summary: how mixed the guild is (modularity and its reading: everyone plays with everyone / some groups /
 --     cliques), the active accounts and the communities;
---   * a simple drawing: each community a circle of coloured dots (one per player, the name on hover, a click opens the
+--   * a simple drawing (a card): each community a circle of dots in a colour of the theme (one per player, the name on hover, a click opens the
 --     card), larger circles for larger communities;
 --   * the list of communities: their players (by time together), minutes inside and minutes with the rest of the guild.
 -- View.Lines(map) is a plain function (tested offline); the frames only draw it.
@@ -12,16 +12,14 @@ local View = {}
 ns.GroupMapView, ns.modules = View, ns.modules or {}
 ns.modules.GroupMapView = View
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
-View.ROW_HEIGHT = 18
+View.ROW_HEIGHT = 20
 View.NAMES = 6               -- names written per community before "and N more"
 View.DOT = 8
-View.PALETTE = {
-	{ 0.95, 0.75, 0.2 }, { 0.35, 0.7, 1 }, { 0.5, 0.9, 0.4 }, { 1, 0.45, 0.45 }, { 0.8, 0.5, 1 }, { 0.3, 0.9, 0.85 },
-	{ 1, 0.6, 0.25 }, { 0.75, 0.75, 0.75 },
-}
+-- The colours of the communities: theme tokens, so the map follows the theme (Theme.SERIES).
+View.PALETTE = ns.Theme and ns.Theme.SERIES or { "accent" }
 
 local function hours(minutes) return L["SOC_HOURS"]:format(floor((minutes or 0) / 6 + 0.5) / 10) end
 local function nameOf(key)
@@ -52,10 +50,9 @@ function View.Lines(map)
 	return out
 end
 
-local function colorOf(i)
-	local c = View.PALETTE[(i - 1) % #View.PALETTE + 1]
-	return c[1], c[2], c[3]
-end
+-- The token of community i.
+local function tokenOf(i) return View.PALETTE[(i - 1) % #View.PALETTE + 1] end
+View.TokenOf = tokenOf
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames
@@ -64,15 +61,16 @@ local mode = {}
 
 function mode.build(f)
 	View.frame = f
-	f.canvas = W.Frame(f, 10, 10)
-	f.canvas:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -4)
-	f.canvas:SetPoint("TOPRIGHT", f, "TOPRIGHT", -8, -4)
+	f.canvas = CreateFrame("Frame", nil, f)
+	f.canvas:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.canvas:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.canvas:SetHeight(220)
-	W.Background(f.canvas, "grey", 0.08)
+	f.canvas.parts = Theme.Panel(f.canvas, { radius = 12, fill = "surface-1", border = "border-subtle", highlight = true })
 	f.canvas.dots, f.canvas.labels = {}, {}
-	f.list = W.Frame(f, 10, 10)
-	f.list:SetPoint("TOPLEFT", f.canvas, "BOTTOMLEFT", 0, -6)
-	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, 0)
+	f.list = CreateFrame("Frame", nil, f)
+	f.list:SetPoint("TOPLEFT", f.canvas, "BOTTOMLEFT", 4, -10)
+	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -4, 0)
+	f.list:SetClipsChildren(true)
 	f.list:EnableMouseWheel(true)
 	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * 3) end)
 	f.list.lines = {}
@@ -85,8 +83,9 @@ local function dot(canvas, i)
 	d = CreateFrame("Button", nil, canvas)
 	d:SetSize(View.DOT, View.DOT)
 	d.tex = d:CreateTexture(nil, "ARTWORK")
+	d.tex:SetTexture(ns.Assets.textures.circle.path)
 	d.tex:SetAllPoints(d)
-	W.SetTooltip(d, function(self) return self.name end)
+	Widgets.Tooltip.Attach(d, function(self) return self.name end, "TOP")
 	d:SetScript("OnClick", function(self)
 		if self.key and ns.ReputationView then ns.ReputationView:OpenCard({ guid = self.key }) end
 	end)
@@ -97,7 +96,7 @@ end
 local function label(canvas, i)
 	local t = canvas.labels[i]
 	if t then return t end
-	t = W.Text(canvas, "small", "white", "CENTER")
+	t = Widgets.Text(canvas, "MonoMedium", "text-1", "CENTER")
 	canvas.labels[i] = t
 	return t
 end
@@ -110,14 +109,14 @@ function View:Draw(f, map)
 	local layout = map and ns.GroupMap.Layout(map.communities, width, height) or { circles = {}, points = {} }
 	local n = 0
 	for i, circle in ipairs(layout.circles) do
-		local r, g, b = colorOf(i)
+		local token = tokenOf(i)
 		for _, key in ipairs(circle.community.members) do
 			local p = layout.points[key]
 			n = n + 1
 			local d = dot(canvas, n)
 			d:ClearAllPoints()
 			d:SetPoint("CENTER", canvas, "TOPLEFT", p.x, -p.y)
-			d.tex:SetColorTexture(r, g, b, 1)
+			Theme.Tint(d.tex, token)
 			d.key, d.name = key, (nameOf(key))
 			d:Show()
 		end
@@ -125,7 +124,7 @@ function View:Draw(f, map)
 		t:ClearAllPoints()
 		t:SetPoint("CENTER", canvas, "TOPLEFT", circle.cx, -circle.cy)
 		t:SetText(tostring(i))
-		t:SetTextColor(r, g, b)
+		Theme.Text(t, token)
 		t:Show()
 	end
 	for i = n + 1, #canvas.dots do canvas.dots[i]:Hide() end
@@ -143,16 +142,17 @@ function View:Draw(f, map)
 		local l = lines[f.offset + i]
 		local fs = list.lines[i]
 		if not fs then
-			fs = W.Text(list, "body", nil, "LEFT")
+			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
 			list.lines[i] = fs
 		end
 		fs:ClearAllPoints()
 		fs:SetPoint("TOPLEFT", list, "TOPLEFT", l.muted and l.community == nil and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
 		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
 		fs:SetText(l.text)
-		if l.heading then fs:SetTextColor(Skin.Color("gold"))
-		elseif l.community then fs:SetTextColor(colorOf(l.community))
-		else fs:SetTextColor(Skin.Color(l.muted and "grey" or "white")) end
+		fs:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
+		if l.heading then Theme.Text(fs, "text-1")
+		elseif l.community then Theme.Text(fs, tokenOf(l.community))
+		else Theme.Text(fs, l.muted and "text-3" or "text-2") end
 		fs:Show()
 	end
 	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end

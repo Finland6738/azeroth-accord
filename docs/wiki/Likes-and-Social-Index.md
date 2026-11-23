@@ -12,10 +12,12 @@
 
 ![Reputation, Likes: one row per player with the same total on every character, and Like, Confirm?, pending, liked and you](../specs/mockups/previews/reputation-likes.webp)
 
+*The pictures of this page still show the previous look (the game's colours, buttons for the modes): the view now has the colours of the chosen theme, a pill for each mode (Likes, Social, Groups, Someone new) and rows with the class-coloured square of the Roster. New pictures come before version `v0.6.0`.*
+
 ### Giving a like
 
 - On a guildmate's **member card** (click their row in the Roster): the *Likes* section shows the total of the player and **[Like this player]**. Click it, then click again within a few seconds to confirm: a like cannot be taken back.
-- In the **Reputation** view (`/accord reputation`): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. Click the headers to sort by name or likes; the search box finds a player by any of their characters; clicking a row opens their card.
+- In the **Reputation** view (`/accord reputation`), mode **Likes** (the modes are the pills at the top of the view): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. Click the headers to sort by name or likes; the search box finds a player by any of their characters; clicking a row opens their card.
 - After that the row says *pending* (no officer with the addon online yet) or *liked*. Your own characters say *you*.
 - The **Likes** column of the Roster shows each player's total: green when you liked them, grey while your like is pending.
 - If an officer's addon refuses a like (it is one of your own characters, or the player left the guild), the chat says why.
@@ -35,7 +37,7 @@ The social index shows **how many different guildmates someone really plays with
 
 How it is counted, precisely: for the last 30 days, the minutes with each guildmate's **player** (all their characters together, and yours too); when several addons saw the same group, the largest count is used. Time is counted per guildmate, so an hour in a group with four guildmates counts as four hours with guildmates. Below **5 hours** with guildmates the index says *not enough data*. Active players are those with at least one hour with guildmates in the 30 days. Your addon computes it on your computer, at most every ten minutes, a little at a time so the game never stutters.
 
-**Where to see it.** Your own card (click your row in the Roster) and the **Social** button of the Reputation view show your index, your effective partners out of the active players, how many different guildmates you played with, your time with guildmates and the five you played with most, with their share. Hover the index for a short explanation. Under 5 hours it says *not enough data*.
+**Where to see it.** Your own card (click your row in the Roster) and the **Social** mode of the Reputation view show your index, your effective partners out of the active players, how many different guildmates you played with, your time with guildmates and the five you played with most, with their share. Hover the index for a short explanation. Under 5 hours it says *not enough data*.
 
 **Who sees it.** Every member sees **their own** index. Officers and the Guild Master see **everyone's**: on the cards, in the **Social** column of the Roster and in a list in the Reputation view. Whether all members should see everyone's index is still an open question for the guild leader; until then this is the rule.
 
@@ -43,10 +45,10 @@ How it is counted, precisely: for the last 30 days, the minutes with each guildm
 
 ## Group map
 
-Officers and the Guild Master have a **Groups** button in the Reputation view. It shows:
+Officers and the Guild Master have a **Groups** mode in the Reputation view. It shows:
 
 - how mixed the guild is: *well mixed* (almost everyone plays with everyone), *some groups* or *cliques* (groups that rarely play together), with the number behind it (the *modularity*: near 0 means mixed, 0.5 and more means cliques);
-- a drawing: one circle of coloured dots per group, one dot per player (hover for the name, click for the card);
+- a drawing, in a card: one circle of dots per group in a colour of the chosen theme, one dot per player (hover for the name, click for the card);
 - the list of groups with their players and the hours spent inside the group and with the rest of the guild.
 
 The groups are found automatically from the minutes played together in the last 30 days, the same way on every officer's computer.
@@ -55,7 +57,7 @@ The groups are found automatically from the minutes played together in the last 
 
 ## Play with someone new
 
-The **Someone new** button of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself.
+The **Someone new** mode of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself.
 
 ![Reputation, Someone new: guildmates online now of a similar level that you have played with the least, with Whisper and Invite](../specs/mockups/previews/reputation-someone-new.webp)
 

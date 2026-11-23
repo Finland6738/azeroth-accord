@@ -2,17 +2,19 @@
 -- an optional count badge), Segmented (pill selector), Chip, TitleBar, Dialog, EditBox and ChoiceList: the components of
 -- docs/specs/ui-style.md §3 (M6.11). The rest of the kit is in Controls.lua, DataTable.lua, ThinBar.lua and Tooltip.lua. Lua 5.1.
 -- Adapted from Finland Dragon Credit Points (UI/Widgets.lua), same owner, GPL-3.0 (ADR 0021).
--- * Namespace: `ns.Kit` (also `AzerothAccord.Kit` for tests). The old look (UI/Widgets/Base.lua) still owns `ns.Widgets`
---   until M6.14 removes it; then this table becomes `ns.Widgets` (rename the first lines of the five files and nothing else).
+-- * Namespace: `ns.Widgets` (also `AzerothAccord.Widgets` for tests). Until M6.14 it was `ns.Widgets`, beside the old look of
+--   UI/Skin.lua and UI/Widgets/Base.lua; M6.14 removed those two files and gave the kit the name.
 -- * Every widget is made of ordinary frames and white textures tinted through UI/Theme.lua: a colour is a token, never a
 --   value, and the theme follows Theme.Apply without /reload. The only colour written here is the white of the hover layer.
 -- * Text comes in already translated by the caller (L[...]): a widget never contains a sentence. Unprotected frames only.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 
-local Kit = ns.Kit or {}
-ns.Kit = Kit
-if ns.addon then ns.addon.Kit = Kit end   -- also reachable from tests
+local Widgets = ns.Widgets or {}
+ns.Widgets = Widgets
+ns.modules = ns.modules or {}
+ns.modules.Widgets = Widgets
+if ns.addon then ns.addon.Widgets = Widgets end   -- also reachable from tests
 
 local Theme = ns.Theme
 local Assets = ns.Assets
@@ -32,7 +34,7 @@ local function closeOnEscape(name)
 	UISpecialFrames[#UISpecialFrames + 1] = name
 	return true
 end
-Kit.CloseOnEscape = closeOnEscape
+Widgets.CloseOnEscape = closeOnEscape
 
 -- --- Button -----------------------------------------------------------------------------------------------------------
 
@@ -43,14 +45,14 @@ local BUTTON_STYLES = {
 	ghost     = { fill = nil,         ink = "text-2",    ring = nil },
 	neon      = { fill = "surface-1", ink = "text-1",    ring = "neon", glow = "neon", glowAlpha = 0.5 },
 }
-Kit.BUTTON_STYLES = BUTTON_STYLES
-Kit.HOVER, Kit.PRESSED = 0.08, 0.12   -- the white layers of the states (docs/specs/ui-style.md §3)
+Widgets.BUTTON_STYLES = BUTTON_STYLES
+Widgets.HOVER, Widgets.PRESSED = 0.08, 0.12   -- the white layers of the states (docs/specs/ui-style.md §3)
 
 -- opts: text, style ("primary" | "secondary" | "ghost" | "neon"), width (without it the button fits its text), height,
 -- onClick. The primary button has the glow of the accent (dark themes, "Neon effects"), the neon one a ring and a glow in
 -- the neon colour; hover lays 8 % white over the shape and pressed 12 % (faded in 120 ms), a press shrinks the button to
 -- 0.97 (Motion.Press). :SetLabel(text), :GetLabel(), :SetEnabled(bool).
-function Kit.Button(parent, opts)
+function Widgets.Button(parent, opts)
 	opts = opts or {}
 	local style = BUTTON_STYLES[opts.style or "secondary"] or BUTTON_STYLES.secondary
 	local b = CreateFrame("Button", nil, parent)
@@ -91,8 +93,8 @@ function Kit.Button(parent, opts)
 	if opts.width == nil then b:SetWidth(max(64, b.label:GetStringWidth() + 32)) end
 	local function layer(self)
 		if not self:IsEnabled() then return 0 end
-		if self.pressed then return Kit.PRESSED end
-		return self.hot and Kit.HOVER or 0
+		if self.pressed then return Widgets.PRESSED end
+		return self.hot and Widgets.HOVER or 0
 	end
 	local function paint(self) Motion.Fade(self.over, layer(self), Motion.FAST) end
 	b:SetScript("OnEnter", function(self) self.hot = true; paint(self) end)
@@ -115,7 +117,7 @@ end
 
 -- A card: surface-1 fill, subtle ring (strong on hover when `hover`), the light line of the dark themes along its top edge,
 -- radius 18, optional shadow. Four regions at most. opts: width, height, fill (token), shadow, hover.
-function Kit.Card(parent, opts)
+function Widgets.Card(parent, opts)
 	opts = opts or {}
 	local c = CreateFrame("Frame", nil, parent)
 	c:SetSize(opts.width or 200, opts.height or 100)
@@ -131,11 +133,11 @@ end
 -- --- Badge ------------------------------------------------------------------------------------------------------------
 
 local BADGE_TONES = { accent = "accent-text", ok = "ok", warn = "warn", err = "err", neutral = "text-2" }
-Kit.BADGE_TONES = BADGE_TONES
+Widgets.BADGE_TONES = BADGE_TONES
 
 -- A pill (24 high) whose width follows its text; the fill is the tone's colour at low alpha, the text the tone's.
 -- :SetBadge(text, tone).
-function Kit.Badge(parent, text, tone)
+function Widgets.Badge(parent, text, tone)
 	local token = BADGE_TONES[tone or "neutral"] or BADGE_TONES.neutral
 	local f = CreateFrame("Frame", nil, parent)
 	f.fill = Theme.Slice(f, "rr_fill_12", token, "BACKGROUND", 0.16)
@@ -161,7 +163,7 @@ end
 -- badge (the requests waiting on the Bank tab): the caller passes its text.
 -- :Select(id), :Active(), :SetTabShown(id, bool), :SetBadge(id, text|nil, tone), :SetTabText(id, text), :Layout().
 -- onSelect(id) runs after a change.
-function Kit.Tabs(parent, tabs, onSelect)
+function Widgets.Tabs(parent, tabs, onSelect)
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetHeight(44)
 	bar.buttons, bar.order, bar.hidden = {}, {}, {}
@@ -264,7 +266,7 @@ function Kit.Tabs(parent, tabs, onSelect)
 		if text == nil or text == "" then
 			if b.badge then b.badge:Hide() end
 		else
-			if not b.badge then b.badge = Kit.Badge(b, text, tone or "accent") else b.badge:SetBadge(text, tone or "accent") end
+			if not b.badge then b.badge = Widgets.Badge(b, text, tone or "accent") else b.badge:SetBadge(text, tone or "accent") end
 			b.badge:Show()
 		end
 		layout(); place(nil, nil, false)
@@ -291,7 +293,7 @@ function Kit.Tabs(parent, tabs, onSelect)
 		bar.buttons[t.id] = b
 		bar.order[#bar.order + 1] = t.id
 		if t.badge ~= nil and t.badge ~= "" then
-			b.badge = Kit.Badge(b, t.badge, t.tone or "accent")
+			b.badge = Widgets.Badge(b, t.badge, t.tone or "accent")
 		end
 	end
 	layout()
@@ -302,7 +304,7 @@ end
 
 -- items: { { id, text } }. A surface-2 pill with the selected segment raised. :Select(id), :Active(), :Clear(),
 -- :SetEnabled(bool). onSelect(id) runs after a change.
-function Kit.Segmented(parent, items, onSelect)
+function Widgets.Segmented(parent, items, onSelect)
 	local seg = CreateFrame("Frame", nil, parent)
 	seg:SetHeight(32)
 	seg.fill = Theme.Slice(seg, "rr_fill_12", "surface-2", "BACKGROUND")
@@ -362,7 +364,7 @@ end
 -- A pill with a border (28 high), filled with the accent when selected (the site's filter chip).
 -- opts: text, onClick(chip), height, font (a Theme font id, default BodyMedium), pad (text padding, default 28).
 -- :SetSelected(bool), :IsSelected(), :SetLabel(text), :SetEnabled(bool).
-function Kit.Chip(parent, opts)
+function Widgets.Chip(parent, opts)
 	opts = opts or {}
 	local c = CreateFrame("Button", nil, parent)
 	c:SetHeight(opts.height or 28)
@@ -407,7 +409,7 @@ end
 -- The window's title bar: 52 pt, surface-1, round logo, the title in the display face (the one text glow of the view),
 -- a mono subtitle and the close button (`.close`: the caller anchors its own buttons to the left of it).
 -- opts: title, subtitle, closeLabel (the tooltip of the close button, translated), onClose.
-function Kit.TitleBar(parent, opts)
+function Widgets.TitleBar(parent, opts)
 	opts = opts or {}
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetHeight(52)
@@ -454,7 +456,7 @@ function Kit.TitleBar(parent, opts)
 	bar.close:SetScript("OnEnter", function(self) Theme.Tint(self.bg, "surface-3", 1) end)
 	bar.close:SetScript("OnLeave", function(self) Theme.Tint(self.bg, "surface-3", 0) end)
 	if opts.onClose then bar.close:SetScript("OnClick", opts.onClose) end
-	if opts.closeLabel and Kit.Tooltip then Kit.Tooltip.Attach(bar.close, opts.closeLabel, "BOTTOM") end
+	if opts.closeLabel and Widgets.Tooltip then Widgets.Tooltip.Attach(bar.close, opts.closeLabel, "BOTTOM") end
 	return bar
 end
 
@@ -463,7 +465,7 @@ end
 -- A modal base: a dark veil (no blur: the engine cannot) over `parent` with a centred card on the DIALOG strata; it enters
 -- with Motion.Rise (alpha and a 16 pt rise, 320 ms). Esc closes it (it is added to UISpecialFrames under `name`).
 -- opts: width (420), height (220). :Open(), :Close(), .card, .content (the card: the caller adds its own children).
-function Kit.Dialog(parent, name, opts)
+function Widgets.Dialog(parent, name, opts)
 	opts = opts or {}
 	local d = CreateFrame("Frame", name, parent or UIParent)
 	d:SetAllPoints(parent or UIParent)
@@ -495,7 +497,7 @@ end
 -- placeholder (text-3, shown while the field is empty and not focused), onChange(text, user) after every edit,
 -- onEnter(text). :GetText(), :SetText(text), :Clear(), :SetPlaceholder(text), :SetFocus(), :ClearFocus(). The edit box
 -- itself is `.edit`.
-function Kit.EditBox(parent, opts)
+function Widgets.EditBox(parent, opts)
 	opts = opts or {}
 	local f = CreateFrame("Frame", nil, parent)
 	f:SetSize(opts.width or 120, opts.height or 28)
@@ -550,7 +552,7 @@ end
 -- surface-2 field. choices = { { id, text, token? } }; `rows` rows show at once and the mouse wheel scrolls the rest.
 -- opts: rows (6), rowHeight (24), width, onSelect(id). :SetChoices(list), :Select(id), :Selected(), :Clear(), :Count(),
 -- :Scroll(delta).
-function Kit.ChoiceList(parent, opts)
+function Widgets.ChoiceList(parent, opts)
 	opts = opts or {}
 	local rows, rowH = opts.rows or 6, opts.rowHeight or 24
 	local f = CreateFrame("Frame", nil, parent)
@@ -625,4 +627,67 @@ function Kit.ChoiceList(parent, opts)
 	end
 	f:SetScript("OnMouseWheel", function(self, delta) self:Scroll(-delta * 2) end)
 	return f
+end
+
+-- --- Small helpers for the views (M6.14) ------------------------------------------------------------------------------
+
+-- A FontString in font `id` (a Theme font id) and colour `token`, justified `justify` ("LEFT" | "CENTER" | "RIGHT").
+function Widgets.Text(parent, id, token, justify, layer)
+	local fs = Theme.NewText(parent, id or "Body", token or "text-1", layer)
+	if justify then fs:SetJustifyH(justify) end
+	return fs
+end
+
+-- The hover of a list row: a surface-2 layer under the row's texts, shown while the mouse is over it (the DataTable's).
+-- Hooked, so the row keeps its own OnEnter / OnLeave (a tooltip). Returns the texture (`row.hover`).
+function Widgets.RowHover(row)
+	row.hover = row:CreateTexture(nil, "BACKGROUND")
+	Theme.Fill(row.hover, "surface-2", 0)
+	row.hover:SetAllPoints(row)
+	row:HookScript("OnEnter", function(self) Theme.Fill(self.hover, "surface-2", 1) end)
+	row:HookScript("OnLeave", function(self) Theme.Fill(self.hover, "surface-2", 0) end)
+	return row.hover
+end
+
+-- A player's name in the class colour of the game (Theme.ClassText: text-1 on the light theme), text-1 for an unknown class.
+function Widgets.PaintName(fs, classFile)
+	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
+	if c then Theme.ClassText(fs, c.r, c.g, c.b) else Theme.Text(fs, "text-1") end
+end
+
+-- A row of chips of which one is selected: the modes of a view, the tabs of the bank, a period. onSelect(id) after a
+-- click. :SetItems({ { id, text } }, activeId) makes, labels, places and selects the chips (the extra ones hide);
+-- :Select(id) marks one; `.buttons[i]` are the chips in order (`.id` each), `.active` the selected id.
+function Widgets.ChipRow(parent, onSelect, opts)
+	opts = opts or {}
+	local bar = CreateFrame("Frame", nil, parent)
+	bar:SetHeight(opts.height or 28)
+	bar.buttons, bar.gap = {}, opts.gap or 8
+	function bar:Select(id)
+		self.active = id
+		for _, c in ipairs(self.buttons) do c:SetSelected(c:IsShown() and c.id == id) end
+	end
+	function bar:SetItems(items, active)
+		local x = 0
+		for i, item in ipairs(items) do
+			local c = self.buttons[i]
+			if not c then
+				c = Widgets.Chip(self, { height = opts.height or 28, onClick = function(chip)
+					bar:Select(chip.id)
+					if onSelect then onSelect(chip.id) end
+				end })
+				self.buttons[i] = c
+			end
+			c.id = item.id
+			c:SetLabel(item.text)
+			c:ClearAllPoints()
+			c:SetPoint("LEFT", self, "LEFT", x, 0)
+			x = x + c:GetWidth() + self.gap
+			c:Show()
+		end
+		for i = #items + 1, #self.buttons do self.buttons[i]:Hide() end
+		self.width = max(0, x - self.gap)
+		self:Select(active)
+	end
+	return bar
 end

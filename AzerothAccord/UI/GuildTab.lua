@@ -19,10 +19,12 @@ local GuildTab = {}
 ns.GuildTab, ns.modules = GuildTab, ns.modules or {}
 ns.modules.GuildTab = GuildTab
 
-local L, W, Skin, Theme = ns.L, ns.Widgets, ns.Skin, ns.Theme
+local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pcall, tostring = type, ipairs, pcall, tostring
 
 GuildTab.TAB_KEYS = { "ChatTab", "RosterTab", "GuildBenefitsTab", "GuildInfoTab" }
+-- The tab's template, best first ("" is a plain button): Blizzard's own tab look when the client has it (GT-01).
+GuildTab.TEMPLATES = { "CommunitiesFrameTabTemplate", "CommunitiesTabTemplate", "SidebarTabTemplate", "" }
 GuildTab.TAB_NAME, GuildTab.PANEL_NAME = "AzerothAccordGuildTab", "AzerothAccordGuildPanel"
 GuildTab.GAP = 20                -- vertical space between our tab and the last Blizzard tab, like theirs
 GuildTab.LEVEL_ABOVE = 20        -- the panel sits this many frame levels above the guild window
@@ -141,26 +143,35 @@ function GuildTab:SetBadge(count)
 	tab.badgeBg:SetShown(n > 0)
 end
 
+-- CreateFrame with the first template the client accepts (CreateFrame raises on an unknown one: each is tried under pcall).
+local function createTab(cf)
+	for _, template in ipairs(GuildTab.TEMPLATES) do
+		local ok, tab = pcall(CreateFrame, "CheckButton", GuildTab.TAB_NAME, cf, template ~= "" and template or nil)
+		if ok and tab then return tab, template end
+	end
+	return CreateFrame("CheckButton", GuildTab.TAB_NAME, cf), ""
+end
+
 local function buildTab(cf)
-	local tab, template = W.Create("CheckButton", GuildTab.TAB_NAME, cf, "guildTab")
+	local tab, template = createTab(cf)
 	GuildTab.template = template
 	tab:SetSize(36, 36)
 	local icon = tab.Icon or tab.icon
 	if not (icon and icon.SetTexture) then
 		local bg = tab:CreateTexture(nil, "BACKGROUND")
 		bg:SetAllPoints(tab)
-		bg:SetColorTexture(0, 0, 0, 0.6)
+		Theme.Fill(bg, "bg")
 		icon = tab:CreateTexture(nil, "ARTWORK")
 		icon:SetPoint("TOPLEFT", tab, "TOPLEFT", 3, -3)
 		icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -3, 3)
 		local hl = tab:CreateTexture(nil, "HIGHLIGHT")
 		hl:SetAllPoints(tab)
-		hl:SetColorTexture(1, 1, 1, 0.2)
+		Theme.Fill(hl, "highlight")
 	end
-	icon:SetTexture(Skin.ICON)
+	icon:SetTexture(ns.Assets.logos.logo_64.path)   -- the addon's logo (SPEC-10 Q2)
 	tab.accordIcon = icon
 	tab.tooltip = L["ADDON_TITLE"]
-	W.SetTooltip(tab, function() return { L["ADDON_TITLE"], L["TAB_TOOLTIP"] } end)
+	Widgets.Tooltip.Attach(tab, function() return { L["ADDON_TITLE"], L["TAB_TOOLTIP"] } end, "RIGHT")
 	tab:SetScript("OnClick", function() GuildTab:ShowPanel() end)   -- a second click keeps the panel (like Blizzard's tabs)
 	return tab
 end

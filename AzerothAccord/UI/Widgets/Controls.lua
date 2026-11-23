@@ -4,14 +4,14 @@
 -- frames; every colour is a theme token; text comes in already translated. Lua 5.1.
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Kit, Theme, Motion, Assets = ns.Kit, ns.Theme, ns.Motion, ns.Assets
+local Widgets, Theme, Motion, Assets = ns.Widgets, ns.Theme, ns.Motion, ns.Assets
 local max, min, floor = math.max, math.min, math.floor
 
 -- --- Switch -----------------------------------------------------------------------------------------------------------
 
 -- A 44 x 26 pill: the track is surface-3 (accent when on), the thumb a circle that slides in 200 ms. opts: on (bool),
 -- onChange(on) after a click or :SetOn(v) without `silent`. :IsOn(), :SetOn(v, silent), :SetEnabled(bool).
-function Kit.Switch(parent, opts)
+function Widgets.Switch(parent, opts)
 	opts = opts or {}
 	local b = CreateFrame("CheckButton", nil, parent)
 	b:SetSize(44, 26)
@@ -62,7 +62,7 @@ end
 
 -- A horizontal slider on a 4 pt track with the theme gradient and a round thumb. opts: min, max, step, value, width,
 -- onChange(value, user). :Set(v) (silent), :GetValue(). The value is rounded to the step.
-function Kit.Slider(parent, opts)
+function Widgets.Slider(parent, opts)
 	opts = opts or {}
 	local lo, hi, step = opts.min or 0, opts.max or 100, opts.step or 1
 	local s = CreateFrame("Slider", nil, parent)
@@ -119,7 +119,7 @@ end
 -- A field that shows the chosen text; a click opens a list below it (a ChoiceList on the DIALOG strata) and a click
 -- outside closes it. choices = { { id, text, token? } }. opts: width, rows (6), choices, value, onSelect(id), placeholder.
 -- :SetChoices(list), :Select(id, silent), :Selected(), :Open(), :Close(), :IsOpen().
-function Kit.Select(parent, opts)
+function Widgets.Select(parent, opts)
 	opts = opts or {}
 	local width, rows = opts.width or 200, opts.rows or 6
 	local sel = CreateFrame("Button", nil, parent)
@@ -152,7 +152,7 @@ function Kit.Select(parent, opts)
 	sel.catcher:SetAllPoints(UIParent)
 	sel.catcher:SetFrameLevel(sel.popup:GetFrameLevel() - 1)
 	sel.catcher:SetScript("OnClick", function() sel:Close() end)
-	sel.list = Kit.ChoiceList(sel.popup, { rows = rows, rowHeight = 24, width = width, onSelect = function(id) sel:Select(id) end })
+	sel.list = Widgets.ChoiceList(sel.popup, { rows = rows, rowHeight = 24, width = width, onSelect = function(id) sel:Select(id) end })
 	sel.list:SetPoint("TOPLEFT", sel.popup, "TOPLEFT", 0, 0)
 	sel.popup:SetSize(width, rows * 24 + 8)
 	Theme.Tint(sel.list.ring, "border-strong")
@@ -210,7 +210,7 @@ end
 -- tone: "accent" | "ok" | "warn" | "err". :Say(text, tone, seconds), :Dismiss(), :Message() (:Show and :Hide stay the
 -- frame's own).
 local TONES = { accent = "accent", ok = "ok", warn = "warn", err = "err" }
-function Kit.Snackbar(host)
+function Widgets.Snackbar(host)
 	local sb = CreateFrame("Frame", nil, host)
 	sb:SetSize(380, 44)
 	sb:SetFrameStrata("DIALOG")
@@ -251,7 +251,7 @@ end
 
 -- A loading placeholder: a rounded surface-3 rectangle whose alpha pulses while it is shown (still with animations off).
 -- The data of the addon is local, so this serves the few things that take a moment (a sync, the item cache).
-function Kit.Skeleton(parent, width, height)
+function Widgets.Skeleton(parent, width, height)
 	local f = CreateFrame("Frame", nil, parent)
 	f:SetSize(width or 120, height or 14)
 	f.fill = Theme.Slice(f, "rr_fill_8", "surface-3", "BACKGROUND")
@@ -265,9 +265,9 @@ end
 -- --- Class mark -------------------------------------------------------------------------------------------------------
 
 -- The square of 10 pt next to a player's name, with the small glow of the site ("the name in the class colour with a
--- square that shines"): returns the texture; `.glow` is the glow behind it. Both stay hidden until Kit.PaintClassMark gives
+-- square that shines"): returns the texture; `.glow` is the glow behind it. Both stay hidden until Widgets.PaintClassMark gives
 -- them the class colour (a colour of the game, not of a theme: Theme.Apply leaves it alone).
-function Kit.ClassMark(parent, size)
+function Widgets.ClassMark(parent, size)
 	size = size or 10
 	local square = Theme.Slice(parent, "rr_fill_8", nil, "ARTWORK")
 	square:SetSize(size, size)
@@ -280,7 +280,7 @@ function Kit.ClassMark(parent, size)
 end
 
 -- Colours the square and its glow (class colours come from the game: r, g, b in 0..1) and shows them.
-function Kit.PaintClassMark(square, r, g, b)
+function Widgets.PaintClassMark(square, r, g, b)
 	square:SetVertexColor(r, g, b, 1)
 	square:Show()
 	if square.glow then
@@ -290,7 +290,7 @@ function Kit.PaintClassMark(square, r, g, b)
 end
 
 -- Hides the square and its glow (a pooled row that shows no class).
-function Kit.ClearClassMark(square)
+function Widgets.ClearClassMark(square)
 	square:Hide()
 	if square.glow then Theme.GlowShow(square.glow, false) end
 end
@@ -301,9 +301,9 @@ end
 -- UIDropDownMenu, which taints. items = { { text, checked, onClick(item), keepOpen, header, token? } }: a click runs onClick and
 -- closes the menu, unless the item has keepOpen (its check flips and the menu stays: several columns in a row); a `header`
 -- is a heading, not a choice. One menu is open at a time; a click anywhere else or Esc closes it.
--- Kit.Menu.Show(anchor, items, width) -> the frame, .Hide(), .IsOpen(), .frame (rows in .frame.rows, the items in .frame.items).
+-- Widgets.Menu.Show(anchor, items, width) -> the frame, .Hide(), .IsOpen(), .frame (rows in .frame.rows, the items in .frame.items).
 local Menu = {}
-Kit.Menu = Menu
+Widgets.Menu = Menu
 local MENU_ROW, MENU_WIDTH, MENU_NAME = 28, 220, "AzerothAccordKitMenu"
 
 local function buildMenu()
@@ -320,7 +320,7 @@ local function buildMenu()
 	menu.catcher:Hide()
 	menu:SetScript("OnHide", function() menu.catcher:Hide() end)
 	menu:Hide()
-	Kit.CloseOnEscape(MENU_NAME)
+	Widgets.CloseOnEscape(MENU_NAME)
 	return menu
 end
 

@@ -156,7 +156,7 @@ describe("the view", function()
 		local f = V().modes.tabs.frame
 		local buttons = shown(f.bar.buttons)
 		eq(#buttons, 2)
-		eq(buttons[1]:GetText(), "> Consumables <"); eq(buttons[2]:GetText(), "Cloth")
+		eq(buttons[1].label:GetText(), "Consumables"); truthy(buttons[1]:IsSelected()); eq(buttons[2].label:GetText(), "Cloth"); falsy(buttons[2]:IsSelected())
 		contains(f.info:GetText(), "Guild money: 12g 34s 56c (seen 2 h ago by Bob)")
 		contains(f.info:GetText(), "This tab: seen 2 h ago by Bob, 3 item(s)")
 		local slots = f.grid.slots
@@ -171,7 +171,7 @@ describe("the view", function()
 		open()
 		local f = V().modes.tabs.frame
 		f.bar.buttons[2]:Click()
-		eq(f.bar.buttons[2]:GetText(), "> Cloth <")
+		eq(f.bar.buttons[2].label:GetText(), "Cloth"); truthy(f.bar.buttons[2]:IsSelected()); falsy(f.bar.buttons[1]:IsSelected())
 		eq(f.grid.slots[3].count:GetText(), "40"); falsy(f.grid.slots[1].icon:IsShown())
 		f.bar.buttons[1]:Click()
 		local seen

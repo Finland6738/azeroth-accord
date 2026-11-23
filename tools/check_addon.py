@@ -234,6 +234,39 @@ def check_widget_kit(problems):
                     problems.append(f"{where}: a colour written in a widget; use a theme token (Theme.Tint, Theme.Fill, Theme.Text)")
 
 
+# Colours written as values (M6.14, as in FDCP): a hex colour, a |c escape, or numbers given to a colour setter or to a
+# GameTooltip line. Only the code part of a line is read (not the comment).
+HARD_COLOURS = (
+    (re.compile(r"#[0-9A-Fa-f]{6}\b"), "a hex colour"),
+    (re.compile(r"\|c[0-9A-Fa-f]{8}"), "a |c colour escape"),
+    (re.compile(r"\b(?:SetColorTexture|SetVertexColor|SetTextColor|SetShadowColor|SetGradient|CreateColor)\s*\(\s*-?\.?[0-9]"),
+     "a colour given as numbers"),
+    (re.compile(r"\bAdd(?:Double)?Line\s*\(.*,\s*-?\.?[0-9][0-9.]*\s*,\s*-?\.?[0-9][0-9.]*\s*,\s*-?\.?[0-9]"),
+     "a tooltip line coloured with numbers"),
+)
+
+
+def check_ui_colours(problems):
+    """Every colour of the interface comes from UI/Theme.lua (M6.14, as in FDCP): the other files of UI/ tint through
+    Theme.Tint / Fill / Text / Call / ClassText / TextRGB / GameColor. A line that must give the engine a colour of its own
+    (the white of a hover layer) says so with `theme-ok`."""
+    ui = os.path.join(ADDON, "UI")
+    for folder, _, names in os.walk(ui):
+        for name in sorted(names):
+            if not name.endswith(".lua") or (name == "Theme.lua" and folder == ui):
+                continue
+            path = os.path.join(folder, name)
+            rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
+            with open(path, encoding="utf-8") as f:
+                for number, line in enumerate(f.read().splitlines(), 1):
+                    if "theme-ok" in line:
+                        continue
+                    code = line.split("--", 1)[0]
+                    for pattern, what in HARD_COLOURS:
+                        if pattern.search(code):
+                            problems.append(f"{rel}:{number}: {what} outside UI/Theme.lua (use a theme token, or mark the line theme-ok)")
+
+
 def check_report_form(problems):
     """The bug report form asks for the facts the /accord debug report starts with, under the same names (M6.4): every
     header line of Core/Diagnostics.lua is named in .github/ISSUE_TEMPLATE/bug_report.yml, and the form says to paste
@@ -266,6 +299,7 @@ def main():
     check(problems)
     check_report_form(problems)
     check_widget_kit(problems)
+    check_ui_colours(problems)
     for p in problems:
         print(p)
     print(f"Addon check: {len(problems)} problem(s).")

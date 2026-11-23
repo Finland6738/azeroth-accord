@@ -2,18 +2,18 @@
 -- `text-1` with the text in `bg`, one frame for the whole addon, 13 pt body. It shows lines the caller already translated;
 -- the game's GameTooltip is used for ITEMS only (Tooltip.Item: the comparison and the link) and is never reskinned.
 -- M6.11, new in Azeroth Accord (FDCP only describes it). Lua 5.1; one unprotected frame made on first use.
---   Kit.Tooltip.Show(owner, content, anchor)   content: "text" | { "title", "line", { text = "...", token = "ok" } ... }
---   Kit.Tooltip.Hide()
---   Kit.Tooltip.Attach(frame, source, anchor)  source: content | function(owner) -> content (nil shows nothing)
---   Kit.Tooltip.Item(owner, link, anchor) / Kit.Tooltip.HideItem() / Kit.Tooltip.AttachItem(frame, function(owner) -> link)
+--   Widgets.Tooltip.Show(owner, content, anchor)   content: "text" | { "title", "line", { text = "...", token = "ok" } ... }
+--   Widgets.Tooltip.Hide()
+--   Widgets.Tooltip.Attach(frame, source, anchor)  source: content | function(owner) -> content (nil shows nothing)
+--   Widgets.Tooltip.Item(owner, link, anchor) / Widgets.Tooltip.HideItem() / Widgets.Tooltip.AttachItem(frame, function(owner) -> link)
 -- anchor: "BOTTOM" (default, under the owner), "TOP", "RIGHT", "LEFT". The first line is the title (medium weight).
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Kit, Theme = ns.Kit, ns.Theme
+local Widgets, Theme = ns.Widgets, ns.Theme
 local type, ipairs, tostring, max, min = type, ipairs, tostring, math.max, math.min
 
 local Tooltip = {}
-Kit.Tooltip = Tooltip
+Widgets.Tooltip = Tooltip
 
 Tooltip.MAX_WIDTH, Tooltip.MAX_LINES = 280, 16
 local PAD_X, PAD_Y, GAP, OFFSET = 10, 8, 2, 6

@@ -90,6 +90,24 @@ function Theme.Color(token, themeId)
 	return c[1], c[2], c[3], c[4]
 end
 
+-- Series of a chart or a map (the communities of the group map, M6.14): tokens in an order where neighbours differ.
+Theme.SERIES = { "accent", "neon", "ok", "warn", "accent-2", "grad-4", "err", "text-3" }
+
+-- The colours of the game's own tooltip (GameTooltip is Blizzard's dark frame, not a themed one): white text, grey for a
+-- note, gold for a highlight, from the game's colour objects when they exist. Returns r, g, b.
+local GAME_COLOURS = {
+	text = { "HIGHLIGHT_FONT_COLOR", 1, 1, 1 },
+	muted = { "GRAY_FONT_COLOR", 0.5, 0.5, 0.5 },
+	gold = { "NORMAL_FONT_COLOR", 1, 0.82, 0 },
+	err = { "RED_FONT_COLOR", 1, 0.1, 0.1 },
+}
+function Theme.GameColor(name)
+	local spec = GAME_COLOURS[name] or GAME_COLOURS.text
+	local c = _G[spec[1]]
+	if type(c) == "table" and type(c.r) == "number" then return c.r, c.g, c.b end
+	return spec[2], spec[3], spec[4]
+end
+
 -- --- the registry of tinted regions -----------------------------------------------------------------------------------
 
 -- region -> list of { kind, token, extra }. Weak keys: a destroyed or collected region drops out by itself.
