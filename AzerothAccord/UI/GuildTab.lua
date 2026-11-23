@@ -10,6 +10,8 @@
 --   GT-05  if CommunitiesFrame has none of the expected tabs, no tab is made: the standalone window stays, and the
 --          feature "guildTab" says why in /accord debug;
 --   GT-06  the panel holds no protected action: it opens and closes in combat too.
+-- The panel is a frame of the addon over the content area, filled with the theme's background (docs/specs/ui-style.md §3):
+-- the Accord content with its tab bar and no title bar. Theme colours go only on the addon's frames, never on Blizzard's.
 -- Blizzard_Communities loads on demand: the tab is attached when it loads (ADDON_LOADED) or at login if it already is.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -17,8 +19,8 @@ local GuildTab = {}
 ns.GuildTab, ns.modules = GuildTab, ns.modules or {}
 ns.modules.GuildTab = GuildTab
 
-local L, W, Skin = ns.L, ns.Widgets, ns.Skin
-local type, ipairs, pcall = type, ipairs, pcall
+local L, W, Skin, Theme = ns.L, ns.Widgets, ns.Skin, ns.Theme
+local type, ipairs, pcall, tostring = type, ipairs, pcall, tostring
 
 GuildTab.TAB_KEYS = { "ChatTab", "RosterTab", "GuildBenefitsTab", "GuildInfoTab" }
 GuildTab.TAB_NAME, GuildTab.PANEL_NAME = "AzerothAccordGuildTab", "AzerothAccordGuildPanel"
@@ -79,6 +81,19 @@ local function minimized(cf)
 	return ok and type(modes) == "table" and modes.MINIMIZED ~= nil and mode == modes.MINIMIZED
 end
 
+-- The standalone window offers Pop in only while the guild window can take the panel (UI/Window.lua).
+local function updatePopIn()
+	if ns.Window and ns.Window.UpdatePopIn then ns.Window:UpdatePopIn() end
+end
+
+-- True while the panel can open here: the guild window is open on the guild and the Accord tab shows.
+function GuildTab:CanHost()
+	local cf = frame()
+	if not (self.tab and self.panel and cf) then return false end
+	local ok, visible = call(self.tab, "IsVisible")
+	return ok and visible == true
+end
+
 -- GT-02: shown only for the guild, not minimized, and only while the character has a guild.
 function GuildTab:UpdateVisibility()
 	local cf = self.tab and frame()
@@ -86,6 +101,7 @@ function GuildTab:UpdateVisibility()
 	local show = ns.Role and ns.Role:InGuild() and guildSelected(cf) and not minimized(cf)
 	self.tab:SetShown(show and true or false)
 	if not show then self:HidePanel() end
+	updatePopIn()
 end
 
 function GuildTab:ShowPanel()
@@ -103,17 +119,20 @@ end
 
 function GuildTab:IsPanelShown() return self.panel ~= nil and self.panel:IsShown() end
 
--- The count of requests waiting for an officer (BANK-23): a small red mark with the number on the tab; nothing for 0.
+-- The count of requests waiting for an officer (BANK-23): a small round mark in the theme's accent with the number on
+-- the tab; nothing for 0. The mark is the addon's own texture on the addon's own tab.
 function GuildTab:SetBadge(count)
 	self.badgeCount = count or 0
 	local tab = self.tab
 	if not tab then return end
 	if not tab.badge then
 		tab.badgeBg = tab:CreateTexture(nil, "OVERLAY")
-		tab.badgeBg:SetSize(16, 16)
-		tab.badgeBg:SetPoint("TOPRIGHT", tab, "TOPRIGHT", 3, 3)
-		tab.badgeBg:SetColorTexture(Skin.Color("red", 0.95))
-		tab.badge = W.Text(tab, "small", "white", "CENTER", "OVERLAY")
+		tab.badgeBg:SetTexture(ns.Assets.textures.circle.path)
+		tab.badgeBg:SetSize(18, 18)
+		tab.badgeBg:SetPoint("TOPRIGHT", tab, "TOPRIGHT", 4, 4)
+		Theme.Tint(tab.badgeBg, "accent")
+		tab.badge = Theme.NewText(tab, "Th", "on-accent", "OVERLAY")
+		tab.badge:SetJustifyH("CENTER")
 		tab.badge:SetPoint("CENTER", tab.badgeBg, "CENTER", 0, 0)
 	end
 	local n = self.badgeCount
@@ -157,7 +176,9 @@ local function buildPanel(cf)
 	end
 	panel:SetFrameLevel((cf:GetFrameLevel() or 1) + GuildTab.LEVEL_ABOVE)
 	panel:EnableMouse(true)   -- clicks on the panel do not fall through to the Blizzard content under it
-	W.Background(panel, "panel", 0.97)
+	panel.fill = panel:CreateTexture(nil, "BACKGROUND")
+	panel.fill:SetAllPoints(panel)
+	Theme.Fill(panel.fill, "bg")   -- square: the corners of Blizzard's area stay covered
 	panel:Hide()
 	GuildTab.host = { frame = panel, mode = "tab", name = "guild window", onLeave = function() GuildTab:HidePanel() end }
 	panel:SetScript("OnHide", function() ns.Shell:Detach(GuildTab.host) end)
@@ -178,7 +199,7 @@ local function hook(cf)
 		hooksecurefunc(cf, "SelectClub", function() GuildTab:UpdateVisibility() end)
 	end
 	cf:HookScript("OnShow", function() GuildTab:Anchor() GuildTab:UpdateVisibility() end)
-	cf:HookScript("OnHide", function() GuildTab:HidePanel() end)
+	cf:HookScript("OnHide", function() GuildTab:HidePanel() updatePopIn() end)
 end
 
 -- Creates the tab and the panel once CommunitiesFrame exists. Returns true when the tab is there.

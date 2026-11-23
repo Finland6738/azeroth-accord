@@ -1,20 +1,24 @@
--- Window: the standalone Accord window (SPEC-04 §3, ADR 0003 point 3). Lua 5.1.
--- The same panel as the guild tab, in a movable and resizable window opened by /accord, the AddOn Compartment, the key
--- binding or "Pop out". It remembers its position and size per character (AzerothAccordCharDB.ui), closes with Esc and
--- is the fallback when the guild window cannot host the tab (GT-05).
+-- Window: the standalone Accord window (SPEC-04 §3, docs/specs/ui-style.md §3, ADR 0003 point 3). Lua 5.1.
+-- The same panel as the guild tab, in a window of the addon's own (no Blizzard window template): a Theme panel of radius
+-- 12 with its shadow, the 52-point title bar of the kit (logo, "AZEROTH ACCORD", the sync state under it, Pop in while
+-- the guild window can take the panel back, close) and the panel under it. Opened by /accord, the AddOn Compartment,
+-- the key binding or "Pop out"; movable by its title bar, resizable from the grip in the corner (920 x 600 at first,
+-- 720 x 460 at least). It remembers its position and size per character (AzerothAccordCharDB.ui), closes with Esc and
+-- is the fallback when the guild window cannot host the tab (GT-05). Every colour is a theme token: Theme.Apply repaints it.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Window = {}
 ns.Window, ns.modules = Window, ns.modules or {}
 ns.modules.Window = Window
 
-local L, W = ns.L, ns.Widgets
-local type, pcall = type, pcall
+local L, Kit, Theme = ns.L, ns.Kit, ns.Theme
+local type, tonumber, min, max = type, tonumber, math.min, math.max
 
 Window.NAME = "AzerothAccordWindow"
-Window.WIDTH, Window.HEIGHT = 820, 520
-Window.MIN_WIDTH, Window.MIN_HEIGHT = 640, 400
+Window.WIDTH, Window.HEIGHT = 920, 600
+Window.MIN_WIDTH, Window.MIN_HEIGHT = 720, 460
 Window.MAX_WIDTH, Window.MAX_HEIGHT = 1600, 1000
+Window.TITLE_BAR = 52
 
 local function config() return ns.Config end
 
@@ -32,73 +36,88 @@ local function saveSize(f)
 	end
 end
 
+-- A saved size inside the bounds (a size saved before M6.12 may be below today's minimum).
+function Window.ClampSize(w, h)
+	w = min(Window.MAX_WIDTH, max(Window.MIN_WIDTH, tonumber(w) or Window.WIDTH))
+	h = min(Window.MAX_HEIGHT, max(Window.MIN_HEIGHT, tonumber(h) or Window.HEIGHT))
+	return w, h
+end
+
 local function place(f)
 	local pos = config() and config():Get("char.ui.windowPos")
 	local size = config() and config():Get("char.ui.windowSize")
-	f:SetSize(size and size.w or Window.WIDTH, size and size.h or Window.HEIGHT)
+	f:SetSize(Window.ClampSize(size and size.w, size and size.h))
 	f:ClearAllPoints()
 	if pos then f:SetPoint(pos.point, UIParent, pos.relPoint or pos.point, pos.x, pos.y)
 	else f:SetPoint("CENTER", UIParent, "CENTER", 0, 0) end
 end
 
--- The title of a Blizzard window template (several layouts exist), or a font string of our own.
-local function setTitle(f, text)
-	local title = f.TitleText or (f.TitleContainer and f.TitleContainer.TitleText)
-	if title and title.SetText then
-		title:SetText(text)
-	else
-		f.ownTitle = f.ownTitle or W.Text(f, "heading", "gold", "CENTER")
-		f.ownTitle:SetPoint("TOP", f, "TOP", 0, -6)
-		f.ownTitle:SetText(text)
-	end
+local function buildTitleBar(f)
+	local bar = Kit.TitleBar(f, { title = L["WINDOW_TITLE"], subtitle = "", closeLabel = L["WINDOW_CLOSE"],
+		onClose = function() Window:Close() end })
+	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	-- the window moves by its title bar (and by any free spot of the panel)
+	bar:EnableMouse(true)
+	bar:RegisterForDrag("LeftButton")
+	bar:SetScript("OnDragStart", function() f:StartMoving() end)
+	bar:SetScript("OnDragStop", function() f:StopMovingOrSizing() savePosition(f) end)
+	-- Pop in, left of the close button, only while the guild window can take the panel (Window:UpdatePopIn)
+	bar.popIn = Kit.Button(bar, { text = L["POP_IN"], style = "ghost", height = 28, onClick = function() ns.Shell:PopIn() end })
+	bar.popIn:SetPoint("RIGHT", bar.close, "LEFT", -8, 0)
+	bar.popIn:Hide()
+	if Kit.Tooltip then Kit.Tooltip.Attach(bar.popIn, { L["POP_IN"], L["POP_IN_TIP"] }, "BOTTOM") end
+	f.titleBar = bar
 end
 
-local function setPortrait(f)
-	local portrait = f.portrait or (f.PortraitContainer and f.PortraitContainer.portrait)
-	if portrait and portrait.SetTexture then pcall(portrait.SetTexture, portrait, ns.Assets.logos.logo_64.path) end
+-- The resize grip in the bottom-right corner: the kit's "dashed" icon tinted text-3, the accent under the mouse.
+local function buildGrip(f)
+	local grip = CreateFrame("Button", nil, f)
+	grip:SetSize(14, 14)
+	grip:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -3, 3)
+	grip:SetFrameLevel((f:GetFrameLevel() or 1) + 30)   -- over the views in the body
+	grip.icon = grip:CreateTexture(nil, "OVERLAY")
+	grip.icon:SetTexture(ns.Assets.textures.icons.path)
+	grip.icon:SetTexCoord(ns.Assets.IconCoords("dashed"))
+	grip.icon:SetAllPoints(grip)
+	Theme.Tint(grip.icon, "text-3", 0.6)
+	grip:SetScript("OnEnter", function(self) Theme.Tint(self.icon, "accent-text") end)
+	grip:SetScript("OnLeave", function(self) Theme.Tint(self.icon, "text-3", 0.6) end)
+	if Kit.Tooltip then Kit.Tooltip.Attach(grip, L["WINDOW_RESIZE"], "TOP") end
+	grip:SetScript("OnMouseDown", function() f:StartSizing("BOTTOMRIGHT") end)
+	grip:SetScript("OnMouseUp", function() f:StopMovingOrSizing() saveSize(f) savePosition(f) end)
+	f.grip = grip
 end
 
 local function build()
-	local f, template = W.Create("Frame", Window.NAME, UIParent, "window")
-	f.template = template
+	local f = CreateFrame("Frame", Window.NAME, UIParent)
 	f:SetFrameStrata("HIGH")
 	f:SetToplevel(true)
 	f:SetClampedToScreen(true)
 	f:SetMovable(true)
 	f:SetResizable(true)
 	if f.SetResizeBounds then f:SetResizeBounds(Window.MIN_WIDTH, Window.MIN_HEIGHT, Window.MAX_WIDTH, Window.MAX_HEIGHT) end
-	f:EnableMouse(true)
+	f:EnableMouse(true)   -- clicks on the window do not fall through to the world
 	f:RegisterForDrag("LeftButton")
 	f:SetScript("OnDragStart", function(self) self:StartMoving() end)
 	f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() savePosition(self) end)
-	if template == "" then W.Background(f, "panel", 0.95) end
-	setTitle(f, L["ADDON_TITLE"])
-	setPortrait(f)
-	if not f.CloseButton then
-		f.CloseButton = W.CloseButton(f, function() Window:Close() end)
-		f.CloseButton:SetPoint("TOPRIGHT", f, "TOPRIGHT", -2, -2)
-	end
+	f.parts = Theme.Panel(f, { radius = 12, fill = "bg", border = "border", shadow = true, highlight = true })
+	buildTitleBar(f)
 
-	-- the area under the title where the panel goes
-	f.body = W.Frame(f, 10, 10)
-	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 8, -28)
-	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, 8)
+	-- the area under the title bar where the panel goes
+	f.body = CreateFrame("Frame", nil, f)
+	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Window.TITLE_BAR)
+	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	buildGrip(f)
 
-	-- the resize grip in the bottom-right corner
-	local grip = CreateFrame("Button", nil, f)
-	grip:SetSize(16, 16)
-	grip:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -2, 2)
-	pcall(grip.SetNormalTexture, grip, "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-	pcall(grip.SetHighlightTexture, grip, "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-	pcall(grip.SetPushedTexture, grip, "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-	grip:SetScript("OnMouseDown", function() f:StartSizing("BOTTOMRIGHT") end)
-	grip:SetScript("OnMouseUp", function() f:StopMovingOrSizing() saveSize(f) savePosition(f) end)
-	f.grip = grip
-
-	Window.host = { frame = f.body, mode = "window", name = "window" }
-	f:SetScript("OnShow", function() ns.Shell:Attach(Window.host) end)
+	Window.host = {
+		frame = f.body, mode = "window", name = "window",
+		onLeave = function() Window:Close() end,                       -- the guild tab took the panel
+		onStatus = function(text) f.titleBar.subtitle:SetText(text) end, -- the sync state under the title
+	}
+	f:SetScript("OnShow", function() ns.Shell:Attach(Window.host) Window:UpdatePopIn() end)
 	f:SetScript("OnHide", function() ns.Shell:Detach(Window.host) end)
-	W.CloseOnEscape(f)
+	Kit.CloseOnEscape(Window.NAME)
 	f:Hide()
 	place(f)
 	return f
@@ -112,6 +131,7 @@ end
 function Window:Open()
 	local f = self:Frame()
 	if not f:IsShown() then f:Show() end
+	if f.Raise then f:Raise() end
 	return f
 end
 
@@ -126,6 +146,13 @@ function Window:Toggle()
 end
 
 function Window:IsShown() return self.frame ~= nil and self.frame:IsShown() end
+
+-- Pop in shows while the guild window is open on the guild (UI/GuildTab.lua calls this when that changes).
+function Window:UpdatePopIn()
+	local f = self.frame
+	if not f then return end
+	f.titleBar.popIn:SetShown(ns.Shell ~= nil and ns.Shell:CanPopIn())
+end
 
 -- Back to the default size in the middle of the screen (and forget the saved place).
 function Window:ResetPosition()

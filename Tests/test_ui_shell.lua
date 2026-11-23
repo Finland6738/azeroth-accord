@@ -1,5 +1,6 @@
 -- The Accord tab, the panel and the standalone window (M1.8; SPEC-04, ADR 0003) on the mock guild window
--- (Tests/mock/85_communities.lua). GT-01..GT-06 of SPEC-04 §1 each have a group below.
+-- (Tests/mock/85_communities.lua). GT-01..GT-06 of SPEC-04 §1 each have a group below. M6.12: the window, its title bar
+-- and the tab bar in the look of docs/specs/ui-style.md §3, and the themed panel inside the guild window.
 local function A() return AzerothAccord end
 local function Tab() return A().GuildTab end
 local function Shell() return A().Shell end
@@ -235,7 +236,7 @@ describe("GT-06: combat", function()
 	end)
 end)
 
-describe("the standalone window (SPEC-04 §3)", function()
+describe("the standalone window (SPEC-04 §3, ui-style.md §3)", function()
 	before_boot(function(M) guild() end)
 
 	it("/accord opens and closes it with the panel inside; /acc, the key binding and the Compartment too", function()
@@ -251,6 +252,22 @@ describe("the standalone window (SPEC-04 §3)", function()
 		falsy(Win():IsShown())
 	end)
 
+	it("is a window of the addon: a Theme panel with shadow, the 52-point title bar, no Blizzard template", function()
+		Mock.Slash("/accord")
+		local f = Win().frame
+		isNil(f._template, "no Blizzard window template")
+		notNil(f.parts.fill); notNil(f.parts.ring); notNil(f.parts.shadow)
+		eq(f.parts.fill._asset, "rr_fill_12", "radius 12")
+		local bar = f.titleBar
+		eq(bar:GetHeight(), 52)
+		eq(bar.title:GetText(), "AZEROTH ACCORD")
+		eq(bar.title:GetFontObject(), A().Theme.Font("Display"))
+		eq(bar.logo:GetTexture(), A().Assets.logos.logo_64.path)
+		eq(bar.subtitle:GetText(), "0 guildmate(s) with Accord online · no data received yet", "the sync state under the title")
+		bar.close:Click()
+		falsy(Win():IsShown())
+	end)
+
 	it("says so without a guild and opens nothing", function()
 		T.boot(function(M) M.guild.Leave() end)
 		Mock.Slash("/accord")
@@ -260,27 +277,47 @@ describe("the standalone window (SPEC-04 §3)", function()
 
 	it("closes with Esc and when the character leaves the guild", function()
 		Mock.Slash("/accord")
-		contains(table.concat(UISpecialFrames, ","), "AzerothAccordWindow")
+		local n = 0
+		for _, name in ipairs(UISpecialFrames) do if name == "AzerothAccordWindow" then n = n + 1 end end
+		eq(n, 1, "Esc closes it (registered once)")
 		Mock.guild.Leave()
 		falsy(Win():IsShown())
 	end)
 
-	it("remembers where it was and how big", function()
+	it("moves by its title bar, resizes from the grip within its bounds and remembers where it was and how big", function()
 		Mock.Slash("/accord")
 		local f = Win().frame
-		Mock.Drag(f, "TOPLEFT", 100, -80)
-		f:SetSize(900, 600)
+		truthy(f:IsMovable()); truthy(f:IsResizable()); truthy(f._clamped)
+		deepEq(f._bounds, { 720, 460, 1600, 1000 })
+		eq(f:GetWidth(), 920); eq(f:GetHeight(), 600)
+		eq(f.grip.icon:GetTexture(), A().Assets.textures.icons.path, "the grip is the kit's icon, no Blizzard texture")
+		Mock.RunScript(f.titleBar, "OnDragStart", "LeftButton")
+		truthy(f._moving, "dragging the title bar moves the window")
+		f:ClearAllPoints()
+		f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 100, -80)
+		Mock.RunScript(f.titleBar, "OnDragStop")
+		Mock.RunScript(f.grip, "OnMouseDown")
+		truthy(f._sizing)
+		f:SetSize(1000, 640)
 		Mock.RunScript(f.grip, "OnMouseUp")
+		falsy(f._sizing)
 		Mock.Reload()
 		Mock.Slash("/accord")
 		local point, _, _, x, y = Win().frame:GetPoint(1)
 		eq(point, "TOPLEFT"); eq(x, 100); eq(y, -80)
-		eq(Win().frame:GetWidth(), 900)
+		eq(Win().frame:GetWidth(), 1000); eq(Win().frame:GetHeight(), 640)
 		Win():ResetPosition()
-		eq(Win().frame:GetWidth(), 820)
+		eq(Win().frame:GetWidth(), 920)
+		isNil(AzerothAccordCharDB.ui.windowPos)
 	end)
 
-	it("pop out moves the panel from the guild window to the window", function()
+	it("a size saved by an older version below today's minimum opens at the minimum", function()
+		A().Config:Set("char.ui.windowSize", { w = 640, h = 400 })
+		Mock.Slash("/accord")
+		eq(Win().frame:GetWidth(), 720); eq(Win().frame:GetHeight(), 460)
+	end)
+
+	it("pop out moves the panel from the guild window to the window, pop in moves it back", function()
 		Mock.communities.Open()
 		Tab().tab:Click()
 		truthy(Shell().content.bar.popOut:IsShown())
@@ -288,9 +325,32 @@ describe("the standalone window (SPEC-04 §3)", function()
 		falsy(Tab():IsPanelShown())
 		truthy(Win():IsShown())
 		eq(Shell().content:GetParent(), Win().frame.body)
-		-- and back: the tab takes the panel from the window
+		local popIn = Win().frame.titleBar.popIn
+		truthy(popIn:IsShown(), "the guild window is open: pop in is offered")
+		popIn:Click()
+		falsy(Win():IsShown(), "the window closes")
+		truthy(Tab():IsPanelShown())
+		eq(Shell().content:GetParent(), Tab().panel)
+		eq(#Mock.errors, 0)
+	end)
+
+	it("pop in shows only while the guild window can take the panel; a click on the tab takes it and closes the window", function()
+		Mock.Slash("/accord")
+		falsy(Win().frame.titleBar.popIn:IsShown(), "no guild window: no pop in (the addon never opens it)")
+		Mock.communities.Open()
+		truthy(Win().frame.titleBar.popIn:IsShown())
+		Mock.communities.SelectClub(1234)
+		falsy(Win().frame.titleBar.popIn:IsShown(), "another community: the Accord tab is hidden")
+		Mock.communities.SelectClub(C_Club.GetGuildClubId())
+		truthy(Win().frame.titleBar.popIn:IsShown())
+		Mock.communities.Close()
+		falsy(Win().frame.titleBar.popIn:IsShown())
+		falsy(Shell():PopIn())
+		truthy(Win():IsShown())
+		Mock.communities.Open()
 		Tab().tab:Click()
 		eq(Shell().content:GetParent(), Tab().panel)
+		falsy(Win():IsShown(), "the window does not stay open and empty")
 	end)
 
 	it("the Compartment tooltip has the title, the hint and the sync state", function()
@@ -301,44 +361,226 @@ describe("the standalone window (SPEC-04 §3)", function()
 	end)
 end)
 
-describe("navigation and views (SPEC-04 §2)", function()
+describe("the panel in the guild window (ui-style.md §3, ADR 0003)", function()
 	before_boot(function(M) guild() end)
 
-	it("shows no navigation and the welcome text while no view exists; view commands say coming soon", function()
-		Shell().views = {}   -- the Roster view of M2.3 registers itself: here no view exists
+	it("is the addon's own frame with the theme's fill, the same tabs, no title bar, Pop out and the sync state", function()
+		Mock.communities.Open()
+		Tab().tab:Click()
+		local panel, content = Tab().panel, Shell().content
+		eq(panel:GetParent(), CommunitiesFrame)
+		local r, g, b = A().Theme.Color("bg")
+		deepEq({ panel.fill._texture[1], panel.fill._texture[2], panel.fill._texture[3] }, { r, g, b })
+		isNil(panel.titleBar); isNil(content.titleBar)
+		truthy(content.tabs:IsVisible())
+		eq(content.tabs:GetParent(), content.bar)
+		truthy(content.bar.popOut:IsShown())
+		truthy(content.footer:IsShown())
+		eq(content.status:GetText(), "0 guildmate(s) with Accord online · no data received yet")
+		eq(content.bar.searchField:GetWidth(), 150, "a narrower search box in the narrower area")
+		-- the same content in the window: no footer (the title bar has the state), the wider search box
+		Shell().content.bar.popOut:Click()
+		falsy(content.footer:IsShown())
+		eq(content.bar.searchField:GetWidth(), 200)
+	end)
+
+	it("the badge of the Accord tab is a mark in the theme's accent, repainted by a theme change", function()
+		Mock.communities.Open()
+		Tab():SetBadge(3)
+		local tab = Tab().tab
+		eq(tab.badge:GetText(), "3")
+		eq(tab.badgeBg:GetTexture(), A().Assets.textures.circle.path)
+		local accent = A().Theme.Color("accent")
+		eq((tab.badgeBg:GetVertexColor()), accent)
+		A().Theme.Apply("aurora")
+		eq((tab.badgeBg:GetVertexColor()), (A().Theme.Color("accent", "aurora")))
+		Tab():SetBadge(0)
+		falsy(tab.badge:IsShown()); falsy(tab.badgeBg:IsShown())
+		Tab():SetBadge(150)
+		eq(tab.badge:GetText(), "99+")
+	end)
+end)
+
+describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
+	before_boot(function(M) guild() end)
+
+	it("shows no tabs and the welcome text while no view exists; view commands say coming soon", function()
+		Shell().views = {}   -- the views register themselves: here none exists
 		Mock.Slash("/accord")
-		falsy(Shell().content.nav:IsShown())
-		falsy(Shell().content.bar.search:IsShown(), "no search before a view can search")
+		isNil(Shell().content.tabs)
+		truthy(Shell().content.empty:IsShown())
+		eq(Shell().content.empty.title:GetText(), "Welcome to Azeroth Accord")
+		falsy(Shell().content.bar.searchField:IsShown(), "no search without a view that can search")
 		Mock.ClearOutput()
 		Mock.Slash("/accord professions")
 		contains(text(), "coming soon")
 	end)
 
-	it("a registered view gets a button, opens with its command and is remembered", function()
+	it("a registered view gets a tab, opens with its command and is remembered; a late view rebuilds the bar", function()
+		Shell().views = {}
 		local built = {}
 		Shell():RegisterView("roster", { label = "Roster", order = 1, search = true, build = function(f) built.roster = f end })
 		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function(f) built.bank = f end })
 		Mock.Slash("/accord bank")
 		truthy(Win():IsShown())
-		truthy(Shell().content.nav:IsShown())
-		eq(Shell().content.nav.buttons[1].label:GetText(), "Roster")
-		eq(Shell().content.nav.buttons[2].label:GetText(), "Bank")
+		local tabs = Shell().content.tabs
+		deepEq(tabs.order, { "roster", "bank" })
+		eq(tabs.buttons.roster.label:GetText(), "Roster")
+		eq(tabs:Active(), "bank")
+		truthy(tabs.indicator:IsShown())
 		notNil(built.bank)
 		isNil(built.roster, "a view is built when first shown")
+		eq(built.bank:GetParent(), Shell().content.body, "the view's frame fills the body")
 		falsy(Shell().content.empty:IsShown())
-		truthy(Shell().content.bar.search:IsShown())
-		Shell().content.nav.buttons[1]:Click()
+		falsy(Shell().content.bar.searchField:IsShown(), "Bank cannot search here")
+		tabs.buttons.roster:Click()
 		notNil(built.roster)
+		eq(tabs:Active(), "roster")
+		truthy(Shell().content.bar.searchField:IsShown())
 		eq(AzerothAccordCharDB.ui.lastView, "roster")
+		Shell():RegisterView("settings", { label = "Settings", order = 9, build = function() end })
+		local again = Shell().content.tabs
+		truthy(again ~= tabs, "a new bar for the new set of views")
+		falsy(tabs:IsShown())
+		deepEq(again.order, { "roster", "bank", "settings" })
+		eq(again:Active(), "roster")
 	end)
 
-	it("the top bar shows the sync state", function()
+	it("what is typed in the search box goes to the selected view only", function()
+		Shell().views = {}
+		local got = {}
+		Shell():RegisterView("roster", { label = "Roster", order = 1, search = true, build = function() end,
+			onSearch = function(t) got.roster = t end })
+		Shell():RegisterView("reputation", { label = "Reputation", order = 3, search = true, build = function() end,
+			onSearch = function(t) got.reputation = t end })
+		Mock.Slash("/accord roster")
+		Mock.TypeInto(Shell().content.bar.search, "mira")
+		eq(got.roster, "mira"); isNil(got.reputation)
+		Shell().content.bar.search:SetText("set by a view")
+		eq(got.roster, "mira", "text a view sets is not sent back to it")
+		eq(Shell().content.bar.searchField:GetText(), "set by a view")
+	end)
+
+	it("every view opens from its tab and from its command, in the order of the spec", function()
 		Mock.Slash("/accord")
-		eq(Shell().content.bar.status:GetText(), "0 guildmate(s) with Accord online · no data received yet")
+		local tabs = Shell().content.tabs
+		deepEq(tabs.order, { "roster", "professions", "reputation", "bank", "settings" })
+		local labels = {}
+		for _, id in ipairs(tabs.order) do labels[#labels + 1] = tabs.buttons[id].label:GetText() end
+		deepEq(labels, { "Roster", "Professions", "Reputation", "Bank", "Settings" })
+		for _, id in ipairs(tabs.order) do
+			tabs.buttons[id]:Click()
+			eq(tabs:Active(), id, "tab " .. id)
+			eq(Shell().selected, id)
+			truthy(Shell().views[id].frame:IsVisible(), id .. " shows")
+			isNil(Shell().views[id].failed, id .. " built")
+		end
+		Mock.Slash("/accord")
+		falsy(Win():IsShown())
+		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do
+			Mock.Slash("/accord " .. id)
+			truthy(Win():IsShown(), "/accord " .. id)
+			eq(Shell().content.tabs:Active(), id, "/accord " .. id)
+			truthy(Shell().views[id].frame:IsVisible())
+		end
+		eq(#Mock.errors, 0)
+	end)
+
+	it("every view opens from its tab in the guild window too", function()
+		Mock.communities.Open()
+		Tab().tab:Click()
+		local tabs = Shell().content.tabs
+		for _, id in ipairs(tabs.order) do
+			tabs.buttons[id]:Click()
+			truthy(Shell().views[id].frame:IsVisible(), id)
+			eq(Shell().views[id].frame:GetParent(), Shell().content.body)
+		end
+		eq(#Mock.errors, 0)
+	end)
+
+	it("a view that fails shows its error text; a click on its tab tries again", function()
+		Shell().views = {}
+		local fail = true
+		Shell():RegisterView("roster", { label = "Roster", order = 1, build = function() end })
+		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function(f) if fail then error("broken") end end })
+		Mock.Slash("/accord bank")
+		local frame = Shell().views.bank.frame
+		eq(frame.errorTitle:GetText(), "This view could not be drawn")
+		contains(frame.errorText:GetText(), "clicking its tab again tries again")
+		Mock.ClearErrors()   -- the error went to the game's handler, as it should
+		fail = false
+		Shell().content.tabs.buttons.bank:Click()
+		isNil(Shell().views.bank.failed)
+		truthy(Shell().views.bank.frame ~= frame)
+	end)
+
+	it("a view's badge puts its count on its tab and goes away at 0", function()
+		Shell().views = {}
+		local n = 3
+		Shell():RegisterView("roster", { label = "Roster", order = 1, build = function() end })
+		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function() end, badge = function() return n end })
+		Mock.Slash("/accord")
+		local tabs = Shell().content.tabs
+		eq(tabs.buttons.bank.label:GetText(), "Bank", "the count is a badge, not part of the label")
+		truthy(tabs.buttons.bank.badge:IsShown())
+		eq(tabs.buttons.bank.badge.label:GetText(), "3")
+		isNil(tabs.buttons.roster.badge)
+		n = 0
+		Shell():UpdateBadges()
+		falsy(tabs.buttons.bank.badge:IsShown())
+		n = 250
+		Shell():UpdateBadges()
+		eq(tabs.buttons.bank.badge.label:GetText(), "99+")
+		eq(Shell().BadgeText({ badge = function() error("x") end }), nil, "a badge that raises shows nothing")
+	end)
+
+	it("the sync state and Ago", function()
+		Mock.Slash("/accord")
+		eq(Shell().content.status:GetText(), "0 guildmate(s) with Accord online · no data received yet")
+		eq(Win().frame.titleBar.subtitle:GetText(), Shell().content.status:GetText())
 		eq(Shell().Ago(30), "just now")
 		eq(Shell().Ago(120), "2 min ago")
 		eq(Shell().Ago(7200), "2 h ago")
 		eq(Shell().Ago(3 * 86400), "3 d ago")
+	end)
+
+	it("in Italian: tabs, title bar and search box", function()
+		T.boot(function(M) M.player.locale = "itIT" guild() end)
+		Mock.communities.Open()
+		Tab().tab:Click()
+		local content = Shell().content
+		eq(content.tabs.buttons.settings.label:GetText(), "Impostazioni")
+		eq(content.bar.searchField.placeholder:GetText(), "Cerca")
+		eq(content.bar.popOut:GetLabel(), "Stacca")
+		content.bar.popOut:Click()
+		eq(Win().frame.titleBar.popIn:GetLabel(), "Riaggancia")
+		eq(Win().frame.titleBar.title:GetText(), "AZEROTH ACCORD")
+	end)
+end)
+
+describe("a theme change repaints the shell without /reload", function()
+	before_boot(function(M) guild() end)
+
+	it("window, title bar, tabs, status and the guild panel follow Theme.Apply", function()
+		local Th = A().Theme
+		Mock.communities.Open()
+		Mock.Slash("/accord")
+		local f, content = Win().frame, Shell().content
+		local function r(tex) return (tex:GetVertexColor()) end
+		eq(r(f.parts.fill), (Th.Color("bg", "nebula")))
+		eq(r(f.titleBar.fill), (Th.Color("surface-1", "nebula")))
+		eq(content.tabs.indicator._texture[1], (Th.Color("accent", "nebula")))
+		for _, id in ipairs({ "aurora", "accord" }) do
+			truthy(Th.Apply(id))
+			eq(r(f.parts.fill), (Th.Color("bg", id)), id .. " window fill")
+			eq(r(f.titleBar.fill), (Th.Color("surface-1", id)), id .. " title bar")
+			eq(content.tabs.indicator._texture[1], (Th.Color("accent", id)), id .. " indicator")
+			eq((content.tabs.buttons[content.tabs:Active()].label:GetTextColor()), (Th.Color("text-1", id)), id .. " active tab")
+			eq((content.status:GetTextColor()), (Th.Color("text-3", id)), id .. " status")
+			eq((content.bar.searchField.fill:GetVertexColor()), (Th.Color("surface-2", id)), id .. " search box")
+			eq(Tab().panel.fill._texture[1], (Th.Color("bg", id)), id .. " guild panel")
+		end
+		eq(#Mock.errors, 0)
 	end)
 end)
 

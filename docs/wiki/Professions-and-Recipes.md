@@ -24,7 +24,7 @@ Your own recipes are shared when you open your profession window with the addon:
 
 ## Who can craft
 
-Open the **Professions** view (`/accord professions`, or the **Professions** button on the left) and type the name of an item or a recipe in the search box at the top of the panel (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. **Online only** keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
+Open the **Professions** view (`/accord professions`, or the **Professions** tab) and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. **Online only** keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 

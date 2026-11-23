@@ -96,21 +96,20 @@ describe("the counter on the tab, the panel and the compartment", function()
 		eq(tab.badge:GetText(), "1")
 	end)
 
-	it("the Bank button of the panel and the compartment tooltip say how many wait", function()
+	it("the Bank tab of the panel and the compartment tooltip say how many wait", function()
 		asOfficer()
 		arrive(BOB, 1, "open"); arrive(BOB, 2, "open")
 		Mock.Slash("/accord bank")
-		local labels = {}
-		for _, b in ipairs(A().Shell.content.nav.buttons) do if b:IsShown() then labels[#labels + 1] = b.label:GetText() end end
-		contains(labels, "Bank (2)")
+		local bank = A().Shell.content.tabs.buttons.bank
+		eq(bank.label:GetText(), "Bank")
+		truthy(bank.badge:IsShown())
+		eq(bank.badge.label:GetText(), "2")
 		local tip = { lines = {} }
 		function tip:AddLine(t) self.lines[#self.lines + 1] = t end
 		A().Shell.FillTooltip(tip)
 		contains(tip.lines, "2 bank request(s) waiting for an officer")
 		arrive(BOB, 1, "approved", { rev = 2 }); arrive(BOB, 2, "approved", { rev = 2 })
-		labels = {}
-		for _, b in ipairs(A().Shell.content.nav.buttons) do if b:IsShown() then labels[#labels + 1] = b.label:GetText() end end
-		contains(labels, "Bank")
+		falsy(bank.badge:IsShown(), "nothing waits: no badge")
 	end)
 end)
 

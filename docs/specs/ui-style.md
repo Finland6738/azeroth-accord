@@ -81,7 +81,7 @@ i badge (richieste della banca) stanno sul titolo della scheda.
 | Cornice | finestra propria come FDCP §6: **barra del titolo di 52 pt** (logo, "AZEROTH ACCORD" in Orbitron, stato della sincronizzazione, Pop in, chiudi), raggio 12, ombra, mobile, Esc | **nessuna barra del titolo né cornice propria**: il pannello riempie l'area dei contenuti di `CommunitiesFrame` e prende i colori del tema |
 | Schede | barra delle schede da 44 pt sotto il titolo, con l'indicatore da 2 pt | la stessa barra delle schede, in cima al pannello |
 | Ricerca globale | a destra della barra delle schede | uguale |
-| Dimensione | 920 × 600 predefinita, minimo 720 × 460, ridimensionabile (proposta, da confermare in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
+| Dimensione | 920 × 600 predefinita, minimo 720 × 460, ridimensionabile (confermata in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
 | Ricordo | posizione e dimensione per personaggio | nessuno |
 
 La finestra di Blizzard è **solo osservata**, come ADR 0003 prescrive: il pannello è un frame dell'addon figlio della
@@ -120,6 +120,29 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   su un testo o un colore scritti dentro i cinque file.
 - **Segno di classe.** Il quadratino con bagliore resta nascosto finché `PaintClassMark` non gli dà il colore del
   gioco (che `Theme.Apply` non tocca); `ClearClassMark` lo nasconde di nuovo per le righe riciclate.
+
+**Stato (M6.12).** Fatto: `UI/Window.lua` e `UI/Shell.lua` usano il kit e il tema; le proposte di M6.8 sono confermate
+(920 × 600, minimo 720 × 460; ricerca a destra delle schede; nessuna barra del titolo nella finestra Gilda). Scelte:
+
+- **Stato della sincronizzazione.** Nella finestra autonoma è il sottotitolo mono della barra del titolo; nella finestra
+  Gilda, che non ha barra del titolo, è una riga sottile (24 pt, `MonoSmall`, `text-3`) in fondo al pannello.
+- **Pop in.** Pulsante *ghost* a sinistra della chiusura, visibile solo mentre la finestra Gilda è aperta sulla gilda
+  (la linguetta Accord è visibile): rimette il pannello nella finestra Gilda e chiude la finestra autonoma. L'addon non
+  apre mai la finestra di Blizzard (ADR 0003). Anche un clic sulla linguetta chiude la finestra autonoma: il pannello non
+  resta mai in due posti, né la finestra aperta e vuota.
+- **Ricerca.** Un `EditBox` del kit (segnaposto *Search*), 200 pt nella finestra e 150 pt nella finestra Gilda; visibile
+  solo mentre la vista aperta ha `search = true` (Settings non ce l'ha). Pop out (secondario) le sta a destra, solo nella
+  finestra Gilda.
+- **Schede.** `Kit.Tabs` prende le schede quando nasce: una vista che si registra dopo fa nascere una barra nuova. Il
+  conteggio della Banca è un badge `accent` (`99+` oltre 99), non più "(n)" nel nome. Un clic sulla scheda di una vista
+  fallita la ricostruisce.
+- **Cornici.** Finestra: `Theme.Panel` raggio 12, riempimento `bg`, bordo `border`, ombra, linea di luce in alto.
+  Finestra Gilda: una texture quadrata `bg` (gli angoli dell'area di Blizzard restano coperti), nessun bordo. La maniglia
+  di ridimensionamento è l'icona `dashed` del foglio delle icone (`text-3`, `accent-text` sotto il mouse), nessuna
+  texture di Blizzard.
+- **Linguetta.** Icona invariata (SPEC-10 Q2); il badge delle richieste è un cerchio `accent` col numero in `on-accent`.
+- Le viste (corpo del pannello) restano col vecchio aspetto fino a M6.13-M6.14: ognuna riceve un frame semplice che
+  riempie il corpo, con 16 pt di margine.
 
 ## 4. I tre temi
 
@@ -212,7 +235,7 @@ proprio, §3). In più, per Accord:
 
 - il pannello a tinte di tema **dentro** `CommunitiesFrame` (sfondo, ordine degli strati sopra `Inset`, clic, ridimensionamento della finestra Gilda) senza taint e senza nuovi errori in combattimento;
 - l'aspetto del tema **Accord** su schermo (i colori sono scelti da un'immagine, non da una prova);
-- la dimensione della finestra autonoma e la ricerca globale accanto alle schede (proposte);
+- la dimensione della finestra autonoma, la ricerca accanto alle schede e lo spazio delle cinque schede (anche in italiano) con ricerca e Pop out nell'area stretta della finestra Gilda (scelte in M6.12);
 - il logo come icona del Compartment e della linguetta;
 - la leggibilità di Orbitron e degli accenti italiani nel titolo.
 

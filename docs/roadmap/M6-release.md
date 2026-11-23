@@ -110,8 +110,8 @@
   - In the guild window (`UI/GuildTab.lua`) the panel is themed inside Blizzard's frame, with the same tabs; Blizzard's frame is still only observed (ADR 0003).
   - Size and position remembered, Esc, `/accord`, the compartment and the key binding work as before.
 - Done when:
-  - [ ] The shell tests pass with the tabs; every view opens from its tab and from its command.
-  - [ ] Wiki: Interface Tour and Commands.
+  - [x] The shell tests pass with the tabs; every view opens from its tab and from its command.
+  - [x] Wiki: Interface Tour and Commands.
 - Real client: the panel inside the guild window, taint, combat, resizing.
 
 ### M6.13 — Views, part 1: Roster, member card, Professions

@@ -19,4 +19,6 @@ Other ways to open the window:
 
 - the **AddOn Compartment** (the addon list button next to the minimap): click *Azeroth Accord* (it carries the addon's logo, as does the window);
 - a **key binding**: *Options → Keybindings → AddOns → Azeroth Accord*, "Open or close Azeroth Accord";
-- the **Accord tab** of the guild window, then **Pop out** for the larger window.
+- the **Accord tab** of the guild window, then **Pop out** for the larger window; **Pop in**, in the title bar of that window, puts the panel back into the guild window while it is open.
+
+`/accord <view>` opens the window on that view's tab (or switches the tab, if the panel is already open in the guild window). Esc closes the window.
