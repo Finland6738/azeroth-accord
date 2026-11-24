@@ -188,8 +188,14 @@ Store.SETS = {
 		transition = function(held, rec) return ns.BankRequests.Transition(held, rec) end,   -- the content of a request never changes
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
+	guildcfg = {   -- guild settings chosen by officers (Data/Integrations.lua, M10.2): id = "sources", { raid, loot }
+		maxBytes = 256,
+		authority = function() return true end,   -- written and passed on only by officers (NET-12)
+		authorAny = true,                         -- the choice stays valid after its officer left or was demoted
+		owner = function(rec) return ns.Integrations ~= nil and ns.Integrations.ValidRecord(rec) end,
+	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

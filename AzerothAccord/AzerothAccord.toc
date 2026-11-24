@@ -6,6 +6,7 @@
 ## Version: @project-version@
 ## SavedVariables: AzerothAccordDB
 ## SavedVariablesPerCharacter: AzerothAccordCharDB
+## OptionalDeps: FinlandDragonCreditPoints
 ## AddonCompartmentFunc: AzerothAccord_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: AzerothAccord_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: AzerothAccord_OnAddonCompartmentLeave
@@ -48,6 +49,8 @@ Data\Bank.lua
 Data\BankLog.lua
 Data\BankRequests.lua
 Data\BankInbox.lua
+Data\FDCP.lua
+Data\Integrations.lua
 UI\Assets.lua
 UI\Theme.lua
 UI\Motion.lua

@@ -3,7 +3,7 @@
 --
 -- Imitates: Ambiguate, UnitName, UnitFullName, UnitGUID, UnitLevel, UnitClass, UnitRace, UnitFactionGroup, UnitIsUnit, GetRealmName,
 -- GetNormalizedRealmName, GetLocale, GetBuildInfo, WOW_PROJECT_ID / WOW_PROJECT_CAMELOT, IsLoggedIn, GetAddOnMetadata,
--- C_AddOns.GetAddOnMetadata / IsAddOnLoaded, GetMaxPlayerLevel, GetAverageItemLevel.
+-- C_AddOns.GetAddOnMetadata / IsAddOnLoaded / DoesAddOnExist / GetAddOnEnableState, GetMaxPlayerLevel, GetAverageItemLevel.
 -- Dump files: ../WoW-Addons/docs/api/ (Player-Character, AddOns-Scripting); api.json "meta" gives the build
 -- (1.60.1, interface 16001). The numeric value of WOW_PROJECT_CAMELOT is not in the dump: use the constant, never a
 -- number. GetMaxPlayerLevel and GetAverageItemLevel are "to verify" in the spec.
@@ -83,13 +83,30 @@ function IsLoggedIn() return player.loggedIn end
 function BNet_GetBattleTagSelf() return player.battleTag end
 function BNGetInfo() return 1, player.battleTag, 1, nil, false, false, false end
 
--- AddOn metadata comes from the TOC the harness parsed.
+-- AddOn metadata comes from the TOC the harness parsed. Other addons (M10.2): Mock.addons[folder] = { loaded = bool,
+-- enabled = bool (default true), version = "1.0.2" }; a folder that is not listed does not exist. Kept across Mock.Reload.
+W.addons = W.addons or {}
+Mock.addons = W.addons
 local function getMetadata(name, field)
 	if name == H.addonName then return H.tocFields[field] end
+	local a = W.addons[name]
+	if a and field == "Version" then return a.version end
 end
 GetAddOnMetadata = getMetadata
 C_AddOns = {
 	GetAddOnMetadata = getMetadata,
-	IsAddOnLoaded = function(name) return name == H.addonName or name == nil end,
+	IsAddOnLoaded = function(name)
+		if name == H.addonName or name == nil then return true end
+		local a = W.addons[name]
+		return a ~= nil and a.loaded == true
+	end,
+	DoesAddOnExist = function(name) return name == H.addonName or W.addons[name] ~= nil end,
+	-- Enum.AddOnEnableState: 0 none, 1 some characters, 2 all
+	GetAddOnEnableState = function(name)
+		if name == H.addonName then return 2 end
+		local a = W.addons[name]
+		if not a or a.enabled == false then return 0 end
+		return 2
+	end,
 }
 function IsAddOnLoaded(name) return C_AddOns.IsAddOnLoaded(name) end

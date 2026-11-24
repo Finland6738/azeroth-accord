@@ -20,7 +20,11 @@ I minuti passati in gruppo con compagni di gilda sono registrati dalla versione 
 
 ## Nessuno può scrivere i tuoi dati
 
-Ogni dato condiviso indica il personaggio che l'ha scritto, e il gioco stesso dice a ogni addon chi ha mandato un messaggio. L'addon di un compagno accetta i tuoi personaggi, contatti e ricette solo da te (o da un tuo personaggio) e passa i dati di un altro membro solo quando vengono da un ufficiale. I like e le decisioni sulla banca si accettano solo dagli ufficiali. Un addon modificato può quindi mentire solo su se stesso.
+Ogni dato condiviso indica il personaggio che l'ha scritto, e il gioco stesso dice a ogni addon chi ha mandato un messaggio. L'addon di un compagno accetta i tuoi personaggi, contatti e ricette solo da te (o da un tuo personaggio) e passa i dati di un altro membro solo quando vengono da un ufficiale. I like, le decisioni sulla banca e la scelta della gilda dei suoi addon di raid e di loot si accettano solo dagli ufficiali. Un addon modificato può quindi mentire solo su se stesso.
+
+## Altri addon
+
+Accord cerca gli addon di raid e di loot che conosce (Finland Dragon Credit Points e gli addon di loot che funzionano su WoW Forever) **solo sul tuo computer**: se ognuno è caricato e la sua versione. Non invia mai quell'elenco, non cambia, non carica e non accende mai un altro addon, e non legge mai i dati salvati di un altro addon. L'unica cosa condivisa con la gilda è la **scelta degli ufficiali** di quale addon è la fonte del roster della season e dei dati del loot (una scelta per tutta la gilda, scritta solo dagli ufficiali). Vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.
 
 ## Cosa resta sul tuo computer
 

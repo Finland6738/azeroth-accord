@@ -27,7 +27,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 
 ## 3. Insiemi di dati
 
-`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`. Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
+`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
 
 ## 4. Sincronizzazione
 
@@ -76,6 +76,6 @@ Regole di [ADR 0005](../adr/0005-trust-first-hand-records-and-officer-relays.md)
 - **Solo ufficiali** (BANK-02): un client che non è di un ufficiale rifiuta un record `restricted` da chiunque lo spedisca (motivo `restricted`); un ufficiale lo accetta solo se mittente e autore sono ufficiali (NET-12).
 - **Osservazioni** (NET-13): il co-play si accetta solo da un osservatore presente nel gruppo osservato; si unisce con il massimo.
 - Il nome del mittente arriva dal server e non si può falsificare; i contenuti sì, per questo valgono le regole sopra. Il mittente deve essere nel roster di chi riceve (nome con o senza reame); il suo GUID e il suo grado vengono dal roster, mai dal messaggio.
-- **Regole del proprietario**: oltre alla fiducia, ogni insieme dice cosa un autore può scrivere: solo il proprio record `accounts`; `contacts` e `recipes` solo di un personaggio del proprio account; `bankreq` aperte o annullate dal richiedente (o da un suo alt) con un id che comincia con il suo GUID, decise solo da ufficiali, con il contenuto che non cambia e lo stato più alto che vince ([SPEC-03 §7](SPEC-03-data-model.md#7-richieste-in-banca-bankreq)); schede riservate di `bank` solo da ufficiali.
+- **Regole del proprietario**: oltre alla fiducia, ogni insieme dice cosa un autore può scrivere: solo il proprio record `accounts`; `contacts` e `recipes` solo di un personaggio del proprio account; `bankreq` aperte o annullate dal richiedente (o da un suo alt) con un id che comincia con il suo GUID, decise solo da ufficiali, con il contenuto che non cambia e lo stato più alto che vince ([SPEC-03 §7](SPEC-03-data-model.md#7-richieste-in-banca-bankreq)); schede riservate di `bank` solo da ufficiali; `guildcfg` solo da ufficiali (NET-12, anche dopo che l'autore ha lasciato il grado) e solo con scelte valide ([SPEC-03 §8](SPEC-03-data-model.md#8-impostazioni-della-gilda-guildcfg)). Un client di una versione precedente ignora un insieme che non conosce.
 - **Forma**: `id` (massimo 64 caratteri), `author` (un GUID di giocatore), `rev` intero da 1, `time` non oltre un'ora nel futuro, dimensione massima per insieme. A parità di `rev` vince il `time` più recente, poi il GUID dell'autore maggiore: ogni client tiene la stessa versione.
 - **Conservazione**: co-play 90 giorni, registri della banca 365, richieste chiuse e cancellazioni 60; un record che scadrebbe subito si rifiuta.

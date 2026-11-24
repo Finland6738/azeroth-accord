@@ -89,3 +89,14 @@ Id `<GUID del richiedente>:<n>` (n conta le richieste di quel personaggio); l'au
 | `created` | ora del server | |
 
 Passaggi ammessi: `open` → `approved`, `rejected`, `fulfilled`, `cancelled`; `approved` → `fulfilled`, `rejected`; gli stati chiusi non si muovono. **Versione da tenere**: vince lo stato più alto (`open` < `cancelled` < `approved` < `rejected` < `fulfilled`), poi la `rev`, il `time` e l'autore: una decisione scritta nello stesso momento di un annullamento vince su tutti i client, così convergono. Il **contenuto** (richiedente, tipo, oggetto, quantità, importo, creazione) non può cambiare dopo l'apertura. Un richiedente può avere al massimo 5 richieste aperte. Le richieste chiuse si cancellano dopo 60 giorni. Tutta la gilda vede tutte le richieste.
+
+## 8. Impostazioni della gilda (`guildcfg`)
+
+Da M10.2 ([ADR 0022](../adr/0022-integrations-with-raid-and-loot-addons.md)). Scelte della gilda fatte dagli ufficiali e uguali per tutti. Oggi un solo record, id `sources`: la **fonte** di ogni dato, cioè l'addon che lo possiede per tutta la gilda (una fonte per dato).
+
+| Campo | Valori | Note |
+|---|---|---|
+| `raid` | `accord` / `fdcp` | roster della season (MS1, MS2, OS), formazione e panchina; predefinito `accord` |
+| `loot` | `none` / `fdcp` | crediti e posto in coda di un membro, riassunto delle regole del loot; predefinito `none` (Accord non ha un motore del loot) |
+
+Lo scrivono solo ufficiali e Guild Master; si accetta solo se il mittente è un ufficiale (NET-12); l'autore può aver perso il grado dopo (`authorAny`). Un record con un id diverso da `sources` o con un valore sconosciuto si rifiuta (`owner`). Senza record valgono i predefiniti. Nessuna scadenza: vale finché un ufficiale non lo cambia.

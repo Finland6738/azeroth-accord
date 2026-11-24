@@ -945,6 +945,30 @@ function Compat.Addon.MemoryKB(name)
 	return nil
 end
 
+-- Another addon, by its folder name (M10.2, ADR 0022): { exists, loaded, enabled, version } read with C_AddOns, which is
+-- in the Forever dump. Only reads: nothing of the other addon is ever changed, loaded or called. `exists` is nil when the
+-- client cannot tell (DoesAddOnExist missing), `enabled` nil when GetAddOnEnableState is missing; a loaded addon exists
+-- and is enabled. The version is the TOC's `## Version`, nil when the addon does not exist or has none.
+function Compat.Addon.State(name)
+	local out = { name = name, loaded = false }
+	if type(name) ~= "string" or name == "" then return out end
+	local loaded = first("C_AddOns.IsAddOnLoaded", name)
+	if loaded == nil then loaded = first("IsAddOnLoaded", name) end
+	out.loaded = loaded == true or loaded == 1
+	local exists = first("C_AddOns.DoesAddOnExist", name)
+	if type(exists) == "boolean" then out.exists = exists end
+	if out.loaded then out.exists = true end
+	local character = (first("UnitName", "player"))
+	local enable = first("C_AddOns.GetAddOnEnableState", name, character)
+	if type(enable) == "number" then out.enabled = enable > 0 end
+	if out.loaded then out.enabled = true end
+	if out.exists ~= false then
+		local version = first("C_AddOns.GetAddOnMetadata", name, "Version")
+		if type(version) == "string" and version ~= "" and #version <= 40 then out.version = version end
+	end
+	return out
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Build, API probe and feature capabilities
 ---------------------------------------------------------------------------------------------------------------------
@@ -1009,6 +1033,10 @@ local CAPS = {
 	{ "chat.SendAddonMessage", "chat", "C_ChatInfo.SendAddonMessage" },
 	{ "chat.RegisterAddonMessagePrefix", "chat", "C_ChatInfo.RegisterAddonMessagePrefix" },
 	{ "chat.ChatFrame_OpenChat", "chat", "ChatFrame_OpenChat", note = "FrameXML global" },
+	{ "addons.IsAddOnLoaded", "addons", "C_AddOns.IsAddOnLoaded" },
+	{ "addons.DoesAddOnExist", "addons", "C_AddOns.DoesAddOnExist" },
+	{ "addons.GetAddOnEnableState", "addons", "C_AddOns.GetAddOnEnableState" },
+	{ "addons.GetAddOnMetadata", "addons", "C_AddOns.GetAddOnMetadata" },
 	{ "time.GetServerTime", "time", "GetServerTime", call = true },
 	{ "time.GetTime", "time", "GetTime", call = true },
 	{ "time.NewTicker", "time", "C_Timer.NewTicker" },

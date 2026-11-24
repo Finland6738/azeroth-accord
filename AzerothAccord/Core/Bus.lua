@@ -17,6 +17,10 @@
 --                                                     key may be nil). Modules drop what they hold of the old guild.
 --   SETTINGS_CHANGED(key)                             UI/SettingsModel.lua; an option ("notifyOfficer", "notifyDecision"), the "main", the
 --                                                     "columns" or "clear" (guild data cleared) changed.
+--   INTEGRATIONS_CHANGED()                            Data/Integrations.lua; a known raid or loot addon was detected again with
+--                                                     another status, version or level (M10.2).
+--   SOURCES_CHANGED()                                 Data/Integrations.lua; the officers' choice of a source per datum changed
+--                                                     (locally, from an officer, or a change of guild).
 -- Later modules add their events here.
 local ADDON_NAME, ns = ...
 ns = ns or {}

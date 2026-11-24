@@ -20,7 +20,11 @@ The minutes you spend in groups with guildmates are recorded from the roster ver
 
 ## Nobody can write your data
 
-Every piece of shared data names the character that wrote it, and the game itself tells each addon who sent a message. A guildmate's addon accepts your characters, contacts and recipes only from you (or from one of your own characters), and passes on another member's data only when it comes from an officer. Likes and bank decisions are accepted only from officers. A modified addon can therefore lie only about itself.
+Every piece of shared data names the character that wrote it, and the game itself tells each addon who sent a message. A guildmate's addon accepts your characters, contacts and recipes only from you (or from one of your own characters), and passes on another member's data only when it comes from an officer. Likes, bank decisions and the guild's choice of its raid and loot addons are accepted only from officers. A modified addon can therefore lie only about itself.
+
+## Other addons
+
+Accord looks for the raid and loot addons it knows (Finland Dragon Credit Points and the loot addons that run on WoW Forever) **only on your own computer**: whether each one is loaded and its version. It never sends that list, never changes, loads or switches on another addon, and never reads another addon's saved data. The only thing shared with the guild is the **officers' choice** of which addon is the source of the season roster and of the loot data (one choice for the whole guild, written only by officers). See *[[Raid and loot addons|Raid-and-Loot-Addons]]*.
 
 ## What stays on your computer
 
