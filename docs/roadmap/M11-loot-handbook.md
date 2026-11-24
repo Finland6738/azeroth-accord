@@ -96,7 +96,7 @@ Notes:
   - two fields chosen by officers:
     - the guild's **loot system**: rolls MS/OS, soft reserve, loot council, DKP, credits, other;
     - the **loot addon**: one of the known addons of M10.2, "other" with a name, or none;
-  - who in the guild has that addon loaded (from the `HELLO` field of M10.2), with the version, and a list of who lacks it for officers;
+  - who in the guild has that addon loaded (from the addon census of M9.9, through M10.2), with the version, and a list of who lacks it for officers;
   - the download address in a read-only box to copy;
   - with no addon chosen, the page shows nothing about addons and suggests FDCP, the family's loot addon.
 - Done when:

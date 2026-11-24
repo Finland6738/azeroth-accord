@@ -40,13 +40,13 @@ La finestra della Gilda di WoW Forever è scarna: un elenco di nomi, gradi e not
 |---|---|---|
 | Fiducia nei dati | fonte ed età di ogni dato, gilda degli alt fuori gilda, modalità demo, backup personale, pannello "cosa condivido", difese contro peer scorretti | M7 |
 | Strumenti per ufficiali | cronologia del roster, inattività per account, pulizia guidata senza azioni automatiche, coda di azioni manuali, note estese, export | M8 |
-| Centro azioni | una casella per ciò che aspetta il giocatore, storico degli avvisi, ore di silenzio, riepilogo all'accesso | M9 |
+| Centro azioni | una casella per ciò che aspetta il giocatore, storico degli avvisi, ore di silenzio, riepilogo all'accesso; ricerca di gruppo solo per la gilda (dungeon, raid, quest, aiuto) con ruoli e inviti; tabella degli addon usati dai membri con i conteggi | M9 |
 | Calendario e raid | roster della season della gilda (MS1, MS2, OS, nota) da Accord o da FDCP, una sola fonte per dato; iscrizioni sul calendario del gioco; eventi di Raid-Helper da Discord incollati in gioco; panchina e composizione, disponibilità, raduni; addon di raid e loot riconosciuti; nessuna presenza | M10 |
 | Loot e manuale | pagine del manuale di gilda modificabili dagli ufficiali (info, regolamento, FAQ, raid, roster, loot); il loot è descritto con il suo addon, riconosciuto nei client della gilda, e FDCP si legge dalla sua API pubblica; nessun motore di loot | M11 |
 | Reclutamento | testo di reclutamento dai buchi della season, prove, accoglienza, mentori | M12 |
 | Economia | ordini di crafting con stati, materiali, lista dei desideri, bacheca compro/vendo con doppia conferma manuale, obiettivi di gilda | M13 |
 | Bacheca e sondaggi | annunci, storico del MOTD, sondaggi con un voto per account, like con motivo | M14 |
-| Comunità | richieste d'aiuto, avvistamenti di rari, storia della gilda, bingo e taglie, quiz, Secret Santa; tutto facoltativo, niente azzardo | M15 |
+| Comunità | avvistamenti di rari, storia della gilda, bingo e taglie, quiz, Secret Santa; tutto facoltativo, niente azzardo | M15 |
 
 Ogni milestone rilascia `v0.<milestone>.0`; le correzioni alzano l'ultimo numero; `v1.0.0` arriva quando tutte le milestone sono finite ([ADR 0020](../adr/0020-one-version-per-milestone.md)). Idee non pianificate e cosa resta fuori: [docs/roadmap/V2-backlog.md](../roadmap/V2-backlog.md).
 

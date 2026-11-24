@@ -66,7 +66,7 @@ So M10 and M11 follow these rules:
 - Scope:
   - `Data/Integrations.lua`: a table of known addons with their folder name, kind (loot or raid roster) and level. The folder names are confirmed in game before they are trusted.
   - Each one is checked with `C_AddOns.IsAddOnLoaded` and its version is read with `C_AddOns.GetAddOnMetadata`, both through Compat.
-  - The `HELLO` summary gains a compact field: which known addons this client has loaded.
+  - Which known addons each member has loaded comes from the addon census of [M9.9](M9-action-center.md#m99--guild-addons); M10.2 adds no field of its own.
   - Officers see, per addon, who has it in the guild.
   - A provider interface (season roster, lineup, loot) with Accord's own provider and the FDCP provider. The FDCP provider stays at level 0 until FDCP publishes its API.
 - Done when:
