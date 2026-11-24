@@ -3,6 +3,7 @@
 **Goal:**
 - the guild's own season raid roster: every raider declares once per season what they play;
 - event sign-ups on the game calendar, bench and composition;
+- the sign-ups of the guild's Discord events (Raid-Helper) brought into the game by pasting the event's export;
 - an availability map;
 - PvP and world rallies;
 - all of it working **with** the raid and loot addons the guild already uses, never against them.
@@ -12,6 +13,7 @@ Release: `v0.10.0`.
 **Exit criterion:** in game:
 - three members declare MS1, MS2 and OS for the season, and an officer sees the role counts and the gaps;
 - a member signs up to an event as tentative from Accord, and the same answer shows in the game's calendar;
+- an officer pastes a Raid-Helper event; the sign-ups are matched to members by their Discord name and copied into the game's calendar;
 - with Finland Dragon Credit Points (FDCP) loaded and chosen as the source, the season roster shows FDCP's declarations and Accord asks for none.
 
 **Owner's model (2026-11-19):** the season roster is not a sign-up and not an attendance register. It says what each raider plays for the whole season:
@@ -40,7 +42,8 @@ So M10 and M11 follow these rules:
 5. **If nothing is there, Accord offers it, except loot.** Without a raid addon chosen as source, Accord's own season roster, sign-ups, composition and availability work by themselves. A loot engine is never built (owner's decision of 2026-11-19, SPEC-10 Q6). The loot page names the addon to use instead.
 6. **Only loot and raid-roster addons.** Integrations are considered only with addons whose job is loot or the raid roster. Other guild-management addons are out of scope: Accord plans no integration with them, does not detect them and does not read their data (owner, 2026-11-24).
 7. **No attendance in Accord.** Attendance belongs to the raid or loot addon. FDCP keeps it per boss, for officers only. Accord keeps only the availability map, which counts no presence at raids.
-8. **Traffic is shared.** Accord and the other addons send on the same channels under the same server limits. The traffic budget of SPEC-09 counts the guild's other addons, and Accord stays quiet during boss fights as FDCP does.
+8. **Discord only by pasting.** An addon has no internet access, so Accord never talks to Discord or to a bot. The guild's Raid-Helper events come in as the export an officer copies from the event and pastes in game, and go back as text to paste in Discord. No companion app or bot ([ADR 0001](../adr/0001-client-only-addon-guild-only-data.md)).
+9. **Traffic is shared.** Accord and the other addons send on the same channels under the same server limits. The traffic budget of SPEC-09 counts the guild's other addons, and Accord stays quiet during boss fights as FDCP does.
 
 ### M10.1 — Specification
 - Branch: `step/m10-1-spec`
@@ -49,6 +52,7 @@ So M10 and M11 follow these rules:
     - the `season` data set and its trust rules;
     - the source setting and the providers;
     - events and sign-ups on the game calendar (`C_Calendar.EventSignUp` and the invite answers, checked against the Forever dump) with the fallback;
+    - the Raid-Helper import: the export formats (JSON and CSV), the matching by Discord name, and copying into the game calendar;
     - bench and composition, the availability map and rallies.
   - ADR 0022 "Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared".
   - A note in SPEC-09 on the shared traffic budget.
@@ -101,8 +105,26 @@ So M10 and M11 follow these rules:
   - [ ] A sign-up made in Accord is the same answer in the game calendar; a sign-up made in the game's calendar shows in Accord; addon-only events exist only when the calendar is missing; a member without a season entry can still sign up.
 - Real client: signing up and answering an invite on Forever; the calendar's status codes.
 
-### M10.6 — Bench and composition
-- Branch: `step/m10-6-composition`
+### M10.6 — Raid-Helper events from Discord
+- Branch: `step/m10-6-raid-helper`
+- Spec: SPEC-14; ADR 0022
+- Scope: the owner's guild runs its raid sign-ups with the Raid-Helper bot in a Discord forum channel (2026-11-24).
+  - **Import:** an officer copies the event's export (JSON, or CSV) from Raid-Helper and pastes it into a box in Accord. The parser reads the title, date and time, and each sign-up: Discord name, class and spec, role, and state (signed, tentative, late, bench, absence). It refuses text it does not understand with a clear message, and never runs anything from it.
+  - **Matching:** each sign-up is matched to a guild member by Discord name, from the contacts of M2.5 and the guild's own Discord field. Members are grouped by account, so a sign-up reaches the right character. Names that match nobody go to a list for the officer to match by hand; a hand match is remembered for later events.
+  - **In game:** the imported event is synced on `GUILD` with its date of import. Every member sees their own Discord state. Officers see:
+    - the composition by role next to the season roster;
+    - who signed up on Discord but not in the game calendar;
+    - who signed up in the game calendar but not on Discord.
+  - **Into the game calendar:** with one confirmation, the officer creates or updates the guild event (`C_Calendar.CreateGuildSignUpEvent`, `EventInvite`, `EventSetInviteStatus`, through Compat and only where the client allows an officer to set others' state), so the calendar, FDCP and Accord agree.
+  - **Back to Discord:** the composition decided in game is exported as text to paste in Discord (with M10.4's export).
+  - Accord never contacts Discord or Raid-Helper, and the import holds no data of people outside the guild beyond the unmatched names, which are dropped when the event is over.
+- Tests: `Tests/test_raid_helper.lua`: JSON and CSV samples with invented names; every state; unknown fields ignored; broken and oversized text refused; matching by Discord name across alts; the calendar calls with and without permission.
+- Done when:
+  - [ ] A pasted event shows the same sign-ups in Accord as on Discord; matched sign-ups reach the game calendar after the officer confirms; the wiki has a page on bringing Raid-Helper events into the game, in English and Italian.
+- Real client: the current export format of Raid-Helper (checked again in M10.1), and whether an officer can set the invite state of other members in a guild event on Forever.
+
+### M10.7 — Bench and composition
+- Branch: `step/m10-7-composition`
 - Spec: SPEC-14
 - Scope:
   - with Accord as source: officers place signed-up players in the raid or on the bench, and see the composition against the target. MS2 is offered when a role is short;
@@ -110,8 +132,8 @@ So M10 and M11 follow these rules:
 - Done when:
   - [ ] Only officers can change the composition; the members see where they are placed; with FDCP as source, no composition can be written in Accord.
 
-### M10.7 — Availability map
-- Branch: `step/m10-7-availability`
+### M10.8 — Availability map
+- Branch: `step/m10-8-availability`
 - Spec: SPEC-14
 - Scope:
   - when members usually play, from their presence online over time, shown by day and hour;
@@ -119,16 +141,16 @@ So M10 and M11 follow these rules:
 - Done when:
   - [ ] The map is built from online presence only; nothing about raid attendance is recorded or sent.
 
-### M10.8 — PvP and world rallies
-- Branch: `step/m10-8-rallies`
+### M10.9 — PvP and world rallies
+- Branch: `step/m10-9-rallies`
 - Spec: SPEC-14
 - Scope: a quick call with a meeting point in text and a start time, answered with "coming" or "not coming". Exact positions are never shared.
 - Done when:
   - [ ] A rally expires by itself; no coordinates are sent.
 
-### M10.9 — In-game check and release
-- Branch: `step/m10-9-check`
-- Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without) and the README status. The owner releases `v0.10.0`.
+### M10.10 — In-game check and release
+- Branch: `step/m10-10-check`
+- Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without, and a Raid-Helper event imported) and the README status. The owner releases `v0.10.0`.
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.10.0`.

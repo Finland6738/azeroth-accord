@@ -27,7 +27,7 @@ Ideas not yet planned, and what stays out of the addon. Every idea of the first 
 ## Out of scope
 
 These stay out ([ADR 0001](../adr/0001-client-only-addon-guild-only-data.md), [SPEC-00 §3](../specs/SPEC-00-vision-scope.md)):
-- companion apps, Discord bots and web dashboards;
+- companion apps, Discord bots and web dashboards (Discord events come in only by pasting their export, [M10.6](M10-calendar-raids.md#m106--raid-helper-events-from-discord));
 - data shared with other guilds, including alliances between guilds;
 - exact positions of players;
 - gambling and gold stakes;

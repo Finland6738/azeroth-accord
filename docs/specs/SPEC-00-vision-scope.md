@@ -41,7 +41,7 @@ La finestra della Gilda di WoW Forever è scarna: un elenco di nomi, gradi e not
 | Fiducia nei dati | fonte ed età di ogni dato, gilda degli alt fuori gilda, modalità demo, backup personale, pannello "cosa condivido", difese contro peer scorretti | M7 |
 | Strumenti per ufficiali | cronologia del roster, inattività per account, pulizia guidata senza azioni automatiche, coda di azioni manuali, note estese, export | M8 |
 | Centro azioni | una casella per ciò che aspetta il giocatore, storico degli avvisi, ore di silenzio, riepilogo all'accesso | M9 |
-| Calendario e raid | roster della season della gilda (MS1, MS2, OS, nota) da Accord o da FDCP, una sola fonte per dato; iscrizioni sul calendario del gioco; panchina e composizione, disponibilità, raduni; addon di raid e loot riconosciuti; nessuna presenza | M10 |
+| Calendario e raid | roster della season della gilda (MS1, MS2, OS, nota) da Accord o da FDCP, una sola fonte per dato; iscrizioni sul calendario del gioco; eventi di Raid-Helper da Discord incollati in gioco; panchina e composizione, disponibilità, raduni; addon di raid e loot riconosciuti; nessuna presenza | M10 |
 | Loot e manuale | pagine del manuale di gilda modificabili dagli ufficiali (info, regolamento, FAQ, raid, roster, loot); il loot è descritto con il suo addon, riconosciuto nei client della gilda, e FDCP si legge dalla sua API pubblica; nessun motore di loot | M11 |
 | Reclutamento | testo di reclutamento dai buchi della season, prove, accoglienza, mentori | M12 |
 | Economia | ordini di crafting con stati, materiali, lista dei desideri, bacheca compro/vendo con doppia conferma manuale, obiettivi di gilda | M13 |
