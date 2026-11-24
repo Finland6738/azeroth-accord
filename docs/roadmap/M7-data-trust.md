@@ -69,5 +69,5 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Branch: `step/m7-8-check`
 - Scope: `docs/checklists/M7.md` and the README status. The owner releases `v0.7.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists (`docs/checklists/M7.md`).
   - [ ] The in-game checks pass and the owner tags `v0.7.0`.
