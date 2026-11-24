@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - The addon's logo (`assets/logo-source.webp`) at the top of both READMEs and of the manual's Home page, as in Finland Dragon Credit Points. The NEBULA community logos for the dark and light themes (`assets/nebula-logo-dark.png`, `assets/nebula-logo-light.png`) are added for the credits of the coming About page; the game textures made from them come with the interface work.
 
+### Documentation
+
+- SPEC-11 §6.5 gains the numbers of the 1000-login scenario measured on the Linux CI (Long tests) beside the Windows ones: the same limits are met, but the convergence after the last write takes 1480 s, 20 s inside the 25-minute limit (730 s on Windows); the tight margin is noted in SPEC-10 R9.
+
 ### Added
 
 - M7.6: the **What I share** page of Settings ([SPEC-11](docs/specs/SPEC-11-data-trust.md) §5). A page between Settings and Info lists every data set this character publishes (the characters with their guild and last login, BattleTag and Discord, recipes, time played together, bank snapshots, bank requests, likes, the sync summary, and for officers their own records), who receives it, when it goes out and its current content, read from the records the client last sent (`UI/ShareModel.lua`, `UI/SharePanel.lua`). A single switch, **Record time played together** (`account.settings.shareCoplay`, on by default, schema 3 migration): off, this client neither counts nor publishes co-play and writes no new records; the records already published stay until they expire (90 days). Answers SPEC-10 Q12 (owner, 2026-11-24).

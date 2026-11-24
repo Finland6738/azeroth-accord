@@ -311,16 +311,18 @@ Il riepilogo per autore cresce di 11 B per autore ([SPEC-02 §4](SPEC-02-network
 
 Il simulatore (`Tests/sim/sim.lua`) aggiunge uno scenario: **1000 membri**, tutti con l'addon (il caso peggiore), 10 ufficiali, tutti allineati prima di un riavvio del server, poi tutti entrano entro 60 secondi; nei primi 10 minuti 50 autori scrivono qualcosa; 1% di messaggi persi, latenza 0,05–0,5 s; si misurano i primi 30 minuti. Limiti (il budget di traffico di SPEC-02 §4, più quelli della raffica):
 
-| Misura | Limite | Misurato (M7.7) |
-|---|---|---|
-| un `BHELLO` sul filo | ≤ 512 B (3 pezzi) | 437 B, 2 pezzi |
-| invio medio per client nei 30 minuti | ≤ 400 B/min | 32 B/min |
-| client più carico (un ufficiale) | ≤ 3 KB/min | 965 B/min |
-| coda di `Transport` di ogni client | mai oltre 100 messaggi; nessun `BULK` scartato | al massimo 22; nulla scartato né scaduto |
-| convergenza dopo l'ultima scrittura | ≤ 25 minuti | 730 s (circa 12 minuti) |
-| tempo di CPU del simulatore per un `BHELLO` ricevuto (blocchi propri in cache) | ≤ 1 ms offline | 0,008 ms |
+| Misura | Limite | Misurato (M7.7), Windows | Misurato (M7.7), CI Linux |
+|---|---|---|---|
+| un `BHELLO` sul filo | ≤ 512 B (3 pezzi) | 437 B, 2 pezzi | 437 B, 2 pezzi |
+| invio medio per client nei 30 minuti | ≤ 400 B/min | 32 B/min | 32 B/min |
+| client più carico (un ufficiale) | ≤ 3 KB/min | 965 B/min | 981 B/min |
+| coda di `Transport` di ogni client | mai oltre 100 messaggi; nessun `BULK` scartato | al massimo 22; nulla scartato né scaduto | al massimo 14; nulla scartato né scaduto |
+| convergenza dopo l'ultima scrittura | ≤ 25 minuti (1500 s) | 730 s (circa 12 minuti) | **1480 s** (circa 25 minuti) |
+| tempo di CPU del simulatore per un `BHELLO` ricevuto (blocchi propri in cache) | ≤ 1 ms offline | 0,008 ms | 0,005 ms |
 
-Nel giro misurato: 2000 `BHELLO` e 132 `DIGEST` in 30 minuti, circa 4 minuti e mezzo e 3–5 GB di memoria offline.
+Nei giri misurati: 2000 `BHELLO` e 132 `DIGEST` (Windows), 2175 e 152 (Linux) in 30 minuti; circa 4 minuti e mezzo su Windows e un minuto e mezzo su Linux, 3–5 GB di memoria offline. Le due piattaforme fanno percorsi casuali diversi con lo stesso seme (le dimensioni dei pezzi compressi cambiano i tempi).
+
+**Margine stretto sulla convergenza**: su Linux l'ultima scrittura si ripara 20 s prima del limite. È il caso previsto da [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione): un messaggio perso (1%) aspetta il `BHELLO` successivo di chi lo ha (15–20 minuti), e con i blocchi la riparazione passa dall'ufficiale designato, quindi a volte servono due periodi parziali. Il test non è cambiato; se un passo futuro lo fa fallire su questo punto, la scelta tra alzare il limite (con una nota in [SPEC-10](SPEC-10-risks-open-questions.md)) e accorciare la riparazione spetta al proprietario ([SPEC-10 R9](SPEC-10-risks-open-questions.md)).
 
 Se lo scenario non sta nei limiti, M7.7 cambia i parametri di questa sezione (soglia, blocchi, ritardi) e lo scrive qui; un limite si alza solo con una nota in [SPEC-10](SPEC-10-risks-open-questions.md).
 
