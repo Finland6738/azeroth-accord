@@ -78,17 +78,36 @@ i badge (richieste della banca) stanno sul titolo della scheda.
 
 | | Finestra autonoma | Dentro la finestra Gilda |
 |---|---|---|
-| Cornice | finestra propria come FDCP §6: **barra del titolo di 52 pt** (logo, "AZEROTH ACCORD" in Orbitron, stato della sincronizzazione, Pop in, chiudi), raggio 12, ombra, mobile, Esc | **nessuna barra del titolo né cornice propria**: il pannello riempie l'area dei contenuti di `CommunitiesFrame` e prende i colori del tema |
+| Cornice | finestra propria come FDCP §6: **barra del titolo di 52 pt** (logo, "AZEROTH ACCORD" in Orbitron, stato della sincronizzazione, Pop in, chiudi), raggio 12, ombra, mobile, Esc | la finestra Gilda **vestita del tema** finché la linguetta Accord è aperta (M6.18, sotto): cornice tematica con raggio 12 e ombra, il nome della gilda al posto del titolo, la croce del tema, le linguette come tessere; il pannello riempie l'area dei contenuti di `CommunitiesFrame` |
 | Schede | barra delle schede da 44 pt sotto il titolo, con l'indicatore da 2 pt | la stessa barra delle schede, in cima al pannello |
 | Ricerca globale | a destra della barra delle schede | uguale |
 | Dimensione | 920 × 600 predefinita, minimo 720 × 460, ridimensionabile (confermata in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
 | Ricordo | posizione e dimensione per personaggio | nessuno |
 
-La finestra di Blizzard è **solo osservata**, come ADR 0003 prescrive: il pannello è un frame dell'addon figlio della
-finestra, i colori si applicano ai frame dell'addon, mai a quelli di Blizzard (nessun riskin, nessuna `SetDisplayMode`,
-nessuna sostituzione di funzioni). La **linguetta** nella finestra Gilda resta il pulsante di Blizzard con l'icona
-(SPEC-10 Q2: l'icona proposta è il logo, §5); il pannello sotto di essa non ha più "il look del gioco" di
-[SPEC-04 §5](SPEC-04-ui-guild-tab-shell.md#5-stile). L'area dentro la finestra Gilda è stretta: le tabelle usano le
+**La finestra Gilda nel tema (M6.18, `UI/GuildSkin.lua`).** Il proprietario ha chiesto che tutto ciò che il giocatore vede
+sia nel nuovo aspetto, anche il nome, la cornice e le linguette a lato: finché il pannello Accord è aperto, la finestra
+`CommunitiesFrame` è vestita del tema. L'addon **non sostituisce né chiama funzioni di Blizzard** (nessuna
+`SetDisplayMode`, nessun `hooksecurefunc` in più: ADR 0003, GT-04): rende **trasparenti** (`SetAlpha(0)`, il valore vecchio è
+ricordato e rimesso) le parti grafiche della cornice di Blizzard e disegna dietro e sopra frame propri.
+
+- *Cornice.* Si azzerano l'alfa delle texture della finestra, di `NineSlice`, `TitleContainer`, `PortraitContainer` e, nell'`Inset`,
+  di `NineSlice` e `Bg`; dietro si disegna un frame dell'addon (`Theme.Panel`: riempimento `bg`, anello `border`, raggio 12,
+  ombra e luce alta), con il logo da 24 pt e il **nome della gilda** in `H1` `text-1` e una linea `border-subtle` sotto
+  (44 pt di titolo).
+- *Croce.* Il pulsante di chiusura di Blizzard resta quello che chiude (le sue texture diventano trasparenti); sopra di esso un
+  frame senza mouse porta la croce dell'icona `cross` (`text-2`, `text-1` al passaggio).
+- *Linguette a lato.* Le quattro di Blizzard (finché la linguetta Accord è aperta) e la nostra (sempre) hanno una **tessera** da
+  44 pt (`surface-2`, anello `border`; scelta: `raised` con anello `accent` e bagliore): delle linguette di Blizzard si
+  rendono trasparenti tutte le texture tranne l'icona, che resta (è ciò che la linguetta fa). La nostra è un pulsante semplice
+  con il logo tondo, senza il modello di linguetta di Blizzard, e porta il segno con il conteggio delle richieste.
+- *Quando.* La veste si mette quando si apre il pannello Accord e si toglie (alfa ripristinato, frame nascosti) quando si
+  sceglie una linguetta di Blizzard, si chiude la finestra o si cambia comunità: i contenuti di Blizzard (chat, roster, vantaggi)
+  restano sulla loro grafica. Il tema cambiato si vede subito.
+- *Prudenza.* Ogni parte è cercata per nome sotto `pcall`: una finestra con un'altra struttura fa perdere una parte
+  dell'aspetto, mai un errore; `/accord debug` (sezione "Guild window skin") dice quante parti ha trovato. **Non verificato nel
+  client**: i nomi delle parti (§7).
+
+L'area dentro la finestra Gilda è stretta: le tabelle usano le
 colonne scelte dal giocatore e il pulsante **Pop out** apre la stessa vista nella finestra autonoma, più larga.
 
 Densità: come FDCP (righe di 36-40 pt, testo 13 pt). Una gilda di 1000 membri resta sulle righe riciclate da un pool
@@ -284,6 +303,7 @@ frazionaria e `Px()` a più scale dell'interfaccia; fusione `ADD` dei bagliori; 
 font; menu senza `UIDropDownMenu` (il template `ScrollBox` e il ripiego `FauxScrollFrame` non servono più: DataTable è un pool
 proprio, §3). In più, per Accord:
 
+- la **veste della finestra Gilda** (M6.18): i nomi delle parti di `CommunitiesFrame` che si rendono trasparenti (`NineSlice`, `TitleContainer`, `PortraitContainer`, `CloseButton`, le texture proprie), se Blizzard le rimostra da sé, l'aspetto delle tessere delle linguette e che nessun taint compaia;
 - il pannello a tinte di tema **dentro** `CommunitiesFrame` (sfondo, ordine degli strati sopra `Inset`, clic, ridimensionamento della finestra Gilda) senza taint e senza nuovi errori in combattimento;
 - l'aspetto del tema **Accord** su schermo (i colori sono scelti da un'immagine, non da una prova);
 - la dimensione della finestra autonoma, la ricerca accanto alle schede e lo spazio delle cinque schede (anche in italiano) con ricerca e Pop out nell'area stretta della finestra Gilda (scelte in M6.12);
@@ -309,8 +329,7 @@ disegnate nel nuovo aspetto, con gli strumenti di FDCP adattati (`tools/make_moc
 - **Che cosa si disegna.** Il layout reale: schede lungo il bordo alto (con il conteggio sulla Banca), ricerca e Pop out a destra, riga
   di stato in fondo nella finestra Gilda, barra del titolo con logo, nome in Orbitron e stato nella finestra autonoma (920 × 600), la
   pagina Impostazioni e la pagina Info come colonna di card larga 520 con il selettore a pillole in alto. Tutti i testi sono letti dai
-  file di lingua (inglese, e italiano per le anteprime in italiano). La cornice della finestra Gilda del gioco è un'imitazione originale
-  (non arte di Blizzard); il pannello dentro è quello dell'addon.
+  file di lingua (inglese, e italiano per le anteprime in italiano). La finestra Gilda è disegnata come l'addon la veste (§3, M6.18): cornice tematica, nome della gilda, croce e linguette come tessere, con icone a linee generiche al posto di quelle del gioco (nessuna arte di Blizzard).
 - **Quali anteprime.** Le 24 di M6.6 ridisegnate in Nebula (la scheda Accord, Roster in tabella e raggruppato, scheda membro, ricette e
   *chi può creare*, like, indice sociale, mappa dei gruppi, *qualcuno di nuovo*, i sette modi della Banca, Impostazioni in due parti con la
   scheda Aspetto, la scatola di diagnostica, la finestra autonoma, tre in italiano) più: la pagina **Info** in Nebula (logo NEBULA scuro) e

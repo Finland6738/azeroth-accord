@@ -12,10 +12,10 @@ Apri la finestra della gilda (tasto predefinito `J`). Sotto le quattro schede de
 
 *Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
 
-- Cliccarla mostra il pannello di Accord sopra il contenuto della finestra della gilda, nei colori del tema (la finestra del gioco intorno non cambia). Cliccare una qualsiasi scheda del gioco torna a essa; chiudere la finestra chiude il pannello.
+- Cliccarla mostra il pannello di Accord sopra il contenuto della finestra della gilda, nei colori del tema, e finché è aperto **anche la finestra intorno ha il tema**: una cornice tematica con il nome della tua gilda, una croce tematica e le cinque schede a lato come tessere arrotondate (quella aperta ha il colore d'accento). Cliccare una qualsiasi scheda del gioco rimette l'aspetto del gioco e torna al suo contenuto; chiudere la finestra chiude il pannello.
 - Quando ci sono richieste alla banca che aspettano gli ufficiali, la scheda porta un piccolo segno rotondo con il loro numero.
 - La scheda si vede solo quando la tua **gilda** è la comunità selezionata, e non nella finestra piccola (ridotta) della gilda.
-- Il pannello non ha nulla di protetto: si apre e si chiude anche in combattimento e non cambia mai come funzionano le schede del gioco.
+- Il pannello non ha nulla di protetto: si apre e si chiude anche in combattimento e non cambia mai come funzionano le schede del gioco: l'addon rende soltanto trasparente la grafica della finestra del gioco finché il pannello è aperto e la rimette dopo.
 - Se un aggiornamento del gioco cambia la finestra della gilda al punto che la scheda non si può collocare, la scheda semplicemente non compare: usa `/accord` per la finestra autonoma, e `/accord debug` dice perché.
 
 ## Il pannello

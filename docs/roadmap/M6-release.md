@@ -2,7 +2,7 @@
 
 **Goal:** `v0.6.0`: settings, Italian interface, polish, packaging, the images of the manual and the full manual, and the look of the owner's other addon, Finland Dragon Credit Points (FDCP), with the About page and the credits.
 
-**The ecosystem look (M6.8–M6.17).** On 2026-11-23 the owner asked that Accord look like FDCP, so that the two addons read as one family, and approved this plan inside M6, so that `v0.6.0` ships with the new look. FDCP, in `../finland-dragon-credit-points`, is only read, never changed; its files are copied and adapted (names, prefixes, SavedVariables), with no shared library. Its graphic specification is FDCP's `docs/specs/ui-style.md`. Every step keeps the rules: no Blizzard art copied into the repository, no text written in the code (every string is a locale key, English and Italian), only the public name "Finland", and the pull request says what was not seen in game.
+**The ecosystem look (M6.8–M6.18).** On 2026-11-23 the owner asked that Accord look like FDCP, so that the two addons read as one family, and approved this plan inside M6, so that `v0.6.0` ships with the new look. FDCP, in `../finland-dragon-credit-points`, is only read, never changed; its files are copied and adapted (names, prefixes, SavedVariables), with no shared library. Its graphic specification is FDCP's `docs/specs/ui-style.md`. Every step keeps the rules: no Blizzard art copied into the repository, no text written in the code (every string is a locale key, English and Italian), only the public name "Finland", and the pull request says what was not seen in game.
 
 ### M6.1 — Settings
 - Branch: `step/m6-1-settings`
@@ -58,7 +58,7 @@
 - Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v0.6.0` (the tag waits for the owner; `v1.0.0` comes after M15, [ADR 0020](../adr/0020-one-version-per-milestone.md)).
 - Done when:
   - [x] [`docs/checklists/release.md`](../checklists/release.md) (the order of the checks M1 to M5 and this one, what is not known yet, the package, Settings and the game's settings window, Italian, performance and S11, errors and the report, the pictures, the workflow dry run and test tag, the owner's open decisions, the release steps), the wiki (every page with its images, the Settings page, FAQ, Installation, Reporting), both READMEs, the status of every document.
-  - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 0.6.0`); the tag `v0.6.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)). The tag also waits for the ecosystem look, M6.8 to M6.17, whose checks M6.16 adds to the release checklist.
+  - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 0.6.0`); the tag `v0.6.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)). The tag also waits for the ecosystem look, M6.8 to M6.18, whose checks M6.16 adds to the release checklist.
 
 ### M6.8 — Interface style specification
 - Branch: `step/m6-8-ui-style`
@@ -172,3 +172,15 @@
 - Scope: an Italian twin `<Page>-it.md` of every wiki page, a language link at the top of each page, and both languages in `_Sidebar.md`. `tools/check_docs.py` checks that every page has its twin and that both show the same images.
 - Done when:
   - [x] Every wiki page has its Italian twin; ADR 0015 records the change; `tools/check_docs.py` passes.
+
+### M6.18 — The guild window in the theme
+- Branch: `step/m6-18-guild-window-look`
+- Spec: SPEC-04 (GT-07); ADR 0003 (update); `ui-style.md` §3
+- Scope: the owner asked (2026-11-24) that everything a player sees is in the new look, the guild window's name, frame and side tabs too (the addon has not been released, so no player knows the old look).
+  - `UI/GuildSkin.lua`: while the Accord panel is open, Blizzard's art of the guild window (its textures, `NineSlice`, title, portrait, the close button's art, the side tabs' backgrounds) is made transparent (`SetAlpha(0)`, the old value kept and put back); a themed frame with the guild's name and a themed cross are drawn, and the five side tabs are themed tiles. No Blizzard function is replaced or called (GT-04).
+  - `UI/GuildTab.lua`: the Accord tab is a plain button with the logo and a tile, no longer Blizzard's tab template; the skin goes on with the panel and off with it.
+  - The previews draw the guild window in the theme; the release check (step 7) and the wiki say what to look for.
+- Tests: `Tests/test_guild_skin.lua` on the mock window (`Mock.communities.withoutChrome`): the chrome goes transparent and comes back, the tiles and their states, the theme change, a window without the template's art, `/accord debug`.
+- Done when:
+  - [x] The tests and `tools/check_docs.py` pass; the previews, the wiki (both languages) and the release check show the window in the theme.
+- Real client: the names of the window's parts (`NineSlice`, `TitleContainer`, `PortraitContainer`, `CloseButton`), whether Blizzard shows a part again by itself, the tiles over the tabs, taint ([the release check](../checklists/release.md), step 7).

@@ -13,12 +13,13 @@
 --   Mock.communities.SelectClub(id)    the player selects a community in the list (the guild is C_Club.GetGuildClubId())
 --   Mock.communities.Minimize()        the player shrinks the window (display mode MINIMIZED)
 --   Mock.communities.withoutTabs       when true at Load, the frame has no side tabs (a changed layout, GT-05)
+--   Mock.communities.withoutChrome     when true at Load, the frame has none of the template's art (NineSlice, title, close button...)
 --   Mock.communities.setDisplayModeCalls  how many times SetDisplayMode ran, and Mock.communities.addonCalls how many of
 --                                      them did not come from the mock itself (an addon called it: forbidden, GT-04)
 local Mock, H = ...
 local W = Mock.world
 
-W.communities = W.communities or { loaded = false, withoutTabs = false, setDisplayModeCalls = 0, addonCalls = 0 }
+W.communities = W.communities or { loaded = false, withoutTabs = false, withoutChrome = false, setDisplayModeCalls = 0, addonCalls = 0 }
 local cm = W.communities
 Mock.communities = cm
 cm.loaded = false   -- the Lua state is new: the load-on-demand addon is not loaded again until something opens it
@@ -38,6 +39,21 @@ local function build()
 	cf.Inset:SetPoint("TOPLEFT", cf, "TOPLEFT", 4, -60)
 	cf.Inset:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -6, 26)
 	cf.CommunitiesList = CreateFrame("Frame", nil, cf)
+	if not cm.withoutChrome then
+		-- the parts of PortraitFrameTemplate that the guild window skin of the addon makes transparent (M6.18, UI/GuildSkin.lua)
+		cf.NineSlice = CreateFrame("Frame", nil, cf)
+		cf.TitleContainer = CreateFrame("Frame", nil, cf)
+		cf.TitleContainer.TitleText = cf.TitleContainer:CreateFontString(nil, "OVERLAY")
+		cf.TitleContainer.TitleText:SetText("Lantern Company")
+		cf.PortraitContainer = CreateFrame("Frame", nil, cf)
+		cf.Bg = cf:CreateTexture(nil, "BACKGROUND")
+		cf.TopTileStreaks = cf:CreateTexture(nil, "BACKGROUND")
+		cf.CloseButton = CreateFrame("Button", nil, cf)
+		cf.CloseButton:SetSize(24, 24)
+		cf.CloseButton.Border = cf.CloseButton:CreateTexture(nil, "BACKGROUND")
+		cf.Inset.NineSlice = CreateFrame("Frame", nil, cf.Inset)
+		cf.Inset.Bg = cf.Inset:CreateTexture(nil, "BACKGROUND")
+	end
 	cf.selectedClub = C_Club.GetGuildClubId()
 	cf.displayMode = COMMUNITIES_FRAME_DISPLAY_MODES.ROSTER
 	function cf:GetSelectedClubId() return self.selectedClub end
@@ -61,6 +77,8 @@ local function build()
 				cf:SetDisplayMode(COMMUNITIES_FRAME_DISPLAY_MODES[mode])
 				fromMock = false
 			end)
+			tab.Icon = tab:CreateTexture(nil, "ARTWORK")
+			tab.Background = tab:CreateTexture(nil, "BACKGROUND")
 			cf[key] = tab
 			previous = tab
 		end

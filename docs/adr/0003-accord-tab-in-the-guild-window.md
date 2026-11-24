@@ -13,6 +13,10 @@ The owner wants the addon to live where players already look: the guild window (
 2. Clicking it shows **the addon's own panel** over the content area of the window. The addon **never calls** Blizzard's `SetDisplayMode` and never replaces Blizzard functions: it only observes them with `hooksecurefunc` / `HookScript`, so that clicking a Blizzard tab hides the Accord panel.
 3. The same panel can also open in a **standalone window** (`/accord`, the AddOn Compartment, a key binding). This is the fallback if S1 finds taint or layout problems, and the way to use the addon while the guild window is closed.
 
+## Update (M6.18)
+
+The owner asked that everything a player sees is in the new look, the window's name, frame and side tabs too ([ADR 0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md) said Blizzard's frame stays only observed). Decision 2 stands (no `SetDisplayMode`, no replaced Blizzard function), and one rule is added: **while the Accord panel is open the guild window is dressed in the theme** (`UI/GuildSkin.lua`, GT-07). The Blizzard art of the frame (its own textures, `NineSlice`, title, portrait, the close button's art, the backgrounds of the side tabs) is made transparent with `SetAlpha(0)`, the old alpha is kept and put back when the panel closes, another Blizzard tab is chosen, the window closes or another community is selected; the themed frame, the guild's name, the cross and the tab tiles are frames of the addon. The Accord tab is a plain button, no longer Blizzard's tab template. The icons of Blizzard's tabs stay (they are what the tabs do). Risk: a layout the addon does not know (each part is looked up by name under `pcall`: it costs a part of the look, never an error) and Blizzard re-showing a part; both are to check in the real client ([the release check](../checklists/release.md), step 7).
+
 ## Alternatives considered
 
 - **Replacing a Blizzard tab or the display mode.** Taint risk in a window that hosts protected actions.

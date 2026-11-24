@@ -13,6 +13,6 @@ The interface of Azeroth Accord follows the look of Finland Dragon Credit Points
 | The theme of the logo's colours | Accord (green and gold) beside FDCP's Drago, the two themes that come from a logo |
 | Tokens and components | the colour tokens of the themes and the pieces of the kit, side by side |
 
-The two sets are **drawings made in a browser**: font smoothing, exact spacing and the frame of the game's guild window (an original imitation in Accord's previews) differ from the real client, and neither addon has been looked at in the real client yet ([the release check](../../../checklists/release.md), step 7, does that).
+The two sets are **drawings made in a browser**: font smoothing and exact spacing, and the way the game's guild window is dressed in the theme (`UI/GuildSkin.lua`, which makes Blizzard's art transparent: the names of its parts are not verified), may differ from the real client, and neither addon has been looked at in the real client yet ([the release check](../../../checklists/release.md), step 7, does that).
 
 Made by `python tools/make_compare.py` (Pillow; it reads, and never changes, `../finland-dragon-credit-points/docs/specs/mockups/` next to this repository). The sheet is a committed picture: rerun the tool after the previews of either addon change. The labels are set in Outfit (SIL OFL 1.1).

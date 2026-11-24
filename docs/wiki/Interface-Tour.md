@@ -12,10 +12,10 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
-- Clicking it shows the Accord panel over the content of the guild window, in the colours of the theme (the game's own window around it is not changed). Clicking any of the game's tabs goes back to it; closing the window closes the panel.
+- Clicking it shows the Accord panel over the content of the guild window, in the colours of the theme, and while it is open **the window around it wears the theme too**: a themed frame with the name of your guild, a themed cross, and the five side tabs as rounded tiles (the open one has the accent colour). Clicking any of the game's tabs puts the game's own look back and goes back to its content; closing the window closes the panel.
 - When officers have bank requests waiting, the tab carries a small round mark with their number.
 - The tab shows only while your **guild** is the selected community, and not in the small (minimized) guild window.
-- The panel has nothing protected in it: it opens and closes in combat too, and it never changes how the game's own tabs work.
+- The panel has nothing protected in it: it opens and closes in combat too, and it never changes how the game's own tabs work: the addon only makes the game's window art see-through while the panel is open and puts it back afterwards.
 - If a game update changes the guild window so much that the tab cannot be placed, the tab simply does not appear: use `/accord` for the standalone window, and `/accord debug` says why.
 
 ## The panel

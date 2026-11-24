@@ -179,7 +179,7 @@ describe("GT-04: nothing of Blizzard's is replaced or driven", function()
 	end)
 
 	it("the addon's source never calls SetDisplayMode nor assigns to a Blizzard frame", function()
-		for _, file in ipairs({ "AzerothAccord/UI/GuildTab.lua", "AzerothAccord/UI/Shell.lua", "AzerothAccord/UI/Window.lua" }) do
+		for _, file in ipairs({ "AzerothAccord/UI/GuildTab.lua", "AzerothAccord/UI/GuildSkin.lua", "AzerothAccord/UI/Shell.lua", "AzerothAccord/UI/Window.lua" }) do
 			local source = Mock.ReadSource(file)
 			notNil(source, file)
 			local code = source:gsub("%-%-[^\n]*", "")
@@ -203,18 +203,11 @@ describe("GT-05: a changed guild window", function()
 		eq(#Mock.errors, 0)
 	end)
 
-	it("a template the client lacks falls back to a plain button", function()
-		T.boot(function(M)
-			guild()
-			local create = CreateFrame
-			CreateFrame = function(kind, name, parent, template)
-				if template == "CommunitiesFrameTabTemplate" and name == "AzerothAccordGuildTab" then error("Couldn't find inherited node") end
-				return create(kind, name, parent, template)
-			end
-		end)
+	it("the Accord tab is a plain button in the addon's look, not Blizzard's tab template (M6.18)", function()
 		Mock.communities.Open()
 		notNil(Tab().tab)
-		ne(Tab().template, "CommunitiesFrameTabTemplate")
+		eq(Tab().template, "")
+		notNil(A().GuildSkin.tiles[Tab().tab])
 	end)
 end)
 

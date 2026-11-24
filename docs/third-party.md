@@ -52,7 +52,7 @@ comes from outside the repository (GPL-3.0):
 
 ## The design previews
 
-The pictures of `docs/specs/mockups/` (the wiki and README images) are drawings made by `tools/make_mockups.py` in a local browser: they show the glyphs of the fonts above (Outfit, JetBrains Mono and Orbitron, read from `AzerothAccord/Media/Fonts/`, SIL OFL 1.1), the addon's logo and the NEBULA logos (same permission as above). They contain no Blizzard art; the frame of the game's guild window in them is an original imitation. The comparison sheet also shows previews of Finland Dragon Credit Points (same owner, GPL-3.0).
+The pictures of `docs/specs/mockups/` (the wiki and README images) are drawings made by `tools/make_mockups.py` in a local browser: they show the glyphs of the fonts above (Outfit, JetBrains Mono and Orbitron, read from `AzerothAccord/Media/Fonts/`, SIL OFL 1.1), the addon's logo and the NEBULA logos (same permission as above). They contain no Blizzard art; the game's guild window in them is drawn in the theme with generic line icons. The comparison sheet also shows previews of Finland Dragon Credit Points (same owner, GPL-3.0).
 
 ## Game art
 

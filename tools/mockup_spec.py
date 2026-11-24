@@ -56,15 +56,15 @@ def _page(body, theme="nebula"):
 
 def pages():
     out = {"00-design-system": _page(design_system())}
-    out["01-accord-tab"] = _page(s1.s_accord_tab() + "".join([callout(1, 1100, 330), callout(2, 160, 56), callout(3, 905, 50), callout(4, 175, 106), callout(5, 128, 160),
-                                                              callout(6, 1050, 276), callout(7, 1031, 50), callout(8, 430, 658)]) +
+    out["01-accord-tab"] = _page(s1.s_accord_tab() + "".join([callout(1, 1100, 330), callout(2, 168, 46), callout(3, 905, 50), callout(4, 130, 100), callout(5, 26, 166),
+                                                              callout(6, 1064, 262), callout(7, 1031, 50), callout(8, 420, 672)]) +
                                  legend(["The Accord tab, under the game's four (the addon's logo)", "The views as tabs: Roster, Professions, Reputation, Bank, Settings", "Search, and Pop out: the same panel in a window of its own",
                                          "Filters: online, mains only, by account, class, rank, profession, and the column chooser", "Sortable column titles; the sorted one is in the accent colour",
                                          "A click on a row opens the member card", "Pop out", "The sync state: guildmates with the addon, last update"]))
     out["02-member-card"] = _page(s1.s_member_card() + "".join([callout(1, 764, 148), callout(2, 764, 238), callout(3, 764, 366), callout(4, 764, 474), callout(5, 764, 582), callout(6, 764, 650)]) +
                                   legend(["The member: class square, name, level, class and badges (online, main, addon)", "Details", "Professions and the source of each (the game or the member's addon)",
                                           "Every character of the same account", "Contacts: a click copies; Add BattleTag friend", "A long card scrolls with the mouse wheel: likes (one per player, irreversible) and the social index come after"], left=True))
-    out["03-bank-requests"] = _page(s2.s_bank_requests() + "".join([callout(1, 70, 106), callout(2, 1060, 150), callout(3, 316, 272), callout(4, 900, 309), callout(5, 694, 309), callout(6, 395, 60)]) +
+    out["03-bank-requests"] = _page(s2.s_bank_requests() + "".join([callout(1, 24, 128), callout(2, 1066, 150), callout(3, 316, 272), callout(4, 900, 309), callout(5, 587, 309), callout(6, 362, 44)]) +
                                     legend(["Bank modes as pills: Tabs, Items, Log, Donations, Money, Requests, Inbox", "The form in a card: kind, item, how many, reason, Send", "Filters: only mine, closed ones too",
                                             "Every request of the guild, newest first", "Status: Open, Approved, Rejected, Fulfilled, Cancelled", "The count of requests waiting, on the tab"]))
     return out

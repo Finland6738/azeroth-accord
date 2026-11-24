@@ -12,6 +12,7 @@ La `CommunitiesFrame` ha sulla destra le tab Chat, Roster, Guild Benefits e Guil
 | GT-04 | L'addon non chiama `SetDisplayMode` e non sostituisce funzioni di Blizzard. |
 | GT-05 | Se la `CommunitiesFrame` cambia struttura (Compat non trova le tab) la tab non compare e resta la finestra autonoma; `/accord debug` lo segnala. |
 | GT-06 | In combattimento il pannello si apre e si chiude normalmente: non contiene azioni protette. |
+| GT-07 | Finché il pannello è aperto la finestra Gilda è nel tema (M6.18, `UI/GuildSkin.lua`, [`ui-style.md`](ui-style.md) §3): le parti grafiche di Blizzard diventano trasparenti (alfa ripristinato quando il pannello si chiude), dietro si disegna una cornice tematica con il nome della gilda e la croce, le linguette sono tessere tematiche. Nessuna funzione di Blizzard è sostituita o chiamata (GT-04). |
 
 Realizzazione (`UI/GuildTab.lua`, M1.8):
 
