@@ -37,6 +37,7 @@
 | **Raid and loot addons** | Works with the guild's loot addon instead of replacing it: the officers choose Finland Dragon Credit Points as the source, and the **Raid** view shows its season pool (MS1, MS2, OS), the night's lineup and bench and its loot rules, and the member card shows a member's credits and place in the loot queue, all read-only; no loot engine and no attendance in Accord |
 | **Personal backup** | `/accord backup` exports your own data (characters, main, settings, your own records, the account token) to a text and imports it on another computer, after checking it and showing what changes; other players' data is never in it |
 | **Demo mode** | `/accord demo` fills every view with an invented guild, with no guild and no network: nothing is sent or saved, and your real data comes back untouched |
+| **Robust sync** | A damaged, oversized or forged message is refused, a guildmate's addon that floods the channel is ignored for 10 minutes, guilds of up to 1000 members with the addon sync with a compact block summary (tried in the network simulator), and Forever full names with a space ("Name Surname") work everywhere |
 
 Everything stays **inside your guild**: the addon talks only over the guild's hidden addon channels, with no server, no internet and no telemetry.
 

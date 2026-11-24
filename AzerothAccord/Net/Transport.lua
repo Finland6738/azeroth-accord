@@ -18,7 +18,11 @@
 --   * every message carries the guild key it was written for: it waits while the guild is not known yet and is dropped
 --     if the character is in another guild by then (a message of one guild never reaches another);
 --   * at logout the waiting messages are saved in AzerothAccordCharDB.outbox and queued again at the next login
---     (without their callbacks), so nothing is lost while the game is closed (SPEC-02 §5).
+--     (without their callbacks), so nothing is lost while the game is closed (SPEC-02 §5);
+--   * receiving (SPEC-11 §6.3): a sender that makes this client decode more than FLOOD[1] bytes in FLOOD[2] seconds is in
+--     quarantine for QUARANTINE seconds: every message of it is dropped before decoding. Net/Sync.lua puts a sender in
+--     quarantine too (too many refused records). The counters start again at every change of guild. Receiving never
+--     touches the send queue.
 --
 -- Bus events: NET_MESSAGE(msg, sender, dist), PROTOCOL_NEWER() once per session, TRANSPORT_READ_ONLY(active).
 -- Sender names go to the Bus and nowhere else: never printed, never stored here.
@@ -43,15 +47,18 @@ Transport.TICK = 0.2              -- pass interval of the queue while it holds m
 Transport.QUEUE_MAX = 200         -- pending messages (all distributions together)
 Transport.LOCKDOWN_RECHECK = 1    -- seconds to wait after the client refused a message with "lockdown"
 Transport.SAVED_MAX_AGE = 86400   -- a saved message older than this (server time) is not sent again
-Transport.RATE = { HELLO = { 1, 300 }, OHELLO = { 1, 300 } }   -- type -> { count, seconds }
+-- type -> { count, seconds }; DIGEST: at most one every 2 s, the others wait in the queue with their key (SPEC-11 §6.4)
+Transport.RATE = { HELLO = { 1, 300 }, BHELLO = { 1, 300 }, OHELLO = { 1, 300 }, DIGEST = { 1, 2 } }
+Transport.FLOOD = { 262144, 60 }  -- decoded bytes a sender may make this client decode per window of seconds
+Transport.QUARANTINE = 600        -- seconds every message of a flooding sender is dropped before decoding
 
 Transport.DISTS = { GUILD = true, OFFICER = true, WHISPER = true }
 local RANK = { ALERT = 1, NORMAL = 2, BULK = 3 }
 
 -- Default priority per message type; types the table does not list go NORMAL.
 Transport.PRIORITY = {
-	DIGEST = "ALERT", REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT", LEDGER = "ALERT",
-	HELLO = "NORMAL", OHELLO = "NORMAL", REC = "NORMAL",
+	REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT", LEDGER = "ALERT",
+	HELLO = "NORMAL", BHELLO = "NORMAL", OHELLO = "NORMAL", REC = "NORMAL", DIGEST = "NORMAL",
 }
 
 -- Retail codes; the client's own Enum.SendAddonMessageResult wins when it exists (M0 S5 reads the real values).
@@ -89,7 +96,7 @@ local function newStats()
 	return {
 		sent = 0, sentBytes = 0, failed = 0, throttled = 0, retried = 0, coalesced = 0, restored = 0, saved = 0,
 		dropped = 0, droppedBy = {}, demoRefused = 0,     -- send side: reason -> count; refused in demo mode (M7.4)
-		received = 0, rxDropped = 0, rxReasons = {}, rxNewer = 0, echoes = 0,
+		received = 0, rxDropped = 0, rxReasons = {}, rxNewer = 0, echoes = 0, quarantined = 0,
 		encodeFailed = 0, callbackErrors = 0,
 		sentBy = { GUILD = 0, OFFICER = 0, WHISPER = 0 }, bytesBy = { GUILD = 0, OFFICER = 0, WHISPER = 0 },
 	}
@@ -103,6 +110,7 @@ local function resetState()
 		lastAt = {}, typeLog = {}, holdUntil = {},
 		held = nil, readOnly = false,                -- why nothing is handed to the client right now
 		newerNotified = false,
+		flood = {}, quarantine = {},                 -- lower-case sender -> { start, bytes } / time the quarantine ends
 		stats = newStats(),
 	}
 	Transport.state = state
@@ -549,9 +557,57 @@ end
 function Transport.IsSelf(sender)
 	if type(sender) ~= "string" then return false end
 	local C = compat()
-	local name, realm = sender:match("^([^%-]+)%-?(.*)$")
+	local name, realm = C.SplitName(sender)   -- "Name Surname-Realm": the realm after the last hyphen (SPEC-11 §6.6)
 	if not name or name ~= C.Player.Name() then return false end
-	return realm == "" or realm == C.Player.Realm()
+	return realm == nil or realm == C.Player.Realm()
+end
+
+local function senderKey(sender) return type(sender) == "string" and sender:lower() or "?" end
+
+-- Puts `sender` in quarantine for QUARANTINE seconds (SPEC-11 §6.3): its messages are dropped before decoding. The
+-- name stays in this table only, never in /accord debug.
+function Transport:Quarantine(sender)
+	local key = senderKey(sender)
+	if not ((state.quarantine[key] or 0) > now()) then state.stats.quarantined = state.stats.quarantined + 1 end
+	state.quarantine[key] = now() + Transport.QUARANTINE
+	state.flood[key] = nil
+end
+
+function Transport:IsQuarantined(sender)
+	local key = senderKey(sender)
+	local untilAt = state.quarantine[key]
+	if untilAt and untilAt <= now() then state.quarantine[key], untilAt = nil, nil end
+	return untilAt ~= nil
+end
+
+-- How many senders are in quarantine now.
+function Transport:QuarantineCount()
+	local n, t = 0, now()
+	for key, untilAt in pairs(state.quarantine) do
+		if untilAt > t then n = n + 1 else state.quarantine[key] = nil end
+	end
+	return n
+end
+
+-- The counters per sender start again (a change of guild).
+function Transport:ResetFlood()
+	state.flood, state.quarantine = {}, {}
+end
+
+-- Adds `bytes` decoded for `sender`; true when the sender went over FLOOD and is now in quarantine.
+local function countDecoded(sender, bytes)
+	local key, t = senderKey(sender), now()
+	local w = state.flood[key]
+	if not w or t - w.start >= Transport.FLOOD[2] then
+		w = { start = t, bytes = 0 }
+		state.flood[key] = w
+	end
+	w.bytes = w.bytes + (tonumber(bytes) or 0)
+	if w.bytes > Transport.FLOOD[1] then
+		Transport:Quarantine(sender)
+		return true
+	end
+	return false
 end
 
 -- Called by AceComm with a whole (reassembled) text. Returns true when a message went to the Bus.
@@ -572,14 +628,22 @@ function Transport:OnReceive(text, dist, sender)
 		end
 		return false, "self"
 	end
+	if Transport:IsQuarantined(sender) then   -- dropped before decoding (SPEC-11 §6.3)
+		s.rxDropped = s.rxDropped + 1
+		s.rxReasons.quarantine = (s.rxReasons.quarantine or 0) + 1
+		return false, "quarantine"
+	end
 	local Codec = ns.Codec
-	local msg, reason
+	local msg, reason, size
 	if not Transport.DISTS[dist] then
 		msg, reason = nil, "dist"
 	elseif not Codec then
 		msg, reason = nil, "nocodec"
 	else
-		msg, reason = Codec:Decode(text)
+		msg, reason, size = Codec:Decode(text)
+		if countDecoded(sender, size or (type(text) == "string" and #text or 0)) then
+			msg, reason = nil, "flood"
+		end
 	end
 	if not msg then
 		if reason == "newer" then
@@ -633,6 +697,7 @@ function Transport:Stats()
 		failed = s.failed, throttled = s.throttled, retried = s.retried, coalesced = s.coalesced, restored = s.restored,
 		saved = s.saved, dropped = s.dropped, droppedBy = copyCounts(s.droppedBy), demoRefused = s.demoRefused,
 		received = s.received, rxDropped = s.rxDropped, rxReasons = copyCounts(s.rxReasons), rxNewer = s.rxNewer,
+		quarantined = s.quarantined, quarantinedNow = Transport:QuarantineCount(),
 		echoes = s.echoes, encodeFailed = s.encodeFailed, callbackErrors = s.callbackErrors,
 		readOnly = state.readOnly, held = state.held,
 	}
@@ -659,6 +724,7 @@ function Transport:DebugLines()
 			st.coalesced, st.dropped, countsText(st.droppedBy)),
 		("  received %d, own echoes %d, rejected %d%s, newer protocol %d"):format(st.received, st.echoes, st.rxDropped,
 			countsText(st.rxReasons), st.rxNewer),
+		("  senders in quarantine: %d now, %d this session"):format(st.quarantinedNow, st.quarantined),
 		st.demoRefused > 0 and ("  refused in demo mode: %d"):format(st.demoRefused) or nil,
 	}
 end
@@ -672,5 +738,6 @@ if ns.addon then
 	-- each module embeds AceEvent itself: one handler per event and object, so modules never replace each other's
 	LibStub("AceEvent-3.0"):Embed(Transport)
 	Transport:RegisterEvent("PLAYER_LOGOUT", function() Transport:SaveQueue() end)
+	if ns.Bus then ns.Bus:On("GUILD_CHANGED", function() Transport:ResetFlood() end) end
 	if ns.OnEnable then ns.OnEnable(function() Transport:RestoreQueue() end) end
 end

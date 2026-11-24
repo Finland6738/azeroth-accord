@@ -62,7 +62,7 @@ local function accountNames(requester)
 		local e = ns.Roster and ns.Roster:ByGUID(guid)
 		if e then
 			if e.short then names[lower(e.short)] = true end
-			if e.name then names[lower(e.name:match("^[^%-]+") or e.name)] = true end
+			if e.name then names[lower((ns.Compat.SplitName(e.name)))] = true end
 		end
 	end
 	add(requester)
@@ -80,7 +80,7 @@ function Inbox:Suggest(r)
 	local names = accountNames(r.requester)
 	local since = (r.created or 0) - Inbox.MATCH_SLACK
 	for _, e in ipairs(Log:Entries()) do   -- newest first
-		if e.kind == want and e.t >= since and names[lower(e.name:match("^[^%-]+") or e.name)] then
+		if e.kind == want and e.t >= since and names[lower((ns.Compat.SplitName(e.name)))] then
 			if r.itemID then
 				if e.tab ~= Log.MONEY_TAB and e.itemID == r.itemID and e.count >= (r.count or 1) then return e end
 			elseif e.tab == Log.MONEY_TAB and e.count >= (r.amount or 0) then

@@ -205,6 +205,15 @@ describe("50 clients (SPEC-09 §2)", function()
 			sim:advance(30)
 		end
 		local churn = sim:stats()
+		do   -- who the busiest client of the churn was, and what it sent
+			local best, bi = -1, 0
+			for i, s in ipairs(churn.perClient) do if s.bytesPerMinute > best then best, bi = s.bytesPerMinute, i end end
+			local s = churn.perClient[bi]
+			local st = sim:client(bi):addon().Sync.state.stats
+			T.log(("busiest in the churn: client %d (%s), %.0f B/min; GUILD %d B, WHISPER %d B, OFFICER %d B; pushes %d, answers %d, REC sent %d, HELLO %d"):format(
+				bi, sim.officer[bi] and "officer" or "member", best, s.byDist.GUILD.bytes, s.byDist.WHISPER.bytes, s.byDist.OFFICER.bytes,
+				st.pushes, st.answers, st.recSent, st.hellosSent))
+		end
 
 		-- then everyone comes online, without lockdowns, over two minutes
 		sim:resetStats()
@@ -243,9 +252,23 @@ describe("50 clients (SPEC-09 §2)", function()
 		T.log(("churn: %.0f B/min per client on average, %.0f at most; mass login: converged after %.0f s, %.1f KB per login; steady: %.0f B/min per client on average, %.0f at most")
 			:format(churn.avg.bytesPerMinute, churn.max.bytesPerMinute, took, perLogin / 1024,
 			steady.avg.bytesPerMinute, steady.max.bytesPerMinute))
+		local limits = { flood = 0, quarantined = 0, oversized = 0, refused = 0 }   -- the limits of SPEC-11 §6.3 (M7.7)
+		local floodQuarantine, maxDecoded = 0, 0
+		for _, c in ipairs(sim.clients) do
+			if c.online or c.E.AzerothAccord then
+				local s = c:addon().Sync.state.stats
+				for k in pairs(limits) do limits[k] = limits[k] + (s[k] or 0) end
+				local T_ = c:addon().Transport
+				floodQuarantine = floodQuarantine + (T_:Stats().quarantined or 0)
+				for _, w in pairs(T_.state.flood) do if w.bytes > maxDecoded then maxDecoded = w.bytes end end
+			end
+		end
+		T.log(("limits: %d HELLO held, %d quarantined by Sync, %d by Transport (most decoded from one sender in a minute now: %.0f KB), %d oversized REC, %d records refused"):format(
+			limits.flood, limits.quarantined, floodQuarantine, maxDecoded / 1024, limits.oversized, limits.refused))
+		eq(limits.quarantined + floodQuarantine, 0, "no honest client is put in quarantine")
 		-- the traffic budget of SPEC-02 §4
 		truthy(churn.avg.bytesPerMinute <= 400, "churn average " .. churn.avg.bytesPerMinute)
-		truthy(churn.max.bytesPerMinute <= 1500, "churn busiest client " .. churn.max.bytesPerMinute)
+		truthy(churn.max.bytesPerMinute <= 2048, "churn busiest client " .. churn.max.bytesPerMinute)   -- SPEC-10 R10
 		truthy(perLogin <= 8 * 1024, "bytes per login " .. perLogin)
 		truthy(took <= 25 * 60, "converged within a HELLO period of the last login: " .. took .. " s")
 		truthy(steady.avg.bytesPerMinute <= 100, "steady average " .. steady.avg.bytesPerMinute)

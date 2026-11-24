@@ -68,7 +68,7 @@ View.Num = num
 
 local function short(name)
 	if type(name) ~= "string" then return "?" end
-	return name:match("^[^%-]+") or name
+	return (ns.Compat.SplitName(name))
 end
 
 local function spec(id)

@@ -143,6 +143,24 @@ end
 Compat.ReadableCopy = readableCopy
 
 local function str(v) return type(v) == "string" and v ~= "" and v or nil end
+
+-- "Name", "Name-Realm", "Name Surname" or "Name Surname-Realm" (a Forever full name may have a space) -> name, realm
+-- (nil without a realm part). The realm starts after the LAST hyphen (SPEC-11 §6.6); a name without one is of the
+-- player's realm. Every module splits names with this one function.
+function Compat.SplitName(name)
+	if type(name) ~= "string" then return nil, nil end
+	local short, realm = name:match("^(.-)%-([^%-]+)$")
+	if short and short ~= "" then return short, realm end
+	return name, nil
+end
+
+-- true for a character name the addon may hand to the client (a whisper, an invitation): no escape sequence, no control
+-- character, no space at either end or twice in a row. One space inside is a Forever full name ("Name Surname").
+function Compat.PlainName(name)
+	return type(name) == "string" and name ~= "" and #name <= 64 and not name:find("[|%c]") and not name:find("^%s")
+		and not name:find("%s$") and not name:find("%s%s") and true or false
+end
+
 local function num(v) return type(v) == "number" and v == v and v or nil end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -292,7 +310,7 @@ function Guild.Roster()
 end
 
 local function shortName(name)
-	return ((name:match("^[^%-]+") or name):lower())
+	return ((Compat.SplitName(name)):lower())
 end
 
 -- The rank index (0 = Guild Master) of the roster member called `name` ("Name" or "Name-Realm", compared without the
@@ -538,9 +556,10 @@ function Group.RaidRosterRow(i)
 end
 
 -- Invites a player to the party (SOC-20, a click of the player): C_PartyInfo.InviteUnit (in the Forever dump), else the
--- legacy InviteUnit global [verify]. false for a name that is not a plain character name or when neither exists.
+-- legacy InviteUnit global [verify]. false for a name that is not a plain character name (Compat.PlainName: a full
+-- name with a space is one, SPEC-11 §6.6 [verify in game]) or when neither exists.
 function Group.Invite(name)
-	if type(name) ~= "string" or name == "" or name:find("[%s|%c]") then return false end
+	if not Compat.PlainName(name) then return false end
 	local _, state = first("C_PartyInfo.InviteUnit", name)
 	if state == AVAILABLE then return true end
 	_, state = first("InviteUnit", name)
@@ -843,14 +862,26 @@ function Chat.CanSend()
 	return not Chat.InChatLockdown() and not Chat.OutgoingAddonRestricted() and Chat.RestrictionAny() == nil
 end
 
--- Opens the chat box with "/w Name <text>" typed in (the player reads it, changes it if they like and sends it: the addon
--- never sends a whisper). false when the name is not a plain character name, the text has a control character or is
--- longer than a chat line (255), or the client has no ChatFrame_OpenChat.
+-- Opens the chat box with a whisper to `name` and `text` typed in (the player reads it, changes it if they like and sends
+-- it: the addon never sends a whisper). A name with a space (a Forever full name, SPEC-11 §6.6) cannot go through
+-- "/w Name text" (the chat would read the second word as the text): it goes through ChatFrame_SendTellWithMessage /
+-- ChatFrame_SendTell, which take the name whole [verify in game]; a plain name uses "/w" as before. false when the
+-- name is not a plain character name, the text has a control character or is longer than a chat line (255), or the
+-- client has none of these functions.
 function Chat.OpenWhisper(name, text)
-	if type(name) ~= "string" or name == "" or name:find("[%s|%c]") then return false end
+	if not Compat.PlainName(name) then return false end
 	if text ~= nil and (type(text) ~= "string" or text:find("%c")) then return false end
 	local line = "/w " .. name .. " " .. (text or "")
 	if #line > 255 then return false end
+	if name:find("%s") then
+		local _, state = first("ChatFrame_SendTellWithMessage", name, text or "")
+		if state == AVAILABLE then return true end
+		if text == nil or text == "" then
+			_, state = first("ChatFrame_SendTell", name)
+			return state == AVAILABLE
+		end
+		return false
+	end
 	local _, state = first("ChatFrame_OpenChat", line)
 	return state == AVAILABLE
 end

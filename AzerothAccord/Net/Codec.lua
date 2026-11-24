@@ -6,8 +6,10 @@
 --
 -- The version and the type are plain text, so a client reads them before decoding anything: a higher version or an
 -- unknown type is ignored, never an error (NET-01). Decode never raises: it returns the message, or nil plus a reason
--- ("size", "shape", "version", "newer", "type", "base64", "flag", "inflate", "cbor", "invalid"). Unknown fields are kept
--- untouched; deep validation of records belongs to the modules that own them (Net/Store.lua, Net/Sync.lua, ...).
+-- ("size", "shape", "version", "newer", "type", "base64", "flag", "inflate", "cbor", "depth", "invalid"); the third result
+-- is the number of bytes it decoded (the CBOR after decompression, or the text when it stopped before), which the
+-- transport counts per sender (SPEC-11 §6.3). Unknown fields are kept untouched; deep validation of records belongs to
+-- the modules that own them (Net/Store.lua, Net/Sync.lua, ...).
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Codec = {}
@@ -21,6 +23,7 @@ Codec.PROTO = 1
 Codec.PREFIX = "AzAccord"
 Codec.COMPRESS_OVER = 120   -- CBOR longer than this is deflated (when that makes it shorter)
 Codec.MAX_DECODED = 16384   -- largest accepted CBOR after decompression
+Codec.MAX_DEPTH = 8         -- deepest accepted table of a decoded message, the message itself being level 1 (SPEC-11 §6.1)
 Codec.FLAG_RAW, Codec.FLAG_DEFLATE = "\0", "\1"
 -- A Base64 body cannot be longer than the encoded largest message plus the flag byte; the header is a few bytes more.
 Codec.MAX_BODY = floor((Codec.MAX_DECODED + 1) / 3 + 1) * 4
@@ -52,11 +55,22 @@ end
 
 local function compat() return ns.Compat end
 
-local function reject(reason)
+local function reject(reason, size)
 	Codec.stats.rejected = Codec.stats.rejected + 1
 	Codec.lastReject = reason
-	return nil, reason
+	return nil, reason, size
 end
+
+-- true when no table inside `t` is deeper than `limit` levels (`t` is level 1). Stops as soon as it is too deep.
+local function shallow(t, limit)
+	if limit < 1 then return false end
+	for k, v in pairs(t) do
+		if type(v) == "table" and not shallow(v, limit - 1) then return false end
+		if type(k) == "table" and not shallow(k, limit - 1) then return false end
+	end
+	return true
+end
+Codec.Shallow = shallow
 
 -- true, or false plus a reason. msg must be a table with a known `t` and the required fields of that type.
 function Codec:Validate(msg)
@@ -106,40 +120,43 @@ function Codec.Header(text)
 	return tonumber(version), t, body
 end
 
--- Returns the message table, or nil plus a reason. Never raises.
+-- Returns the message table, nil and the decoded size; or nil, a reason and the size. Never raises.
 function Codec:Decode(text)
 	local C = compat()
-	if not C then return nil, "nocompat" end
-	if type(text) ~= "string" or text == "" or #text > Codec.MAX_TEXT then return reject("size") end
+	if not C then return nil, "nocompat", 0 end
+	local size = type(text) == "string" and #text or 0
+	if type(text) ~= "string" or text == "" or #text > Codec.MAX_TEXT then return reject("size", size) end
 	local version, t, body = Codec.Header(text)
-	if not version then return reject(t) end
-	if version < 1 then return reject("version") end
+	if not version then return reject(t, size) end
+	if version < 1 then return reject("version", size) end
 	if version > Codec.PROTO then
 		Codec.newerSeen = true
-		return reject("newer")
+		return reject("newer", size)
 	end
 	if not Codec.SCHEMA[t] then
 		Codec.stats.unknown = Codec.stats.unknown + 1
-		return reject("type")
+		return reject("type", size)
 	end
-	if body == "" or #body > Codec.MAX_BODY or find(body, "[^A-Za-z0-9+/=]") then return reject("base64") end
+	if body == "" or #body > Codec.MAX_BODY or find(body, "[^A-Za-z0-9+/=]") then return reject("base64", size) end
 	local raw = C.Base64.Decode(body)
-	if not raw or raw == "" then return reject("base64") end
+	if type(raw) ~= "string" or raw == "" then return reject("base64", size) end
 	local flag, packed = sub(raw, 1, 1), sub(raw, 2)
 	if flag == Codec.FLAG_DEFLATE then
 		packed = C.Compress.Inflate(packed)
-		if not packed then return reject("inflate") end
+		if type(packed) ~= "string" then return reject("inflate", size) end
 	elseif flag ~= Codec.FLAG_RAW then
-		return reject("flag")
+		return reject("flag", size)
 	end
-	if #packed == 0 or #packed > Codec.MAX_DECODED then return reject("size") end
+	size = math.max(size, #packed)
+	if #packed == 0 or #packed > Codec.MAX_DECODED then return reject("size", size) end
 	local msg = C.CBOR.Decode(packed)
-	if type(msg) ~= "table" then return reject(msg == nil and "cbor" or "shape") end
+	if type(msg) ~= "table" then return reject(msg == nil and "cbor" or "shape", size) end
+	if not shallow(msg, Codec.MAX_DEPTH) then return reject("depth", size) end
 	msg.v, msg.t = version, t
 	local ok, reason = Codec:Validate(msg)
-	if not ok then return reject(reason) end
+	if not ok then return reject(reason, size) end
 	Codec.stats.decoded = Codec.stats.decoded + 1
-	return msg
+	return msg, nil, size
 end
 
 -- One-shot: true the first time after a newer version was seen, then false until another one arrives.

@@ -153,6 +153,10 @@ function Widgets.DataTable(parent, columns, opts)
 			local fs = r.cells[ci]
 			if not fs then
 				fs = Theme.NewText(r, c.mono and "Mono" or "Body", "text-1")
+				-- one line: a long text (a Forever full name "Name Surname-Realm") is cut with dots, never wrapped; the
+				-- row's tooltip shows it whole (SPEC-11 §6.6)
+				if fs.SetWordWrap then fs:SetWordWrap(false) end
+				if fs.SetMaxLines then fs:SetMaxLines(1) end
 				r.cells[ci] = fs
 			else
 				fs:SetFontObject(Theme.Font(c.mono and "Mono" or "Body"))
@@ -160,6 +164,16 @@ function Widgets.DataTable(parent, columns, opts)
 			end
 		end
 		for ci = #columns + 1, #r.cells do r.cells[ci]:Hide() end
+	end
+
+	-- The whole texts of the cells of row `r` that the client cut with dots (FontString:IsTruncated), for its tooltip.
+	function t.CutTexts(r)
+		local out = {}
+		for ci, c in ipairs(columns) do
+			local fs = r.cells[ci]
+			if fs and not c.render and fs.IsTruncated and fs:IsTruncated() and r.data then out[#out + 1] = textOf(c, r.data) end
+		end
+		return out
 	end
 
 	local function newRow(i)
@@ -177,8 +191,19 @@ function Widgets.DataTable(parent, columns, opts)
 		r.line:SetHeight(Theme.Px(1))
 		r.cells = {}
 		t.ensureCells(r)
-		r:SetScript("OnEnter", function(self) Theme.Fill(self.hover, "surface-2", 1) end)
-		r:SetScript("OnLeave", function(self) Theme.Fill(self.hover, "surface-2", 0) end)
+		r:SetScript("OnEnter", function(self)
+			Theme.Fill(self.hover, "surface-2", 1)
+			local cut = t.CutTexts(self)
+			if #cut > 0 and Widgets.Tooltip then
+				Widgets.Tooltip.Show(self, cut)
+				self.cutTip = true
+			end
+		end)
+		r:SetScript("OnLeave", function(self)
+			Theme.Fill(self.hover, "surface-2", 0)
+			if self.cutTip and Widgets.Tooltip then Widgets.Tooltip.Hide() end
+			self.cutTip = nil
+		end)
 		r:SetScript("OnClick", function(self) if opts.onRowClick and self.data then opts.onRowClick(self.data, self) end end)
 		if t.pos then for ci, fs in ipairs(r.cells) do if columns[ci] then place(fs, r, columns[ci], t.pos[ci]) end end end
 		if opts.rowSetup then opts.rowSetup(r) end

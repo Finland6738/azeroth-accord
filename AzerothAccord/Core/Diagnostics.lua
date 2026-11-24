@@ -165,7 +165,16 @@ local function knownNames()
 			add(m.discord, "<player>")
 		end
 	end)
-	table.sort(out, function(a, b) return #a.name > #b.name end)   -- "Name-Realm" before "Name"
+	-- a Forever full name with a space ("Name Surname"): the whole name first, then each word of at least MIN_NAME
+	-- characters on its own (SPEC-11 §6.6), so "Surname" alone in a message is hidden too
+	local words = {}
+	for _, n in ipairs(out) do
+		if n.placeholder == "<player>" and n.name:find("%s") then
+			for w in ((ns.Compat and ns.Compat.SplitName(n.name)) or n.name):gmatch("[^%s]+") do words[#words + 1] = w end
+		end
+	end
+	for _, w in ipairs(words) do add(w, "<player>") end
+	table.sort(out, function(a, b) return #a.name > #b.name end)   -- "Name Surname-Realm" before "Name Surname" before "Name"
 	return out
 end
 

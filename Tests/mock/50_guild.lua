@@ -65,6 +65,8 @@ function Mock.guild.Set(config)
 	guild.officerRanks = config.officerRanks or 1
 	guild.motd, guild.info, guild.tabard = config.motd or "", config.info or "", config.tabard
 	guild.myProfessions, guild.myDiscord = config.myProfessions, config.myDiscord
+	-- config.rows: rows already in this table's own shape, kept as they are (the simulator's lean clients share them)
+	if config.rows then guild.members = config.rows end
 	for i, m in ipairs(config.members or {}) do
 		guild.members[#guild.members + 1] = {
 			name = m.name, level = m.level or 60, class = m.class or "WARRIOR", rank = m.rank or #guild.ranks,

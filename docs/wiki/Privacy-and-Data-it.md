@@ -22,6 +22,8 @@ I minuti passati in gruppo con compagni di gilda sono registrati dalla versione 
 
 Ogni dato condiviso indica il personaggio che l'ha scritto, e il gioco stesso dice a ogni addon chi ha mandato un messaggio. L'addon di un compagno accetta i tuoi personaggi, contatti e ricette solo da te (o da un tuo personaggio) e passa i dati di un altro membro solo quando vengono da un ufficiale. I like, le decisioni sulla banca e la scelta della gilda dei suoi addon di raid e di loot si accettano solo dagli ufficiali. Un addon modificato può quindi mentire solo su se stesso.
 
+Un addon rotto o modificato non può nemmeno bloccare il tuo: un messaggio troppo grande, danneggiato o della forma sbagliata si scarta, e l'addon di un compagno che manda troppo, o che continua a mandare dati che non può mandare, viene ignorato per 10 minuti. Intanto i tuoi messaggi continuano a partire, e dopo i dati della gilda si riparano da soli. `/accord debug` dice quanti addon sono ignorati in quel momento, mai quali.
+
 ## Altri addon
 
 Accord cerca gli addon di raid e di loot che conosce (Finland Dragon Credit Points e gli addon di loot che funzionano su WoW Forever) **solo sul tuo computer**: se ognuno è caricato e la sua versione. Non invia mai quell'elenco, non cambia, non carica e non accende mai un altro addon, e non legge mai i dati salvati di un altro addon. L'unica cosa condivisa con la gilda è la **scelta degli ufficiali** di quale addon è la fonte del roster della season e dei dati del loot (una scelta per tutta la gilda, scritta solo dagli ufficiali). Vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.

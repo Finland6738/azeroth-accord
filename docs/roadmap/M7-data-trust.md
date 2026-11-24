@@ -63,7 +63,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
   - a burst test with 1000 members logging in together in the simulator;
   - a check of Forever full names with spaces ("Name Surname") in Compat, names and notes.
 - Done when:
-  - [ ] Every bad-peer case is refused without errors and without blocking the queue; the burst stays inside the traffic budget; names with spaces round-trip through every data set.
+  - [x] Every bad-peer case is refused without errors and without blocking the queue; the burst stays inside the traffic budget; names with spaces round-trip through every data set.
 
 ### M7.8 — In-game check and release
 - Branch: `step/m7-8-check`

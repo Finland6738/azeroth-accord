@@ -257,11 +257,11 @@ Cosa esiste già: la forma dei messaggi (`Codec`: 16 KB decompressi al massimo, 
 |---|---|---|
 | testo di un messaggio prima della decodifica | `Codec.MAX_TEXT` (circa 21,9 KB) | esiste |
 | CBOR dopo la decompressione | 16 KB (`Codec.MAX_DECODED`) | esiste |
-| record in un `REC` | **al massimo 100**; oltre, il messaggio si scarta intero (`count`) | nuovo, `Sync` |
+| record in un `REC` | **al massimo 100**; oltre, il messaggio si scarta intero (`count`) e conta come un record rifiutato (§6.3); chi invia divide a 100 | `Sync` (M7.7) |
 | autori chiesti in un `REQ` | 500 (`*`) o 20 (un insieme) | esiste |
 | voci in un riepilogo | 2000 | esiste |
 | un record | `maxBytes` del suo insieme | esiste |
-| profondità di una tabella decodificata | **8 livelli**; più profonda si scarta (`depth`) | nuovo, `Codec` |
+| profondità di una tabella decodificata | **8 livelli** (il messaggio è il livello 1); più profonda si scarta (`depth`) | `Codec` (M7.7) |
 
 Il Deflate non si può fermare a metà: il limite vero contro una "bomba" è il testo in entrata (circa 16 KB compressi) più il budget per mittente di §6.3.
 
@@ -286,7 +286,7 @@ Contatori per mittente (nome dato dal server), azzerati a ogni cambio di gilda:
 
 | Limite per mittente | Valore | Oltre |
 |---|---|---|
-| `HELLO` / `BHELLO` elaborati | 1 ogni 60 s (un client onesto ne manda 1 ogni 5 minuti) | ignorati, contati `flood` |
+| `HELLO` / `BHELLO` elaborati | 1 ogni 60 s (un client onesto ne manda 1 ogni 5 minuti, ma dopo un `/reload` o un nuovo accesso ne manda un altro entro il minuto) | contati `flood`; si tiene solo l'ultimo, elaborato allo scadere del minuto (M7.7: scartarlo faceva aspettare 15–20 minuti a chi rientra subito), gli altri si ignorano |
 | `REQ` di tutti gli insiemi (`*`) | 10 al minuto | ignorati |
 | `REQ` di un insieme | 20 al minuto | esiste |
 | testo decodificato | **256 KB al minuto** (un client onesto, frenato da ChatThrottleLib a circa 800 B/s, ne manda meno di 50 KB di testo, che decompressi restano sotto 200 KB) | il mittente è **in quarantena** |
@@ -299,37 +299,51 @@ Contatori per mittente (nome dato dal server), azzerati a ogni cambio di gilda:
 Il riepilogo per autore cresce di 11 B per autore ([SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): con 1000 autori un `HELLO` sarebbe di 11 KB (45 pezzi) e 1000 accessi insieme ne manderebbero 11 MB sul canale. Per questo:
 
 - **Soglia**: un client che tiene più di **200 autori** (non riservati) manda `BHELLO` invece di `HELLO`. Sotto la soglia nulla cambia.
-- **`BHELLO`** (nuovo tipo su `GUILD`, registrato con `Codec:RegisterType("BHELLO", { b = "string" })`): `b` = **128 blocchi** da 3 byte (384 B), `n` = numero di autori, `av` = versione. Un autore sta nel blocco `floor(key / 2^25)` (i 7 bit alti della sua chiave a 32 bit); il digest di un blocco è la somma modulo 2^24 di `Hash.Fast` di chiave, digest e ora di ogni suo autore (0 per un blocco vuoto). Un client precedente ignora il tipo (NET-01).
-- **Risposta**: chi riceve un `BHELLO` calcola i propri blocchi. Se uno o più differiscono, rispondono solo (a) l'**ufficiale designato** per il mittente (la regola di oggi, punto 2 di SPEC-02 §4) con gli autori di quei blocchi, e (b) un personaggio dello stesso account del mittente che sia online, con i soli autori del proprio account. La risposta è un `DIGEST` (il tipo riservato) in `WHISPER`: `d = { [blocco] = riepilogo per autore di quel blocco }`, priorità `NORMAL`, chiave di coda `DIGEST|<mittente>`, al massimo 2000 voci.
+- **`BHELLO`** (nuovo tipo su `GUILD`, registrato con `Codec:RegisterType("BHELLO", { b = "string" })`): `b` = **96 blocchi** da 3 byte (288 B), `n` = numero di autori, `av` = versione. Un autore sta nel blocco `floor(m / 2^32 × 96)`, dove `m` = (chiave × 2654435761) mod 2^32 (hash di Fibonacci, calcolato esatto a metà da 16 bit: `Sync.BlockOf`); il digest di un blocco è la somma modulo 2^24 di `Hash.Fast` di chiave, digest e ora di ogni suo autore (0 per un blocco vuoto). Un client precedente ignora il tipo (NET-01).
+  - *Cambiato in M7.7* (§6.5 lo permette): la specifica diceva 128 blocchi presi dai 7 bit alti della chiave. Due misure del simulatore l'hanno smentita: (1) `Hash.Fast` dà quasi gli stessi bit alti a GUID che differiscono solo nelle ultime cifre, come i personaggi di uno stesso reame, quindi gli autori finivano in pochi blocchi (un `BHELLO` di 1000 autori si comprimeva a 69 B: quasi tutti i blocchi vuoti); (2) con 128 blocchi distribuiti davvero il `BHELLO` pesa 565 B, oltre il limite di 512 B di §6.5. Con 96 blocchi e l'hash di Fibonacci pesa circa 440 B (2 pezzi) e ogni blocco tiene circa 10 dei 1000 autori.
+- **Risposta**: chi riceve un `BHELLO` calcola i propri blocchi. Se uno o più differiscono, rispondono solo (a) l'**ufficiale designato** per il mittente (la regola di oggi, punto 2 di SPEC-02 §4) con gli autori di quei blocchi, e (b) un personaggio dello stesso account del mittente che sia online, con i soli autori del proprio account (e il campo `o`, così il mittente confronta solo quelli). La risposta è un `DIGEST` (il tipo riservato) in `WHISPER`: `d = { [blocco] = riepilogo per autore di quel blocco }` (un blocco vuoto è la stringa vuota), priorità `NORMAL`, chiave di coda `DIGEST|<mittente>`. Chi risponde mette al massimo **1400 voci** (11 B ciascuna: il messaggio resta sotto i 16 KB di `Codec.MAX_DECODED`; i blocchi che non entrano aspettano il `BHELLO` successivo); chi riceve ne accetta al massimo 2000. Un `DIGEST` senza un proprio `BHELLO` negli ultimi 10 minuti, o il secondo dello stesso mittente per lo stesso `BHELLO`, si ignora (nessuno può farsi mandare record senza averli chiesti).
 - **Dopo il `DIGEST`**: il mittente confronta autore per autore, come con un `HELLO` di oggi: chiede con `REQ` ciò in cui l'altro è più avanti, e se può consegnare (proprio account, o è ufficiale) manda in whisper ciò in cui è più avanti lui, compresi gli autori che l'altro non ha.
 - **Compatibilità**: un client usa `BHELLO` solo se ogni ufficiale sentito negli ultimi 25 minuti ha mandato una versione (`av`) che lo conosce (dalla `v0.7.0`); altrimenti manda il `HELLO` per autore come oggi. Un client nuovo risponde sempre anche ai `HELLO` per autore.
+  - *Precisato in M7.7*: conta solo un ufficiale di cui si è già sentito un `HELLO` o `BHELLO` (e quindi `av`). Un ufficiale sentito finora solo per altri messaggi (un `REC` con cui ha risposto prima del suo primo saluto, come dopo un riavvio del server) non conta ancora: altrimenti, nella prova dei 1000 accessi, quasi ogni membro tornava al `HELLO` per autore (11 KB, letto da tutti). Un client precedente manda `av` nel suo `HELLO`, quindi si riconosce al suo primo saluto (al più 20 minuti in cui un ufficiale vecchio non risponde a un `BHELLO`).
 - **Accessi distribuiti**: il primo `HELLO` o `BHELLO` dopo l'accesso parte dopo `10 + random(0, 20 + autori / 10)` secondi (1000 autori: da 10 a 130 s), non più 10–30 s; il periodo resta 15–20 minuti. Un ufficiale manda al massimo un `DIGEST` ogni 2 s (gli altri aspettano in coda con la loro chiave, così due `BHELLO` dello stesso mittente danno una risposta sola).
 
 ### 6.5 La prova dei 1000 accessi
 
 Il simulatore (`Tests/sim/sim.lua`) aggiunge uno scenario: **1000 membri**, tutti con l'addon (il caso peggiore), 10 ufficiali, tutti allineati prima di un riavvio del server, poi tutti entrano entro 60 secondi; nei primi 10 minuti 50 autori scrivono qualcosa; 1% di messaggi persi, latenza 0,05–0,5 s; si misurano i primi 30 minuti. Limiti (il budget di traffico di SPEC-02 §4, più quelli della raffica):
 
-| Misura | Limite |
-|---|---|
-| un `BHELLO` sul filo | ≤ 512 B (3 pezzi) |
-| invio medio per client nei 30 minuti | ≤ 400 B/min |
-| client più carico (un ufficiale) | ≤ 3 KB/min |
-| coda di `Transport` di ogni client | mai oltre 100 messaggi; nessun `BULK` scartato |
-| convergenza dopo l'ultima scrittura | ≤ 25 minuti |
-| tempo di CPU del simulatore per un `BHELLO` ricevuto (blocchi propri in cache) | ≤ 1 ms offline |
+| Misura | Limite | Misurato (M7.7) |
+|---|---|---|
+| un `BHELLO` sul filo | ≤ 512 B (3 pezzi) | 437 B, 2 pezzi |
+| invio medio per client nei 30 minuti | ≤ 400 B/min | 32 B/min |
+| client più carico (un ufficiale) | ≤ 3 KB/min | 965 B/min |
+| coda di `Transport` di ogni client | mai oltre 100 messaggi; nessun `BULK` scartato | al massimo 22; nulla scartato né scaduto |
+| convergenza dopo l'ultima scrittura | ≤ 25 minuti | 730 s (circa 12 minuti) |
+| tempo di CPU del simulatore per un `BHELLO` ricevuto (blocchi propri in cache) | ≤ 1 ms offline | 0,008 ms |
+
+Nel giro misurato: 2000 `BHELLO` e 132 `DIGEST` in 30 minuti, circa 4 minuti e mezzo e 3–5 GB di memoria offline.
 
 Se lo scenario non sta nei limiti, M7.7 cambia i parametri di questa sezione (soglia, blocchi, ritardi) e lo scrive qui; un limite si alza solo con una nota in [SPEC-10](SPEC-10-risks-open-questions.md).
+
+**Come gira (M7.7).** Lo scenario è in `Tests/test_hardening.lua` ("the 1000 logins"). Mille copie dell'addon in un solo processo non stanno in un test normale, per questo:
+
+- i client del simulatore sono **leggeri** (opzione `lean` di `Sim.new`): caricano le librerie, `Core`, `GuildKey` e lo strato di rete, cioè tutto ciò che manda messaggi in questo scenario; le viste e gli altri moduli di dati non ci sono;
+- i record allineati sono le stesse tabelle in ogni archivio (ognuno ha il proprio indice), le righe del roster del mock sono condivise, e le funzioni pure di decodifica del mock (Base64, Deflate, CBOR) memorizzano il risultato per lo stesso testo, che arriva a mille client; il roster non cambia durante la raffica, quindi la risposta del server a una richiesta del roster (`GUILD_ROSTER_UPDATE`) non c'è;
+- un membro che non è ufficiale né dello stesso account del mittente non fa nulla di un `BHELLO` (§6.4: non risponde), e in questa gilda ogni personaggio è il proprio account: il simulatore non gli consegna i `BHELLO` degli altri membri (opzione `skip`, contati a parte), mentre quelli degli ufficiali arrivano a tutti (ne leggono la versione); quanto costa a un membro leggerne uno è la misura "tempo di CPU" sotto;
+- anche così servono alcuni GB e qualche minuto: lo scenario gira con `Tests/run_tests.py --long` (o `AZACCORD_LONG=1`) e nel workflow **Long tests** (`.github/workflows/long-tests.yml`: a ogni pull request che tocca lo strato di rete, il simulatore o questi test, ogni lunedì e a richiesta), non nella suite di ogni passo.
+
+Le misure portano a due cambi dell'addon, oltre ai parametri di §6.4: il riepilogo per autore si tiene aggiornato record per record (prima ogni record ricevuto faceva ricalcolare l'hash di tutti gli autori: con 1000 autori e mille client era il costo maggiore, e in gioco un lavoro inutile per ogni record), e un `BHELLO` uguale ai propri blocchi si riconosce confrontando una stringa.
 
 ### 6.6 Nomi con lo spazio
 
 Su Forever un personaggio può avere un nome completo con uno spazio (`Name Surname`); il mittente arriva come `Name Surname` o `Name Surname-Realm`. Regole che M7.7 prova in ogni insieme di dati:
 
-- Il nome si separa dal reame solo all'**ultimo** trattino che segue (`^(.-)%-([^%-]+)$`); un nome senza trattino è del reame del giocatore. Vale in `Store:Member`, `Transport.IsSelf`, `Roster` e nei bersagli dei whisper.
+- Il nome si separa dal reame solo all'**ultimo** trattino che segue (`^(.-)%-([^%-]+)$`); un nome senza trattino è del reame del giocatore. Vale in `Store:Member`, `Transport.IsSelf`, `Roster` e nei bersagli dei whisper: una sola funzione, `Compat.SplitName`.
+- **Whisper e inviti** del giocatore (i pulsanti del co-play, la richiesta di una ricetta): un nome con lo spazio è un nome valido (`Compat.PlainName`: niente `|`, caratteri di controllo, spazi agli estremi o doppi). Il whisper non passa da `/w Nome Cognome testo`, che il gioco leggerebbe come un whisper a `Nome`, ma da `ChatFrame_SendTellWithMessage` (o `ChatFrame_SendTell` senza testo), che prendono il nome intero; senza queste funzioni non si apre nulla.
 - **Note pubbliche** (ACC-05): dopo `main:` o `alt:` si prova il prefisso di **3, poi 2, poi 1 parola** (separatori `, ; | /` e fine nota) che corrisponde a un nome del roster, senza maiuscole: `alt: Name Surname, tank` trova `Name Surname`.
 - **Diagnostica**: `Diag.Redact` sostituisce il nome intero e poi ogni sua parola di almeno 3 caratteri.
 - **Interfaccia**: i nomi lunghi si tagliano con i puntini nelle colonne, mai a capo; il tooltip ha il nome intero.
 - **Dati**: i nomi con lo spazio fanno andata e ritorno in `accounts`, nei registri della banca (`tipo,nome,…`), nelle richieste, nel backup (§4), nella demo (§3.3) e nei suggerimenti del co-play.
-- **[verificare]** in gioco il formato del mittente di `CHAT_MSG_ADDON` per un nome con lo spazio e un whisper addon verso un nome così.
+- **[verificare]** in gioco il formato del mittente di `CHAT_MSG_ADDON` per un nome con lo spazio, un whisper addon verso un nome così, `ChatFrame_SendTellWithMessage` e `C_PartyInfo.InviteUnit` con un nome con lo spazio.
 
 Test (`Tests/test_hardening.lua` e lo scenario del simulatore): ogni caso di §6.2 e §6.3 si rifiuta senza errori e senza fermare la coda; la raffica rispetta §6.5; i nomi con lo spazio fanno andata e ritorno.
 
@@ -338,4 +352,4 @@ Test (`Tests/test_hardening.lua` e lo scenario del simulatore): ogni caso di §6
 - `GetGuildInfo("player")` di un alt in un'altra gilda al login, e la grafia di nomi di gilda con spazi e accenti (M7.3).
 - Che le copie di `Config.db` della demo non arrivino mai nel file salvato dopo un `/logout` fatto nella demo (M7.4).
 - Il copia e incolla di un testo di 256 KB in una casella del gioco, e il tempo che serve (M7.5).
-- Il formato del mittente con nomi con lo spazio, e la reale velocità di ChatThrottleLib su Forever per i limiti di §6.3 (M7.7).
+- Il formato del mittente con nomi con lo spazio, il whisper e l'invito a un nome così, e la reale velocità di ChatThrottleLib su Forever per i limiti di §6.3 (M7.7).

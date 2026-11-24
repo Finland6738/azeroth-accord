@@ -36,6 +36,7 @@
 | **Addon di raid e di loot** | Lavora con l'addon del loot della gilda invece di sostituirlo: gli ufficiali scelgono Finland Dragon Credit Points come fonte, e la vista **Raid** mostra il suo pool della season (MS1, MS2, OS), la formazione e la panchina della serata e le sue regole del loot, e la scheda del membro i crediti e il posto nella coda del loot, tutto in sola lettura; in Accord nessun motore del loot e nessuna presenza |
 | **Backup personale** | `/accord backup` esporta i tuoi dati (personaggi, main, impostazioni, i tuoi record, il token dell'account) in un testo e li importa su un altro computer, dopo averlo controllato e aver mostrato cosa cambia; i dati degli altri giocatori non ci sono mai |
 | **Modalità demo** | `/accord demo` riempie ogni vista con una gilda inventata, senza gilda e senza rete: non si invia né si salva nulla, e i tuoi dati veri tornano intatti |
+| **Sincronizzazione robusta** | Un messaggio danneggiato, troppo grande o falso si rifiuta, l'addon di un compagno che inonda il canale viene ignorato per 10 minuti, le gilde fino a 1000 membri con l'addon si sincronizzano con un riepilogo a blocchi compatto (provato nel simulatore di rete), e i nomi completi di Forever con lo spazio ("Nome Cognome") funzionano ovunque |
 
 Tutto resta **dentro la gilda**: l'addon comunica solo sui canali addon nascosti della gilda, senza server, senza internet e senza telemetria.
 

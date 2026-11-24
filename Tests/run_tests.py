@@ -1,8 +1,11 @@
 """Offline tests of Azeroth Accord: the addon runs in Lua 5.1 (through lupa) on a mock WoW client.
 
-Usage: python -X utf8 Tests/run_tests.py [filter] [-v]
+Usage: python -X utf8 Tests/run_tests.py [filter] [-v] [--long]
   filter   run only the tests whose "file > group > test" name contains this text (case-insensitive)
   -v       print a traceback under every failure
+  --long   also run the long scenarios (the 1000 logins of SPEC-11 §6.5: 3-5 GB of memory and a few minutes); the
+           same as the environment variable AZACCORD_LONG=1. The "Long tests" workflow runs them
+           (.github/workflows/long-tests.yml).
 Exit code: 0 all tests passed, 1 a test failed, 2 the harness could not start (lupa or libraries missing, bad TOC).
 
 Adapted from Azeroth Guild Finder (Tests/run_tests.py), same owner, GPL-3.0 (ADR 0018).
@@ -162,10 +165,12 @@ def bitop(op, a, b):
 
 
 def main(argv):
-    flt, verbose = "", False
+    flt, verbose, long_runs = "", False, os.environ.get("AZACCORD_LONG") == "1"
     for arg in argv:
         if arg == "-v":
             verbose = True
+        elif arg == "--long":
+            long_runs = True
         elif arg.startswith("-"):
             die(f"unknown option {arg}")
         else:
@@ -219,6 +224,7 @@ def main(argv):
         b"events": lua.table_from({b(e): True for e in events}) if events else None,
         b"filter": b(flt),
         b"verbose": verbose,
+        b"long": long_runs,
         b"readfile": read_file,
         b"log": log,
         b"zcompress": zcompress,

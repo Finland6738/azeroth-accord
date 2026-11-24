@@ -43,11 +43,9 @@ local function emit(event, ...) if ns.Bus then ns.Bus:Emit(event, ...) end end
 local function lower(s) return type(s) == "string" and s:lower() or nil end
 
 -- "Name" and "Name-Realm" -> name, realm (nil when the name has no realm part).
+-- A Forever full name may have a space ("Name Surname-Realm"): the realm is after the last hyphen (Compat.SplitName).
 function Roster.SplitName(name)
-	if type(name) ~= "string" then return nil, nil end
-	local short, realm = name:match("^([^%-]+)%-(.+)$")
-	if short then return short, realm end
-	return name, nil
+	return compat().SplitName(name)
 end
 
 ---------------------------------------------------------------------------------------------------------------------

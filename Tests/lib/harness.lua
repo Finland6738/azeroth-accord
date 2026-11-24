@@ -200,11 +200,20 @@ end
 
 -- Another independent client: a second copy of this harness without test files. Returns its H (H.boot, H.E, H.Mock).
 H.worlds = {}
-function H.newWorld()
+-- opts.only = function(fileName) -> true for the addon files to load (the network simulator's lean clients load the
+-- libraries, Core and the network layer only); nil loads them all.
+function H.newWorld(opts)
 	local chunk, err = loadstring(cfg.readfile(cfg.harnessPath), "@Tests/lib/harness.lua")
 	if not chunk then error(err, 0) end
 	local sub = copyTable(cfg)
 	sub.testFiles, sub.simPath = {}, nil
+	if opts and opts.only then
+		local plan = {}
+		for _, entry in ipairs(cfg.plan) do
+			if opts.only(entry.name) then plan[#plan + 1] = entry end
+		end
+		sub.plan = plan
+	end
 	return chunk(sub)
 end
 
@@ -230,6 +239,10 @@ if cfg.simPath then
 	local simEnv = setmetatable({}, { __index = _G })
 	rawset(testEnv, "Sim", loadChunk(cfg.simPath, "Tests/sim/sim.lua", simEnv)(H, T))
 end
+
+-- true when the long scenarios run too (run_tests.py --long, or AZACCORD_LONG=1; the "Long tests" workflow): a test
+-- checks it and logs that it was skipped otherwise.
+T.long = cfg.long == true
 
 local currentSetups = {}
 T.log = function(...)

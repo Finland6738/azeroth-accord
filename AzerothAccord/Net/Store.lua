@@ -52,7 +52,11 @@ local function str(v, max) return type(v) == "string" and v ~= "" and #v <= (max
 local roster = { dirty = true, byName = {}, byShort = {}, byGUID = {} }
 
 local function lower(s) return s and s:lower() or nil end
-local function short(name) return name and (name:match("^[^%-]+") or name) or nil end
+local function split(name)
+	if ns.Compat and ns.Compat.SplitName then return ns.Compat.SplitName(name) end
+	return name, nil
+end
+local function short(name) return name and (split(name)) or nil end
 
 -- Rebuilds the name / GUID index of the guild roster (on demand after GUILD_ROSTER_UPDATE).
 function Store:IndexRoster()
@@ -84,14 +88,14 @@ function Store:Member(name)
 	if entry then return entry end
 	-- "Name" means the player's realm; a roster name without a realm also means the player's realm
 	local player = ns.Compat and ns.Compat.Player.Realm()
-	local senderRealm = name:match("^[^%-]+%-(.+)$")
+	local _, senderRealm = split(name)
 	if not senderRealm then
 		entry = player and roster.byName[lower(name .. "-" .. player)]
 		if entry then return entry end
 	end
 	entry = roster.byShort[lower(short(name))]
 	if not entry then return nil end
-	local entryRealm = entry.name:match("^[^%-]+%-(.+)$")
+	local _, entryRealm = split(entry.name)
 	if senderRealm == nil and (entryRealm == nil or entryRealm == player) then return entry end
 	if senderRealm ~= nil and entryRealm == nil and senderRealm == player then return entry end
 	return nil

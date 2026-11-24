@@ -1,0 +1,52 @@
+name: Long tests
+
+# The long scenarios of the offline tests (Tests/run_tests.py --long): today the 1000 logins of SPEC-11 §6.5, a thousand
+# lean addon clients in the network simulator (3-5 GB of memory, a few minutes). They run when the network layer, the
+# simulator or these tests change, every Monday, and on request; the CI workflow ("Tests") stays quick.
+on:
+  pull_request:
+    paths:
+      - "AzerothAccord/Net/**"
+      - "AzerothAccord/Core/Compat.lua"
+      - "AzerothAccord/Core/Hash.lua"
+      - "Tests/sim/**"
+      - "Tests/lib/**"
+      - "Tests/run_tests.py"
+      - "Tests/test_hardening.lua"
+      - ".github/workflows/long-tests.yml"
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: long-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  long:
+    name: Long tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Cache the libraries
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: AzerothAccord/Libs
+          key: libs-${{ hashFiles('.pkgmeta', 'tools/fetch_libs.py') }}
+
+      - name: Run the long scenarios
+        run: |
+          python -m pip install lupa==2.8
+          python -I -X utf8 tools/fetch_libs.py
+          python -I -X utf8 Tests/run_tests.py "1000 logins" --long

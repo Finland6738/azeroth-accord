@@ -337,15 +337,29 @@ end
 -- Other players: the groups (mutual listing) and the hints of the notes
 ---------------------------------------------------------------------------------------------------------------------
 -- A public note's declaration: "main: Name" (this character's main is Name) or "alt: Name" (Name is this character's
--- alt), case-insensitive, anywhere at the start of the note. Returns kind ("main"|"alt"), name; or nil.
-function Accounts.ParseNote(note)
+-- alt), case-insensitive, at the start of the note. A Forever full name may have a space ("alt: Name Surname, tank"):
+-- with `lookup(name) -> roster entry`, the prefix of 3, then 2, then 1 word before the first separator (, ; | / or the
+-- end of the note) that names a roster member wins (SPEC-11 §6.6). Returns kind ("main"|"alt"), name, the entry; or
+-- nil. Without `lookup` the name is the first word.
+function Accounts.ParseNote(note, lookup)
 	if type(note) ~= "string" then return nil end
-	local word, name = note:match("^%s*(%a+)%s*:%s*([^%s,;|/]+)")
+	local word, rest = note:match("^%s*(%a+)%s*:%s*(.*)$")
 	local kind = lower(word)
 	if kind ~= "main" and kind ~= "alt" then return nil end
-	name = name:gsub("[%.!]+$", "")
-	if name == "" then return nil end
-	return kind, name
+	local words = {}
+	for w in rest:match("^[^,;|/]*"):gmatch("%S+") do
+		words[#words + 1] = w
+		if #words == 3 then break end
+	end
+	for n = lookup and #words or math.min(1, #words), 1, -1 do
+		local name = table.concat(words, " ", 1, n):gsub("[%.!]+$", "")
+		if name ~= "" then
+			if not lookup then return kind, name end
+			local target = lookup(name)
+			if target then return kind, name, target end
+		end
+	end
+	return nil
 end
 
 local function find(parent, x)
@@ -474,8 +488,7 @@ function Accounts:Rebuild()
 		end
 		for _, e in ipairs(R:Members()) do
 			if e.guid and not recs[e.guid] and not groupFor(e.guid) then
-				local kind, name = Accounts.ParseNote(e.note)
-				local target = kind and R:ByName(name) or nil
+				local kind, _, target = Accounts.ParseNote(e.note, function(name) return R:ByName(name) end)
 				if target and target.guid and target.guid ~= e.guid then
 					local g = groupFor(target.guid)
 					if not g then

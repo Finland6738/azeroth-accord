@@ -48,13 +48,13 @@ Le regole di fiducia (§6) dicono **chi** può passare un record: l'account del 
 | Situazione | Limite | Misurato |
 |---|---|---|
 | Accessi e uscite continui, media per client | ≤ 400 B/min | circa 320 B/min |
-| Accessi e uscite continui, client più carico | ≤ 1,5 KB/min | circa 1,3 KB/min |
+| Accessi e uscite continui, client più carico | ≤ 2 KB/min (era 1,5: alzato in M7.7, [SPEC-10 R10](SPEC-10-risks-open-questions.md)) | da circa 1,0 a 1,6 KB/min secondo il percorso casuale |
 | Costo di un accesso (tutto il traffico che provoca, per tutta la gilda) | ≤ 8 KB | circa 5 KB |
 | Tempo per convergere dopo l'ultimo accesso | ≤ 5 minuti di norma; ≤ 25 minuti (un periodo di `HELLO`) se un messaggio va perso: la riparazione aspetta il `HELLO` successivo di chi ha il record | da circa 30 secondi a circa 15 minuti, secondo i messaggi persi (con 1% di perdita) |
 | Tutti online e allineati, media per client | ≤ 100 B/min | circa 35 B/min |
 | Tutti online e allineati, client più carico | ≤ 200 B/min | circa 90 B/min |
 
-Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO` pesa circa 3 KB (12 pezzi da 255 byte), ogni 15–20 minuti; per gilde molto più grandi serve un riepilogo a blocchi: oltre 200 autori un `BHELLO` di 128 blocchi, con la risposta `DIGEST` solo dell'ufficiale designato e dell'account del mittente, provato con 1000 accessi insieme in M7.7 ([SPEC-11 §6](SPEC-11-data-trust.md#6-limiti-contro-i-client-malevoli-e-le-gilde-grandi-m77)).
+Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO` pesa circa 3 KB (12 pezzi da 255 byte), ogni 15–20 minuti; per gilde molto più grandi serve un riepilogo a blocchi: oltre 200 autori un `BHELLO` di 96 blocchi, con la risposta `DIGEST` solo dell'ufficiale designato e dell'account del mittente, provato con 1000 accessi insieme in M7.7 ([SPEC-11 §6](SPEC-11-data-trust.md#6-limiti-contro-i-client-malevoli-e-le-gilde-grandi-m77)).
 
 ## 5. Coda e lockdown
 
