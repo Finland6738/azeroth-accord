@@ -57,6 +57,30 @@ Mostra quanto sono grandi i dati salvati dall'addon nel tuo computer (stime del 
 
 **Conserva** ciò che solo il tuo computer conosce e la gilda non può rimandare: i tuoi like (così non puoi dare due volte lo stesso like), la chiave dei like della gilda se sei ufficiale, lo storico del denaro della banca e gli avvisi della banca già visti. Non tocca mai i dati dell'account (i tuoi personaggi, il tuo main, il tuo nome Discord), le tue impostazioni o i dati di un'altra gilda. Si può usare tranquillamente quando i dati sembrano sbagliati o troppo grandi; la gilda li riempie di nuovo entro pochi minuti, quando ci sono compagni online.
 
+## Cosa condivido
+
+La pagina **Cosa condivido** (*What I share*), tra *Settings* e *Info* in cima al pannello, mostra tutto ciò che **questo personaggio** pubblica per la tua gilda, come è stato mandato l'ultima volta. Non indovina: ogni card legge i record che il tuo client tiene a nome di questo personaggio, gli stessi che ha mandato (o sta per mandare) ai compagni.
+
+Ogni card dice **chi lo riceve**, **quando parte** e **cosa contiene adesso**, con quanto tempo fa è stato aggiornato e il numero di revisione.
+
+| Card | Cosa mostra |
+|---|---|
+| I tuoi personaggi | i primi quattro caratteri del codice dell'account (mai il codice intero), ogni personaggio con reame, classe, livello e *In questa gilda*, *Other guild: X* o *No guild* più il giorno dell'ultimo accesso, il tuo main e la versione dell'addon |
+| Contatti | il tuo BattleTag e il nome Discord; sempre condivisi, senza interruttore |
+| Ricette | ogni professione: nome, grado e numero di ricette |
+| Tempo giocato insieme | gli ultimi 7 giorni: quante coppie e quanti minuti per giorno. Le coppie nominano i tuoi compagni, non solo te |
+| Foto della banca di gilda | le schede lette (nome, numero di oggetti), il denaro e i registri |
+| Le tue richieste alla banca | le tue ultime 5 richieste e il loro stato |
+| Like | quanti like ha dato il tuo account (tenuto solo su questo computer) |
+| Riepilogo della sincronizzazione | la versione dell'addon e un'impronta dei record che hai, mai il loro contenuto |
+| Dati degli ufficiali | solo per gli ufficiali: le voci del libro dei like e le impostazioni della gilda che hai scritto |
+
+Gli altri tuoi personaggi non sono elencati come pubblicati da questo: ognuno pubblica i suoi record quando accedi con lui.
+
+### L'unico interruttore
+
+**Registra il tempo giocato insieme** (acceso di default) è l'unica cosa che qui si può spegnere. Spento, questo client smette di contare e di pubblicare il tempo giocato insieme e non scrive record nuovi. I record già pubblicati restano finché scadono (90 giorni), e i client dei compagni continuano a osservare i gruppi in cui c'è anche questo personaggio; la card lo dice. Ricette e foto della banca non hanno interruttore perché sono la funzione stessa, e i tuoi personaggi, il BattleTag e il Discord sono sempre condivisi ([[Privacy e dati|Privacy-and-Data-it]]).
+
 ## Backup e ripristino
 
 La card **Backup** in fondo alla pagina (o `/accord backup`) porta i **tuoi** dati su un altro computer, per esempio dopo aver reinstallato il gioco o quando giochi da un secondo PC. Quasi tutto ciò che Accord mostra torna da solo dai compagni di gilda; il backup porta ciò che conosce solo il tuo computer.

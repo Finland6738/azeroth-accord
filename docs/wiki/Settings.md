@@ -57,6 +57,30 @@ Shows how big the addon's saved data is on your computer (estimates of the saved
 
 It **keeps** what only your computer knows and the guild cannot send back: your likes (so you cannot give the same like twice), the guild's likes key if you are an officer, the bank's money history and which bank notices you have already seen. It never touches your account data (your characters, your main, your Discord name), your settings or the data of another guild. It is safe to use when the data looks wrong or too big; the guild refills it within a few minutes of guildmates being online.
 
+## What I share
+
+The **What I share** page, between *Settings* and *Info* at the top of the panel, shows everything **this character** publishes to your guild, as it was last sent. It does not guess: each card reads the records your client holds under this character's name, the same ones it sent (or is about to send) to your guildmates.
+
+Every card says **who receives** the data, **when it goes out** and **what it contains now**, with how long ago it was updated and its revision number.
+
+| Card | What it shows |
+|---|---|
+| Your characters | the first four characters of your account code (never the whole code), each character with realm, class, level and *In this guild*, *Other guild: X* or *No guild* plus the day it was last seen, your main and the addon version |
+| Contacts | your BattleTag and Discord name; always shared, there is no switch |
+| Recipes | each profession: name, rank and the number of recipes |
+| Time played together | the last 7 days: how many pairs and minutes per day. The pairs name your guildmates, not only you |
+| Guild bank snapshots | the tabs you read (name, number of items), the money and the logs |
+| Your bank requests | your latest 5 requests and their status |
+| Likes | how many likes your account has given (kept only on this computer) |
+| Sync summary | the addon version and a fingerprint of the records you hold, never their content |
+| Officer data | officers only: the like-ledger entries and guild settings you wrote |
+
+Your other characters are not listed as published by this one: each publishes its own records when you log in with it.
+
+### The one switch
+
+**Record time played together** (on by default) is the only thing you can switch off here. Off, this client stops counting and publishing co-play and writes no new records. Records already published stay until they expire (90 days), and your guildmates' clients still observe the groups this character is in; the card says so. Recipes and bank snapshots have no switch because they are the feature itself, and your characters, BattleTag and Discord are always shared ([[Privacy and data|Privacy-and-Data]]).
+
 ## Backup and restore
 
 The **Backup** card at the bottom of the page (or `/accord backup`) moves **your own** data to another computer, for example after you reinstall the game or when you play from a second PC. Most of what Accord shows comes back from your guildmates by itself; the backup carries what only your computer knows.

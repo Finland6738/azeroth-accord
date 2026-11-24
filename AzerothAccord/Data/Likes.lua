@@ -200,6 +200,13 @@ function Likes:StateOf(guid)
 	return "can"
 end
 
+-- How many likes this account has given (kept only on this computer; the "What I share" panel shows the number, M7.6).
+function Likes:GivenCount()
+	local l, n = own(false), 0
+	for _ in pairs(l and l.given or {}) do n = n + 1 end
+	return n
+end
+
 -- The votes waiting for a notary: a list of target GUIDs.
 function Likes:Pending()
 	local out = {}

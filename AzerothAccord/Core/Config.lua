@@ -21,7 +21,7 @@ local type, pairs, ipairs, pcall, tostring, next, select = type, pairs, ipairs, 
 local floor, huge = math.floor, math.huge
 local byte, char, concat = string.byte, string.char, table.concat
 
-Config.SCHEMA_VERSION = 2   -- 2 (M6.10): the look settings of the account (theme, effects, animations, font)
+Config.SCHEMA_VERSION = 3   -- 2 (M6.10): the look settings of the account (theme, effects, animations, font); 3 (M7.6): shareCoplay
 
 -- Development build. A checkout of the repository is one; the BigWigs packager comments out the block between the
 -- debug markers below in every packaged build, so a release has DEV = false (tools/check_package.py checks it).
@@ -52,7 +52,8 @@ Config.defaults = {
 		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
 		settings = { notifyOfficer = true, notifyDecision = true,     -- plus discord (typed, optional): UI/SettingsModel.lua
-			theme = "nebula", effects = true, animations = true, font = "addon" },   -- the look (M6.10), UI/Theme.lua
+			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
+			shareCoplay = true },   -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
@@ -80,6 +81,7 @@ Config.rules = {
 	["account.settings.effects"] = { type = "boolean" },
 	["account.settings.animations"] = { type = "boolean" },
 	["account.settings.font"] = { type = "string", enum = Config.FONT_SOURCES },
+	["account.settings.shareCoplay"] = { type = "boolean" },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },
@@ -96,6 +98,7 @@ Config.rules = {
 -- treated as 0 and only needs the defaults and the rules, so step 1 has nothing to do.
 -- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
 -- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
+-- Version 3 (M7.6) adds `shareCoplay` (default true) to the account's settings, when it is not there yet.
 Config.migrations = {
 	account = {
 		[1] = function(db) end,
@@ -105,8 +108,12 @@ Config.migrations = {
 				if db.settings[key] == nil then db.settings[key] = Config.defaults.account.settings[key] end
 			end
 		end,
+		[3] = function(db)
+			if type(db.settings) ~= "table" then db.settings = {} end
+			if db.settings.shareCoplay == nil then db.settings.shareCoplay = Config.defaults.account.settings.shareCoplay end
+		end,
 	},
-	char = { [1] = function(db) end, [2] = function(db) end },
+	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end },
 }
 
 Config.issues = {}          -- problems found and fixed by the last Load (text only, no names)

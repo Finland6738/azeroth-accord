@@ -73,6 +73,10 @@ La vista **Settings** (`/accord settings`) e un pannello **Azeroth Accord** nell
 
 **Aspetto (M6.14).** La pagina è una colonna di card (`Widgets.Card`) che prendono l'altezza di ciò che mostrano, con la card **Aspetto** in cima; le opzioni sì/no sono interruttori (`Widgets.Switch`), le colonne del Roster chip, il menu del main `Widgets.Menu`. La card Aspetto salva con `SettingsModel.SetLook(chiave, valore)`, che passa da `Config:Set` (`CONFIG_CHANGED`: `UI/Theme.lua` ridipinge subito) ed emette `SETTINGS_CHANGED(chiave)`; un rifiuto (dati in sola lettura) si dice sotto la card e il valore mostrato torna quello salvato. Nel pannello del gioco la pagina sta sul fondo `bg` del tema. `SettingsView.AddPage(id, def)` aggiunge una sotto-pagina accanto a *Settings* (un selettore a pillole compare dalla seconda: *Info*, M6.15).
 
+### 6.1 Cosa condivido (M7.6)
+
+La pagina **What I share** / **Cosa condivido** (`UI/SharePanel.lua`, `UI/ShareModel.lua`) è la seconda pagina del selettore, tra Settings e Info (`AddPage("share", …)`, ordine 15). Elenca, per ogni insieme di dati che questo personaggio pubblica, a chi va, quando parte e il contenuto dei record che il client ha mandato per ultimi; il contenuto, le righe e l'unico interruttore (`Record time played together`, `account.settings.shareCoplay`) sono in [SPEC-11 §5](SPEC-11-data-trust.md#5-pannello-cosa-condivido-m76). L'interruttore non è nella card Notifiche: ha `group = "sharing"` in `SettingsModel.OPTIONS` e si disegna solo su questa pagina.
+
 ## 7. Informazioni (M6.15)
 
 La pagina **Info** (`UI/About.lua`) è la seconda pagina della vista Settings, dopo la pagina delle opzioni: si sceglie con il selettore (`Widgets.Segmented`) in alto, in entrambe le istanze (vista del pannello e pannello nella finestra Impostazioni del gioco), si registra con `SettingsView.AddPage("info", …)` e si costruisce la prima volta che viene mostrata. `/accord about` apre la vista Settings su Info; `/accord about chat` scrive gli stessi crediti nella chat (fuori dalla gilda, dove la vista non si apre, scrive in chat in ogni caso).

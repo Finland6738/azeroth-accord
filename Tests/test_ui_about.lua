@@ -53,8 +53,8 @@ end
 describe("the Info page", function()
 	before_boot(guild)
 
-	it("is a page of Settings after the Settings page, and /accord about opens it", function()
-		deepEq({ A().SettingsView.pages[1].id, A().SettingsView.pages[2].id }, { "settings", "info" })
+	it("is a page of Settings after the Settings and What I share pages, and /accord about opens it", function()
+		deepEq({ A().SettingsView.pages[1].id, A().SettingsView.pages[2].id, A().SettingsView.pages[3].id }, { "settings", "share", "info" })
 		Mock.Slash("/accord about")
 		truthy(A().Shell:IsShown())
 		local f = A().SettingsView.frame

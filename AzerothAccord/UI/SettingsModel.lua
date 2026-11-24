@@ -6,6 +6,7 @@
 -- Options saved per ACCOUNT (AzerothAccordDB.settings), so every character of the player behaves the same:
 --   notifyOfficer   a chat line when a bank request arrives that an officer has not seen (officers only)
 --   notifyDecision  a chat line when a bank request of the player was approved, rejected or fulfilled
+--   shareCoplay     record and publish the time played together (M7.6; Data/CoPlay.lua), on the "What I share" page
 -- The look (theme, effects, animations, font: account.settings.*, M6.14) has its own small table, Model.LOOK, read by the
 -- Appearance card; UI/Theme.lua applies a change at once.
 -- Elsewhere, and only listed here for the page: the Discord name (account.settings.discord, Data/Contacts.lua), the main
@@ -26,6 +27,9 @@ Model.OPTIONS = {
 		group = "notifications", officersOnly = true },
 	{ key = "notifyDecision", path = "account.settings.notifyDecision", label = "SET_NOTIFY_DECISION", tip = "SET_NOTIFY_DECISION_TIP",
 		group = "notifications" },
+	-- the only switch of "What I share" (M7.6, SPEC-11 §5): shown on that page, not in the notices card
+	{ key = "shareCoplay", path = "account.settings.shareCoplay", label = "SHARE_COPLAY_SWITCH", tip = "SHARE_COPLAY_SWITCH_TIP",
+		group = "sharing" },
 }
 
 local byKey = {}

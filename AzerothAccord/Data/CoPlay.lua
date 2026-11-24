@@ -48,6 +48,13 @@ end
 
 local function myGUID() return compat() and compat().Player.GUID() end
 
+-- The switch "Record time played together" (M7.6, SPEC-11 §5): off, this client neither counts nor publishes. A value that
+-- is not a boolean counts as the default (on). Records already published stay until they expire.
+function CoPlay.Enabled()
+	local C = ns.Config
+	return not (C and C.db and C.db.account and C:Get("account.settings.shareCoplay") == false)
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- The group
 ---------------------------------------------------------------------------------------------------------------------
@@ -108,6 +115,7 @@ end
 
 -- One count: adds a minute to every pair of the guild members in the group. Returns the number of pairs counted.
 function CoPlay:Tick()
+	if not CoPlay.Enabled() then return 0 end
 	state.ticks = state.ticks + 1
 	state.lastTick = now()
 	local C = compat()
@@ -174,6 +182,7 @@ end
 -- Publishes the minutes of `day` (all days with changes when nil). Only the chunks that differ from the record held are
 -- written. Returns the number of records written.
 function CoPlay:Publish(day)
+	if not CoPlay.Enabled() then return 0 end
 	local S, me = ns.Store, myGUID()
 	if not (S and me and ns.GuildKey and ns.GuildKey:Current()) then return 0 end
 	local written = 0

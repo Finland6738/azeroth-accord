@@ -163,8 +163,10 @@ local function refreshNotices(f)
 	local M = Model()
 	for _, o in ipairs(M.OPTIONS) do
 		local check = f.checks[o.key]
-		check:SetChecked(M.Get(o.key))
-		check:SetShown(M.Visible(o.key))
+		if check then
+			check:SetChecked(M.Get(o.key))
+			check:SetShown(M.Visible(o.key))
+		end
 	end
 end
 
@@ -435,8 +437,10 @@ local function buildNotices(f, page)
 	local card = stackCard(page)
 	f.noticeTitle = title(card, L["SET_NOTIFY_TITLE"])
 	for _, o in ipairs(Model().OPTIONS) do
-		f.checks[o.key] = card:Add(switchRow(card, L[o.label], { L[o.label], L[o.tip] },
-			function(on) Model().Set(o.key, on) end), 6)
+		if o.group == "notifications" then
+			f.checks[o.key] = card:Add(switchRow(card, L[o.label], { L[o.label], L[o.tip] },
+				function(on) Model().Set(o.key, on) end), 6)
+		end
 	end
 	f.noticeNote = card:Add(text(card, "Small", "text-3"), 8)
 	f.noticeNote:SetText(L["SET_NOTIFY_NOTE"])

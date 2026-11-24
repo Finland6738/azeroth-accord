@@ -111,7 +111,9 @@ describe("the own contacts (CON-01, CON-02)", function()
 	end)
 
 	it("is always shared: no setting turns it off (D3)", function()
-		for key in pairs(A().Config.rules) do falsy(key:find("share", 1, true), key) end
+		for key in pairs(A().Config.rules) do
+			if key ~= "account.settings.shareCoplay" then falsy(key:find("share", 1, true), key) end   -- the co-play switch is Q12, not contacts
+		end
 	end)
 
 	it("publishes by itself after login, and again when Battle.net comes up late", function()

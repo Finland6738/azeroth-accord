@@ -86,4 +86,6 @@ UI\BankRequests.lua
 UI\Raid.lua
 UI\SettingsModel.lua
 UI\Settings.lua
+UI\ShareModel.lua
+UI\SharePanel.lua
 UI\About.lua

@@ -53,7 +53,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Spec: SPEC-11; SPEC-04
 - Scope: a Settings page listing every data set this character publishes and its current content. That includes the alt list with their guilds, BattleTag and Discord (always shared, D3), recipes, co-play and bank snapshots. What can be switched off has its switch there.
 - Done when:
-  - [ ] The panel shows the same content as the records the client last sent (`Tests/test_settings.lua`).
+  - [x] The panel shows the same content as the records the client last sent (`Tests/test_settings.lua`).
 
 ### M7.7 — Hardening
 - Branch: `step/m7-7-hardening`

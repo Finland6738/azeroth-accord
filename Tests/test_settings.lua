@@ -533,3 +533,214 @@ describe("a client without the Settings API, or one that raises", function()
 		eq(M().panelStatus, "failed")
 	end)
 end)
+
+---------------------------------------------------------------------------------------------------------------------
+-- "What I share" (M7.6, SPEC-11 §5)
+---------------------------------------------------------------------------------------------------------------------
+local function SM() return AzerothAccord.ShareModel end
+local function row(id)
+	for _, r in ipairs(SM().Describe()) do if r.id == id then return r end end
+end
+local function linesOf(id) return table.concat(row(id).lines, "\n") end
+
+local function publishAll()
+	Mock.player.battleTag = "Testchar#4321"
+	A().Accounts:Publish()
+	A().Contacts:SetDiscord("tester")
+	A().CoPlay.state.days = {}
+	Mock.group.Set{ members = { { name = "Bob", guid = BOB, inGuild = true } } }
+	A().CoPlay:Tick(); A().CoPlay:Tick()
+	A().CoPlay:Publish()
+end
+
+describe("the share switch and its migration", function()
+	before_boot(function() guild(3) end)
+
+	it("a new install has shareCoplay on", function()
+		eq(A().Config:Get("account.settings.shareCoplay"), true)
+		eq(M().Get("shareCoplay"), true)
+	end)
+
+	it("the migration adds shareCoplay = true to saved data of schema 2 and keeps the rest", function()
+		T.boot(function() AzerothAccordDB = { schemaVersion = 2, settings = { theme = "aurora", notifyOfficer = false } } end)
+		eq(AzerothAccordDB.schemaVersion, 3)
+		eq(AzerothAccordDB.settings.shareCoplay, true)
+		eq(AzerothAccordDB.settings.theme, "aurora")
+		eq(AzerothAccordDB.settings.notifyOfficer, false)
+	end)
+
+	it("the migration does not undo a choice already saved, and a damaged value is reset", function()
+		T.boot(function() AzerothAccordDB = { schemaVersion = 2, settings = { shareCoplay = false } } end)
+		eq(AzerothAccordDB.settings.shareCoplay, false)
+		T.boot(function() AzerothAccordDB = { schemaVersion = 3, settings = { shareCoplay = "no" } } end)
+		eq(AzerothAccordDB.settings.shareCoplay, true)
+	end)
+
+	it("the Notices card has only the notice switches", function()
+		local view = open()
+		truthy(view.checks.notifyOfficer)
+		isNil(view.checks.shareCoplay)
+	end)
+end)
+
+describe("What I share: the panel shows the records last sent", function()
+	before_boot(function() guild(3) end)
+
+	it("lists every data set of this character, in order, with who receives it and when", function()
+		publishAll()
+		local ids = {}
+		for _, r in ipairs(SM().Describe()) do
+			ids[#ids + 1] = r.id
+			truthy(r.to ~= "" and r.when ~= "")
+		end
+		deepEq(ids, { "accounts", "contacts", "recipes", "coplay", "bank", "bankreq", "likes", "hello" })
+		truthy(row("contacts").always)
+	end)
+
+	it("the contacts row is the contacts record; a new revision shows at once", function()
+		publishAll()
+		local rec = S():Get("contacts", ME)
+		contains(linesOf("contacts"), rec.battleTag)
+		contains(linesOf("contacts"), rec.discord)
+		eq(row("contacts").rev, rec.rev)
+		A().Contacts:SetDiscord("other_name")
+		contains(linesOf("contacts"), "other_name")
+		eq(row("contacts").rev, S():Get("contacts", ME).rev)
+	end)
+
+	it("the accounts row lists the characters of the record with their guild and the token start, never the whole token", function()
+		publishAll()
+		local rec = S():Get("accounts", ME)
+		local text = linesOf("accounts")
+		contains(text, rec.token:sub(1, 4) .. "…")
+		falsy(text:find(rec.token, 1, true))
+		for _, c in ipairs(rec.chars) do contains(text, c.name) end
+		contains(text, "In this guild")
+		eq(row("accounts").records, 1)
+	end)
+
+	it("an alt outside the guild shows its guild and the day it was seen", function()
+		local ALT = "Player-1-0000A0A1"
+		local e = A().Accounts:Register{ guid = ALT, name = "Altchar", realm = "TestRealm", classID = 8, level = 30, guild = "TestRealm/Other" }
+		e.seen = GetServerTime() - 3 * 86400
+		A().Accounts:Publish()
+		local rec = S():Get("accounts", ME)
+		local entry
+		for _, c in ipairs(rec.chars) do if c.guid == ALT then entry = c end end
+		truthy(entry, "the alt is in the record")
+		contains(linesOf("accounts"), "Altchar")
+		contains(linesOf("accounts"), "Other guild: Other")
+		contains(linesOf("accounts"), "seen")
+	end)
+
+	it("the co-play row counts the pairs and minutes of the records sent, per day", function()
+		publishAll()
+		local pairsN, minutes = 0, 0
+		for _, rec in pairs(S():Records("coplay")) do
+			if rec.author == ME then for _, m in pairs(rec.pairs) do pairsN = pairsN + 1; minutes = minutes + m end end
+		end
+		truthy(pairsN > 0)
+		contains(linesOf("coplay"), ("%d pairs, %d minutes"):format(pairsN, minutes))
+		contains(linesOf("coplay"), "guildmates")
+		eq(row("coplay").switch, "shareCoplay")
+		eq(row("coplay").on, true)
+		isNil(row("coplay").note)
+	end)
+
+	it("other members' records are not shown as this character's", function()
+		publishAll()
+		S():Records("contacts")[BOB] = { id = BOB, author = BOB, rev = 1, time = GetServerTime(), account = "x", battleTag = "Bob#1111" }
+		falsy(linesOf("contacts"):find("Bob#1111", 1, true))
+		falsy(linesOf("accounts"):find("Bob", 1, true))
+	end)
+
+	it("the recipes, bank and request rows come from the own records only", function()
+		S():Put("recipes", ME .. ":171", { char = ME, skillLine = 171, name = "Alchemy", rank = 150, maxRank = 300, ids = "x", n = 12, h = 1 })
+		S():Put("bank", ME .. ":t1", { kind = "tab", tab = 1, name = "Consumables", n = 40, it = "", h = 1 })
+		S():Put("bank", ME .. ":money", { kind = "money", money = 123450000 })
+		S():Records("bank")["Player-1-00000B0B:t1"] = { id = "Player-1-00000B0B:t1", author = BOB, rev = 1, time = GetServerTime(), kind = "tab", tab = 1, name = "Hidden", n = 1 }
+		request(ME, 1, "open")
+		contains(linesOf("recipes"), "Alchemy (150/300): 12 recipes")
+		contains(linesOf("bank"), "Tab Consumables: 40 items")
+		contains(linesOf("bank"), "Money: 12345 gold")
+		falsy(linesOf("bank"):find("Hidden", 1, true))
+		contains(linesOf("bankreq"), "Request 1: open")
+	end)
+
+	it("an officer also sees the officer row; a member does not", function()
+		isNil(row("officer"))
+		Mock.guild.Set{ name = "Accord", myRank = 1, members = { { name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB } } }
+		A().Bus:Emit("ROLE_CHANGED")
+		if A().Role:IsOfficer() then truthy(row("officer")) end
+	end)
+
+	it("the page draws the rows and follows a change", function()
+		publishAll()
+		open()
+		A().SettingsView:ShowPage(A().SettingsView.frame, "share")
+		local info = A().SettingsView.frame.share
+		truthy(info.cards.contacts.card:IsShown())
+		contains(info.cards.contacts.content:GetText(), "Testchar#4321")
+		A().Contacts:SetDiscord("changed_name")
+		contains(info.cards.contacts.content:GetText(), "changed_name")
+		eq(#Mock.errors, 0)
+	end)
+end)
+
+describe("What I share: the co-play switch", function()
+	before_boot(function() guild(3) end)
+
+	it("on: the group is observed and published", function()
+		Mock.group.Set{ members = { { name = "Bob", guid = BOB, inGuild = true } } }
+		eq(A().CoPlay:Tick(), 1)
+		eq(A().CoPlay:Publish(), 1)
+	end)
+
+	it("off: nothing is observed, nothing is written, and the records already sent stay", function()
+		Mock.group.Set{ members = { { name = "Bob", guid = BOB, inGuild = true } } }
+		A().CoPlay:Tick()
+		A().CoPlay:Publish()
+		local before = S():Count("coplay")
+		local rev = S():Get("coplay", ME .. ":" .. A().Compat.ServerDay() .. ":1").rev
+		truthy(SM().SetSwitch("shareCoplay", false))
+		eq(A().Config:Get("account.settings.shareCoplay"), false)
+		local ticks = A().CoPlay.state.ticks
+		eq(A().CoPlay:Tick(), 0)
+		eq(A().CoPlay.state.ticks, ticks, "no count at all")
+		eq(A().CoPlay:Publish(), 0)
+		eq(S():Count("coplay"), before)
+		eq(S():Get("coplay", ME .. ":" .. A().Compat.ServerDay() .. ":1").rev, rev)
+		local r = row("coplay")
+		eq(r.on, false)
+		contains(r.note, "Others still observe the groups")
+		contains(r.note, "90 days")
+		eq(r.records, before, "the published records are still listed")
+	end)
+
+	it("turning it on again records again; the switch cannot set other options", function()
+		SM().SetSwitch("shareCoplay", false)
+		Mock.group.Set{ members = { { name = "Bob", guid = BOB, inGuild = true } } }
+		eq(A().CoPlay:Tick(), 0)
+		SM().SetSwitch("shareCoplay", true)
+		eq(A().CoPlay:Tick(), 1)
+		local ok, why = SM().SetSwitch("notifyOfficer", false)
+		falsy(ok); eq(why, "unknown")
+	end)
+
+	it("the switch on the page changes the setting, and the saved choice survives a /reload", function()
+		open()
+		A().SettingsView:ShowPage(A().SettingsView.frame, "share")
+		local k = A().SettingsView.frame.share.cards.coplay
+		truthy(k.switchRow:IsShown())
+		k.switch:Click()
+		eq(A().Config:Get("account.settings.shareCoplay"), false)
+		Mock.Reload()
+		eq(M().Get("shareCoplay"), false)
+	end)
+
+	it("a record of the coplay set with no switch row: the other rows have none", function()
+		for _, r in ipairs(SM().Describe()) do
+			if r.id ~= "coplay" then isNil(r.switch) end
+		end
+	end)
+end)

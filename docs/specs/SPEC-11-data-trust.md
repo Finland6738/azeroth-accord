@@ -235,8 +235,8 @@ Una sotto-pagina di Settings (`SettingsView.AddPage("share", ...)`, selettore *S
 |---|---|---|---|
 | Personaggi dell'account (`accounts`) | tutta la gilda | il token (i primi 4 caratteri e `…`, con il tooltip: casuale, non legato all'account Battle.net), ogni personaggio con nome, reame, classe, livello e `In this guild` / `Other guild: X` / `No guild` / `Not in guild`, il giorno `seen`, il main, la versione dell'addon | no, sempre condiviso (D3) |
 | Contatti (`contacts`) | tutta la gilda | BattleTag, nome Discord | no, sempre condiviso (D3) |
-| Ricette (`recipes`) | tutta la gilda | per professione: nome, grado, numero di ricette | no: sono la funzione stessa (vedi Q12) |
-| Gioco di gruppo (`coplay`) | tutta la gilda | gli ultimi 7 giorni: per giorno quante coppie e quanti minuti; la riga dice che le coppie nominano i compagni (per GUID) | per ora no (Q12) |
+| Ricette (`recipes`) | tutta la gilda | per professione: nome, grado, numero di ricette | no: sono la funzione stessa (Q12) |
+| Gioco di gruppo (`coplay`) | tutta la gilda | gli ultimi 7 giorni: per giorno quante coppie e quanti minuti; la riga dice che le coppie nominano i compagni (per GUID) | sì: `Record time played together` / `Registra il tempo giocato insieme` (Q12) |
 | Foto della banca (`bank`) | tutta la gilda; le schede che solo gli ufficiali vedono solo agli ufficiali | le schede lette (nome, numero di oggetti), il denaro, i registri, con l'età | no: si scrivono solo aprendo la banca |
 | Richieste alla banca (`bankreq`) | tutta la gilda | le proprie richieste aperte e chiuse (numero, le ultime 5) | no |
 | Like | solo al notaio, in whisper | quanti like ha dato questo account (tenuto solo su questo computer); la gilda vede solo totali anonimi | no |
@@ -245,7 +245,7 @@ Una sotto-pagina di Settings (`SettingsView.AddPage("share", ...)`, selettore *S
 
 - Le righe dei personaggi degli **altri** personaggi dell'account non si mostrano come pubblicate da questo: una riga dice `Your other characters publish their own records when they log in.`
 - Quando arriveranno altri insiemi (per esempio l'elenco degli addon di M9.9, con l'interruttore della risposta a Q11) si aggiungono con `ShareModel.Add(id, def)`, come le sezioni della scheda.
-- **Interruttori**: oggi nessun insieme ne ha uno (D3 e le funzioni stesse). Se il proprietario risponde sì a Q12, il gioco di gruppo ha l'interruttore `Record time played together` / `Registra il tempo giocato insieme`, chiave `account.settings.shareCoplay` (booleano, predefinito `true`, una migrazione dello schema lo aggiunge): spento, questo client non osserva e non pubblica più co-play e non scrive record nuovi; i record già pubblicati restano fino alla loro scadenza (90 giorni); gli altri continuano a osservare i gruppi in cui c'è anche questo personaggio, e la riga lo dice. Senza risposta, M7.6 non aggiunge interruttori.
+- **Interruttori** (risposta del proprietario a Q12, 2026-11-24): c'è un solo interruttore, per il gioco di gruppo, `Record time played together` / `Registra il tempo giocato insieme`, chiave `account.settings.shareCoplay` (booleano, predefinito `true`; lo schema 3 lo aggiunge con una migrazione). Spento, questo client non osserva e non pubblica più co-play (`CoPlay:Tick` e `CoPlay:Publish` non fanno nulla) e non scrive record nuovi; i record già pubblicati restano fino alla loro scadenza (90 giorni); gli altri continuano a osservare i gruppi in cui c'è anche questo personaggio, e la riga lo dice. Ricette e foto della banca non hanno interruttore; D3 (alt, BattleTag, Discord) e le funzioni stesse restano sempre condivisi.
 
 ## 6. Limiti contro i client malevoli e le gilde grandi (M7.7)
 
