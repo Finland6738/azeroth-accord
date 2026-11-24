@@ -46,7 +46,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Spec: SPEC-11
 - Scope: export the player's own data (characters, main, settings, own records, the account token) to a text in a selectable box. Import it on another computer, with validation and a preview of what changes.
 - Done when:
-  - [ ] A round trip restores the same data; a damaged or foreign text is refused with a clear message; guild data of other players is never in the export.
+  - [x] A round trip restores the same data; a damaged or foreign text is refused with a clear message; guild data of other players is never in the export.
 
 ### M7.6 — "What I share" panel
 - Branch: `step/m7-6-privacy-panel`

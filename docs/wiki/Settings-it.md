@@ -56,3 +56,34 @@ Mostra quanto sono grandi i dati salvati dall'addon nel tuo computer (stime del 
 **Cancella i dati della gilda** dimentica tutto ciò che l'addon ha sulla gilda attuale e chiede ai compagni di rimandarlo. Cliccalo una volta per vedere quanto si libererà, poi clicca di nuovo entro 8 secondi per cancellare (altrimenti si annulla).
 
 **Conserva** ciò che solo il tuo computer conosce e la gilda non può rimandare: i tuoi like (così non puoi dare due volte lo stesso like), la chiave dei like della gilda se sei ufficiale, lo storico del denaro della banca e gli avvisi della banca già visti. Non tocca mai i dati dell'account (i tuoi personaggi, il tuo main, il tuo nome Discord), le tue impostazioni o i dati di un'altra gilda. Si può usare tranquillamente quando i dati sembrano sbagliati o troppo grandi; la gilda li riempie di nuovo entro pochi minuti, quando ci sono compagni online.
+
+## Backup e ripristino
+
+La card **Backup** in fondo alla pagina (o `/accord backup`) porta i **tuoi** dati su un altro computer, per esempio dopo aver reinstallato il gioco o quando giochi da un secondo PC. Quasi tutto ciò che Accord mostra torna da solo dai compagni di gilda; il backup porta ciò che conosce solo il tuo computer.
+
+Cosa contiene:
+
+- i tuoi personaggi (nome, classe, livello, gilda e quando sono stati visti l'ultima volta) e il main scelto su ogni reame;
+- queste impostazioni: tema, effetti, animazioni, carattere, avvisi e il tuo nome Discord;
+- i tuoi record in ogni gilda che conosci: l'elenco degli alt, i contatti e le liste di ricette;
+- il **token dell'account**, così i tuoi like continuano come prima (lo stesso pseudonimo: un like già dato non conta due volte).
+
+Cosa **non** contiene mai: dati di altri giocatori di qualsiasi tipo (i loro alt, contatti, ricette, like), il tempo giocato insieme, la banca (foto, registri e richieste), le impostazioni della gilda e la posizione della finestra. Sono della gilda, o di questo computer, e tornano dalla gilda.
+
+**Esporta** apre una casella con tutto il testo già selezionato: premi **Ctrl+C**, poi incollalo in un file di testo che conservi. È una sola riga lunga che comincia con `AZACCORD1:`.
+
+> **Tieni questo testo per te: contiene il token del tuo account.** Chi pubblica il tuo token blocca i tuoi like finché non smette. Non incollarlo in una chat, in un forum o in una segnalazione.
+
+**Importa**, sull'altro computer: entra con un personaggio qualsiasi dell'account, apri la card, premi **Importa**, incolla il testo (**Ctrl+V**) e premi **Controlla**. Non cambia ancora nulla. Un testo valido mostra cosa cambierebbe: il token (resta o è sostituito), i personaggi che aggiunge, il main, ogni impostazione diversa (vecchia → nuova) e, per ogni gilda, quanti tuoi record ripristina e quanti restano perché questo computer ne ha già una versione più nuova. Un record non viene mai sostituito da uno più vecchio. Premi **Importa** per applicarlo, o **Annulla** per tornare indietro. Poi Accord ripubblica i tuoi record.
+
+Un testo viene rifiutato, e non cambia nulla, quando:
+
+| Messaggio | Perché |
+|---|---|
+| *Questo non è un backup di Azeroth Accord.* | il testo è vuoto, troppo lungo (oltre 256 KB) o non comincia come un backup |
+| *Questo backup è stato fatto da una versione più nuova di Azeroth Accord. Aggiorna l'addon e riprova.* | il testo viene da un Accord più nuovo |
+| *Il backup è danneggiato o incompleto: copia di nuovo tutto il testo.* | manca un pezzo o un carattere è cambiato nella copia |
+| *Questo backup contiene dati che Accord non può usare (…). Non è cambiato nulla.* | una sua parte non è valida (il token, i personaggi, il main, le impostazioni o i record) |
+| *Questo backup è di un altro account. Non è cambiato nulla.* | il token non è quello di questo computer e questo computer conosce personaggi che il backup non elenca |
+
+Spazi e a capo aggiunti dalla copia non contano. Nella modalità demo il backup non c'è, e l'importazione non c'è mentre i dati salvati sono stati scritti da una versione più nuova di Accord (allora sono in sola lettura).

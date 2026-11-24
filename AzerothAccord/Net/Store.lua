@@ -296,6 +296,14 @@ local function validShape(rec, def)
 	return nil
 end
 
+-- The shape reason of a record of `set` (nil when the shape is right): the checks every received record passes first.
+-- Data/Backup.lua checks the records of a backup with it.
+function Store.ValidShape(set, rec)
+	local def = Store.SETS[set]
+	if not def then return "set" end
+	return validShape(rec, def)
+end
+
 -- The trust decision for one record of `set` that came from `sender` (ctx caches the sender's roster entry).
 -- Returns true, or false plus a reason ("set", shape reasons, "sender" (not in the roster), "relay" (not first hand
 -- and the sender is no officer), "authority", "observer", "owner").

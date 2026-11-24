@@ -56,3 +56,34 @@ Shows how big the addon's saved data is on your computer (estimates of the saved
 **Clear guild data** forgets everything the addon holds about the current guild and asks your guildmates to send it again. Click it once to see how much will be freed, then click again within 8 seconds to clear (otherwise it is cancelled).
 
 It **keeps** what only your computer knows and the guild cannot send back: your likes (so you cannot give the same like twice), the guild's likes key if you are an officer, the bank's money history and which bank notices you have already seen. It never touches your account data (your characters, your main, your Discord name), your settings or the data of another guild. It is safe to use when the data looks wrong or too big; the guild refills it within a few minutes of guildmates being online.
+
+## Backup and restore
+
+The **Backup** card at the bottom of the page (or `/accord backup`) moves **your own** data to another computer, for example after you reinstall the game or when you play from a second PC. Most of what Accord shows comes back from your guildmates by itself; the backup carries what only your computer knows.
+
+What is in it:
+
+- your characters (name, class, level, guild and when they were last seen) and the main you chose on each realm;
+- these settings: theme, effects, animations, font, notices and your Discord name;
+- your own records in each guild you know: your alt list, your contacts and your recipe lists;
+- the **account token**, so your likes continue as before (the same pseudonym: a like you already gave is not counted twice).
+
+What is **never** in it: other players' data of any kind (their alts, contacts, recipes, likes), the time played together, the bank (snapshots, logs and requests), the guild's settings and the position of the window. They belong to the guild, or to this computer, and come back from the guild.
+
+**Export** opens a box with the whole text already selected: press **Ctrl+C**, then paste it into a text file you keep. It is one long line that starts with `AZACCORD1:`.
+
+> **Keep this text private: it holds your account token.** Someone who publishes your token blocks your likes until they stop. Do not paste it in a chat, a forum or a bug report.
+
+**Import**, on the other computer: log in with any character of the account, open the card, press **Import**, paste the text (**Ctrl+V**) and press **Check**. Nothing changes yet. A valid text shows what it would change: the token (kept or replaced), the characters it adds, the main, each setting that differs (old → new) and, for each guild, how many of your records it restores and how many stay because this computer already has a newer version. A record is never replaced by an older one. Press **Import** to apply it, or **Cancel** to go back. Accord then publishes your own records again.
+
+A text is refused, and nothing changes, when:
+
+| Message | Why |
+|---|---|
+| *This is not an Azeroth Accord backup.* | the text is empty, too long (over 256 KB) or does not start like a backup |
+| *This backup was made by a newer version of Azeroth Accord. Update the addon and try again.* | the text comes from a newer Accord |
+| *The backup is damaged or incomplete: copy the whole text again.* | a piece is missing or a character changed in the copy |
+| *This backup contains data Accord cannot use (…). Nothing was changed.* | a part of it is not valid (the token, the characters, the main, the settings or the records) |
+| *This backup belongs to another account. Nothing was changed.* | the token is not this computer's and this computer knows characters the backup does not list |
+
+Spaces and line breaks added by the copy do not matter. There is no backup in demo mode, and no import while the saved data was written by a newer version of Accord (it is read-only then).

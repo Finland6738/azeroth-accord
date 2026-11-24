@@ -25,6 +25,8 @@
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
+--   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
+--                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.
 -- Later modules add their events here.
 local ADDON_NAME, ns = ...
 ns = ns or {}

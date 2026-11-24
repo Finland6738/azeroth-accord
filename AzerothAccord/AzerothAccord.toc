@@ -53,6 +53,7 @@ Data\FDCP.lua
 Data\Integrations.lua
 Data\Demo.lua
 Core\Demo.lua
+Data\Backup.lua
 UI\Assets.lua
 UI\Theme.lua
 UI\Motion.lua
@@ -71,6 +72,7 @@ UI\DiagnosticsBox.lua
 UI\RosterModel.lua
 UI\Roster.lua
 UI\CopyBox.lua
+UI\BackupBox.lua
 UI\MemberCard.lua
 UI\RecipeModel.lua
 UI\Professions.lua

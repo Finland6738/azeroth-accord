@@ -14,6 +14,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord raid` | Apre la vista Raid: le fonti della gilda e ciò che FDCP pubblica *(M11.7)* |
 | `/accord settings` | Apre la vista Impostazioni: nome Discord, personaggio principale, avvisi, colonne del Roster, dati salvati (vedi [[Impostazioni|Settings-it]]) |
 | `/accord about` | Apre la pagina Info delle Impostazioni: crediti, link da copiare, licenza. `/accord about chat` scrive invece i crediti in chat (vedi [[Informazioni e crediti|About-it]]) |
+| `/accord backup` | Apre la card **Backup** della pagina Impostazioni: esporta i tuoi dati in un testo, o importali su un altro computer (vedi *Backup e ripristino* in [[Impostazioni|Settings-it]]) |
 | `/accord demo` | Riempie ogni vista con una **gilda inventata**, per provare l'addon senza gilda o per mostrarlo. Non si invia e non si salva nulla; scrivilo di nuovo per uscire (vedi [Modalità demo](#modalità-demo)) |
 | `/accord debug` | Apre un rapporto di diagnostica, già selezionato: premi Ctrl+C e incollalo in una segnalazione. Non contiene nomi di giocatori, gilde, BattleTag o Discord |
 | `/accord help` | Elenca i comandi in chat |

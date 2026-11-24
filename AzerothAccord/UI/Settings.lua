@@ -1,6 +1,7 @@
 -- Settings view (SPEC-04 §4, M6.1; restyled in M6.14): the look of the addon (the Appearance card: theme, neon effects,
 -- animations, font), the contacts the player shares with the guild (M2.5, SPEC-05 CON-01, CON-02), the main character,
--- the notices, the Roster columns, and the sizes of the saved data with "Clear guild data". Lua 5.1.
+-- the notices, the Roster columns, the sizes of the saved data with "Clear guild data", and the personal backup (M7.5,
+-- SPEC-11 §4.3: Export and Import open UI/BackupBox.lua). Lua 5.1.
 -- UI/SettingsModel.lua holds the options and the actions; this file only draws them, as a column of Widgets.Cards on a page that
 -- scrolls. One builder, Settings.Build(parent), serves both places: the Settings view of the panel (a view of the Shell)
 -- and the canvas panel in the game's Settings window (registered at login when the client has
@@ -230,6 +231,24 @@ local function refreshData(f)
 	f.clear:SetEnabled(ns.Role ~= nil and ns.Role:InGuild() and ns.GuildKey ~= nil and ns.GuildKey:Current() ~= nil)
 end
 
+-- The Backup card (SPEC-11 §4.3): no export in the demo, no import in the demo nor with read-only data; the card says why.
+local function refreshBackup(f)
+	local B = ns.Backup
+	local demo = ns.Demo ~= nil and ns.Demo:IsActive()
+	local blocked = "db"
+	if B then blocked = B:ImportBlocked() end
+	f.backupExport:SetEnabled(B ~= nil and not demo)
+	f.backupImport:SetEnabled(blocked == nil)
+	if demo then
+		say(f.backupNote, L["BACKUP_NO_DEMO"], "warn")
+	elseif blocked == "read-only" then
+		say(f.backupNote, L["BACKUP_READONLY"], "warn")
+	else
+		say(f.backupNote, "")
+	end
+	f.backupNote:SetShown((f.backupNote:GetText() or "") ~= "")
+end
+
 -- The cards take the height of what they show now, one under the other; the page is as tall as the column.
 local function layout(f)
 	local y = 0
@@ -252,6 +271,7 @@ local function refresh(f)
 	refreshNotices(f)
 	refreshColumns(f)
 	refreshData(f)
+	refreshBackup(f)
 	layout(f)
 end
 
@@ -326,6 +346,22 @@ function View:Clear(f)
 	say(f.clearStatus, L["SET_CLEAR_DONE"]:format(Model().FormatBytes(freed)), "ok")
 	View:Refresh()
 	return "cleared"
+end
+
+-- `/accord backup`: the Settings page of the panel, scrolled to the Backup card.
+function View:ShowBackup()
+	local f = self.frame
+	if not f then return false end
+	self:ShowPage(f, "settings")
+	refresh(f)
+	local y = 0
+	for _, card in ipairs(f.cards) do
+		if card == f.backupCard then break end
+		y = y + card:GetHeight() + View.CARD_GAP
+	end
+	local range = max(0, (f.pageHeight or 0) - (f.scroll:GetHeight() or 0))
+	f.scroll:SetVerticalScroll(min(range, y))
+	return true
 end
 
 function View:Disarm(f)
@@ -438,6 +474,22 @@ local function buildData(f, page)
 	return card
 end
 
+local function buildBackup(f, page)
+	local card = stackCard(page)
+	f.backupTitle = title(card, L["SET_BACKUP_TITLE"])
+	f.backupText = card:Add(text(card, "Body", "text-2"), 8)
+	f.backupText:SetText(L["SET_BACKUP_TEXT"])
+	f.backupWarning = card:Add(text(card, "Small", "warn"), 8)
+	f.backupWarning:SetText(L["BACKUP_WARNING"])
+	f.backupExport = card:Add(Widgets.Button(card, { text = L["SET_BACKUP_EXPORT"], style = "secondary", width = 140,
+		onClick = function() if ns.BackupBox then ns.BackupBox:OpenExport() end end }), 14)
+	f.backupImport = Widgets.Button(card, { text = L["SET_BACKUP_IMPORT"], style = "secondary", width = 140,
+		onClick = function() if ns.BackupBox then ns.BackupBox:OpenImport() end end })
+	f.backupImport:SetPoint("LEFT", f.backupExport, "RIGHT", 12, 0)
+	f.backupNote = card:Add(text(card, "Small", "text-2"), 8)
+	return card
+end
+
 -- The Settings page: the cards on a page that scrolls with the wheel.
 local function buildSettingsPage(holder, f)
 	f.checks, f.columnChecks, f.sizes = {}, {}, {}
@@ -454,8 +506,9 @@ local function buildSettingsPage(holder, f)
 	end)
 	f.scroll, f.page = scroll, page
 	f.cards = { buildLook(f, page), buildContacts(f, page), buildMain(f, page), buildNotices(f, page), buildColumns(f, page),
-		buildData(f, page) }
+		buildData(f, page), buildBackup(f, page) }
 	f.lookCard = f.cards[1]
+	f.backupCard = f.cards[#f.cards]
 end
 
 View.pages[1] = { id = "settings", label = L["VIEW_SETTINGS"], order = 10, build = buildSettingsPage }
@@ -546,6 +599,7 @@ if ns.addon then
 		ns.Bus:On("SETTINGS_CHANGED", function() View:Refresh() end)
 		ns.Bus:On("ROLE_CHANGED", function() View:Refresh() end)
 		ns.Bus:On("GUILD_CHANGED", function() View:Refresh() end)
+		ns.Bus:On("DEMO_CHANGED", function() View:Refresh() end)
 	end
 	if ns.OnEnable then ns.OnEnable(function() View.RegisterPanel() end) end
 end
