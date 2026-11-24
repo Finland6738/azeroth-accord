@@ -112,8 +112,9 @@ Notes:
   - FDCP's rules as a read-only summary beside the loot page, never copied into it;
   - an unknown API version falls back to level 0 without errors.
   - If FDCP has no API when this step comes, the step only records that and stays open.
+  - *Done (2026-11-24), ahead of M11.1–M11.6 because FDCP published its API (FDCP M8-1):* `Data/FDCP.lua` reads every getter protected and keeps only the known fields; the new **Raid** view (`UI/Raid.lua`, `/accord raid`) holds the officers' choice of the sources (M10.2's guild setting), the pool, the lineup and bench, the player's credits and the rules summary; the member card gains *Loot (FDCP)*. Callbacks are registered only while FDCP is a source. The rules summary moves beside the loot page when M11.6 exists; SPEC-15 does not exist yet, so ADR 0022 and the wiki page *Raid and Loot Addons* describe the step. Follow-ups for FDCP's API are in SPEC-10 Q10.
 - Done when:
-  - [ ] With FDCP loaded and its API known, the member card shows the credits that FDCP shows; with FDCP missing, disabled or of an unknown API version, nothing breaks and level 0 remains (`Tests/test_integrations.lua`).
+  - [x] With FDCP loaded and its API known, the member card shows the credits that FDCP shows; with FDCP missing, disabled or of an unknown API version, nothing breaks and level 0 remains (`Tests/test_integrations.lua`).
 - Real client: FDCP and Accord loaded together, a `/reload`, and the order in which the two addons load.
 
 ### M11.8 — In-game check and release

@@ -33,6 +33,7 @@
 | **Like** | Un like da ogni account a ogni altro account, mai a se stessi, irrevocabile, totali anonimi |
 | **Indice sociale** | Con quanti compagni diversi gioca davvero ciascuno (compagni effettivi), una mappa dei gruppi della gilda e i suggerimenti "gioca con qualcuno di nuovo" |
 | **Banca di gilda** | Contenuto dall'ultima visita di un membro, registri, donazioni, richieste di prelievo e deposito approvate dagli ufficiali |
+| **Addon di raid e di loot** | Lavora con l'addon del loot della gilda invece di sostituirlo: gli ufficiali scelgono Finland Dragon Credit Points come fonte, e la vista **Raid** mostra il suo pool della season (MS1, MS2, OS), la formazione e la panchina della serata e le sue regole del loot, e la scheda del membro i crediti e il posto nella coda del loot, tutto in sola lettura; in Accord nessun motore del loot e nessuna presenza |
 
 Tutto resta **dentro la gilda**: l'addon comunica solo sui canali addon nascosti della gilda, senza server, senza internet e senza telemetria.
 

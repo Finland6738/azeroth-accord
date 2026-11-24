@@ -2,7 +2,7 @@
 
 *English: [[Raid and loot addons|Raid-and-Loot-Addons]]*
 
-> Il riconoscimento è nel codice dal passo M10.2; la lettura di Finland Dragon Credit Points arriva con il passo M11.7. Niente è ancora stato provato nel gioco vero: le prime prove sono con la gilda del proprietario.
+> Il riconoscimento (passo M10.2) e la lettura di Finland Dragon Credit Points (passo M11.7) sono nel codice. Niente è ancora stato provato nel gioco vero: le prime prove sono con la gilda del proprietario, con FDCP e Accord caricati insieme.
 
 Accord **non ha un motore del loot né le presenze**. Quei dati li tengono gli addon di raid e di loot della tua gilda, e Accord lavora **con** loro, mai contro:
 
@@ -24,4 +24,33 @@ I nomi delle cartelle degli addon diversi da FDCP vengono dalle loro pagine pubb
 - **Livello 1, lettura.** Accord legge ciò che l'addon pubblica per gli altri addon. Solo FDCP pubblica un'interfaccia del genere (`FinlandDragonCreditPointsAPI`), e Accord la legge solo quando la sua versione è una che Accord conosce (la versione 1). Con un'altra versione Accord torna al livello 0 e niente si rompe: aggiorna Accord.
 - Non c'è un livello 2: Accord non manda mai niente a un altro addon.
 
-`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer (senza nomi). Quali addon hanno gli *altri* membri arriva più avanti, con l'elenco degli addon della gilda (M9).
+`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer e una sezione **FDCP** con lo stato delle notifiche (senza nomi). Quali addon hanno gli *altri* membri arriva più avanti, con l'elenco degli addon della gilda (M9).
+
+## La vista Raid
+
+Si apre con la sua scheda o con `/accord raid`.
+
+- **In alto, le fonti della gilda**: *Roster della season* (Accord o FDCP) e *Loot* (Nessuno o FDCP). Gli ufficiali e il Maestro di gilda le cambiano con un clic, e la scelta arriva a ogni membro con Accord. I membri vedono la stessa scelta, bloccata. **Apri FDCP** apre la finestra di FDCP finché FDCP è caricato sul tuo computer.
+- **Lo stato di FDCP**: la sua versione e da dove vengono i suoi dati sul tuo computer, o perché non c'è niente: FDCP non installato o spento, una versione della sua interfaccia che questo Accord non conosce, FDCP che sta ancora leggendo il roster della gilda, o nessun dato della season per ora.
+- **Roster della season**: la season e il suo pool, una riga per main con classe, ruolo, MS1, MS2 e OS, e *in prova* o *inattivo*.
+- **Formazione e panchina**: la serata di raid aperta in FDCP, con chi è nel raid e chi è in panchina.
+- **Loot**: i tuoi crediti e il tuo posto nella coda del loot, e un **riassunto in sola lettura delle regole del loot di FDCP** (preset, priorità, crediti all'inizio, come si assegnano gli oggetti, il costo per qualità dell'oggetto, i moltiplicatori delle risposte, chi entra tardi, la panchina). Le regole si cambiano in FDCP, mai in Accord. La pagina del loot del manuale di gilda mostrerà lo stesso riassunto accanto al suo testo (M11).
+
+Con **Accord** come fonte del roster della season, la vista dice che le dichiarazioni di Accord arrivano con una versione successiva (M10).
+
+## Sulla scheda del membro
+
+Con FDCP scelto per il loot, la scheda del membro ha una sezione **Loot (FDCP)**: i crediti del membro e il suo posto nella coda del loot, come li mostra FDCP. Un alt mostra i crediti del suo main. Un main inattivo ha i crediti ma non il posto.
+
+## Client degli ufficiali e dei membri
+
+FDCP non dà gli stessi dati a ogni client, e Accord lo dice invece di mostrare elenchi vuoti:
+
+| | Client di un ufficiale | Client di un membro |
+|---|---|---|
+| Season e pool | ogni main, con MS1, MS2 e OS | i main che giocano, solo con MS1 |
+| Formazione e panchina | la serata aperta | non sui client dei membri |
+| Crediti e posto | sì | sì, dalla tabella mandata da un ufficiale |
+| Regole del loot | le regole della gilda | i valori predefiniti del preset Patto di FDCP (le regole della gilda sono sui client degli ufficiali) |
+
+**Le presenze non si mostrano mai**: FDCP le tiene per i suoi ufficiali e non le condivide con altri addon, e Accord non conta nessuna presenza ai raid. Accord non salva e non manda niente di ciò che legge da FDCP.

@@ -457,10 +457,10 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 	it("every view opens from its tab and from its command, in the order of the spec", function()
 		Mock.Slash("/accord")
 		local tabs = Shell().content.tabs
-		deepEq(tabs.order, { "roster", "professions", "reputation", "bank", "settings" })
+		deepEq(tabs.order, { "roster", "professions", "reputation", "bank", "raid", "settings" })
 		local labels = {}
 		for _, id in ipairs(tabs.order) do labels[#labels + 1] = tabs.buttons[id].label:GetText() end
-		deepEq(labels, { "Roster", "Professions", "Reputation", "Bank", "Settings" })
+		deepEq(labels, { "Roster", "Professions", "Reputation", "Bank", "Raid", "Settings" })
 		for _, id in ipairs(tabs.order) do
 			tabs.buttons[id]:Click()
 			eq(tabs:Active(), id, "tab " .. id)
@@ -470,7 +470,7 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 		end
 		Mock.Slash("/accord")
 		falsy(Win():IsShown())
-		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do
+		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "raid", "settings" }) do
 			Mock.Slash("/accord " .. id)
 			truthy(Win():IsShown(), "/accord " .. id)
 			eq(Shell().content.tabs:Active(), id, "/accord " .. id)

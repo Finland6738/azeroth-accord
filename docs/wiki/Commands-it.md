@@ -11,6 +11,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord professions` | Apre la vista Professioni su **chi può creare** (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) |
 | `/accord reputation` | Apre la vista Reputazione: i like di ogni giocatore e il pulsante Like, il tuo indice sociale, la mappa dei gruppi (ufficiali), *Qualcuno di nuovo* con cui giocare *(M4)* |
 | `/accord bank` | Apre la vista Banca *(M5)* |
+| `/accord raid` | Apre la vista Raid: le fonti della gilda e ciò che FDCP pubblica *(M11.7)* |
 | `/accord settings` | Apre la vista Impostazioni: nome Discord, personaggio principale, avvisi, colonne del Roster, dati salvati (vedi [[Impostazioni|Settings-it]]) |
 | `/accord about` | Apre la pagina Info delle Impostazioni: crediti, link da copiare, licenza. `/accord about chat` scrive invece i crediti in chat (vedi [[Informazioni e crediti|About-it]]) |
 | `/accord debug` | Apre un rapporto di diagnostica, già selezionato: premi Ctrl+C e incollalo in una segnalazione. Non contiene nomi di giocatori, gilde, BattleTag o Discord |

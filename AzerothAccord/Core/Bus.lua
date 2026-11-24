@@ -21,6 +21,9 @@
 --                                                     another status, version or level (M10.2).
 --   SOURCES_CHANGED()                                 Data/Integrations.lua; the officers' choice of a source per datum changed
 --                                                     (locally, from an officer, or a change of guild).
+--   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
+--                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
+--                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).
 -- Later modules add their events here.
 local ADDON_NAME, ns = ...
 ns = ns or {}

@@ -969,6 +969,40 @@ function Compat.Addon.State(name)
 	return out
 end
 
+-- The name of a game specialization id ("Holy"), or nil when the client does not know it (GetSpecializationInfoByID, a
+-- global of the Forever dump; its second result is the name).
+function Compat.SpecName(specID)
+	if type(specID) ~= "number" then return nil end
+	local values = all("GetSpecializationInfoByID", specID)
+	local name = values and values[2]
+	if type(name) == "string" and name ~= "" then return name end
+	return nil
+end
+
+-- The function of a slash command another addon registered ("/fdcp"), or nil: SlashCmdList and the SLASH_<KEY><n>
+-- globals, as the chat frame resolves a typed command (AceConsole's key "ACECONSOLE_<NAME>" is looked at first). M11.7
+-- runs it only on a click of the player, as typing the command would.
+function Compat.SlashHandler(command)
+	if type(command) ~= "string" or command == "" then return nil end
+	local list = Resolve("SlashCmdList")
+	if type(list) ~= "table" then return nil end
+	command = command:lower()
+	local function matches(key)
+		for i = 1, 9 do
+			local v = Resolve("SLASH_" .. key .. i)
+			if type(v) ~= "string" then return false end
+			if v:lower() == command then return true end
+		end
+		return false
+	end
+	local ace = "ACECONSOLE_" .. command:sub(2):upper()
+	if type(list[ace]) == "function" and matches(ace) then return list[ace] end
+	for key, fn in pairs(list) do
+		if type(key) == "string" and type(fn) == "function" and matches(key) then return fn end
+	end
+	return nil
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Build, API probe and feature capabilities
 ---------------------------------------------------------------------------------------------------------------------
@@ -1037,6 +1071,7 @@ local CAPS = {
 	{ "addons.DoesAddOnExist", "addons", "C_AddOns.DoesAddOnExist" },
 	{ "addons.GetAddOnEnableState", "addons", "C_AddOns.GetAddOnEnableState" },
 	{ "addons.GetAddOnMetadata", "addons", "C_AddOns.GetAddOnMetadata" },
+	{ "spec.GetSpecializationInfoByID", "spec", "GetSpecializationInfoByID" },
 	{ "time.GetServerTime", "time", "GetServerTime", call = true },
 	{ "time.GetTime", "time", "GetTime", call = true },
 	{ "time.NewTicker", "time", "C_Timer.NewTicker" },

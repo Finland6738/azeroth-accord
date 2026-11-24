@@ -48,6 +48,7 @@ local SAME = {
 	RV_TITLE = true, REP_LIKE = true, SOC_HOURS = true, SOC_TOP_LINE = true, NEW_MINUTES = true, BANK_TAB_COUNT = true,
 	THEME_NEBULA = true, THEME_AURORA = true, THEME_ACCORD = true,
 	ABOUT_TAB = true, ABOUT_LINK_REPO = true,
+	VIEW_RAID = true, SOURCE_LOOT = true, SOURCE_ACCORD = true, SOURCE_FDCP = true, FDCP_STATUS = true, RAID_SEASON_LINE = true, RAID_MS1 = true, RAID_MS2 = true, RAID_OS = true, ROLE_TANK = true, ROLE_HEALER = true, ROLE_DAMAGER = true, RAID_LOOT = true, RULES_PRESET = true, RULES_COST = true, FDCP_PRESET_PATTO = true, CARD_FDCP = true,
 }
 
 describe("the two locale tables", function()
@@ -149,14 +150,14 @@ describe("an Italian client", function()
 		local A = AzerothAccord
 		local text = function() return table.concat(Mock.PlainOutput(), "\n") end
 		eq(GetLocale(), "itIT")
-		for _, view in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do
+		for _, view in ipairs({ "roster", "professions", "reputation", "bank", "raid", "settings" }) do
 			truthy(A.Shell:OpenView(view), view)
 			Mock.Advance(2)
 		end
 		eq(#Mock.errors, 0)
 		local labels = {}
 		for _, v in ipairs(A.Shell:ViewList()) do labels[#labels + 1] = v.label end
-		deepEq(labels, { "Roster", "Professioni", "Reputazione", "Banca", "Impostazioni" })
+		deepEq(labels, { "Roster", "Professioni", "Reputazione", "Banca", "Raid", "Impostazioni" })
 		A.Shell:OpenView("settings")
 		eq(A.SettingsView.frame.title:GetText(), "Contatti condivisi con la gilda")
 		eq(A.SettingsView.frame.mainTitle:GetText(), "Personaggio principale")

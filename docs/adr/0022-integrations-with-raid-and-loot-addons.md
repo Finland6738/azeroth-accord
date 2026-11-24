@@ -17,6 +17,7 @@ M10 (calendar, raids and the season roster) and M11 (loot and the guild handbook
 6. **The game calendar is the shared ground** for events and sign-ups (M10.5): every addon then sees the same answers.
 7. **Load order is not a dependency.** The TOC names FDCP in `## OptionalDeps` (a hint that loads it first when it is installed), and Accord looks for the table again at `PLAYER_LOGIN` and on `ADDON_LOADED` of a known folder. Each getter is guarded; `nil` means "not on this client", never "empty".
 8. **Callbacks only while needed.** Accord registers FDCP's callbacks only while the guild chose FDCP as a source and level 1 holds, and unregisters them when the source changes away from FDCP (M11.7).
+9. **Where it shows** (M11.7): the officers choose the sources in the **Raid** view, which also shows FDCP's season pool, the night's lineup and bench and the rules summary; the member card shows a member's credits and queue place. Until the handbook's loot page exists (M11.6), the rules summary lives in the Raid view only. Nothing read from FDCP is saved or sent.
 
 ## Alternatives considered
 

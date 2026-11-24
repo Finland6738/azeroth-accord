@@ -69,7 +69,7 @@ So M10 and M11 follow these rules:
   - Which known addons each member has loaded comes from the addon census of [M9.9](M9-action-center.md#m99--guild-addons); M10.2 adds no field of its own.
   - Officers see, per addon, who has it in the guild.
   - A provider interface (season roster, lineup, loot) with Accord's own provider and the FDCP provider. The FDCP provider stays at level 0 until FDCP publishes its API.
-  - *Done (2026-11-24):* FDCP published its API the same day (FDCP M8-1, `API_VERSION` 1), so the FDCP provider reaches level 1 when that version is found. The **source setting** moved here from M10.3, because a provider is chosen by it: the record `sources` of the new data set `guildcfg` (`raid` = Accord or FDCP, `loot` = none or FDCP), written only by officers and synced to everyone ([ADR 0022](../adr/0022-integrations-with-raid-and-loot-addons.md), SPEC-03 §8). The officers' screen to choose it comes with M11.7. Who in the guild has each addon waits for the census of M9.9.
+  - *Done (2026-11-24):* FDCP published its API the same day (FDCP M8-1, `API_VERSION` 1), so the FDCP provider reaches level 1 when that version is found. The **source setting** moved here from M10.3, because a provider is chosen by it: the record `sources` of the new data set `guildcfg` (`raid` = Accord or FDCP, `loot` = none or FDCP), written only by officers and synced to everyone ([ADR 0022](../adr/0022-integrations-with-raid-and-loot-addons.md), SPEC-03 §8). The officers choose it in the Raid view (M11.7). Who in the guild has each addon waits for the census of M9.9.
 - Done when:
   - [x] Detection works with each known addon loaded, missing or disabled; an unknown version of the FDCP API falls back to level 0; nothing of another addon is ever written (`Tests/test_integrations.lua`).
 - Real client: the folder names and versions of the known addons on Forever.
@@ -80,7 +80,7 @@ So M10 and M11 follow these rules:
 - Scope:
   - officers open a season (name, start date); the **source** of the season roster (Accord, or FDCP when it is detected) is the guild setting of M10.2;
   - with Accord as source, each raider writes their own entry (MS1 with its role, MS2, OS and a note, or "not sure yet"). The entry is locked until the next season. The data set is synced on `GUILD`, and only the author can write their entry;
-  - with FDCP as source, Accord asks for no declaration. It shows FDCP's (level 1) or a button to open FDCP (level 0).
+  - with FDCP as source, Accord asks for no declaration. It shows FDCP's (level 1) or a button to open FDCP (level 0). *Done ahead in M11.7: the Raid view shows FDCP's pool and has the Open FDCP button.*
 - Done when:
   - [ ] An entry cannot change inside a season; a new season starts with empty entries and keeps the old season readable; a forged entry from another author is refused; with FDCP as source, no Accord entry can be written.
 
@@ -129,7 +129,7 @@ So M10 and M11 follow these rules:
 - Spec: SPEC-14
 - Scope:
   - with Accord as source: officers place signed-up players in the raid or on the bench, and see the composition against the target. MS2 is offered when a role is short;
-  - with FDCP as source: the night's lineup and bench are FDCP's. Accord shows them read-only (level 1) or points to FDCP (level 0), and offers no bench of its own.
+  - with FDCP as source: the night's lineup and bench are FDCP's. Accord shows them read-only (level 1) or points to FDCP (level 0), and offers no bench of its own. *Done ahead in M11.7 (the Raid view).*
 - Done when:
   - [ ] Only officers can change the composition; the members see where they are placed; with FDCP as source, no composition can be written in Accord.
 

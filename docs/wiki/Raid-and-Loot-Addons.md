@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> Detection is in the code from step M10.2; reading Finland Dragon Credit Points comes with step M11.7. Nothing has been checked in the real game yet: the first tests are with the owner's guild.
+> Detection (step M10.2) and the reading of Finland Dragon Credit Points (step M11.7) are in the code. Nothing has been checked in the real game yet: the first tests are with the owner's guild, with FDCP and Accord loaded together.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 
@@ -24,4 +24,33 @@ The folder names of the addons other than FDCP come from their public pages and 
 - **Level 1, reading.** Accord reads what the addon publishes for other addons. Only FDCP publishes such an interface (`FinlandDragonCreditPointsAPI`), and Accord reads it only when its version is one Accord knows (version 1). With another version Accord goes back to level 0 and nothing breaks: update Accord.
 - There is no level 2: Accord never sends anything to another addon.
 
-`/accord debug` has an **Integrations** section with what was found on your computer (no names). Which addons the *other* members have comes later, with the guild's addon list (M9).
+`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which addons the *other* members have comes later, with the guild's addon list (M9).
+
+## The Raid view
+
+Open it with its tab or `/accord raid`.
+
+- **At the top, the guild's sources**: *Season roster* (Accord or FDCP) and *Loot* (None or FDCP). Officers and the Guild Master change them with a click, and the choice reaches every member with Accord. Members see the same choice, locked. **Open FDCP** opens FDCP's own window while FDCP is loaded on your computer.
+- **FDCP's state**: its version and where its data comes from on your computer, or why there is nothing: FDCP not installed or switched off, a version of its interface this Accord does not know, FDCP still reading the guild roster, or no season data yet.
+- **Season roster**: the season and its pool, one line per main with class, role, MS1, MS2 and OS, and *trial* or *inactive*.
+- **Lineup and bench**: the raid night open in FDCP, with who is in the raid and who is on the bench.
+- **Loot**: your own credits and place in the loot queue, and a **read-only summary of FDCP's loot rules** (preset, priority, credits at the start, how items are awarded, the cost by item quality, the response multipliers, late joiners, the bench). The rules are changed in FDCP, never in Accord. The guild's loot page of the handbook will show the same summary beside its text (M11).
+
+With **Accord** as the source of the season roster, the view says that Accord's own declarations arrive with a later version (M10).
+
+## On the member card
+
+With FDCP chosen for the loot, the member card has a **Loot (FDCP)** section: the member's credits and place in the loot queue, as FDCP shows them. An alt shows its main's credits. An inactive main has credits but no place.
+
+## Officers' and members' clients
+
+FDCP does not give every client the same data, and Accord says so instead of showing empty lists:
+
+| | Officer's client | Member's client |
+|---|---|---|
+| Season and pool | every main, with MS1, MS2 and OS | the playing mains, with MS1 only |
+| Lineup and bench | the open night | not on members' clients |
+| Credits and place | yes | yes, from the table an officer sent |
+| Loot rules | the guild's rules | the defaults of FDCP's Patto preset (the guild's rules are on officers' clients) |
+
+**Attendance is never shown**: FDCP keeps it for its officers and does not share it with other addons, and Accord counts no presence at raids. Accord saves and sends nothing of what it reads from FDCP.
