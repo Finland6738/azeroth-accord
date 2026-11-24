@@ -29,8 +29,8 @@
 --                    client refuses them, an officer accepts them only from an officer sender, `authorAny`) and travel on
 --                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09).
 --
--- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days,
--- the observed roster timeline 365 days (by its day, SPEC-12 TL-07).
+-- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
+-- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -219,7 +219,6 @@ Store.SETS = {
 		owner = function(rec) return ns.Timeline ~= nil and ns.Timeline.ValidRecord(rec) end,
 		group = function(rec) return "timeline:" .. floor(rec.day / 100) end,   -- the summary of OHELLO `m`: one group per month
 		publishEvery = 600,                        -- a record that grows every event goes out at most every 10 minutes
-		expires = function(rec, t) return ns.Timeline ~= nil and ns.Timeline.Expired(rec, t) end,
 	},
 }
 Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline" }

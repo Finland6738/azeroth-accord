@@ -1,6 +1,6 @@
 -- Officer: who may see the officer tools, where their data lives and what happens to it (SPEC-12 §1, ADR 0023). Lua 5.1.
 --
---   Officer.VISIBLE_TO       the one place of the visibility choices (SPEC-10 Q13, proposed answer): feature -> "officers" |
+--   Officer.VISIBLE_TO       the one place of the visibility choices (SPEC-10 Q13, decided by the owner): feature -> "officers" |
 --                            "members". Features: timeline, inactivity, absences, notes, export.
 --   Officer.CanSee(feature)  true when the connected character may see `feature`: the officers and the Guild Master, or
 --                            everybody when the table says "members". Nothing is shown from a record a member holds: a
@@ -20,7 +20,7 @@ ns.modules.Officer = Officer
 
 local type, pairs, ipairs, next = type, pairs, ipairs, next
 
--- Proposed answer to SPEC-10 Q13: the officers see all of it. One line to change if the owner decides otherwise.
+-- The owner's answer to SPEC-10 Q13 (2026-11-24): only the officers and the GM see all of it. One line to change if that changes.
 Officer.VISIBLE_TO = { timeline = "officers", inactivity = "officers", absences = "officers", notes = "officers", export = "officers" }
 
 -- The data sets of the officer tools, in the order they were added (a step of M8 appends its own).

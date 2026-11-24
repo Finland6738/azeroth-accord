@@ -1,5 +1,5 @@
 -- The observed timeline (M8.2; SPEC-12 §2, ADR 0023): what an officer's client sees change in the roster, the events it
--- writes, two observers of one change, the 365 days, who sees it, and that nothing leaves the computer before the officer
+-- writes, two observers of one change, that nothing is deleted for its age, who sees it, and that nothing leaves the computer before the officer
 -- channel is proven (S5). The network part runs in the simulator.
 local function A() return AzerothAccord end
 local function S() return AzerothAccord.Store end
@@ -280,46 +280,52 @@ describe("TL-08, TL-09: two observers of the same change", function()
 	end)
 end)
 
-describe("TL-07: 365 days", function()
+describe("TL-07: kept forever (the owner's answer to SPEC-10 Q14)", function()
 	before_boot(function() guild() end)
 
 	local function put(daysOld)
 		local t = GetServerTime() - daysOld * DAY
 		local day = dayOf(t)
-		local e = ev("level", g(1), t - 100, t, { f = 10, t = 11 })
+		local e = ev("note", g(1), t - 100, t, { f = "old text", t = "new text " .. daysOld })
 		local rec = record(OFF, day, 1, { e })
 		S():Records("timeline")[rec.id] = rec
 		return rec
 	end
 
-	it("keeps a record 365 days after its day and deletes it on the 366th", function()
-		local keep, drop = put(365), put(366)
-		local fresh = put(0)
-		eq(S():Prune(), 1)
-		truthy(S():Get("timeline", keep.id)); isNil(S():Get("timeline", drop.id)); truthy(S():Get("timeline", fresh.id))
-	end)
-
-	it("counts from the day of the record, not from when it was written", function()
-		local rec = put(365)
-		rec.time = GetServerTime() - 10 * DAY * 100               -- an old write time changes nothing
+	it("does not delete a record for its age, not at day 365, 366 or years later", function()
+		local list = { put(0), put(365), put(366), put(1000), put(3000) }
 		eq(S():Prune(), 0)
-		later(DAY)
-		eq(S():Prune(), 1, "the next day it is 366 days old")
+		for _, r in ipairs(list) do truthy(S():Get("timeline", r.id)) end
+		later(5 * 365 * DAY)
+		eq(S():Prune(), 0, "five more years change nothing")
+		eq(S():Count("timeline"), 5)
+		local events = eventsOf(g(1))
+		eq(#events, 5, "and every event is still read, with the old and the new text of the note")
+		eq(events[#events].f, "old text")
 	end)
 
-	it("refuses a record that is already expired when it arrives", function()
-		local t = GetServerTime() - 370 * DAY
+	it("accepts an old record from an officer when a new officer is brought up to date", function()
+		local t = GetServerTime() - 2000 * DAY
 		local rec = record(OFF, dayOf(t), 1, { ev("level", g(1), t - 5, t, { f = 1, t = 2 }) })
-		local ok, why = S():Accept("timeline", rec, { sender = "Officer" })
-		eq(ok, false); eq(why, "expired")
+		eq(S():Receive("timeline", { rec }, "Officer", "OFFICER"), 1)
+		truthy(S():Get("timeline", rec.id))
 	end)
 
-	it("forgets who left after 400 days", function()
+	it("keeps who left, however long ago", function()
 		T():Read()
 		local O = A().Officer:Peek()
-		O.gone = { [g(60)] = GetServerTime() - 401 * DAY, [g(61)] = GetServerTime() - 399 * DAY }
-		T():Prune()
-		isNil(O.gone[g(60)]); truthy(O.gone[g(61)])
+		O.gone = { [g(60)] = GetServerTime() - 2000 * DAY }
+		later(10 * 365 * DAY)
+		A().Store:Prune()
+		truthy(O.gone[g(60)])
+	end)
+
+	it("time alone removes nothing, even twenty years on (only OFF-10 does)", function()
+		put(100)
+		eq(S():Count("timeline"), 1)
+		later(20 * 365 * DAY)
+		A().Store:Prune()
+		eq(S():Count("timeline"), 1)
 	end)
 
 	it("measures the size of a year of a big guild (SPEC-10 R6)", function()

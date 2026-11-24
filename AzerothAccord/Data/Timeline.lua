@@ -8,7 +8,8 @@
 --   Events       Wait 60-300 s (Timeline.WAIT) in `officer.pend`, then are written into the officer's own records of the set
 --                `timeline` (one record per observer, day and part: at most 60 events and 8 KB each, four parts a day, TL-05),
 --                unless another observer already wrote the same change (`confirmed`, §2.3). A character's level-ups of one
---                day are one event (TL-06). A record is deleted 365 days after its day (TL-07).
+--                day are one event (TL-06). Nothing is deleted for its age (TL-07, owner's answer to SPEC-10 Q14): only a
+--                demoted officer loses it, by OFF-10 (Data/Officer.lua).
 --   Two observers  The same change seen by two officers is ONE event when it is read (Timeline:Events, TL-08, TL-09): the same
 --                kind, character and values, and intervals that overlap within 300 s; the merged event has the narrowest
 --                interval and lists every observer.
@@ -29,8 +30,6 @@ Timeline.AUTO = true                 -- the offline tests switch the automatic s
 Timeline.SET = "timeline"
 Timeline.WAIT = { 60, 300 }          -- seconds an observed event waits before it is written (TL-§2.1)
 Timeline.TOLERANCE = 300             -- seconds each interval is widened by when two events are compared (TL-08)
-Timeline.RETENTION = 365             -- days a record is kept, counted from its day (TL-07)
-Timeline.GONE_DAYS = 400             -- days `gone` is kept
 Timeline.MAX_EVENTS = 60             -- events in one part (TL-05)
 Timeline.MAX_PARTS = 4               -- parts in one day
 Timeline.PUBLISH_EVERY = 600         -- the record of a day goes out on OFFICER at most this often (Store.SETS.timeline.publishEvery)
@@ -93,13 +92,6 @@ end
 -- The UTC day of a server time, as YYYYMMDD.
 function Timeline.DayOf(t)
 	return tonumber(date("!%Y%m%d", t))
-end
-
--- true when the record's day is more than RETENTION days old (the store's `expires`, TL-07: by the day, not the write time).
-function Timeline.Expired(rec, t)
-	local n = type(rec) == "table" and Timeline.DayNumber(rec.day)
-	if not n then return false end
-	return floor(t / DAY) - n > Timeline.RETENTION
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -648,22 +640,7 @@ function Timeline:Start()
 	end
 	Timeline.AskRoster()
 	self:Schedule()
-	self:Prune()
 	return true
-end
-
--- Retention: records of days older than RETENTION days, `gone` older than GONE_DAYS.
-function Timeline:Prune()
-	local removed = store():Prune()
-	local O = ns.Officer:Peek()
-	if O and type(O.gone) == "table" then
-		local limit = now() - Timeline.GONE_DAYS * DAY
-		for guid, at in pairs(O.gone) do
-			if type(at) ~= "number" or at < limit then O.gone[guid] = nil end
-		end
-	end
-	if removed > 0 then self:Invalidate() end
-	return removed
 end
 
 ---------------------------------------------------------------------------------------------------------------------
