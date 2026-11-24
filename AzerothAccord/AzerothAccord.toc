@@ -51,6 +51,8 @@ Data\BankRequests.lua
 Data\BankInbox.lua
 Data\FDCP.lua
 Data\Integrations.lua
+Data\Officer.lua
+Data\Timeline.lua
 Data\Demo.lua
 Core\Demo.lua
 Data\Backup.lua
@@ -84,6 +86,7 @@ UI\Bank.lua
 UI\BankLog.lua
 UI\BankRequests.lua
 UI\Raid.lua
+UI\TimelineCard.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

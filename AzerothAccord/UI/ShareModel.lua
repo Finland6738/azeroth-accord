@@ -169,6 +169,26 @@ builders.officer = function(guid)
 	return { L["SHARE_OFFICER_LEDGER"]:format(ledger), L["SHARE_OFFICER_CFG"]:format(#cfg) }, cfg
 end
 
+-- The officer tools (SPEC-12 §7): the roster changes this character observed, by month, and where they stay.
+builders.otools = function(guid)
+	local recs = own("timeline", guid)
+	local months, order = {}, {}
+	for _, r in ipairs(recs) do
+		local month = math.floor((tonumber(r.day) or 0) / 100)
+		if not months[month] then months[month] = 0 order[#order + 1] = month end
+		months[month] = months[month] + (type(r.ev) == "table" and #r.ev or 0)
+	end
+	sort(order, function(a, b) return a > b end)
+	local lines = {}
+	for i = 1, math.min(#order, 3) do
+		local m = order[i]
+		lines[#lines + 1] = L["SHARE_TL_MONTH"]:format(("%04d-%02d"):format(math.floor(m / 100), m % 100), months[m])
+	end
+	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	if not (ns.Officer and ns.Officer.ChannelProven()) then lines[#lines + 1] = L["SHARE_OTOOLS_LOCAL"] end
+	return lines, recs
+end
+
 -- id, locale keys of the title and of "who receives it / when", the builder, the switch key
 Model.ORDER = {}
 Model.DEFS = {}
@@ -186,6 +206,7 @@ define("bankreq", { set = "bankreq", build = builders.bankreq, title = "SHARE_BA
 define("likes", { build = builders.likes, title = "SHARE_LIKES", to = "SHARE_TO_NOTARY", when = "SHARE_WHEN_LIKE" })
 define("hello", { build = builders.hello, title = "SHARE_HELLO", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_HELLO" })
 define("officer", { build = builders.officer, title = "SHARE_OFFICER", to = "SHARE_TO_OFFICERS", when = "SHARE_WHEN_OFFICER", officersOnly = true })
+define("otools", { set = "timeline", build = builders.otools, title = "SHARE_OTOOLS", to = "SHARE_TO_OFFICER_CHANNEL", when = "SHARE_WHEN_OTOOLS", officersOnly = true })
 
 -- Another data set (SPEC-11 §5): def = { build(guid, at) -> lines, records; title, to, when (locale keys); switch; order }.
 function Model.Add(id, def)

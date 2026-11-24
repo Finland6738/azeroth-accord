@@ -25,7 +25,12 @@
 -- Plus shape checks (id, author GUID, rev, time not in the future, size per set) and the owner rule of each set (an
 -- author writes only its own character, its own account, its own observations).
 --
--- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
+-- Officer tools (SPEC-12 §1.2, ADR 0023): the sets with `officerTool = true` are restricted for every record (a member's
+--                    client refuses them, an officer accepts them only from an officer sender, `authorAny`) and travel on
+--                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09).
+--
+-- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days,
+-- the observed roster timeline 365 days (by its day, SPEC-12 TL-07).
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -145,6 +150,13 @@ function Store.IsRestricted(set, rec)
 	return def ~= nil and def.restricted ~= nil and type(rec) == "table" and def.restricted(rec) == true
 end
 
+-- true when `set` is one of the officer tools' sets (SPEC-12 §1.2): its records are never sent on GUILD and are summarised
+-- by group, not by author.
+function Store.IsOfficerTool(set)
+	local def = Store.SETS[set]
+	return def ~= nil and def.officerTool == true
+end
+
 local function closedBankRequest(rec)
 	return rec.status == "fulfilled" or rec.status == "rejected" or rec.status == "cancelled"
 end
@@ -198,8 +210,19 @@ Store.SETS = {
 		authorAny = true,                         -- the choice stays valid after its officer left or was demoted
 		owner = function(rec) return ns.Integrations ~= nil and ns.Integrations.ValidRecord(rec) end,
 	},
+	timeline = {   -- the roster changes an officer observed (Data/Timeline.lua, M8.2): id = "<observer GUID>:<day>:<part>", { observer, day, ev }
+		maxBytes = 8192,
+		officerTool = true,
+		restricted = function() return true end,
+		authority = function() return true end,
+		authorAny = true,                          -- the history stays valid after its observer was demoted
+		owner = function(rec) return ns.Timeline ~= nil and ns.Timeline.ValidRecord(rec) end,
+		group = function(rec) return "timeline:" .. floor(rec.day / 100) end,   -- the summary of OHELLO `m`: one group per month
+		publishEvery = 600,                        -- a record that grows every event goes out at most every 10 minutes
+		expires = function(rec, t) return ns.Timeline ~= nil and ns.Timeline.Expired(rec, t) end,
+	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

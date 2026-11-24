@@ -11,6 +11,7 @@ L'addon non ha un server, non invia nulla fuori dal gioco e non raccoglie teleme
 | Tu, gli ufficiali e il Maestro di gilda | Il tuo indice sociale e i compagni con cui hai giocato di più (calcolati da ogni addon dai minuti condivisi) |
 | L'ufficiale che registra il tuo like | Che il like viene da te, nel momento in cui è consegnato; poi è conservato sotto un codice che i membri non possono leggere |
 | Solo gli ufficiali | Le schede della banca lette da un ufficiale (condivise solo sul canale degli ufficiali, mai nell'addon dei membri) e il codice segreto della gilda che trasforma chi vota nel codice anonimo dei like (tenuto solo dagli addon degli ufficiali, rimosso quando un ufficiale viene retrocesso) |
+| Solo gli ufficiali | La storia del roster osservata dagli ufficiali (ingressi, uscite, cambi di grado e di livello, note pubbliche), tenuta 365 giorni: solo sul canale degli ufficiali, e solo sul computer dell'ufficiale che osserva finché quel canale non è provato (vedi *Roster di gilda*) |
 
 L'elenco dei personaggi, il BattleTag e il nome Discord sono **sempre condivisi** con la tua gilda: è così che gli alt vengono raggruppati e i contatti mostrati senza chiedere. Non c'è un interruttore per spegnerlo. I contatti ricevuti da altri giocatori vengono controllati (un BattleTag deve avere la forma di un BattleTag, un nome Discord deve essere un semplice nome utente) e mostrati come testo semplice, mai come link.
 

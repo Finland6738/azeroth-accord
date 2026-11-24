@@ -21,6 +21,10 @@
 --             summary and an officer's agree on everything a member may hold. A local change of such a record goes out as
 --             REC on OFFICER; an officer who is ahead of an OHELLO sender pushes the missing ones by WHISPER (only the
 --             officer designated for that sender, or the author's own account), exactly as for a HELLO.
+--             The officer tools' records (SPEC-12, the `timeline` set: Store.IsOfficerTool) are a third class, summarised by
+--             GROUP (the month of a day) in the field `m` of OHELLO, not by author: they go on OFFICER or by WHISPER to an
+--             officer (Transport `officerOnly`), and only once this client has seen the officer channel work (S5, OFF-07):
+--             until then they stay on this computer and reach the others through the comparison of `m` later (OFF-09).
 --   BHELLO    (GUILD, SPEC-11 §6.4) a client that holds more than BLOCK_OVER authors sends, instead of the HELLO, the
 --             summary in BLOCKS blocks of 3 bytes (an author is in block BlockOf(key), a Fibonacci hash of its key; a
 --             block's digest is the sum modulo 2^24 of a hash of key, digest and time of each of its authors), when every
@@ -95,6 +99,7 @@ local function resetState()
 		push = {},             -- target name -> { authors = { [guid] = true }, timer }
 		req = {},              -- target name -> { keys = { [key] = true }, theirs = summary, timer }
 		dirty = {},            -- set -> { [id] = true }: local changes waiting for the batch
+		officerSent = {},      -- set of an officer tool -> when its records last went out on OFFICER (publishEvery)
 		asked = {},            -- "<set>|<author>" -> when this client asked for it (RequestSet)
 		answering = {},        -- sender name -> { start, count }: the rate of the set requests answered
 		rates = {},            -- "<what>|<lower-case sender>" -> { start, count }: the limits per sender (SPEC-11 §6.3)
@@ -163,30 +168,45 @@ end
 
 local function ownerKey(set, id) return set .. "|" .. tostring(id) end
 
--- Puts record `id` of `set` (as the store holds it now) in its group; returns the author and whether it is restricted,
--- or nil.
+-- The three classes of groups: false (what a member may hold, per author), true (the officers' bank tabs, per author) and
+-- "officer" (the officer tools, per group name).
+local CLASSES = { false, true, "officer" }
+
+-- The class of a record and the key of its group in that class.
+local function classOf(set, rec)
+	local S = store()
+	if S.IsOfficerTool(set) then
+		local def = S.SETS[set]
+		local ok, name = pcall(def.group or function() return set end, rec)
+		return "officer", ok and name or set
+	end
+	return S.IsRestricted(set, rec), rec.author
+end
+
+-- Puts record `id` of `set` (as the store holds it now) in its group; returns the key of the group (the author, or the
+-- group name of an officer tool) and its class, or nil.
 local function place(groups, set, id, rec)
 	local author = type(rec) == "table" and rec.author
 	if type(author) ~= "string" then return nil end
-	local restricted = store().IsRestricted(set, rec)
-	local into = groups[restricted]
-	local g = into[author]
-	if not g then g = { byId = {} } into[author] = g end
+	local class, key = classOf(set, rec)
+	local into = groups[class]
+	local g = into[key]
+	if not g then g = { byId = {} } into[key] = g end
 	local k = ownerKey(set, id)
 	g.byId[k] = { set, rec, id, k }
-	state.owner[k] = { author, restricted }
-	return author, restricted
+	state.owner[k] = { key, class }
+	return key, class
 end
 
 -- Every group again from the whole store: at the first use, before every HELLO sent, after a change of many records.
 local function rebuildGroups()
 	local S = store()
-	local groups = { [false] = {}, [true] = {} }
+	local groups = { [false] = {}, [true] = {}, officer = {} }
 	state.owner = {}
 	for _, set in ipairs(S.SET_ORDER) do
 		for id, rec in pairs(S:Records(set)) do place(groups, set, id, rec) end
 	end
-	for _, r in ipairs({ false, true }) do
+	for _, r in ipairs(CLASSES) do
 		for author, g in pairs(groups[r]) do finishGroup(author, g) end
 	end
 	state.groups, state.rebuild = groups, false
@@ -195,7 +215,7 @@ end
 
 -- Only the groups of the records that changed (their old author and their new one) are computed again.
 local function updateGroups()
-	local groups, touched = state.groups, { [false] = {}, [true] = {} }
+	local groups, touched = state.groups, { [false] = {}, [true] = {}, officer = {} }
 	local S = store()
 	for k, e in pairs(state.pending) do
 		local was = state.owner[k]
@@ -205,14 +225,14 @@ local function updateGroups()
 			touched[was[2]][was[1]] = true
 			state.owner[k] = nil
 		end
-		local author, restricted = place(groups, e[1], e[2], S:Get(e[1], e[2]))
-		if author then touched[restricted][author] = true end
+		local key, class = place(groups, e[1], e[2], S:Get(e[1], e[2]))
+		if key then touched[class][key] = true end
 	end
-	for _, r in ipairs({ false, true }) do
+	for _, r in ipairs(CLASSES) do
 		local into = groups[r]
-		for author in pairs(touched[r]) do
-			local g = into[author]
-			if g and next(g.byId) then finishGroup(author, g) else into[author] = nil end
+		for key in pairs(touched[r]) do
+			local g = into[key]
+			if g and next(g.byId) then finishGroup(key, g) else into[key] = nil end
 		end
 	end
 	state.pending, state.pendingCount = {}, 0
@@ -226,12 +246,13 @@ end
 
 -- author GUID -> { key, d, t, h, records = { { set, rec, id }, ... } } over every data set of the current guild. The
 -- records for officers only (Store.IsRestricted) are left out, unless `restricted` is true: then only those are
--- grouped. Kept up to date record by record from STORE_CHANGED, so a guild of a thousand authors does not compute them
+-- grouped; `"officer"` gives the officer tools' records by group name (SPEC-12 §1.5). Kept up to date record by record from STORE_CHANGED, so a guild of a thousand authors does not compute them
 -- all again for each record that arrives (SPEC-11 §6.5); read whole again before each HELLO sent.
-function Sync:Groups(restricted)
+function Sync:Groups(class)
 	if state.rebuild or not state.groups then rebuildGroups()
 	elseif state.pendingCount > 0 then updateGroups() end
-	return state.groups[restricted == true]
+	if class == "officer" then return state.groups.officer end
+	return state.groups[class == true]
 end
 
 local function be(n, bytes)
@@ -409,6 +430,10 @@ end
 
 local function iAmOfficer() return ns.Role and ns.Role:IsOfficer() or false end
 
+-- true when this client has seen an addon message arrive on OFFICER in this session (S5, SPEC-12 §1.4): the only time the
+-- officer tools' records may leave this computer.
+local function proven() return ns.Officer ~= nil and ns.Officer.ChannelProven() end
+
 -- true when this client is the officer designated to relay to `targetGUID` (NET-04: one answer, not one per officer).
 local function designated(targetGUID)
 	if not iAmOfficer() then return false end
@@ -460,6 +485,7 @@ local function sendRecords(entries, dist, target, keyPrefix)
 				part = part + 1
 				send(dist, { t = "REC", s = set, r = batch }, {
 					target = target, key = keyPrefix and (keyPrefix .. "|" .. set .. "|" .. part) or nil,
+					officerOnly = store().IsOfficerTool(set) or nil,   -- never on GUILD, only to an officer (OFF-05)
 				})
 				count = count + 1
 				state.stats.recSent = state.stats.recSent + 1
@@ -477,8 +503,8 @@ local function sendRecords(entries, dist, target, keyPrefix)
 	return count
 end
 
-local function recordsOf(authors, restricted)
-	local groups, entries = Sync:Groups(restricted), {}
+local function recordsOf(authors, class)
+	local groups, entries = Sync:Groups(class), {}
 	for author in pairs(authors) do
 		local g = groups[author]
 		if g then for _, e in ipairs(g.records) do entries[#entries + 1] = e end end
@@ -539,8 +565,11 @@ function Sync:SendHello()
 		emit("SYNC_HELLO", true)
 	end
 	-- the officers also tell each other what they hold of the restricted records (OFFICER, never GUILD)
+	-- the officer tools' records have a summary of their own, `m` (by group; it carries no data, so it goes even before
+	-- the channel is proven, OFF-08)
 	if iAmOfficer() then
-		send("OFFICER", { t = "OHELLO", s = self:EncodeSummary(self:Groups(true)) }, { key = "OHELLO" })
+		send("OFFICER", { t = "OHELLO", s = self:EncodeSummary(self:Groups(true)), m = self:EncodeSummary(self:Groups("officer")) },
+			{ key = "OHELLO" })
 	end
 	return ok and true or false
 end
@@ -815,19 +844,36 @@ local function onOfficerHello(msg, sender)
 			end
 		end
 	end
-	if not next(pushAuthors) then return end
+	-- the officer tools' records (`m`): by group, only the officer designated for the sender, and only when this client has
+	-- seen the officer channel work (an OFFICER message just arrived, so it has; the check keeps the rule in one place)
+	local pushGroups = {}
+	local mine = Sync.DecodeSummary(msg.m)
+	if mine and proven() then
+		for name, g in pairs(Sync:Groups("officer")) do
+			if ahead(g, mine[g.key]) then
+				if isDesignated == nil then isDesignated = designated(target) end
+				if isDesignated then pushGroups[name] = true end
+			end
+		end
+	end
+	if not next(pushAuthors) and not next(pushGroups) then return end
 	local key = "O|" .. sender
 	local entry = state.push[key]
 	if not entry then
-		entry = { authors = {} }
+		entry = { authors = {}, groups = {} }
 		state.push[key] = entry
 		entry.timer = after(between(Sync.PUSH_DELAY), function()
 			state.push[key] = nil
-			local n = sendRecords(recordsOf(entry.authors, true), "WHISPER", sender)
+			local records = recordsOf(entry.authors, true)
+			if proven() then
+				for _, e in ipairs(recordsOf(entry.groups, "officer")) do records[#records + 1] = e end
+			end
+			local n = sendRecords(records, "WHISPER", sender)
 			if n > 0 then state.stats.pushes = state.stats.pushes + 1 end
 		end)
 	end
 	for a in pairs(pushAuthors) do entry.authors[a] = true end
+	for name in pairs(pushGroups) do entry.groups[name] = true end
 end
 
 -- true while `sender` has not used up its share of set requests (ASK_RATE).
@@ -893,6 +939,10 @@ local function onRec(msg, sender, dist)
 		refusedBy(sender, 1)
 		return
 	end
+	if dist == "GUILD" and S.IsOfficerTool(msg.s) then   -- never travels there (OFF-04): dropped, not counted against the sender
+		state.stats.officerGuild = (state.stats.officerGuild or 0) + 1
+		return
+	end
 	local accepted, refused = S:Receive(msg.s, msg.r, sender, dist)
 	state.stats.recReceived = state.stats.recReceived + 1
 	state.stats.accepted = state.stats.accepted + accepted
@@ -918,7 +968,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Local changes
 ---------------------------------------------------------------------------------------------------------------------
-local function flushLocal()
+local flushLocal
+flushLocal = function()
 	state.batchTimer = nil
 	local S, entries = store(), {}
 	for set, ids in pairs(state.dirty) do
@@ -929,12 +980,37 @@ local function flushLocal()
 	end
 	state.dirty = {}
 	-- the records for officers only never go on GUILD: they go on OFFICER (and nowhere when nobody can hear them)
-	local open, closed = {}, {}
+	local open, closed, tools, wait = {}, {}, {}, nil
 	for _, e in ipairs(entries) do
-		if S.IsRestricted(e[1], e[2]) then closed[#closed + 1] = e else open[#open + 1] = e end
+		if S.IsOfficerTool(e[1]) then
+			-- OFF-07: before the channel is proven the record stays here (it reaches the others with the summary `m`, OFF-09);
+			-- a set that grows at every event goes out at most every `publishEvery` seconds (TL: 10 minutes)
+			if proven() and iAmOfficer() then
+				local every, last = S.SETS[e[1]].publishEvery, state.officerSent[e[1]]
+				local t = now()
+				if every and last and t - last < every then
+					local ids = state.dirty[e[1]]
+					if not ids then ids = {} state.dirty[e[1]] = ids end
+					ids[e[2].id] = true
+					wait = max(wait or 0, every - (t - last))
+				else
+					tools[#tools + 1] = e
+				end
+			end
+		elseif S.IsRestricted(e[1], e[2]) then closed[#closed + 1] = e else open[#open + 1] = e end
 	end
 	if #open > 0 then sendRecords(open, "GUILD") end
 	if #closed > 0 and iAmOfficer() then sendRecords(closed, "OFFICER") end
+	if #tools > 0 then
+		for _, e in ipairs(tools) do state.officerSent[e[1]] = now() end
+		sendRecords(tools, "OFFICER")
+	end
+	if wait and not state.toolTimer then   -- its own timer: the other sets' changes keep their 5-second batch
+		state.toolTimer = after(wait + 0.05, function()
+			state.toolTimer = nil
+			flushLocal()
+		end)
+	end
 end
 
 function Sync:OnStoreChanged(set, id, origin)

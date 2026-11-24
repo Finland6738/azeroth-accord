@@ -321,8 +321,18 @@ local function enqueue(item)
 	return item
 end
 
+-- true when a message of the officer tools (opts.officerOnly, SPEC-12 OFF-05) may go to `dist` / `target` now: never on
+-- GUILD, on OFFICER always, by WHISPER only to a character that is an officer in this client's roster.
+local function officerAllowed(dist, target)
+	if dist == "OFFICER" then return true end
+	if dist ~= "WHISPER" then return false end
+	local member = ns.Store and ns.Store:Member(target)
+	return member ~= nil and member.officer == true
+end
+
 -- Queues `msg` ({ t = type, ...fields }). Returns the pending item (a handle for Cancel), or nil plus a reason:
--- "dist", "shape", "target", "prio", "encode: ...", "size", "full".
+-- "dist", "shape", "target", "prio", "encode: ...", "size", "full", "officerOnly" (opts.officerOnly and the destination is
+-- not for officers).
 function Transport:Send(dist, msg, opts)
 	-- demo mode (SPEC-11 §3.1): nothing is sent, nothing is queued; the messages already waiting stay as they are
 	if ns.Demo and ns.Demo:IsActive() then
@@ -333,6 +343,11 @@ function Transport:Send(dist, msg, opts)
 	if not Transport.DISTS[dist] then return nil, "dist" end
 	if type(msg) ~= "table" then return nil, "shape" end
 	if dist == "WHISPER" and (type(opts.target) ~= "string" or opts.target == "") then return nil, "target" end
+	if opts.officerOnly == true and not officerAllowed(dist, opts.target) then
+		state.stats.dropped = state.stats.dropped + 1
+		state.stats.droppedBy.officerOnly = (state.stats.droppedBy.officerOnly or 0) + 1
+		return nil, "officerOnly"
+	end
 	local prio = opts.prio or Transport.PRIORITY[msg.t] or "NORMAL"
 	if not RANK[prio] then return nil, "prio" end
 	local Codec = ns.Codec
@@ -351,6 +366,7 @@ function Transport:Send(dist, msg, opts)
 		bornAt = now(), bornServer = serverNow(), ttl = tonumber(opts.ttl) or (prio == "BULK" and Transport.BULK_TTL or nil),
 		rateGroup = (type(opts.rateGroup) == "string" or type(opts.rateGroup) == "number") and opts.rateGroup or nil,
 		attempts = 0, notBefore = 0, onSent = opts.onSent, onFail = opts.onFail, guild = guildKey(),
+		officerOnly = opts.officerOnly == true or nil,
 	})
 end
 
@@ -480,8 +496,12 @@ pass = function()
 		for _ = 1, Transport.QUEUE_MAX do
 			local item = pick(t, current)
 			if not item then break end
-			dispatch(item, t)
-			t = now()
+			if item.officerOnly and not officerAllowed(item.dist, item.target) then
+				drop(item, "officerOnly")   -- checked again as it leaves: the target may have been demoted while it waited
+			else
+				dispatch(item, t)
+				t = now()
+			end
 		end
 	end
 	if #state.queue == 0 then stopTicker() end
@@ -511,7 +531,8 @@ function Transport:SaveQueue()
 	local t, server = now(), serverNow()
 	for _, item in ipairs(state.queue) do
 		local ttlLeft = item.ttl and (item.ttl - (t - item.bornAt)) or nil
-		if ttlLeft == nil or ttlLeft > 0 then
+		-- the officer tools' messages are never kept in the saved variables: the next session's sync repairs (OFF-05)
+		if not item.officerOnly and (ttlLeft == nil or ttlLeft > 0) then
 			box[#box + 1] = { dist = item.dist, target = item.target, t = item.t, payload = item.payload, prio = item.prio,
 				key = item.key, guild = item.guild, saved = server, born = item.bornServer, ttl = ttlLeft and math.floor(ttlLeft) or nil }
 		end

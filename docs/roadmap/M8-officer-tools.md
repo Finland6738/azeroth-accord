@@ -15,7 +15,8 @@
 - Spec: SPEC-12
 - Scope: the roster changes a client observes (join, leave, rank, level, public note), each with its date and observer. They are kept 365 days. Officers share them on `OFFICER` once S5 is proven; until then they stay local.
 - Done when:
-  - [ ] Two observers of the same change produce one event; a timeline is shown on the member card for officers.
+  - [x] Two observers of the same change produce one event; a timeline is shown on the member card for officers.
+- Note: the Timeline page of the Officers tab (SPEC-12 §2.4, §8) comes with the tab itself (M8.3, with the Inactive page); until then "Show all" opens the whole list inside the card (up to 100 lines).
 
 ### M8.3 — Inactivity tiers
 - Branch: `step/m8-3-inactivity`

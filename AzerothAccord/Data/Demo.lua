@@ -13,7 +13,7 @@
 --   token, ownChars, main        the account of the player: its token, its characters ([guid] = the entry
 --                                AzerothAccordDB.chars keeps) and the main
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
---                                likes, bank, bankreq, guildcfg), written as the clients would hold them
+--                                likes, bank, bankreq, guildcfg, timeline), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes = { given, queue }, bank = { history } }
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
@@ -118,7 +118,7 @@ function DemoData.Build(now)
 	local D = { guildName = DemoData.GUILD_NAME, realm = DemoData.REALM, key = DemoData.KEY, ranks = DemoData.RANKS, sets = {},
 		guildData = { likes = { given = {}, queue = {} }, bank = { history = {} } } }
 	local sets = D.sets
-	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg" }) do sets[set] = {} end
+	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline" }) do sets[set] = {} end
 
 	-- The roster ------------------------------------------------------------------------------------------------------
 	local members = {}
@@ -374,6 +374,52 @@ function DemoData.Build(now)
 
 	-- The settings the officers chose ------------------------------------------------------------------------------------
 	sets.guildcfg.sources = { id = "sources", author = members[1].guid, rev = 1, time = now - 40 * DAY, raid = "accord", loot = "none" }
+
+	-- The timeline (SPEC-12 §7): changes of the roster seen by two officers, the Guild Master and the player. Some were seen by
+	-- both, the first one over a few minutes and the other one over days (they are one event when read, TL-09).
+	local obsA, obsB = members[1], members[PLAYER_INDEX]
+	local ghostGUID = guidOf(70)
+	local seen = {}   -- observer guid -> day -> { events }
+	local function observe(observer, ev)
+		local day = dayOf(ev.b)
+		seen[observer.guid] = seen[observer.guid] or {}
+		seen[observer.guid][day] = seen[observer.guid][day] or {}
+		table.insert(seen[observer.guid][day], ev)
+	end
+	local function change(ago, who, kind, fields, both)
+		local m = type(who) == "number" and members[who] or nil
+		local g, name = m and m.guid or ghostGUID, m and m.name or "Vexmoor"
+		local at = now - ago * DAY - 7 * HOUR
+		local function make(a, b)
+			local e = { k = kind, g = g, n = name, a = a, b = b }
+			for k, v in pairs(fields) do e[k] = v end
+			return e
+		end
+		observe(obsA, make(at - 1800, at))
+		if both then observe(obsB, make(at - 3 * DAY, at + 4 * HOUR)) end
+	end
+	for k, who in ipairs({ 58, 59, 60 }) do
+		local m = members[who]
+		change(40 - (k - 1) * 14, who, "join", { r = m.rankIndex, rn = m.rankName, l = math.max(1, m.level - 4) }, k ~= 2)
+	end
+	change(15, "gone", "leave", { rn = "Member", l = 55 }, true)
+	change(30, 25, "rank", { f = 4, t = 3, fn = "Initiate", tn = "Member" }, true)
+	change(12, 9, "rank", { f = 3, t = 2, fn = "Member", tn = "Veteran" }, false)
+	change(5, 31, "level", { f = members[31].level - 3, t = members[31].level }, false)
+	change(2, 12, "level", { f = members[12].level - 1, t = members[12].level }, true)
+	change(10, 60, "note", { f = "", t = members[60].note }, false)
+	change(1, 33, "note", { f = "Looking for a guild", t = "Raider" }, false)
+	for _, observer in ipairs({ obsA, obsB }) do
+		local days = {}
+		for day in pairs(seen[observer.guid] or {}) do days[#days + 1] = day end
+		table.sort(days)
+		for _, day in ipairs(days) do
+			local list, last = seen[observer.guid][day], 0
+			for _, e in ipairs(list) do last = math.max(last, e.b) end
+			local id = observer.guid .. ":" .. day .. ":1"
+			sets.timeline[id] = { id = id, author = observer.guid, rev = 1, time = last + 600, observer = observer.guid, day = day, ev = list }
+		end
+	end
 
 	-- 32 bytes for the notary's salt
 	local salt = {}

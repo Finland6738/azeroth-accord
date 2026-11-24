@@ -27,6 +27,10 @@
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.
+--   TIMELINE_CHANGED()                                Data/Timeline.lua; the observed roster changes of the guild changed (an
+--                                                     event was written, or a record arrived from another officer), M8.2.
+--   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
+--                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.
 local ADDON_NAME, ns = ...
 ns = ns or {}

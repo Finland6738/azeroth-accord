@@ -31,6 +31,7 @@
 --   contacts  the same for the `contacts` record (BattleTag and Discord), default false
 --   coplay    the one-minute co-play recording and its hourly publication (Data/CoPlay.lua), default false
 --   notary    officers ask for and share the guild salt of the likes after login (Data/Notary.lua), default false
+--   timeline  officers observe the roster and write the timeline by themselves (Data/Timeline.lua), default false
 --   likes     waiting votes are delivered to a notary every 15 s (Data/Likes.lua), and every client starts with its own
 --             account token (the same clock would give them all the same one), default false
 --   officerChannel  false: OFFICER addon messages reach nobody, not even the sender's echo (S5 failing); default true
@@ -417,6 +418,7 @@ local function bootClient(sim, i, opts)
 	world.autoCoPlay = sim.coplay
 	world.autoNotary = sim.notary
 	world.autoLikes = sim.likes
+	world.autoTimeline = sim.timeline
 	local c = setmetatable({
 		sim = sim, index = i, world = world, E = world.E, Mock = world.Mock, name = sim:charName(i), realmKey = sim.realmKey,
 		online = true, cursor = 0,
@@ -452,7 +454,7 @@ function Sim.new(opts)
 		time = 0, slot = 0, step = opts.step or 0.1, latency = opts.latency or 0.1, loss = opts.loss or 0,
 		echo = opts.echo ~= false, realm = opts.realm or "Test Realm", clients = {}, inflight = {}, lastSlot = {},
 		rngState = (opts.seed or 1) % 2147483648, statsFrom = 0, delivered = 0, lost = 0, sync = opts.sync ~= false, accounts = opts.accounts == true, contacts = opts.contacts == true, coplay = opts.coplay == true,
-		notary = opts.notary == true, lean = opts.lean == true, names = opts.names, likes = opts.likes == true, officerChannel = opts.officerChannel ~= false,
+		notary = opts.notary == true, timeline = opts.timeline == true, lean = opts.lean == true, names = opts.names, likes = opts.likes == true, officerChannel = opts.officerChannel ~= false,
 		officer = {}, size = opts.clients or 2, epoch = 1767225600, ready = opts.ready, memo = { size = 0 },
 		skip = opts.skip, skipped = 0, pieceType = {},
 	}, Sim)

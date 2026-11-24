@@ -275,3 +275,66 @@ describe("50 clients (SPEC-09 §2)", function()
 		truthy(steady.max.bytesPerMinute <= 200, "steady busiest client " .. steady.max.bytesPerMinute)
 	end)
 end)
+
+describe("the officer tools in the traffic budget (SPEC-12 §1.5, M8.2)", function()
+	it("five officers who observe the same 30 changes in six hours stay under 150 B/min each, on OFFICER only", function()
+		-- 30 changes in six hours is four times the 30 a day of the spec, and every officer observes every one of them
+		-- a few seconds apart: the first to write wins, the others only confirm. Nothing may leave on GUILD or reach the
+		-- member (client 6), and nothing may be written twice by more than a few.
+		local sim = Sim.new{ clients = 6, officers = { 1, 2, 3, 4, 5 }, latency = { 0.05, 0.5 }, seed = 21 }
+		sim:setStep(1)
+		local leaked = 0
+		for i = 1, 6 do
+			local c = sim:client(i)
+			local tr = c:addon().Transport
+			local original = tr.wire
+			tr.wire = function(prio, txt, dist, target, done)
+				local m = c:addon().Codec:Decode(txt)
+				if m and m.t == "REC" and m.s == "timeline" then
+					if dist == "GUILD" or (dist == "WHISPER" and tostring(target):find(Sim.nameOf(6), 1, true)) then leaked = leaked + 1 end
+				end
+				return original(prio, txt, dist, target, done)
+			end
+		end
+		sim:advance(120)
+		sim:resetStats()
+		local now0 = sim:client(1).E.GetServerTime()
+		for e = 1, 30 do
+			sim:advance(720)
+			local at = sim:client(1).E.GetServerTime()
+			for i = 1, 5 do
+				local c = sim:client(i):addon()
+				c.Timeline:Queue({ { k = "rank", g = Sim.guidOf(100 + e), n = "Member" .. e, a = at - 3600, b = at + i * 3, f = e % 19, t = (e + 1) % 19 } }, at + i * 3)
+			end
+		end
+		sim:advance(900)
+		local st = sim:stats()
+		local worst, total, stored = 0, 0, {}
+		for i = 1, 5 do
+			local s = st.perClient[i]
+			worst = math.max(worst, s.bytesPerMinute)
+			total = total + s.bytesPerMinute
+			stored[i] = sim:client(i):addon().Store:Count("timeline")
+		end
+		T.log(("officer tools: %.0f B/min per officer on average, %.0f at most; records held %s"):format(total / 5, worst, table.concat(stored, "/")))
+		eq(leaked, 0, "no REC of the timeline on GUILD or to a member")
+		eq(sim:client(6):addon().Store:Count("timeline"), 0)
+		truthy(total / 5 < 150, "the average per officer stays under 150 B/min")
+		truthy(worst < 2048, "and the busiest client under the 2 KB/min of SPEC-02 §4")
+		for i = 1, 5 do
+			local events = 0
+			for _, e in ipairs(sim:client(i):addon().Timeline:All()) do events = events + 1 end
+			eq(events, 30, "officer " .. i .. " reads 30 changes, however many observers saw each")
+		end
+		local written = 0
+		for i = 1, 5 do
+			for _, rec in pairs(sim:client(i):addon().Store:Records("timeline")) do
+				if rec.author == Sim.guidOf(i) then written = written + #rec.ev end
+			end
+		end
+		T.log(("officer tools: %d events written by the five officers for 30 changes"):format(written))
+		-- an officer who writes within the first writer's 5-second batch has not received its record yet: some duplicates are
+		-- normal (31 on Windows, 39 on the Linux CI); without the check of confirmed events there would be 150
+		truthy(written <= 60, "the first writer wins: " .. written .. " events written for 30 changes")
+	end)
+end)
