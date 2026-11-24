@@ -364,6 +364,7 @@ function Accounts:Rebuild()
 			if (a.name or "") ~= (b.name or "") then return (a.name or "") < (b.name or "") end
 			return a.guid < b.guid
 		end)
+		if newest then g.time, g.author = newest.time, newest.author end   -- the record the group is read from (M7.2 label)
 		if not g.main then g.main = g.members[1].guid end
 		groups[#groups + 1] = g
 	end

@@ -128,6 +128,19 @@ local function index()
 	return idx
 end
 
+-- The newest ledger entry that counts for the account of `guid`: its `time` and `author` (the notary), or nil. For the
+-- provenance label of the total (SPEC-11 §1.3).
+function Likes:Newest(guid)
+	if type(guid) ~= "string" or not ns.Store then return nil end
+	local mine = {}
+	for _, g in ipairs(self:AccountChars(guid)) do mine[g] = true end
+	local best
+	for _, rec in pairs(ns.Store:Records("likes")) do
+		if type(rec) == "table" and mine[rec.target] and type(rec.time) == "number" and (not best or rec.time > best.time) then best = rec end
+	end
+	return best and { time = best.time, author = best.author } or nil
+end
+
 -- The likes of the account of `guid`: distinct pseudonyms over all its characters (LIKE-04).
 function Likes:Total(guid)
 	if type(guid) ~= "string" then return 0 end

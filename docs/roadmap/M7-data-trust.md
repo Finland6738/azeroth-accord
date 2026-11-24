@@ -19,7 +19,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Spec: SPEC-11
 - Scope: one label widget used by every view. It shows the source (`native`, `shared`, `own`, `note`) and the age (`observedAt`), with a tooltip saying who reported the value.
 - Done when:
-  - [ ] Roster cells, the member card, recipes, likes and bank show the label. Old shared values are dimmed after a threshold set in SPEC-11.
+  - [x] Roster cells, the member card, recipes, likes and bank show the label. Old shared values are dimmed after a threshold set in SPEC-11.
 
 ### M7.3 — Guild of alts outside the guild
 - Branch: `step/m7-3-alt-guilds`

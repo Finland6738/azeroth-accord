@@ -185,7 +185,9 @@ local function build(self, f)
 	head.source = Theme.NewText(head, "Small", "text-3")
 	head.source:SetJustifyH("LEFT")
 	head.source:SetPoint("TOPLEFT", head.back, "BOTTOMLEFT", 2, -8)
-	head.source:SetPoint("RIGHT", head, "RIGHT", 0, 0)
+	head.prov = Widgets.Provenance(head)   -- the label of the list's source, at the right of the source line (M7.2)
+	head.prov:SetPoint("TOPRIGHT", head, "TOPRIGHT", 0, -44)
+	head.source:SetPoint("RIGHT", head.prov, "LEFT", -8, 0)
 	f.head = head
 
 	local bar = CreateFrame("Frame", nil, f)
@@ -449,6 +451,8 @@ local function redrawRecipes(self)
 	f.head.title:SetText(title)
 	Theme.ClassText(f.head.title, classColor(d.classFile))
 	f.head.source:SetText(d.sourceText or "")
+	f.head.prov:SetSource(d.provenance)
+	f.head.source:SetPoint("RIGHT", f.head.prov, "LEFT", -8, 0)
 	local isList = d.status == "list"
 	f.bar.category:SetShown(isList)
 	if isList then

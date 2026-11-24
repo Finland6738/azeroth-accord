@@ -200,7 +200,7 @@ function View.ProfessionTip(data, slot)
 	local p = data and data.entry and data.entry.professions and data.entry.professions[slot]
 	if not p then return nil end
 	local lines = { Model.ProfessionText(p) }
-	if ns.RecipeModel then lines[#lines + 1] = ns.RecipeModel.SourceText({ source = p.source, time = p.time }) end
+	for _, tip in ipairs(ns.Provenance.TipLines(ns.Provenance.ProfessionInfo(p))) do lines[#lines + 1] = tip end
 	lines[#lines + 1] = L["PROF_TIP_CLICK"]
 	return lines
 end

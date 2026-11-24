@@ -155,10 +155,13 @@ function Contacts:Of(guid)
 	end)
 	local out = {}
 	for _, rec in ipairs(records) do
-		if not out.battleTag and Contacts.ValidateBattleTag(rec.battleTag) then out.battleTag, out.time = rec.battleTag, rec.time end
+		if not out.battleTag and Contacts.ValidateBattleTag(rec.battleTag) then
+			out.battleTag, out.time = rec.battleTag, rec.time
+			out.battleTagTime, out.battleTagAuthor = rec.time, rec.author
+		end
 		if not out.sharedDiscord then
 			local d = Contacts.ValidateDiscord(rec.discord)
-			if d then out.sharedDiscord, out.time = d, out.time or rec.time end
+			if d then out.sharedDiscord, out.time, out.discordTime, out.discordAuthor = d, out.time or rec.time, rec.time, rec.author end
 		end
 	end
 	local native

@@ -417,6 +417,8 @@ function View.CardSection(e)
 	local lines = {}
 	local total = Likes:Total(e.guid)
 	lines[1] = { text = L["CARD_LIKES_TOTAL"]:format(total) }
+	local newest = total > 0 and Likes:Newest(e.guid) or nil
+	if newest then lines[1].prov = { source = "shared", observedAt = newest.time, author = newest.author } end
 	local state = Likes:StateOf(e.guid)
 	if state == "can" then
 		local guid = e.guid

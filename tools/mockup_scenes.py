@@ -170,8 +170,8 @@ def member_card(clipped=True):
             f'<div class="muted small" style="margin-top:3px">{esc(T("CARD_LEVEL", 60))} · {esc(class_name("MAGE"))}</div></div></div>'
             f'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">{pill(T("CARD_ONLINE"), "ok")}{pill(T("CARD_MAIN"), "accent")}{pill("1.0.0")}</div></div>')
     details = _box(T("CARD_DETAILS"), f'{esc(T("CARD_ZONE", zone_of(1)))}<br>{esc(T("CARD_RANK", ranks()[1]))}<br>{esc(T("CARD_NOTE", "Alchemy orders: mail me first"))}<br>{esc(T("CARD_ADDON_VERSION", "1.0.0"))}')
-    profs = _box(T("CARD_PROFESSIONS"), f'<span style="color:var(--text-1)">{esc(loc_prof("Alchemy"))} 285/300</span> <span class="muted">- {esc(T("CARD_SRC_NATIVE"))}</span><br>'
-                 f'<span style="color:var(--text-1)">{esc(loc_prof("Herbalism"))} 300/300</span> <span class="muted">- {esc(T("CARD_SRC_SHARED_AGE", T("AGO_HOURS", 2)))}</span>', 2)
+    profs = _box(T("CARD_PROFESSIONS"), f'<span style="color:var(--text-1)">{esc(loc_prof("Alchemy"))} 285/300</span> <span class="muted">- {esc(T("PROV_GAME"))}</span><br>'
+                 f'<span style="color:var(--text-1)">{esc(loc_prof("Herbalism"))} 300/300</span> <span class="muted">- {esc(T("AGO_HOURS", 2))}</span>', 2)
     acct = _box(T("CARD_ACCOUNT"), f'{badge("MAGE")}{name("Brynn", "MAGE")} <span class="muted">({esc(T("CARD_MAIN"))}, 60)</span><br>{badge("WARLOCK")}{name("Brynhild", "WARLOCK")} <span class="muted">(60)</span><br>'
                 f'{badge("DRUID")}{name("Bryn", "DRUID")} <span class="muted">(28)</span>', 3)
     contacts = _box(T("CARD_CONTACTS"), f'{esc(T("CARD_BATTLETAG", "Brynn#2417"))}<br>{esc(T("CARD_DISCORD_NATIVE", "brynn_arcane"))}<br>{link(T("CARD_ADD_FRIEND"))}')

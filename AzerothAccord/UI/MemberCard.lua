@@ -40,9 +40,10 @@ function Card.AddSection(id, order, fn)
 end
 
 -- A line of a section: text, muted (grey), guid (a click opens that character's card) or onClick (any other action;
--- `action` colours it like a button); a line may also carry `tip` (tooltip lines shown on hover).
-local function line(text, muted, guid, onClick, action)
-	return { text = text, muted = muted or nil, guid = guid, onClick = onClick, action = action or nil }
+-- `action` colours it like a button); a line may also carry `tip` (tooltip lines shown on hover) and `prov` (a provenance
+-- info, UI/Provenance.lua: the line gets the label of its source at the right, M7.2).
+local function line(text, muted, guid, onClick, action, prov)
+	return { text = text, muted = muted or nil, guid = guid, onClick = onClick, action = action or nil, prov = prov }
 end
 
 local function now() return ns.Compat and ns.Compat.ServerTime() or time() end
@@ -50,17 +51,6 @@ local function now() return ns.Compat and ns.Compat.ServerTime() or time() end
 ---------------------------------------------------------------------------------------------------------------------
 -- Content
 ---------------------------------------------------------------------------------------------------------------------
--- "native" (the game), "shared" (the member's own addon, with its age), "own" (the player's own professions).
-local function sourceText(p)
-	if p.source == "shared" then
-		if p.time then return L["CARD_SRC_SHARED_AGE"]:format(ns.Shell.Ago(now() - p.time)) end
-		return L["CARD_SRC_SHARED"]
-	elseif p.source == "own" then
-		return L["CARD_SRC_OWN"]
-	end
-	return L["CARD_SRC_NATIVE"]
-end
-
 local function detailsSection(e)
 	local lines = {}
 	if e.notInGuild then
@@ -76,7 +66,8 @@ local function detailsSection(e)
 		if canView and e.officerNote and e.officerNote ~= "" then lines[#lines + 1] = line(L["CARD_OFFICER_NOTE"]:format(e.officerNote)) end
 	end
 	if e.hasAddon then
-		lines[#lines + 1] = line(e.addonVersion and L["CARD_ADDON_VERSION"]:format(e.addonVersion) or L["CARD_ADDON"], true)
+		lines[#lines + 1] = line(e.addonVersion and L["CARD_ADDON_VERSION"]:format(e.addonVersion) or L["CARD_ADDON"], true, nil, nil, nil,
+			e.addonVersion and { source = "shared", observedAt = e.addonTime, author = e.addonAuthor, set = "addonVersion" } or nil)
 	elseif not e.notInGuild then
 		lines[#lines + 1] = line(L["CARD_NO_ADDON"], true)
 	end
@@ -90,7 +81,7 @@ local function professionsSection(e)
 		local open = e.guid and function()
 			if ns.RecipeView then ns.RecipeView:Open(e.guid, ns.RecipeView.SkillLineOf(e, p)) end
 		end or nil
-		lines[#lines + 1] = line(("%s (%s)"):format(Model.ProfessionText(p), sourceText(p)), p.source == "shared", nil, open)
+		lines[#lines + 1] = line(Model.ProfessionText(p), p.source == "shared", nil, open, nil, ns.Provenance.ProfessionInfo(p))
 	end
 	local count = #lines
 	if #lines == 0 then lines[1] = line(e.hasAddon and L["CARD_NO_PROF_ADDON"] or L["CARD_NO_PROF"], true) end
@@ -115,7 +106,8 @@ local function accountSection(e)
 				if not m.inGuild then tags[#tags + 1] = L["NOT_IN_GUILD_SHORT"] end
 				if m.hint then tags[#tags + 1] = L["CARD_HINT"] end
 				if #tags > 0 then text = text .. " - " .. table.concat(tags, ", ") end
-				lines[#lines + 1] = line(text, not m.inGuild, m.guid)
+				lines[#lines + 1] = line(text, not m.inGuild, m.guid, nil, nil,
+					m.hint and { source = "note", member = m.name } or { source = "shared", observedAt = g.time, author = g.author })
 			end
 		end
 	end
@@ -148,11 +140,14 @@ local function contactsSection(e)
 	local c = C:Of(e.guid)
 	local function copy(text, title) return function() if ns.CopyBox then ns.CopyBox:Open(text, title) end end end
 	if c and c.battleTag then
-		lines[#lines + 1] = line(L["CARD_BATTLETAG"]:format(C.Escape(c.battleTag)), false, nil, copy(c.battleTag, L["COPY_TITLE_BATTLETAG"]))
+		lines[#lines + 1] = line(L["CARD_BATTLETAG"]:format(C.Escape(c.battleTag)), false, nil, copy(c.battleTag, L["COPY_TITLE_BATTLETAG"]), nil,
+			{ source = "shared", observedAt = c.battleTagTime, author = c.battleTagAuthor, set = "contacts" })
 	end
 	if c and c.discord then
 		local fmt = c.discordSource == "native" and L["CARD_DISCORD_NATIVE"] or L["CARD_DISCORD"]
-		lines[#lines + 1] = line(fmt:format(C.Escape(c.discord)), false, nil, copy(c.discord, L["COPY_TITLE_DISCORD"]))
+		lines[#lines + 1] = line(fmt:format(C.Escape(c.discord)), false, nil, copy(c.discord, L["COPY_TITLE_DISCORD"]), nil,
+			c.discordSource == "native" and { source = "native" }
+			or { source = "shared", observedAt = c.discordTime, author = c.discordAuthor, set = "contacts" })
 	end
 	if #lines == 0 then lines[1] = line(e.hasAddon and L["CARD_NO_CONTACTS"] or L["CARD_NO_CONTACTS_ADDON"], true) end
 	if C:CanSendFriendRequest(e) then
@@ -298,6 +293,8 @@ local function item(f, i)
 	it.text = Theme.NewText(it, "Small", "text-1")
 	it.text:SetJustifyH("LEFT")
 	it.text:SetPoint("TOPLEFT", it, "TOPLEFT", 0, 0)
+	it.prov = Widgets.Provenance(it)   -- the label of the source, at the right of a line that has `prov` (M7.2)
+	it.prov:SetPoint("TOPRIGHT", it, "TOPRIGHT", 0, 0)
 	it.highlight = it:CreateTexture(nil, "HIGHLIGHT")
 	Theme.Fill(it.highlight, "highlight")
 	it.highlight:SetAllPoints(it)
@@ -366,9 +363,11 @@ function Card:Layout()
 			it.guid, it.onClick, it.tip = ln.guid, ln.onClick, ln.tip
 			it:ClearAllPoints()
 			it:SetPoint("TOPLEFT", f.content, "TOPLEFT", Card.PAD + Card.INNER, -(ly - (self.scroll or 0)))
-			it.text:SetWidth(text)
+			it.prov:SetSource(ln.prov)
+			local dim = it.prov:IsDim()
+			it.text:SetWidth(ln.prov and max(60, text - (it.prov:GetWidth() or 0) - 8) or text)
 			it.text:SetText(ln.text)
-			Theme.Text(it.text, lineToken(ln))
+			Theme.Text(it.text, dim and "text-3" or lineToken(ln))
 			local h = max(14, it.text:GetStringHeight() or 14)
 			it:SetSize(text, h)
 			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil)

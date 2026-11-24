@@ -374,7 +374,7 @@ function Recipes:Shared(guid, skillLine)
 	if not rec then return nil end
 	local ids = decodedList(rec)
 	if not ids then return nil end
-	return { ids = ids, time = rec.time, rank = rec.rank, maxRank = rec.maxRank, name = rec.name, n = #ids, guid = guid,
+	return { ids = ids, time = rec.time, rank = rec.rank, maxRank = rec.maxRank, name = rec.name, n = #ids, guid = guid, author = rec.author,
 		skillLine = floor(skillLine), source = guid == ownGUID() and "own" or "shared" }
 end
 

@@ -76,12 +76,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Sync state ("3 guildmates with Accord online · updated 2 min ago")
 ---------------------------------------------------------------------------------------------------------------------
-function Shell.Ago(seconds)
-	if type(seconds) ~= "number" or seconds < 60 then return L["AGO_NOW"] end
-	if seconds < 3600 then return L["AGO_MINUTES"]:format(floor(seconds / 60)) end
-	if seconds < 86400 then return L["AGO_HOURS"]:format(floor(seconds / 3600)) end
-	return L["AGO_DAYS"]:format(floor(seconds / 86400))
-end
+function Shell.Ago(seconds) return ns.Provenance.AgeText(seconds) end   -- one scale for every age (SPEC-11 §1.2)
 
 function Shell.StatusText()
 	local status = ns.Sync and ns.Sync.Status and ns.Sync:Status() or { peers = 0 }

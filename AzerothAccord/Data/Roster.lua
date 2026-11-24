@@ -93,7 +93,7 @@ local function sharedProfessions()
 			local list = out[rec.char]
 			if not list then list = {} out[rec.char] = list end
 			list[#list + 1] = { id = rec.skillLine, name = type(rec.name) == "string" and rec.name or nil,
-				rank = rec.rank, maxRank = rec.maxRank, source = "shared", time = rec.time }
+				rank = rec.rank, maxRank = rec.maxRank, source = "shared", time = rec.time, author = rec.author }
 			count = count + 1
 		end
 	end
@@ -155,7 +155,10 @@ function Roster:Build()
 		end
 		if e.guid and S then
 			local acc = S:Get("accounts", e.guid)
-			if acc then e.hasAddon, e.addonVersion = true, type(acc.addonVersion) == "string" and acc.addonVersion or nil end
+			if acc then
+				e.hasAddon, e.addonVersion = true, type(acc.addonVersion) == "string" and acc.addonVersion or nil
+				e.addonTime, e.addonAuthor = acc.time, acc.author   -- for the provenance label (M7.2)
+			end
 		end
 		list[i] = e
 		if e.guid then byGUID[e.guid] = e end

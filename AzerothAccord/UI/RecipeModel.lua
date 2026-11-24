@@ -147,6 +147,7 @@ function Model:Describe()
 	}
 	if lookup then
 		d.source, d.sourceText, d.time = lookup.source, Model.SourceText(lookup), lookup.time
+		d.provenance = { source = lookup.source, observedAt = lookup.time, author = lookup.author, set = "recipes" }
 		d.total = #lookup.ids
 		d.shown = #self:Rows()
 		if d.total == 0 then d.message = L["RV_EMPTY_LIST"] end
