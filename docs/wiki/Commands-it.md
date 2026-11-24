@@ -14,6 +14,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord raid` | Apre la vista Raid: le fonti della gilda e ciò che FDCP pubblica *(M11.7)* |
 | `/accord settings` | Apre la vista Impostazioni: nome Discord, personaggio principale, avvisi, colonne del Roster, dati salvati (vedi [[Impostazioni|Settings-it]]) |
 | `/accord about` | Apre la pagina Info delle Impostazioni: crediti, link da copiare, licenza. `/accord about chat` scrive invece i crediti in chat (vedi [[Informazioni e crediti|About-it]]) |
+| `/accord demo` | Riempie ogni vista con una **gilda inventata**, per provare l'addon senza gilda o per mostrarlo. Non si invia e non si salva nulla; scrivilo di nuovo per uscire (vedi [Modalità demo](#modalità-demo)) |
 | `/accord debug` | Apre un rapporto di diagnostica, già selezionato: premi Ctrl+C e incollalo in una segnalazione. Non contiene nomi di giocatori, gilde, BattleTag o Discord |
 | `/accord help` | Elenca i comandi in chat |
 
@@ -26,3 +27,15 @@ Altri modi per aprire la finestra:
 - la **scheda Accord** della finestra della gilda, poi **Stacca** per la finestra più grande; **Riaggancia**, nella barra del titolo di quella finestra, rimette il pannello nella finestra della gilda mentre è aperta.
 
 `/accord <vista>` apre la finestra sulla scheda di quella vista (o cambia scheda, se il pannello è già aperto nella finestra della gilda). Esc chiude la finestra.
+
+## Modalità demo
+
+`/accord demo` trasforma l'addon in una visita guidata: ogni vista (Roster, scheda del compagno, Professioni e ricette, Reputazione con i like e la mappa dei gruppi, Banca con registri e richieste, Raid, Impostazioni) si riempie con una **gilda inventata**, "Demo Guild", di 60 membri con nomi inventati, 20 giocatori con l'addon, tre professioni, una banca e le sue richieste. Funziona senza gilda e senza connessione, quindi è anche il modo di vedere l'addon prima di entrare in una gilda.
+
+- Una striscia in cima al pannello dice **Demo: gilda inventata. Non si invia né si salva nulla.** e ha il pulsante *Esci dalla demo*; la barra del titolo e la riga sotto il pannello dicono *Demo* al posto del numero di compagni.
+- **Non si invia nulla**: né un messaggio alla gilda, né un sussurro, né un invito. Ciò che la gilda ti manda intanto si ignora (la sincronizzazione lo ripara pochi secondi dopo l'uscita). Un messaggio che era già in attesa di partire aspetta, e parte dopo la demo.
+- **Non si salva nulla**: lavori su una copia dei tuoi dati, quindi un like, una richiesta alla banca, un principale o un tema scelti nella demo spariscono quando finisce. I tuoi dati veri, la tua gilda vera e le tue impostazioni vere tornano esattamente com'erano. Anche un `/reload` o l'uscita dal gioco chiudono la demo: non resta mai accesa.
+- Nella gilda inventata sei un ufficiale, quindi si vedono anche le viste degli ufficiali (la scheda della banca solo per ufficiali, le decisioni sulle richieste, la mappa dei gruppi).
+- I nomi di professioni e ricette li dà il gioco; se il gioco non conosce un incantesimo, la vista mostra il suo numero.
+
+Scrivi di nuovo `/accord demo` (o `/accord demo off`, o premi *Esci dalla demo*) per uscire.

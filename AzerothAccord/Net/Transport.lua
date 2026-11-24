@@ -88,7 +88,7 @@ local function maxWire() return Transport.WIRE_LIMIT - #(Transport.PREFIX or "")
 local function newStats()
 	return {
 		sent = 0, sentBytes = 0, failed = 0, throttled = 0, retried = 0, coalesced = 0, restored = 0, saved = 0,
-		dropped = 0, droppedBy = {},                       -- send side: reason -> count
+		dropped = 0, droppedBy = {}, demoRefused = 0,     -- send side: reason -> count; refused in demo mode (M7.4)
 		received = 0, rxDropped = 0, rxReasons = {}, rxNewer = 0, echoes = 0,
 		encodeFailed = 0, callbackErrors = 0,
 		sentBy = { GUILD = 0, OFFICER = 0, WHISPER = 0 }, bytesBy = { GUILD = 0, OFFICER = 0, WHISPER = 0 },
@@ -316,6 +316,11 @@ end
 -- Queues `msg` ({ t = type, ...fields }). Returns the pending item (a handle for Cancel), or nil plus a reason:
 -- "dist", "shape", "target", "prio", "encode: ...", "size", "full".
 function Transport:Send(dist, msg, opts)
+	-- demo mode (SPEC-11 §3.1): nothing is sent, nothing is queued; the messages already waiting stay as they are
+	if ns.Demo and ns.Demo:IsActive() then
+		state.stats.demoRefused = state.stats.demoRefused + 1
+		return nil, "demo"
+	end
 	opts = type(opts) == "table" and opts or {}
 	if not Transport.DISTS[dist] then return nil, "dist" end
 	if type(msg) ~= "table" then return nil, "shape" end
@@ -454,6 +459,7 @@ end
 
 -- One pass of the queue: expiry, the guild check, the client gate (lockdown, restrictions), then what may go.
 pass = function()
+	if ns.Demo and ns.Demo:IsActive() then return end   -- the queue waits for the exit from demo mode (SPEC-11 §3.1)
 	local t = now()
 	expire(t)
 	local current = guildKey()
@@ -483,7 +489,7 @@ end
 -- The saved queue (SPEC-02 §5)
 ---------------------------------------------------------------------------------------------------------------------
 local function outbox()
-	local char = ns.Config and ns.Config.db.char
+	local char = ns.Demo and ns.Demo:Real("char") or (ns.Config and ns.Config.db.char)   -- in demo mode: the saved table, not the copy
 	if type(char) ~= "table" then return nil end
 	if type(char.outbox) ~= "table" then char.outbox = {} end
 	return char.outbox
@@ -552,6 +558,11 @@ end
 function Transport:OnReceive(text, dist, sender)
 	local s = state.stats
 	s.received = s.received + 1
+	if ns.Demo and ns.Demo:IsActive() then   -- demo mode: what arrives is dropped, counted as "demo"
+		s.rxDropped = s.rxDropped + 1
+		s.rxReasons.demo = (s.rxReasons.demo or 0) + 1
+		return false, "demo"
+	end
 	if Transport.DISTS[dist] and Transport.IsSelf(sender) then
 		-- the client echoes GUILD and OFFICER messages to the sender: an OFFICER echo proves the channel carries
 		-- addon messages (M0 S5); the echo itself is not a message from someone else
@@ -620,7 +631,7 @@ function Transport:Stats()
 		queued = #state.queue, queuedBy = by, inflight = state.inflight,
 		sent = s.sent, sentBytes = s.sentBytes, sentBy = copyCounts(s.sentBy), bytesBy = copyCounts(s.bytesBy),
 		failed = s.failed, throttled = s.throttled, retried = s.retried, coalesced = s.coalesced, restored = s.restored,
-		saved = s.saved, dropped = s.dropped, droppedBy = copyCounts(s.droppedBy),
+		saved = s.saved, dropped = s.dropped, droppedBy = copyCounts(s.droppedBy), demoRefused = s.demoRefused,
 		received = s.received, rxDropped = s.rxDropped, rxReasons = copyCounts(s.rxReasons), rxNewer = s.rxNewer,
 		echoes = s.echoes, encodeFailed = s.encodeFailed, callbackErrors = s.callbackErrors,
 		readOnly = state.readOnly, held = state.held,
@@ -648,6 +659,7 @@ function Transport:DebugLines()
 			st.coalesced, st.dropped, countsText(st.droppedBy)),
 		("  received %d, own echoes %d, rejected %d%s, newer protocol %d"):format(st.received, st.echoes, st.rxDropped,
 			countsText(st.rxReasons), st.rxNewer),
+		st.demoRefused > 0 and ("  refused in demo mode: %d"):format(st.demoRefused) or nil,
 	}
 end
 

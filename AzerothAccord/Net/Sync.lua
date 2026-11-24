@@ -325,6 +325,7 @@ end
 -- Starts the HELLO cycle (at login, or when the character joins a guild).
 function Sync:Start()
 	if not self.AUTO then return false end
+	if ns.Demo and ns.Demo:IsActive() then return false end   -- demo mode sends nothing: no timer (SPEC-11 §3.1)
 	scheduleHello(Sync.HELLO_DELAY)
 	return true
 end

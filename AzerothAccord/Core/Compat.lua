@@ -1271,6 +1271,47 @@ function Compat:DebugLines()
 	return lines
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- The overlay of demo mode (SPEC-11 §3.2, M7.4)
+---------------------------------------------------------------------------------------------------------------------
+-- While an overlay is on, the functions it names answer from it and never call the game: `overlay` is
+-- { Guild = { InGuild = fn, ... }, Player = { ... }, Club = { ... }, TradeSkill = { ... }, Bank = { ... }, Group = { ... },
+-- Chat = { ... } }. Only the functions that already exist in those tables can be replaced (a typo is refused, nothing is
+-- half applied); the capabilities (Compat:Feature) do not change. Only Core/Demo.lua uses this.
+local OVERLAY_GROUPS = { Guild = Guild, Player = Player, Club = Club, TradeSkill = TradeSkill, Bank = Bank, Group = Group, Chat = Chat }
+
+function Compat:SetOverlay(overlay)
+	if type(overlay) ~= "table" then return false, "overlay" end
+	if self.overlaySaved then self:ClearOverlay() end
+	for group, fns in pairs(overlay) do
+		local target = OVERLAY_GROUPS[group]
+		if not target or type(fns) ~= "table" then return false, "group " .. tostring(group) end
+		for name, fn in pairs(fns) do
+			if type(target[name]) ~= "function" or type(fn) ~= "function" then return false, tostring(group) .. "." .. tostring(name) end
+		end
+	end
+	local saved = {}
+	for group, fns in pairs(overlay) do
+		local target = OVERLAY_GROUPS[group]
+		saved[group] = {}
+		for name, fn in pairs(fns) do
+			saved[group][name] = target[name]
+			target[name] = fn
+		end
+	end
+	self.overlaySaved = saved
+	return true
+end
+
+function Compat:ClearOverlay()
+	for group, fns in pairs(self.overlaySaved or {}) do
+		for name, fn in pairs(fns) do OVERLAY_GROUPS[group][name] = fn end
+	end
+	self.overlaySaved = nil
+end
+
+function Compat:HasOverlay() return self.overlaySaved ~= nil end
+
 if ns.addon then ns.addon.Compat = Compat end   -- also reachable from tests
 if ns.addon and ns.addon.AddDebugSection then
 	ns.addon:AddDebugSection("Compat", function() return Compat:DebugLines() end)

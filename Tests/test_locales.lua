@@ -47,7 +47,7 @@ local SAME = {
 	CONTACT_BT_SHORT = true, CONTACT_DISCORD_SHORT = true, CARD_BATTLETAG = true, CARD_DISCORD = true, SET_DATA_PART = true,
 	RV_TITLE = true, REP_LIKE = true, SOC_HOURS = true, SOC_TOP_LINE = true, NEW_MINUTES = true, BANK_TAB_COUNT = true,
 	THEME_NEBULA = true, THEME_AURORA = true, THEME_ACCORD = true,
-	ABOUT_TAB = true, ABOUT_LINK_REPO = true,
+	ABOUT_TAB = true, ABOUT_LINK_REPO = true, DEMO_STATUS = true,
 	VIEW_RAID = true, SOURCE_LOOT = true, SOURCE_ACCORD = true, SOURCE_FDCP = true, FDCP_STATUS = true, RAID_SEASON_LINE = true, RAID_MS1 = true, RAID_MS2 = true, RAID_OS = true, ROLE_TANK = true, ROLE_HEALER = true, ROLE_DAMAGER = true, RAID_LOOT = true, RULES_PRESET = true, RULES_COST = true, FDCP_PRESET_PATTO = true, CARD_FDCP = true,
 }
 

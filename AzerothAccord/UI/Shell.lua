@@ -25,6 +25,7 @@ Shell.NAME = "AzerothAccordShell"
 Shell.PAD = 16            -- between the edge of the host and the tabs, the body
 Shell.TOP = 4             -- above the tab bar
 Shell.TAB_BAR = 44        -- the height of Widgets.Tabs
+Shell.STRIP = 30          -- the Demo strip above the tab bar (demo mode, SPEC-11 §3.1)
 Shell.GAP = 12            -- between the tab bar and the body
 Shell.FOOTER = 24         -- the sync-state line of the guild window
 Shell.SEARCH_WIDTH = { window = 200, tab = 150 }
@@ -79,6 +80,7 @@ end
 function Shell.Ago(seconds) return ns.Provenance.AgeText(seconds) end   -- one scale for every age (SPEC-11 §1.2)
 
 function Shell.StatusText()
+	if ns.Demo and ns.Demo:IsActive() then return L["DEMO_STATUS"] end   -- the sync state means nothing in the demo
 	local status = ns.Sync and ns.Sync.Status and ns.Sync:Status() or { peers = 0 }
 	local peers = L["STATUS_PEERS"]:format(status.peers or 0)
 	if not status.lastReceived then return peers .. " · " .. L["STATUS_NEVER"] end
@@ -102,6 +104,44 @@ local function buildBar(content)
 	bar.popOut:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
 	if Widgets.Tooltip then Widgets.Tooltip.Attach(bar.popOut, { L["POP_OUT"], L["POP_OUT_TIP"] }, "BOTTOM") end
 	content.bar = bar
+end
+
+-- The strip of demo mode, over the tabs: the warning colour, what the mode does and the way out.
+local function buildStrip(content)
+	local strip = CreateFrame("Frame", nil, content)
+	strip:SetHeight(Shell.STRIP)
+	strip:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -Shell.TOP)
+	strip:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
+	strip.fill = strip:CreateTexture(nil, "BACKGROUND")
+	Theme.Fill(strip.fill, "warn", 0.16)
+	strip.fill:SetAllPoints(strip)
+	strip.line = strip:CreateTexture(nil, "BORDER")
+	Theme.Fill(strip.line, "warn")
+	strip.line:SetPoint("BOTTOMLEFT", strip, "BOTTOMLEFT", 0, 0)
+	strip.line:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 0)
+	strip.line:SetHeight(Theme.Px(1))
+	strip.exit = Widgets.Button(strip, { text = L["DEMO_EXIT"], style = "secondary", height = 22,
+		onClick = function() if ns.Demo then ns.Demo:Exit() end end })
+	strip.exit:SetPoint("RIGHT", strip, "RIGHT", -6, 0)
+	strip.text = Theme.NewText(strip, "Body", "warn")
+	strip.text:SetPoint("LEFT", strip, "LEFT", 10, 0)
+	strip.text:SetPoint("RIGHT", strip.exit, "LEFT", -8, 0)
+	strip.text:SetJustifyH("LEFT")
+	strip.text:SetText(L["DEMO_STRIP"])
+	content.strip = strip
+	return strip
+end
+
+-- The strip shows while demo mode is on, and the tab bar moves down under it.
+local function layoutDemo(content)
+	local on = ns.Demo ~= nil and ns.Demo:IsActive()
+	if on and not content.strip then buildStrip(content) end
+	if content.strip then content.strip:SetShown(on) end
+	local top = Shell.TOP + (on and (Shell.STRIP + 4) or 0)
+	local bar = content.bar
+	bar:ClearAllPoints()
+	bar:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -top)
+	bar:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -top)
 end
 
 local function buildFooter(content)
@@ -185,6 +225,7 @@ end
 
 -- What depends on the host: Pop out and the footer only in the guild window, the width of the search box, the body.
 local function layout(content, mode)
+	layoutDemo(content)
 	local bar, tab = content.bar, mode == "tab"
 	bar.popOut:SetShown(tab)
 	local field = bar.searchField
@@ -409,6 +450,7 @@ if ns.addon then
 		local function update() Shell:UpdateStatus() end
 		ns.Bus:On("SYNC_RECEIVED", update)
 		ns.Bus:On("SYNC_HELLO", update)
+		ns.Bus:On("DEMO_CHANGED", function() Shell:Refresh() end)
 		ns.Bus:On("GUILD_CHANGED", function(key)
 			if not key then
 				if ns.Window then ns.Window:Close() end

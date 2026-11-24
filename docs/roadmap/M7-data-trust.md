@@ -39,7 +39,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Spec: SPEC-11
 - Scope: `/accord demo` fills every view from a synthetic guild with invented names. It sends nothing, saves nothing, and shows a strip saying "Demo". The mockup tools of ADR 0019 can reuse the same data.
 - Done when:
-  - [ ] Every view opens in demo mode with no guild and no network; leaving demo mode restores the real data untouched.
+  - [x] Every view opens in demo mode with no guild and no network; leaving demo mode restores the real data untouched.
 
 ### M7.5 — Personal backup
 - Branch: `step/m7-5-backup`

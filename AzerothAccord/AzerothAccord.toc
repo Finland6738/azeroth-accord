@@ -51,6 +51,8 @@ Data\BankRequests.lua
 Data\BankInbox.lua
 Data\FDCP.lua
 Data\Integrations.lua
+Data\Demo.lua
+Core\Demo.lua
 UI\Assets.lua
 UI\Theme.lua
 UI\Motion.lua
