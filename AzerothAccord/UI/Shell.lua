@@ -37,7 +37,8 @@ Shell.host = nil        -- the host the content is in now: { frame, mode = "tab"
 ---------------------------------------------------------------------------------------------------------------------
 -- Views
 ---------------------------------------------------------------------------------------------------------------------
--- A view registers itself: def = { label, order, build(frame) -> nil, search = bool, onSearch(text), badge() -> n }.
+-- A view registers itself: def = { label, order, build(frame) -> nil, search = bool, onSearch(text), badge() -> n,
+-- visible() -> bool (a view without it always shows; one that says no has no tab and cannot be selected) }.
 function Shell:RegisterView(id, def)
 	if type(id) ~= "string" or type(def) ~= "table" or type(def.build) ~= "function" then return false end
 	def.id = id
@@ -64,9 +65,17 @@ function Shell:UpdateBadges()
 	end
 end
 
+-- true when the view may show now.
+function Shell.Visible(view)
+	if not view then return false end
+	if type(view.visible) ~= "function" then return true end
+	local ok, yes = pcall(view.visible)
+	return ok and yes == true
+end
+
 function Shell:ViewList()
 	local list = {}
-	for _, v in pairs(self.views) do list[#list + 1] = v end
+	for _, v in pairs(self.views) do if Shell.Visible(v) then list[#list + 1] = v end end
 	table.sort(list, function(a, b)
 		if a.order ~= b.order then return a.order < b.order end
 		return a.id < b.id
@@ -257,9 +266,9 @@ function Shell:Refresh()
 	else
 		local tabs = buildTabs(content, list)
 		tabs:Show()
-		if not (self.selected and self.views[self.selected]) then
+		if not (self.selected and Shell.Visible(self.views[self.selected])) then
 			local last = ns.Config and ns.Config:Get("char.ui.lastView")
-			self.selected = (last and self.views[last]) and last or list[1].id
+			self.selected = (last and Shell.Visible(self.views[last])) and last or list[1].id
 		end
 		content.empty:Hide()
 		self:UpdateBadges()
@@ -312,7 +321,7 @@ end
 -- `retry` is true for a click on a tab: a view whose build failed is then built afresh.
 function Shell:Select(id, retry)
 	local view = self.views[id]
-	if not view then return false end
+	if not Shell.Visible(view) then return false end
 	if retry and view.failed and view.frame then
 		view.frame:Hide()
 		view.frame, view.failed = nil, nil
@@ -402,7 +411,7 @@ function Shell:OpenView(id)
 		if ns.addon then ns.addon:Print(L["NOT_IN_GUILD"]) end
 		return false
 	end
-	if not self.views[id] then
+	if not Shell.Visible(self.views[id]) then
 		if ns.addon then ns.addon:Print(L["COMING_SOON"]) end
 		return false
 	end
@@ -451,6 +460,7 @@ if ns.addon then
 		ns.Bus:On("SYNC_RECEIVED", update)
 		ns.Bus:On("SYNC_HELLO", update)
 		ns.Bus:On("DEMO_CHANGED", function() Shell:Refresh() end)
+		ns.Bus:On("ROLE_CHANGED", function() Shell:Refresh() end)   -- a view may be for officers only
 		ns.Bus:On("GUILD_CHANGED", function(key)
 			if not key then
 				if ns.Window then ns.Window:Close() end

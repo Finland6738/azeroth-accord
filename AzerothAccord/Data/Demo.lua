@@ -13,7 +13,7 @@
 --   token, ownChars, main        the account of the player: its token, its characters ([guid] = the entry
 --                                AzerothAccordDB.chars keeps) and the main
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
---                                likes, bank, bankreq, guildcfg, timeline), written as the clients would hold them
+--                                likes, bank, bankreq, guildcfg, timeline, absence; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes = { given, queue }, bank = { history } }
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
@@ -118,7 +118,7 @@ function DemoData.Build(now)
 	local D = { guildName = DemoData.GUILD_NAME, realm = DemoData.REALM, key = DemoData.KEY, ranks = DemoData.RANKS, sets = {},
 		guildData = { likes = { given = {}, queue = {} }, bank = { history = {} } } }
 	local sets = D.sets
-	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline" }) do sets[set] = {} end
+	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "ocfg" }) do sets[set] = {} end
 
 	-- The roster ------------------------------------------------------------------------------------------------------
 	local members = {}
@@ -418,6 +418,20 @@ function DemoData.Build(now)
 			for _, e in ipairs(list) do last = math.max(last, e.b) end
 			local id = observer.guid .. ":" .. day .. ":1"
 			sets.timeline[id] = { id = id, author = observer.guid, rev = 1, time = last + 600, observer = observer.guid, day = day, ev = list }
+		end
+	end
+
+	-- Three declared absences (SPEC-12 §7), for members who have not been online for two weeks or more: one declared by the
+	-- member, two set by the Guild Master
+	local away = 0
+	for i = 6, DemoData.MEMBERS do
+		local m = members[i]
+		if away < 3 and not m.online and m.lastOnlineHours >= 14 * 24 then
+			away = away + 1
+			local kind = away == 1 and "self" or "off"
+			local written = now - (away * 2) * DAY
+			sets.absence[m.guid .. ":" .. kind] = { id = m.guid .. ":" .. kind, author = kind == "self" and m.guid or members[1].guid,
+				rev = 1, time = written, char = m.guid, from = dayOf(written), ["until"] = dayOf(now + (away * 9) * DAY) }
 		end
 	end
 

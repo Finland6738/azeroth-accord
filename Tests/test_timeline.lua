@@ -484,9 +484,17 @@ describe("who sees the timeline (the answer proposed for SPEC-10 Q13)", function
 		contains(texts[2], "level 1 → 2")                              -- the newest first
 		eq(#texts, 1 + 10 + 1 + 2, "ten lines, Show all, the channel state and the note")
 		eq(texts[12], "Show all (14)")
+		A().Shell:OpenView("settings")
 		d.lines[12].onClick()
-		eq(#A().TimelineCard.Describe({ guid = g(1) }).lines, 1 + 14 + 1 + 2)
-		A().TimelineCard.expanded = nil
+		local V = A().OfficersView
+		eq(A().Shell.selected, "officers", "Show all opens the Timeline page of the Officers tab")
+		eq(V.pageId, "timeline")
+		deepEq(V.timeline.guids, { g(1) }, "on this account")
+		eq(#V.rows, 14)
+		eq(#V.TimelineRows({ kind = "rank", days = 365, guids = V.timeline.guids }), 0)
+		eq(#V.TimelineRows({ kind = "level", days = 365, search = "nobody" }), 0)
+		eq(#V.TimelineRows({ kind = "level", days = 7, search = "m1" }), 14)
+		eq(#V.TimelineRows({ days = 7 }, GetServerTime() + 30 * DAY), 0, "older than the period")
 	end)
 
 	it("says the date of the oldest join and the interval of a long wait", function()

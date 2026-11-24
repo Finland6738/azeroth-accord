@@ -64,7 +64,12 @@ function Officer:HasData()
 	if type(data.officer) == "table" and next(data.officer) ~= nil then return true end
 	local sets = type(data.store) == "table" and data.store.sets   -- read directly: Store:Records would create empty sets
 	for _, set in ipairs(Officer.SETS) do
-		if type(sets) == "table" and type(sets[set]) == "table" and next(sets[set]) ~= nil then return true end
+		local keep = Officer.KEEP[set]   -- what survives the purge is not officer data (a member's own absence)
+		if type(sets) == "table" and type(sets[set]) == "table" then
+			for id, rec in pairs(sets[set]) do
+				if not (keep and keep(rec, id)) then return true end
+			end
+		end
 	end
 	return false
 end

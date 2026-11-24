@@ -13,6 +13,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord bank` | Opens the Bank view *(M5)* |
 | `/accord raid` | Opens the Raid view: the guild's sources and what FDCP publishes *(M11.7)* |
 | `/accord settings` | Opens the Settings view: Discord name, main character, notices, Roster columns, saved data (see [[Settings|Settings]]) |
+| `/accord away 2026-12-31` | Declares that you are away until that day (only officers see it); `/accord away off` clears it, `/accord away` shows it (see [[Guild Roster|Guild-Roster]]) *(M8.3)* |
 | `/accord about` | Opens the Info page of Settings: credits, links to copy, licence. `/accord about chat` prints the credits in the chat instead (see [[About and credits|About]]) |
 | `/accord backup` | Opens the **Backup** card of the Settings page: export your own data to a text, or import it on another computer (see *Backup and restore* in [[Settings]]) |
 | `/accord demo` | Fills every view with an **invented guild**, to try the addon without a guild or to show it. Nothing is sent and nothing is saved; type it again to leave (see [Demo mode](#demo-mode)) |

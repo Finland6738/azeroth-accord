@@ -23,7 +23,8 @@
 - Spec: SPEC-12
 - Scope: inactivity per account, counted from the most recent of its characters. Tiers are configurable (default 14 / 30 / 60 / 90 days). Exceptions: a declared absence with a return date, set by the member or an officer.
 - Done when:
-  - [ ] A player active only on an alt is not inactive; a declared absence hides them until the return date.
+  - [x] A player active only on an alt is not inactive; a declared absence hides them until the return date.
+- Note: the Officers tab comes with this step, with its Inactive and Timeline pages (SPEC-12 §2.4, §3.5, §8); the Queue page follows in M8.4.
 
 ### M8.4 — Cleanup wizard and manual-ops queue
 - Branch: `step/m8-4-cleanup`

@@ -1084,6 +1084,26 @@ function Sync:Peers()
 	return out
 end
 
+-- A member's own records of an officer tool (the declared absence, SPEC-12 §3.4) by WHISPER to up to ASK_OFFICERS
+-- officers heard recently and online, chosen by hash like RequestSet; they pass them on among themselves. The transport
+-- sends them only to an officer of the roster (OFF-05). Returns the number of officers it was queued for.
+function Sync:SendToOfficers(set, records)
+	if not (ns.GuildKey and ns.GuildKey:Current()) or not store().IsOfficerTool(set) or #records == 0 then return 0 end
+	if ns.Demo and ns.Demo:IsActive() then return 0 end
+	local me = myGUID()
+	if not me then return 0 end
+	local officers = {}
+	for name, p in pairs(presentPeers()) do
+		if p.officer and p.guid ~= me then officers[#officers + 1] = { name = name, rank = hash().Fast((p.guid or "") .. me) } end
+	end
+	sort(officers, function(a, b) if a.rank ~= b.rank then return a.rank < b.rank end return a.name < b.name end)
+	local entries = {}
+	for i, rec in ipairs(records) do entries[i] = { set, rec } end
+	local n = min(Sync.ASK_OFFICERS, #officers)
+	for i = 1, n do sendRecords(entries, "WHISPER", officers[i].name, "OWN|" .. officers[i].name) end
+	return n
+end
+
 -- For the top bar of the panel: how many guildmates with the addon are online, when records last arrived.
 function Sync:Status()
 	local n = 0

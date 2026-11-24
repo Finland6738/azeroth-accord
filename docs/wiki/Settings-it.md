@@ -36,6 +36,10 @@ Entrambi sono **sempre condivisi con la tua gilda**, così i compagni possono ra
 
 Scegli quale dei tuoi personaggi è il tuo **main**. Guida i tuoi personaggi nel Roster raggruppato e nella scheda del membro ([[Roster di gilda|Guild-Roster-it]]). Finché non ne scegli uno, guida il personaggio di livello più alto. Il menu elenca i personaggi del tuo account in questo reame.
 
+## Assenza
+
+Dì agli ufficiali quando torni: scrivi la **data di rientro** (AAAA-MM-GG, al massimo tra 180 giorni) e premi **Salva**; **Cancella** la toglie. Fino a quel giorno, compreso, gli ufficiali non ti contano tra gli inattivi. La vedono solo loro, e non si chiede il motivo. La card mostra ciò che ha dichiarato il **tuo** account. Lo stesso dalla chat: `/accord away 2026-12-31`, `/accord away off`. Vedi *Assenze dichiarate* in [[Roster di gilda|Guild-Roster-it]].
+
 ## Notifiche
 
 | Opzione | Chi la vede | Predefinito |
@@ -73,7 +77,9 @@ Ogni card dice **chi lo riceve**, **quando parte** e **cosa contiene adesso**, c
 | Le tue richieste alla banca | le tue ultime 5 richieste e il loro stato |
 | Like | quanti like ha dato il tuo account (tenuto solo su questo computer) |
 | Riepilogo della sincronizzazione | la versione dell'addon e un'impronta dei record che hai, mai il loro contenuto |
+| Assenza | la data di rientro che hai dichiarato; solo agli ufficiali, senza interruttore (*Cancella* la toglie) |
 | Dati degli ufficiali | solo per gli ufficiali: le voci del libro dei like e le impostazioni della gilda che hai scritto |
+| Strumenti per ufficiali | solo per gli ufficiali: i cambiamenti del roster osservati da questo personaggio, le assenze che hai impostato e le fasce di inattività che hai scelto; solo agli ufficiali |
 
 Gli altri tuoi personaggi non sono elencati come pubblicati da questo: ognuno pubblica i suoi record quando accedi con lui.
 

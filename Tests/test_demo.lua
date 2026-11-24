@@ -226,7 +226,8 @@ describe("every view opens in demo mode with no guild and no network", function(
 		local checked = 0
 		for set, records in pairs(A().DemoData.Build(A().Compat.ServerTime()).sets) do
 			for id, rec in pairs(records) do
-				local ok, why = S:Check(set, rec, { sender = nameOf[rec.author] })
+				-- a member's own declared absence travels by whisper only (SPEC-12 OFF-02)
+				local ok, why = S:Check(set, rec, { sender = nameOf[rec.author], dist = set == "absence" and "WHISPER" or nil })
 				truthy(ok, set .. " " .. id .. ": " .. tostring(why))
 				checked = checked + 1
 			end

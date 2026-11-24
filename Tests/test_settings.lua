@@ -593,7 +593,7 @@ describe("What I share: the panel shows the records last sent", function()
 			ids[#ids + 1] = r.id
 			truthy(r.to ~= "" and r.when ~= "")
 		end
-		deepEq(ids, { "accounts", "contacts", "recipes", "coplay", "bank", "bankreq", "likes", "hello" })
+		deepEq(ids, { "accounts", "contacts", "recipes", "coplay", "bank", "bankreq", "likes", "hello", "absence" })
 		truthy(row("contacts").always)
 	end)
 

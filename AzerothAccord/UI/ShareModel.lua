@@ -184,8 +184,34 @@ builders.otools = function(guid)
 		local m = order[i]
 		lines[#lines + 1] = L["SHARE_TL_MONTH"]:format(("%04d-%02d"):format(math.floor(m / 100), m % 100), months[m])
 	end
+	-- the absences this officer set and the tiers it chose (M8.3)
+	local set = {}
+	for _, r in ipairs(own("absence", guid)) do
+		if ns.Absence and ns.Absence.KindOf(r) == "off" then set[#set + 1] = r end
+	end
+	local cfg = own("ocfg", guid)
+	if #set > 0 then lines[#lines + 1] = L["SHARE_ABSENCE_SET"]:format(#set) end
+	for _, r in ipairs(cfg) do
+		if ns.Inactivity and ns.Inactivity.ValidConfig(r) then
+			lines[#lines + 1] = L["SHARE_TIERS"]:format(table.concat(r.tiers, " / "))
+		end
+	end
+	for _, list in ipairs({ set, cfg }) do for _, r in ipairs(list) do recs[#recs + 1] = r end end
 	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
 	if not (ns.Officer and ns.Officer.ChannelProven()) then lines[#lines + 1] = L["SHARE_OTOOLS_LOCAL"] end
+	return lines, recs
+end
+
+-- The declared absence of this character (SPEC-12 §7): only the return date, to the officers only.
+builders.absence = function(guid)
+	local lines, recs = {}, {}
+	for _, r in ipairs(own("absence", guid)) do
+		if ns.Absence and ns.Absence.KindOf(r) == "self" then
+			recs[#recs + 1] = r
+			lines[#lines + 1] = r["until"] == 0 and L["SHARE_ABSENCE_CLEARED"] or L["SHARE_ABSENCE_UNTIL"]:format(ns.Absence.DayText(r["until"]))
+		end
+	end
+	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
 	return lines, recs
 end
 
@@ -205,6 +231,7 @@ define("bank", { set = "bank", build = builders.bank, title = "SHARE_BANK", to =
 define("bankreq", { set = "bankreq", build = builders.bankreq, title = "SHARE_BANKREQ", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_REQUEST" })
 define("likes", { build = builders.likes, title = "SHARE_LIKES", to = "SHARE_TO_NOTARY", when = "SHARE_WHEN_LIKE" })
 define("hello", { build = builders.hello, title = "SHARE_HELLO", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_HELLO" })
+define("absence", { set = "absence", build = builders.absence, title = "SHARE_ABSENCE", to = "SHARE_TO_OFFICERS_ONLY", when = "SHARE_WHEN_ABSENCE" })
 define("officer", { build = builders.officer, title = "SHARE_OFFICER", to = "SHARE_TO_OFFICERS", when = "SHARE_WHEN_OFFICER", officersOnly = true })
 define("otools", { set = "timeline", build = builders.otools, title = "SHARE_OTOOLS", to = "SHARE_TO_OFFICER_CHANNEL", when = "SHARE_WHEN_OTOOLS", officersOnly = true })
 

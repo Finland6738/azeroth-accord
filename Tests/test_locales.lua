@@ -158,7 +158,7 @@ describe("an Italian client", function()
 		eq(#Mock.errors, 0)
 		local labels = {}
 		for _, v in ipairs(A.Shell:ViewList()) do labels[#labels + 1] = v.label end
-		deepEq(labels, { "Roster", "Professioni", "Reputazione", "Banca", "Raid", "Impostazioni" })
+		deepEq(labels, { "Roster", "Professioni", "Reputazione", "Banca", "Raid", "Ufficiali", "Impostazioni" })
 		A.Shell:OpenView("settings")
 		eq(A.SettingsView.frame.title:GetText(), "Contatti condivisi con la gilda")
 		eq(A.SettingsView.frame.mainTitle:GetText(), "Personaggio principale")

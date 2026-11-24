@@ -1,6 +1,6 @@
 -- Settings view (SPEC-04 §4, M6.1; restyled in M6.14): the look of the addon (the Appearance card: theme, neon effects,
 -- animations, font), the contacts the player shares with the guild (M2.5, SPEC-05 CON-01, CON-02), the main character,
--- the notices, the Roster columns, the sizes of the saved data with "Clear guild data", and the personal backup (M7.5,
+-- the declared absence (M8.3, SPEC-12 §3.4), the notices, the Roster columns, the sizes of the saved data with "Clear guild data", and the personal backup (M7.5,
 -- SPEC-11 §4.3: Export and Import open UI/BackupBox.lua). Lua 5.1.
 -- UI/SettingsModel.lua holds the options and the actions; this file only draws them, as a column of Widgets.Cards on a page that
 -- scrolls. One builder, Settings.Build(parent), serves both places: the Settings view of the panel (a view of the Shell)
@@ -159,6 +159,19 @@ local function refreshMain(f)
 	f.mainChoose:SetEnabled(#choices > 1)
 end
 
+-- The Absence card (SPEC-12 §3.4): only what this account declared itself (`:self`); hidden without a guild.
+local function refreshAbsence(f)
+	local A = ns.Absence
+	local inGuild = A ~= nil and ns.Role ~= nil and ns.Role:InGuild() and ns.GuildKey ~= nil and ns.GuildKey:Current() ~= nil
+	local own = inGuild and A:Own() or nil
+	local away = own ~= nil and own.away == true
+	f.absenceCurrent:SetText(not inGuild and L["NOT_IN_GUILD"] or away and L["ABS_AWAY"]:format(A.DayText(own.day)) or L["ABS_NONE"])
+	if not f.absenceEdit:HasFocus() then f.absenceEdit:SetText(away and A.DayText(own.day) or "") end
+	f.absenceSave:SetEnabled(inGuild)
+	f.absenceClear:SetEnabled(away)
+	f.absenceStatus:SetShown((f.absenceStatus:GetText() or "") ~= "")
+end
+
 local function refreshNotices(f)
 	local M = Model()
 	for _, o in ipairs(M.OPTIONS) do
@@ -270,6 +283,7 @@ local function refresh(f)
 	refreshLook(f)
 	refreshContacts(f)
 	refreshMain(f)
+	refreshAbsence(f)
 	refreshNotices(f)
 	refreshColumns(f)
 	refreshData(f)
@@ -309,6 +323,24 @@ function View:Save(f)
 		say(f.status, L["SET_INVALID"], "err")
 	end
 	f.discordEdit:ClearFocus()
+	return ok
+end
+
+-- Saves the typed return date (or clears with `day` 0) and says where it went.
+function View:SaveAbsence(f, day)
+	f = f or self.frame
+	local A = ns.Absence
+	local why
+	if day == nil then day, why = A.ParseDate(f.absenceEdit:GetText() or "") end
+	local ok, sent = false, why
+	if day then ok, sent = A:Declare(day) end
+	f.absenceEdit:ClearFocus()
+	if ok then
+		say(f.absenceStatus, A.SavedText(day, sent), "ok")
+	else
+		say(f.absenceStatus, A.ErrorText(sent), "err")
+	end
+	if ok then View:Refresh() end   -- a refused date stays in the field, to be corrected
 	return ok
 end
 
@@ -433,6 +465,23 @@ local function buildMain(f, page)
 	return card
 end
 
+local function buildAbsence(f, page)
+	local card = stackCard(page)
+	f.absenceTitle = title(card, L["ABS_TITLE"])
+	f.absenceText = card:Add(text(card, "Body", "text-2"), 8)
+	f.absenceText:SetText(L["SET_ABSENCE_TEXT"])
+	f.absenceCurrent = card:Add(text(card, "BodyMedium", "text-1"), 12)
+	f.absenceBox = card:Add(Widgets.EditBox(card, { width = 160, height = 32, maxLetters = 10, placeholder = L["ABS_DATE_HINT"],
+		onEnter = function() View:SaveAbsence(f) end }), 8)
+	f.absenceEdit = f.absenceBox.edit
+	f.absenceSave = Widgets.Button(card, { text = L["ABS_SAVE"], style = "primary", onClick = function() View:SaveAbsence(f) end })
+	f.absenceSave:SetPoint("LEFT", f.absenceBox, "RIGHT", 10, 0)
+	f.absenceClear = Widgets.Button(card, { text = L["ABS_CLEAR"], style = "ghost", onClick = function() View:SaveAbsence(f, 0) end })
+	f.absenceClear:SetPoint("LEFT", f.absenceSave, "RIGHT", 8, 0)
+	f.absenceStatus = card:Add(text(card, "Small", "text-2"), 8)
+	return card
+end
+
 local function buildNotices(f, page)
 	local card = stackCard(page)
 	f.noticeTitle = title(card, L["SET_NOTIFY_TITLE"])
@@ -509,7 +558,7 @@ local function buildSettingsPage(holder, f)
 		self:SetVerticalScroll(min(range, max(0, v)))
 	end)
 	f.scroll, f.page = scroll, page
-	f.cards = { buildLook(f, page), buildContacts(f, page), buildMain(f, page), buildNotices(f, page), buildColumns(f, page),
+	f.cards = { buildLook(f, page), buildContacts(f, page), buildMain(f, page), buildAbsence(f, page), buildNotices(f, page), buildColumns(f, page),
 		buildData(f, page), buildBackup(f, page) }
 	f.lookCard = f.cards[1]
 	f.backupCard = f.cards[#f.cards]
@@ -604,6 +653,7 @@ if ns.addon then
 		ns.Bus:On("ROLE_CHANGED", function() View:Refresh() end)
 		ns.Bus:On("GUILD_CHANGED", function() View:Refresh() end)
 		ns.Bus:On("DEMO_CHANGED", function() View:Refresh() end)
+		ns.Bus:On("STORE_CHANGED", function(set) if set == "absence" then View:Refresh() end end)
 	end
 	if ns.OnEnable then ns.OnEnable(function() View.RegisterPanel() end) end
 end

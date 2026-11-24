@@ -41,6 +41,7 @@ ACC.commands = {
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
 	{ name = "raid", help = L["HELP_RAID"], handler = viewCommand("raid") },
 	{ name = "settings", help = L["HELP_SETTINGS"], handler = viewCommand("settings") },
+	{ name = "away", help = L["HELP_AWAY"], handler = function(self, input) if ns.Absence then ns.Absence.Command(input) end end },
 	{ name = "about", help = L["HELP_ABOUT"], handler = function(self, input) if ns.About then ns.About.Command(input) end end },
 	{ name = "backup", help = L["HELP_BACKUP"], handler = function(self, input) if ns.Backup then ns.Backup.Command(input) end end },
 	{ name = "demo", help = L["HELP_DEMO"], handler = function(self, input) if ns.Demo then ns.Demo.Command(input) end end },

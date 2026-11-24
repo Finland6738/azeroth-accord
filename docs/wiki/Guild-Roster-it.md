@@ -52,12 +52,41 @@ Il tuo BattleTag è letto dal gioco. Scrivi il tuo **nome Discord** (solo il nom
 
 ## Cronologia (solo ufficiali)
 
-Gli ufficiali e il Guild Master vedono nella scheda del membro un riquadro **Cronologia**: ciò che gli addon degli ufficiali hanno osservato cambiare nel roster per i personaggi di quel giocatore, dal più recente. Elenca le **ultime dieci** variazioni di **ogni personaggio del giocatore in gilda**, con un link **Mostra tutto (n)** che apre tutto l'elenco nella scheda, e la riga *Membro dal <data>* dall'ingresso più vecchio che Accord ha visto (*Membro dal: sconosciuto* se non ne ha visto nessuno: la prima volta che l'addon di un ufficiale legge il roster fa solo una fotografia, quindi chi è già in gilda non "entra").
+Gli ufficiali e il Guild Master vedono nella scheda del membro un riquadro **Cronologia**: ciò che gli addon degli ufficiali hanno osservato cambiare nel roster per i personaggi di quel giocatore, dal più recente. Elenca le **ultime dieci** variazioni di **ogni personaggio del giocatore in gilda**, con un link **Mostra tutto (n)** che apre la pagina **Cronologia** della scheda **Ufficiali** su quel giocatore, e la riga *Membro dal <data>* dall'ingresso più vecchio che Accord ha visto (*Membro dal: sconosciuto* se non ne ha visto nessuno: la prima volta che l'addon di un ufficiale legge il roster fa solo una fotografia, quindi chi è già in gilda non "entra").
 
 Una riga è l'ora e ciò che è successo: *è entrato nella gilda*, *è uscito dalla gilda* (il gioco non dice se il membro se n'è andato o è stato espulso), *grado Membro → Veterano*, *livello 20 → 27* e *nota pubblica: "vecchia" → "nuova"*. Le ore sono **UTC**. Passa il mouse su una riga per vedere chi l'ha osservata (tu, il nome di un compagno, o *un ex ufficiale*; mai un codice tecnico) e l'intervallo esatto: un addon vede un cambiamento solo quando legge il roster, quindi la riga dice *tra il <data> e il <data>* quando dall'ultima lettura è passato più di un giorno. I livelli guadagnati da un personaggio in un giorno sono una riga sola.
 
 - **Due ufficiali che vedono lo stesso cambiamento fanno una riga sola.** Lo stesso cambiamento visto da due ufficiali, anche in momenti diversi, si mostra una volta, con l'intervallo più stretto e tutti gli osservatori nel tooltip.
 - **Per sempre.** Nulla si cancella perché è vecchio: la cronologia, con il testo vecchio e nuovo delle note pubbliche, resta finché gli addon degli ufficiali la tengono. Se smetti di essere ufficiale, il tuo addon la cancella dal tuo computer (vedi sotto).
-- **Solo ufficiali.** I membri non vedono mai il riquadro, non ricevono mai questi record e il loro addon non osserva nulla. Chi lo vede è un'unica impostazione nel codice, in attesa della decisione del proprietario ([SPEC-10 Q13](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/SPEC-10-risks-open-questions.md)).
+- **Solo ufficiali.** I membri non vedono mai il riquadro, non ricevono mai questi record e il loro addon non osserva nulla. È la decisione del proprietario ([SPEC-10 Q13](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/SPEC-10-risks-open-questions.md)).
 - **Dove sta.** Sul computer dell'ufficiale che l'ha osservato. Si condivide con gli altri ufficiali **solo sul canale degli ufficiali** (mai con la gilda, mai in whisper a un membro) e **solo dopo che l'addon ha visto quel canale portare un messaggio addon nella sessione**; fino ad allora il riquadro dice *Solo su questo computer finché il canale degli ufficiali non funziona* e mostra *Canale ufficiali: funzionante* oppure *non ancora provato*. Se smetti di essere ufficiale, con tutti i tuoi personaggi, Accord toglie questi dati dal tuo computer.
 - Accord non cambia mai il roster: lo guarda soltanto. Nulla viene promosso, retrocesso o espulso dall'addon.
+
+## La scheda Ufficiali (solo ufficiali)
+
+Gli ufficiali e il Guild Master hanno una scheda in più, **Ufficiali**, con due pagine: **Inattivi** e **Cronologia**. I membri non vedono la scheda. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.
+
+### Account inattivi
+
+La pagina **Inattivi** elenca i **giocatori**, non i personaggi, che non si vedono da un po': chi gioca solo un alt **non** è inattivo.
+
+- **L'ultimo accesso** è il più recente tra tutti i personaggi del giocatore: in linea adesso o l'*ultimo accesso* del gioco per i personaggi in gilda, il giorno dell'ultimo accesso con l'addon per un alt fuori dalla gilda (condiviso dall'addon di quel giocatore) e i tuoi accessi per i tuoi personaggi. I personaggi si uniscono come nella scheda del membro; se a unirli è una nota pubblica (`main:` / `alt:`), la riga dice *unito da una nota*, perché nessuno la verifica.
+- **Fasce**: di base 14, 30, 60 e 90 giorni. **Fasce…** le cambia: quattro numeri crescenti da 1 a 365, **uguali per tutti gli ufficiali** (le può cambiare qualunque ufficiale), con *Valori predefiniti*.
+- **Colonne**: il principale, quanti personaggi sono in gilda, il grado più alto, i giorni, la fascia, quando e con quale personaggio il giocatore si è visto l'ultima volta, e l'assenza. Passa il mouse su una riga per la fonte della data. Le righe sono ordinate per giorni, prima i più lunghi; chi ha un personaggio ufficiale è segnato *ufficiale*.
+- **Filtri**: la fascia minima mostrata, **Mostra assenti** (chi ha un'assenza dichiarata, altrimenti nascosto) e **Mostra sconosciuti** (chi non ha nessuna data nota, in fondo; il gioco potrebbe non dire l'*ultimo accesso* di tutti i membri).
+- **Clicca una riga** per impostare o togliere un'assenza, o per aprire la scheda del membro.
+
+L'addon li elenca soltanto. Non espelle, non retrocede e non scrive a nessuno.
+
+### Cronologia
+
+Tutti i cambiamenti osservati della gilda, con filtri per tipo (entrati, usciti, grado, livello, nota pubblica) e per periodo (7, 30, 90 o 365 giorni; all'inizio 30). Aperta con **Mostra tutto** da una scheda mostra solo quel giocatore; clicca **Solo <nome>** per rivedere tutti.
+
+## Assenze dichiarate
+
+Una **data di rientro** dice agli ufficiali che un giocatore è via di proposito: fino a quel giorno, compreso, non conta come inattivo. Non c'è un motivo né testo libero.
+
+- **Tu** dichiari la tua nelle [[Impostazioni|Settings-it]], nella card **Assenza**, oppure con `/accord away 2026-12-31` e `/accord away off`. La data è al massimo tra 180 giorni. Vedi solo ciò che hai dichiarato tu, e mai la tua fascia di inattività.
+- **Gli ufficiali** impostano o tolgono l'assenza di qualunque giocatore dalla scheda del membro (riquadro **Assenza**) o dalla pagina Inattivi. Vale quella salvata più di recente, chiunque l'abbia salvata, per tutti i personaggi del giocatore.
+- **Come viaggia.** Il tuo addon manda la tua dichiarazione in whisper a un massimo di due ufficiali in linea con Accord, quando la salvi e una volta dopo l'accesso finché è valida; se non ce n'è nessuno riprova al prossimo accesso. Gli ufficiali se la passano sul canale degli ufficiali. Nessun altro la riceve.
+- Dal giorno dopo il rientro il giocatore torna a contare, e l'elenco dice *assente fino al <data>* per due settimane. Il record si cancella 30 giorni dopo la data di rientro.

@@ -160,9 +160,9 @@ describe("the content", function()
 		Card().AddSection("broken", 15, function(e) error("boom") end)
 		Card().AddSection("none", 16, function(e) return nil end)
 		local d = desc(ANN)
-		eq(#d.sections, 9)   -- details, professions, account, contacts, likes (M4.3), social (M4.5), timeline (M8.2: the player is an officer), and the two that work
-		eq(d.sections[5].id, "likes"); eq(d.sections[6].id, "social"); eq(d.sections[7].id, "timeline")
-		eq(d.sections[8].id, "early"); eq(d.sections[9].id, "late")
+		eq(#d.sections, 10)  -- details, professions, account, contacts, likes (M4.3), social (M4.5), absence (M8.3) and timeline (M8.2: the player is an officer), and the two that work
+		eq(d.sections[5].id, "likes"); eq(d.sections[6].id, "social"); eq(d.sections[7].id, "absence"); eq(d.sections[8].id, "timeline")
+		eq(d.sections[9].id, "early"); eq(d.sections[10].id, "late")
 		isNil(Card().Describe("nope"))
 	end)
 end)

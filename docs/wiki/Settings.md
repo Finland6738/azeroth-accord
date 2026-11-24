@@ -36,6 +36,10 @@ Both are **always shared with your guild**, so guildmates can reach you: there i
 
 Pick which of your characters is your **main**. It leads your characters in the grouped Roster and on the member card ([[Guild Roster|Guild-Roster]]). Until you pick one, the highest-level character leads. The menu lists the characters of your account on this realm.
 
+## Absence
+
+Tell your officers when you will be back: type the **return date** (YYYY-MM-DD, at most 180 days ahead) and press **Save**; **Clear** removes it. Until that day, included, officers do not count you as inactive. Only officers see it, and no reason is asked. The card shows what **your** account declared. The same from the chat: `/accord away 2026-12-31`, `/accord away off`. See *Declared absences* in [[Guild Roster|Guild-Roster]].
+
 ## Notifications
 
 | Option | Who sees it | Default |
@@ -73,7 +77,9 @@ Every card says **who receives** the data, **when it goes out** and **what it co
 | Your bank requests | your latest 5 requests and their status |
 | Likes | how many likes your account has given (kept only on this computer) |
 | Sync summary | the addon version and a fingerprint of the records you hold, never their content |
+| Absence | the return date you declared; to the officers only, no switch (*Clear* removes it) |
 | Officer data | officers only: the like-ledger entries and guild settings you wrote |
+| Officer tools | officers only: the roster changes this character observed, the absences you set and the inactivity tiers you chose; to the officers only |
 
 Your other characters are not listed as published by this one: each publishes its own records when you log in with it.
 

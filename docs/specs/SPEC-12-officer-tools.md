@@ -127,7 +127,7 @@ Due ufficiali vedono lo stesso cambio in momenti diversi: chi era online quando 
 ### 2.4 Interfaccia
 
 - **Scheda del membro** (solo ufficiali): sezione `Timeline` / `Cronologia` con gli eventi di **tutti i personaggi dell'account** nella gilda (dal più recente, con il nome del personaggio), le ultime 10 righe e `Show all` che apre la pagina Timeline filtrata. La riga `Member since <data>` / `Membro dal <data>` usa il `join` più vecchio noto, altrimenti `Member since: unknown`.
-- **Pagina Timeline** della scheda `Officers` (§8): tutti gli eventi della gilda, filtri per tipo e periodo (7, 30, 90, 365 giorni; predefinito 30), ricerca per nome. La scheda `Officers` nasce in M8.3 (pagina Inactive): fino ad allora `Show all` apre l'elenco intero dentro la scheda del membro (al massimo 100 righe) e la pagina Timeline si aggiunge con la scheda (`Timeline:All()` è già pronta).
+- **Pagina Timeline** della scheda `Officers` (§8): tutti gli eventi della gilda, filtri per tipo e periodo (7, 30, 90, 365 giorni; predefinito 30), ricerca per nome. La scheda `Officers` e questa pagina sono arrivate con M8.3 (`UI/Officers.lua`): `Show all` apre la pagina sull'account del membro, con il periodo di 365 giorni, e il filtro `Only <nome>` si toglie con un clic.
 - Testo di una riga: la data di `b` (`2026-11-24 21:10`); se `b - a` supera 24 ore, `between <data a> and <data b>` / `tra il <data a> e il <data b>`. Testi: `joined the guild` / `è entrato nella gilda`, `left the guild` / `è uscito dalla gilda`, `rank Member → Veteran`, `level 20 → 27`, `public note: "x" → "y"`. Il tooltip dice gli osservatori (nomi dal roster o `a former officer` / `un ex ufficiale`, mai il GUID) con la provenienza (M7.2, fonte `shared` o `own`).
 - I testi delle note e i nomi passano per la pulizia dei contatti (niente caratteri di controllo, `|` raddoppiato).
 
@@ -152,7 +152,7 @@ Un personaggio senza nessuna di queste è **sconosciuto**.
 
 - **INA-01** L'account è il gruppo di `Accounts:GroupOf(guid)` (elenco reciproco, personaggi fuori gilda elencati, e i personaggi uniti da una nota pubblica `main:`/`alt:`, ACC-05). Un membro senza gruppo è un account da solo. Le unioni da nota contano (riducono i falsi inattivi) ma la riga lo dice (`grouped by a note` / `unito da una nota`), perché nessuno le verifica.
 - **INA-02** **Ultimo accesso dell'account** = il più recente dei suoi personaggi; i giorni di inattività sono `floor((ServerTime() - ultimo) / 86400)`. Un personaggio online rende l'account attivo (0 giorni). L'account è **sconosciuto** se tutti i suoi personaggi lo sono.
-- Un account compare una volta, con il nome del **main** (`Accounts:MainOf`) e il personaggio che ha dato l'ultimo accesso (`last seen on <alt>`). Il calcolo si ripete in modo pigro dopo `ROSTER_UPDATED` e `ACCOUNTS_UPDATED`, una passata per tutta la gilda (1000 membri: entro 20 ms offline, misurato in M8.3).
+- Un account compare una volta, con il nome del **main** (`Accounts:MainOf`) e il personaggio che ha dato l'ultimo accesso (`last seen on <alt>`). Il calcolo si ripete in modo pigro dopo `ROSTER_UPDATED` e `ACCOUNTS_UPDATED`, una passata per tutta la gilda. Misurato in M8.3 (`Tests/test_inactivity.lua`, che fallisce sopra 100 ms): 1000 membri, 200 account di tre personaggi, 3–4 ms offline su Windows, esclusa la ricostruzione di roster e gruppi. La lista calcolata si tiene al massimo 60 s.
 
 ### 3.3 Fasce
 
@@ -178,7 +178,7 @@ Un personaggio senza nessuna di queste è **sconosciuto**.
 
 ### 3.5 Pagina Inactive
 
-Una riga per account inattivo o sconosciuto (gli attivi no), ordinata per giorni decrescenti: main, numero di personaggi nella gilda, grado più alto tra i suoi personaggi, giorni e fascia, ultimo accesso con il personaggio e la provenienza, assenza, nota estesa (un'icona con il testo nel tooltip). Filtri: fascia minima (predefinita 1), `Show away`, `Show unknown`. Gli account con un personaggio ufficiale hanno il segno `officer` e non sono mai proposti dalla revisione guidata (§4.1), ma restano nella lista. Pulsanti: `Review…` (§4), `Tiers…`, `Export` (§6).
+Una riga per account inattivo o sconosciuto (gli attivi no), ordinata per giorni decrescenti: main, numero di personaggi nella gilda, grado più alto tra i suoi personaggi, giorni e fascia, ultimo accesso con il personaggio e la provenienza, assenza, nota estesa (un'icona con il testo nel tooltip). Filtri: fascia minima (predefinita 1), `Show away` (spento di base), `Show unknown` (acceso di base: gli sconosciuti hanno una riga, in fondo). Un clic su una riga apre un menu con `Set absence…`, `Clear absence` (se l'account è assente) e `Open member card`. Gli account con un personaggio ufficiale hanno il segno `officer` e non sono mai proposti dalla revisione guidata (§4.1), ma restano nella lista. Pulsanti: `Review…` (§4), `Tiers…`, `Export` (§6).
 
 Test (`Tests/test_inactivity.lua`): un giocatore attivo solo su un alt nella gilda o fuori dalla gilda (`seen`) non è inattivo; un account con tutti i personaggi sconosciuti è sconosciuto; i bordi di ogni fascia; fasce personalizzate e record non valido; un'assenza nasconde fino al giorno di rientro compreso; il record più recente tra `:self` e `:off` vince; un membro non vede la pagina.
 

@@ -27,7 +27,8 @@
 --
 -- Officer tools (SPEC-12 §1.2, ADR 0023): the sets with `officerTool = true` are restricted for every record (a member's
 --                    client refuses them, an officer accepts them only from an officer sender, `authorAny`) and travel on
---                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09).
+--                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09). The one
+--                    exception (`firstHand`): a member's own declared absence reaches an officer by WHISPER from its account.
 --
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
@@ -220,8 +221,29 @@ Store.SETS = {
 		group = function(rec) return "timeline:" .. floor(rec.day / 100) end,   -- the summary of OHELLO `m`: one group per month
 		publishEvery = 600,                        -- a record that grows every event goes out at most every 10 minutes
 	},
+	absence = {    -- declared absences (Data/Absence.lua, M8.3): id = "<GUID>:self" | "<GUID>:off", { char, from, until }
+		maxBytes = 256,
+		officerTool = true,
+		restricted = function() return true end,
+		authority = function() return true end,
+		authorAny = true,
+		-- the one exception to "officers only" (OFF-02): a member's own declaration, first hand from its account, by WHISPER
+		firstHand = function(rec) return ns.Absence ~= nil and ns.Absence.KindOf(rec) == "self" and rec.char or nil end,
+		owner = function(rec, s) return ns.Absence ~= nil and ns.Absence.ValidRecord(rec, s) end,
+		group = function() return "absence" end,
+		expires = function(rec, t) return ns.Absence ~= nil and ns.Absence.Expired(rec, t) end,
+	},
+	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
+		maxBytes = 256,
+		officerTool = true,
+		restricted = function() return true end,
+		authority = function() return true end,
+		authorAny = true,
+		owner = function(rec) return ns.Inactivity ~= nil and ns.Inactivity.ValidConfig(rec) end,
+		group = function() return "ocfg" end,
+	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "ocfg" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
@@ -348,8 +370,10 @@ function Store:Check(set, rec, ctx)
 	local senderGUID, senderOfficer = member.guid, member.officer == true
 
 	if def.authority and def.authority(rec) then
-		if not senderOfficer then return false, "authority" end
-		if not def.authorAny then
+		if not senderOfficer then
+			local char = ctx.dist == "WHISPER" and def.firstHand and def.firstHand(rec)
+			if not (char and self:SameAccount(senderGUID, char)) then return false, "authority" end
+		elseif not def.authorAny then
 			local author = self:MemberByGUID(rec.author)
 			if not (author and author.officer) then return false, "authority" end
 		end
