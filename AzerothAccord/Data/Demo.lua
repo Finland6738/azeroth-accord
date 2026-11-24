@@ -435,6 +435,32 @@ function DemoData.Build(now)
 		end
 	end
 
+	-- The officer's queue (SPEC-12 §7): four entries of the player, three still to do and one the roster showed done
+	do
+		local idle = {}
+		for i = 21, DemoData.MEMBERS do
+			local m = members[i]
+			if not m.online and m.lastOnlineHours >= 14 * 24 and i ~= 31 then idle[#idle + 1] = m end
+		end
+		table.sort(idle, function(a, b)
+			if a.lastOnlineHours ~= b.lastOnlineHours then return a.lastOnlineHours > b.lastOnlineHours end
+			return a.index < b.index
+		end)
+		local queue = {}
+		local function entry(m, daysAgo, op, fields)
+			local e = { n = #queue + 1, g = m.guid, name = m.name, op = op, created = now - daysAgo * DAY, by = members[PLAYER_INDEX].guid,
+				status = "open" }
+			for k, v in pairs(fields or {}) do e[k] = v end
+			queue[#queue + 1] = e
+		end
+		entry(members[25], 4, "demote", { fromRank = 3, toRank = 4 })
+		entry(idle[1] or members[59], 3, "remove", { fromRank = (idle[1] or members[59]).rankIndex })
+		entry(idle[2] or members[58], 2, "note", { noteKind = "public", text = "Away since the summer" })
+		local done = members[9]
+		entry(done, 12, "promote", { fromRank = done.rankIndex + 1, toRank = done.rankIndex, status = "done", closed = now - 2 * DAY })
+		D.guildData.officer = { queue = queue, queueSeq = #queue }
+	end
+
 	-- 32 bytes for the notary's salt
 	local salt = {}
 	for i = 1, 32 do salt[i] = char(rand(256) - 1) end

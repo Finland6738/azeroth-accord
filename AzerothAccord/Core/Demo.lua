@@ -64,6 +64,12 @@ local function buildOverlay(data)
 			IsOfficer = function() return ranks[me.rankIndex + 1].officer == true end,
 			CanViewOfficerNote = function() return true end,
 			RequestRoster = function() return compat().AVAILABLE end,   -- nothing to ask: the roster is already here
+			MayDo = function() return true end,
+			Ranks = function()
+				local out = {}
+				for i, rank in ipairs(ranks) do out[i] = { index = i - 1, name = rank.name } end
+				return out
+			end,
 			RosterCount = function() return #rows, online end,
 			LastOnline = function(index) return rows[index] and rows[index].lastOnlineHours or nil end,
 			RosterRow = function(index) return rows[index] and copyRow(rows[index]) or nil end,
@@ -125,7 +131,7 @@ local function fill(data, account, char)
 	account.mains = { [data.realm] = data.main }
 	account.settings.discord = nil   -- the player's own contact name is not shown
 	local guild = { firstSeen = state.enteredAt, lastSeen = state.enteredAt, store = { sets = data.sets },
-		likes = data.guildData.likes, bank = data.guildData.bank }
+		likes = data.guildData.likes, bank = data.guildData.bank, officer = data.guildData.officer }
 	account.guilds = { [data.key] = guild }
 	char.outbox = {}
 end

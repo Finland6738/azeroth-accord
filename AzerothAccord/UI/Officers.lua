@@ -1,8 +1,8 @@
 -- Officers: the Officers tab (SPEC-12 §8), its pages, the dialogs of the absences and of the tiers, and the "Absence"
 -- section of the member card. Lua 5.1.
 --
--- The tab shows only to officers (Officer.CanSee), with a page selector: "Inactive" (§3.5, M8.3) and "Timeline" (§2.4).
--- The queue (M8.4) adds its page with View.AddPage. The search box of the panel filters both pages by name.
+-- The tab shows only to officers (Officer.CanSee), with a page selector: "Inactive" (§3.5, M8.3), "Queue" (§4.2, M8.4,
+-- UI/OfficersOps.lua, which also holds the cleanup review) and "Timeline" (§2.4). The search box of the panel filters both pages by name.
 --   View.InactiveText(account, column)  the text of a cell of the Inactive page (plain, tested offline)
 --   View.InactiveTip(account)           the lines of the row's tooltip
 --   View.TimelineRows(filter, t)        the events of the Timeline page: filter = { kind, days (7|30|90|365), search, guids }
@@ -351,6 +351,8 @@ local function buildInactive(f, self)
 	f.tierChips:SetWidth(10)
 	f.tiers = Widgets.Button(f, { text = L["INA_TIERS"], style = "secondary", height = 26, onClick = function() self:OpenTiers() end })
 	f.tiers:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	f.review = Widgets.Button(f, { text = L["OPS_REVIEW"], style = "primary", height = 26, onClick = function() self:OpenReview() end })
+	f.review:SetPoint("RIGHT", f.tiers, "LEFT", -8, 0)
 	local function toggle(key, label)
 		return Widgets.Chip(f, { text = label, height = 26, onClick = function(chip)
 			self.inactive[key] = not self.inactive[key]
@@ -378,6 +380,7 @@ local function refreshInactive(f, self)
 	for i = 1, 4 do items[i] = { id = i, text = L["INA_TIER"]:format(tiers[i]) } end
 	f.tierChips:SetItems(items, self.inactive.minTier)
 	f.tierChips:SetWidth(f.tierChips.width or 10)
+	f.review:SetShown(ns.OfficerOps.Allowed())
 	f.away:SetSelected(self.inactive.away)
 	f.unknown:SetSelected(self.inactive.unknown)
 	local filter = self.inactive
@@ -543,6 +546,7 @@ if ns.MemberCard then ns.MemberCard.AddSection("absence", 7.5, View.CardSection)
 
 if ns.Shell then
 	ns.Shell:RegisterView("officers", { label = L["VIEW_OFFICERS"], order = 80, search = true, visible = View.Allowed,
+		badge = function() return ns.OfficerOps and ns.OfficerOps:OpenCount() or 0 end,
 		onSearch = function(text) View:OnSearch(text) end, build = function(f) View:Build(f) end })
 end
 

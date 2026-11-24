@@ -382,6 +382,7 @@ function Timeline:Observe(rows, t, complete)
 		return "incomplete", 0
 	end
 	t = floor(t)
+	if ns.OfficerOps then ns.OfficerOps:CheckRoster(rows, t) end   -- OPS-02: before TL-04, which does not hold a tick back
 	local current = {}
 	for _, row in ipairs(rows) do
 		if type(row.guid) == "string" then current[row.guid] = entryOf(row) end

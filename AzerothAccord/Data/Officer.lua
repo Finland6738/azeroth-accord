@@ -134,6 +134,7 @@ function Officer:DebugLines()
 		if ns.Store and ns.Store.SETS[set] then parts[#parts + 1] = set .. " " .. ns.Store:Count(set) end
 	end
 	lines[1] = ("Officer tools: channel %s, %s"):format(Officer.ChannelProven() and "working" or "not proven yet", table.concat(parts, ", "))
+	if ns.OfficerOps then lines[#lines + 1] = ns.OfficerOps:DebugLine() end
 	return lines
 end
 

@@ -216,7 +216,7 @@ La coda è **di questo account ufficiale** e resta su questo computer (`GuildKey
 - **OPS-03** **Scadenza**: una voce aperta da **14 giorni** diventa `expired`. Le voci chiuse (`done`, `gone`, `expired`, `cancelled`) restano visibili, attenuate, per **7 giorni** dalla chiusura, poi si cancellano. `Cancel` / `Annulla` chiude una voce a mano.
 - La pagina Queue della scheda `Officers` mostra le voci aperte (le più vecchie prima) e le chiuse sotto; il titolo della scheda mostra il numero delle aperte.
 
-Test: nessun nome di OPS-01 nel codice; ogni `op` spuntato dal roster simulato; `gone`, scadenza a 14 giorni, pulizia a 7; sostituzione della voce aperta; 200 voci; l'azione fatta "da un altro" (il roster cambia senza la coda) si spunta.
+Test (`Tests/test_officer_ops.lua`): nessun nome di OPS-01 nel codice; ogni `op` spuntato dal roster simulato; `gone`, scadenza a 14 giorni, pulizia a 7; sostituzione della voce aperta; 200 voci; l'azione fatta "da un altro" (il roster cambia senza la coda) si spunta.
 
 ## 5. Note estese (M8.5)
 

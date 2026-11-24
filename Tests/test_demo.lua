@@ -59,6 +59,15 @@ describe("the invented guild (Data/Demo.lua)", function()
 		eq(D.player.rankIndex, 1, "the player is an officer")
 	end)
 
+	it("has a queue of four entries, three to do and one done (SPEC-12 §7)", function()
+		local queue = D.guildData.officer.queue
+		local open, done = 0, 0
+		for _, e in ipairs(queue) do
+			if e.status == "open" then open = open + 1 elseif e.status == "done" then done = done + 1 end
+		end
+		eq(#queue, 4); eq(open, 3); eq(done, 1)
+	end)
+
 	it("has 20 accounts, alts outside the guild, a hint in a note and 40 likes", function()
 		eq(#D.accounts, 20)
 		local outside = {}

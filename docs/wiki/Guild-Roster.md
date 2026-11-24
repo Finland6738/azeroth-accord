@@ -65,7 +65,7 @@ A line is the time and what happened: *joined the guild*, *left the guild* (the 
 
 ## The Officers tab (officers only)
 
-Officers and the Guild Master have one more tab, **Officers**, with two pages: **Inactive** and **Timeline**. Members do not see the tab. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
+Officers and the Guild Master have one more tab, **Officers**, with three pages: **Inactive**, **Queue** and **Timeline**. Members do not see the tab. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
 
 ### Inactive accounts
 
@@ -78,6 +78,23 @@ The **Inactive** page lists the **players**, not the characters, who have not be
 - **Click a row** to set or clear an absence, or to open the member card.
 
 The addon only lists them. It never removes, demotes or messages anyone.
+
+### Cleanup review and queue
+
+**Review…** on the Inactive page helps you decide what to do with the players who stayed away. **Accord never changes the roster**: it does not promote, demote, remove or write notes. It only prepares a list of things for you to do by hand.
+
+1. **Which accounts.** Choose the lowest tier (90 days or more at first). Two switches add the accounts you reviewed in the last 30 days and the ones of which no date is known. Accounts with a declared absence or with an officer character are never proposed.
+2. **One choice per account**, grouped by tier. Click an account to see its characters in the guild (rank, level, last seen) and its last three timeline changes, then choose **Keep** (the default), **Remove**, **Demote**, **Promote** or **Edit note**. The choice counts for every character of the account; click a character to give it a different one. For a rank change Accord proposes the next rank and lets you pick any rank below your own. For a note you choose the public or the officer one and write the new text (at most 31 characters). Actions your rank may not do are left out.
+3. **Summary.** **Add N actions to the queue** fills the queue and does nothing else. The accounts left on *Keep* are not proposed again for 30 days. Choices that could not be added are listed with the reason.
+
+The **Queue** page lists what is left to do, the oldest first; the tab shows how many. Click an entry to see the name (selected, copy it with Ctrl+C) and either the game's command to type in the chat (`/gremove`, `/gpromote`, `/gdemote`) or the text to paste in the note, with a button that opens the guild window. You type or click it yourself.
+
+- **Ticked by the roster.** When Accord reads the roster and sees the rank changed, the character gone or the note changed, the entry becomes **done**, also when another officer did it. If the character left while a rank or note change was waiting, it becomes **left**.
+- If your rank cannot read officer notes, an officer note entry has a **Mark done** button instead.
+- An entry still open after **14 days** is **expired**. Closed entries stay, dimmed, for 7 days. **Cancel entry** closes one by hand. A new entry for the same character and action replaces the open one; at most 200 can be open.
+- The queue is **yours**: it stays on your computer and is not shared with the other officers. It is deleted if you stop being an officer.
+
+The commands, the permissions and the 31-character limit have not been checked in the game yet.
 
 ### Timeline
 

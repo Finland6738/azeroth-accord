@@ -110,6 +110,11 @@ function CanViewOfficerNote()
 end
 function CanEditPublicNote() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
 function CanEditOfficerNote() return CanViewOfficerNote() end
+function CanGuildPromote() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
+function CanGuildDemote() return CanGuildPromote() end
+function CanGuildRemove() return CanGuildPromote() end
+function GuildControlGetNumRanks() return guild.name and #guild.ranks + (guild.ranks[0] and 1 or 0) or 0 end
+function GuildControlGetRankName(i) return guild.ranks[i - 1] end
 function CanGuildInvite() return guild.name ~= nil and guild.myRank <= guild.officerRanks end
 
 -- The roster scans of the addon call these once per member: they index the data without rebuilding the list.

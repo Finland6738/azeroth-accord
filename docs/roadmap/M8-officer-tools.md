@@ -34,7 +34,8 @@
   - the chosen actions (promote, demote, remove, edit note) go into a queue to do by hand in the game window;
   - each queued action is ticked when the roster shows it done.
 - Done when:
-  - [ ] The addon never calls a protected roster action; a queued action is ticked by the roster change.
+  - [x] The addon never calls a protected roster action; a queued action is ticked by the roster change.
+- Note: the extended note of an account in the review (SPEC-12 §4.1, step 2) comes with the notes themselves (M8.5). The commands, the permission queries and the call that opens the guild window are [verify] in the client.
 
 ### M8.5 — Extended notes
 - Branch: `step/m8-5-notes`

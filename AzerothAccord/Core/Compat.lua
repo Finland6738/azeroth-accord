@@ -238,6 +238,48 @@ function Guild.CanViewOfficerNote()
 	return state == AVAILABLE and v == true
 end
 
+-- true / false as the client says whether this player may do `op` ("promote" | "demote" | "remove" | "note", with
+-- noteKind "public" | "officer"), nil when it does not tell. Only reads permissions [verify]: nothing is changed.
+local PERMISSIONS = {
+	promote = { "CanGuildPromote" }, demote = { "CanGuildDemote" }, remove = { "CanGuildRemove" },
+	public = { "CanEditPublicNote" }, officer = { "C_GuildInfo.CanEditOfficerNote", "CanEditOfficerNote" },
+}
+function Guild.MayDo(op, noteKind)
+	for _, path in ipairs(PERMISSIONS[op == "note" and noteKind or op] or {}) do
+		local v, state = first(path)
+		if state == AVAILABLE then return v and true or false end
+	end
+	return nil
+end
+
+-- The guild's ranks, { { index (0 = Guild Master), name }, ... }; from the roster when the client does not list them.
+function Guild.Ranks()
+	local out = {}
+	local n = tonumber((first("GuildControlGetNumRanks"))) or 0
+	for i = 1, min(n, 20) do
+		local name = str((first("GuildControlGetRankName", i)))
+		if name then out[#out + 1] = { index = i - 1, name = name } end
+	end
+	if #out > 0 then return out end
+	local seen = {}
+	for _, row in ipairs(Guild.Roster()) do
+		local i = row.rankIndex
+		if i and not seen[i] then
+			seen[i] = true
+			out[#out + 1] = { index = i, name = row.rankName or tostring(i) }
+		end
+	end
+	table.sort(out, function(a, b) return a.index < b.index end)
+	return out
+end
+
+-- Opens (or closes) the game's guild window, out of combat only. Returns true when the client accepted the call [verify].
+function Guild.ToggleWindow()
+	if (first("InCombatLockdown")) then return false end
+	local _, state = first("ToggleGuildFrame")
+	return state == AVAILABLE
+end
+
 -- Asks the server for a fresh roster (GUILD_ROSTER_UPDATE follows). Returns the call state.
 function Guild.RequestRoster()
 	local _, state = first("C_GuildInfo.GuildRoster")
@@ -1058,6 +1100,14 @@ local CAPS = {
 	{ "guild.GetGuildRosterLastOnline", "guild", "GetGuildRosterLastOnline", note = "[verify] not in the dump" },
 	{ "guild.GuildRoster", "guild", "C_GuildInfo.GuildRoster" },
 	{ "guild.GuildControlGetRankFlags", "guild", "C_GuildInfo.GuildControlGetRankFlags" },
+	{ "guild.GuildControlGetNumRanks", "guild", "GuildControlGetNumRanks", call = true },
+	{ "guild.GuildControlGetRankName", "guild", "GuildControlGetRankName" },
+	{ "guild.CanGuildPromote", "guild", "CanGuildPromote", call = true, note = "[verify]" },
+	{ "guild.CanGuildDemote", "guild", "CanGuildDemote", call = true, note = "[verify]" },
+	{ "guild.CanGuildRemove", "guild", "CanGuildRemove", call = true, note = "[verify]" },
+	{ "guild.CanEditPublicNote", "guild", "CanEditPublicNote", call = true, note = "[verify]" },
+	{ "guild.CanEditOfficerNote", "guild", "C_GuildInfo.CanEditOfficerNote", call = true, note = "[verify]" },
+	{ "guild.ToggleGuildFrame", "guild", "ToggleGuildFrame", note = "[verify]" },
 	{ "club.GetGuildClubId", "club", "C_Club.GetGuildClubId", call = true },
 	{ "club.GetClubMembers", "club", "C_Club.GetClubMembers" },
 	{ "club.GetMemberInfo", "club", "C_Club.GetMemberInfo", note = "[verify S2] profession and Discord fields" },

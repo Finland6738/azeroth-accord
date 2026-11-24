@@ -55,6 +55,7 @@ Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua
 Data\Inactivity.lua
+Data\OfficerOps.lua
 Data\Demo.lua
 Core\Demo.lua
 Data\Backup.lua
@@ -90,6 +91,7 @@ UI\BankRequests.lua
 UI\Raid.lua
 UI\TimelineCard.lua
 UI\Officers.lua
+UI\OfficersOps.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

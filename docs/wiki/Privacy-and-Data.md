@@ -13,6 +13,7 @@ The addon has no server, sends nothing outside the game and collects no telemetr
 | Officers only | Bank tabs read by an officer (shared on the officer channel only, never held by members' addons), and the guild's secret code that turns a voter into the anonymous code of the likes (kept only by officers' addons, removed when an officer is demoted) |
 | Officers only | The roster history officers observed (joins, leaves, rank and level changes, public notes), kept forever: on the officer channel only, and only on the observing officer's computer until that channel is proven (see *Guild roster*) |
 | Officers only | Declared absences: a return date, with no reason. A member's addon whispers its own to officers who are online; officers set others and share them among themselves. The inactivity tiers the officers chose travel the same way. The inactivity of each player is computed by each officer's addon and never saved |
+| Officers only | The cleanup queue and the accounts marked as reviewed: kept on that officer's computer only, never sent, removed when the officer is demoted |
 
 The character list, BattleTag and Discord name are **always shared** with your guild: that is how alts are grouped and contacts are shown without asking. There is no switch to turn this off. Contacts received from other players are checked (a BattleTag must look like one, a Discord name must be a plain user name) and shown as plain text, never as links.
 

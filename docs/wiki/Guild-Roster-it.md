@@ -64,7 +64,7 @@ Una riga è l'ora e ciò che è successo: *è entrato nella gilda*, *è uscito d
 
 ## La scheda Ufficiali (solo ufficiali)
 
-Gli ufficiali e il Guild Master hanno una scheda in più, **Ufficiali**, con due pagine: **Inattivi** e **Cronologia**. I membri non vedono la scheda. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.
+Gli ufficiali e il Guild Master hanno una scheda in più, **Ufficiali**, con tre pagine: **Inattivi**, **Coda** e **Cronologia**. I membri non vedono la scheda. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.
 
 ### Account inattivi
 
@@ -77,6 +77,23 @@ La pagina **Inattivi** elenca i **giocatori**, non i personaggi, che non si vedo
 - **Clicca una riga** per impostare o togliere un'assenza, o per aprire la scheda del membro.
 
 L'addon li elenca soltanto. Non espelle, non retrocede e non scrive a nessuno.
+
+### Revisione guidata e coda
+
+**Revisiona…**, nella pagina Inattivi, ti aiuta a decidere cosa fare con chi manca da tempo. **Accord non modifica mai il roster**: non promuove, non retrocede, non rimuove e non scrive note. Prepara solo una lista di cose che farai tu a mano.
+
+1. **Quali account.** Scegli la fascia minima (all'inizio 90 giorni o più). Due interruttori aggiungono gli account che hai rivisto negli ultimi 30 giorni e quelli di cui non si conosce nessuna data. Gli account con un'assenza dichiarata o con un personaggio ufficiale non vengono mai proposti.
+2. **Una scelta per account**, divisi per fascia. Clicca un account per vedere i suoi personaggi in gilda (grado, livello, ultimo accesso) e le ultime tre variazioni della cronologia, poi scegli **Tieni** (predefinita), **Rimuovi**, **Retrocedi**, **Promuovi** o **Cambia nota**. La scelta vale per tutti i personaggi dell'account; clicca un personaggio per dargliene una diversa. Per un cambio di grado Accord propone il grado accanto e ti lascia scegliere un grado sotto il tuo. Per una nota scegli quella pubblica o quella ufficiale e scrivi il testo nuovo (al massimo 31 caratteri). Le azioni che il tuo grado non può fare restano fuori.
+3. **Riepilogo.** **Aggiungi N azioni alla coda** riempie la coda e non fa altro. Gli account lasciati su *Tieni* non vengono riproposti per 30 giorni. Le scelte non aggiunte sono elencate con il motivo.
+
+La pagina **Coda** elenca ciò che resta da fare, dalla voce più vecchia; la scheda mostra quante sono. Clicca una voce per vedere il nome (già selezionato, copialo con Ctrl+C) e il comando del gioco da scrivere nella chat (`/gremove`, `/gpromote`, `/gdemote`) oppure il testo da incollare nella nota, con un pulsante che apre la finestra della gilda. Scrivi o clicchi tu.
+
+- **La spunta viene dal roster.** Quando Accord legge il roster e vede il grado cambiato, il personaggio non più presente o la nota cambiata, la voce diventa **fatta**, anche se l'ha fatta un altro ufficiale. Se il personaggio esce mentre aspetta un cambio di grado o di nota, la voce diventa **uscito**.
+- Se il tuo grado non può leggere le note ufficiali, la voce di una nota ufficiale ha il pulsante **Segna fatta**.
+- Una voce ancora aperta dopo **14 giorni** è **scaduta**. Le voci chiuse restano, attenuate, per 7 giorni. **Annulla voce** ne chiude una a mano. Una voce nuova per lo stesso personaggio e la stessa azione sostituisce quella aperta; al massimo 200 sono aperte.
+- La coda è **tua**: resta sul tuo computer e non è condivisa con gli altri ufficiali. Si cancella se smetti di essere ufficiale.
+
+I comandi, i permessi e il limite di 31 caratteri non sono ancora stati verificati nel gioco.
 
 ### Cronologia
 
