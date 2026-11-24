@@ -13,7 +13,7 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0003](0003-accord-tab-in-the-guild-window.md) | An Accord tab in Blizzard's guild window, with a standalone window as fallback | accepted (to verify in M0) |
 | [0004](0004-guild-addon-channels-and-versioned-protocol.md) | Guild and officer addon channels, a versioned protocol | accepted |
 | [0005](0005-trust-first-hand-records-and-officer-relays.md) | Trust: first-hand records, relays only from officers | accepted |
-| [0006](0006-account-token-and-always-shared-character-list.md) | Account identity: an account token and an always-shared character list | accepted |
+| [0006](0006-account-token-and-always-shared-character-list.md) | Account identity: an account token and an always-shared character list | accepted (updated in M7.1: the guild of each listed character is shared) |
 | [0007](0007-likes-one-per-account-irreversible-anonymous.md) | Likes: one per account to account, irreversible, anonymous totals | accepted |
 | [0008](0008-social-breadth-index-from-co-play.md) | The social breadth index, computed from minutes played together | accepted |
 | [0009](0009-guild-bank-snapshots-and-officer-approved-requests.md) | Guild bank: shared snapshots and requests approved by officers | accepted (to verify in M0) |

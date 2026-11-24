@@ -9,7 +9,7 @@ Un record **per personaggio**: `id` = GUID del personaggio, scritto solo da lui 
 | Campo | Tipo | Note |
 |---|---|---|
 | `token` | stringa casuale di 16 byte (Base64) | creato una volta per account, mai cambiato |
-| `chars` | lista di `{guid, name, realm, classID, level, inGuild}` | tutti i personaggi dell'account entrati con l'addon su questo reame (e quelli visti nella stessa gilda su un altro), al massimo 40; `inGuild` dice se sono nel roster |
+| `chars` | lista di `{guid, name, realm, classID, level, inGuild, guild, seen}` | tutti i personaggi dell'account entrati con l'addon su questo reame (e quelli visti nella stessa gilda su un altro), al massimo 40 e dentro 3600 B stimati; `inGuild` dice se sono nel roster. Da M7.3, solo per chi ha `inGuild = false`: `guild` = il nome della sua gilda o `""` per nessuna gilda (assente = sconosciuta) e `seen` = il giorno del suo ultimo accesso con l'addon (ora del server arrotondata all'inizio del giorno UTC); i client precedenti li ignorano. Ordine e taglio quando la lista non sta: [SPEC-11 §2](SPEC-11-data-trust.md#2-la-gilda-degli-alt-fuori-dalla-gilda-m73) |
 | `main` | GUID | scelto dal giocatore; predefinito: livello più alto, poi il personaggio aggiunto per primo |
 | `addonVersion` | stringa | per la diagnostica |
 

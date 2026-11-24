@@ -54,7 +54,7 @@ Le regole di fiducia (§6) dicono **chi** può passare un record: l'account del 
 | Tutti online e allineati, media per client | ≤ 100 B/min | circa 35 B/min |
 | Tutti online e allineati, client più carico | ≤ 200 B/min | circa 90 B/min |
 
-Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO` pesa circa 3 KB (12 pezzi da 255 byte), ogni 15–20 minuti; per gilde molto più grandi servirà un riepilogo a blocchi (da valutare con la prova di carico di M7.7).
+Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO` pesa circa 3 KB (12 pezzi da 255 byte), ogni 15–20 minuti; per gilde molto più grandi serve un riepilogo a blocchi: oltre 200 autori un `BHELLO` di 128 blocchi, con la risposta `DIGEST` solo dell'ufficiale designato e dell'account del mittente, provato con 1000 accessi insieme in M7.7 ([SPEC-11 §6](SPEC-11-data-trust.md#6-limiti-contro-i-client-malevoli-e-le-gilde-grandi-m77)).
 
 ## 5. Coda e lockdown
 

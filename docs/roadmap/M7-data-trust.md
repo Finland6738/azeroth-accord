@@ -12,7 +12,7 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
 - Branch: `step/m7-1-spec`
 - Scope: write a new SPEC-11 ("Fiducia nei dati"), in Italian. It covers provenance labels, the guild of alts outside the guild, demo mode, backup, the privacy panel and the hardening limits. Update SPEC-03 (the `chars` fields), SPEC-05 (ACC-03) and add a note to ADR 0006: the guild of each listed character is shared, by the owner's decision of 2026-11-20.
 - Done when:
-  - [ ] SPEC-11 exists, is linked from the spec index, and the ADR index is updated; `tools/check_docs.py` passes.
+  - [x] SPEC-11 exists, is linked from the spec index, and the ADR index is updated; `tools/check_docs.py` passes.
 
 ### M7.2 — Provenance labels
 - Branch: `step/m7-2-provenance`

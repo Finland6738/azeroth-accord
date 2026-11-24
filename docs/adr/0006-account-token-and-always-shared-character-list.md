@@ -31,7 +31,11 @@ The token travels in clear inside the shared data, so a modified client could co
 
 The token is also the input of the likes' pseudonyms (ADR 0007). Because it is public, a notary refuses a vote (`conflict`) when a character outside the voter's account publishes the same token: a copy would otherwise share the voter's pseudonym.
 
+## Note (M7.1): the guild of each listed character
+
+By the owner's decision of 2026-11-20, the guild of each listed character is shared too, so that an alt outside the guild shows "Other guild: <name>" or "No guild" instead of a bare "not in guild". From M7.3 each entry of the list for a character that is **not** in the record's guild carries `guild` (the guild name, or empty for no guild) and `seen` (the day of that character's last login with the addon, rounded to the UTC day so that exact login times are not shared). Like the list, it is always shared (D3) and has no switch. It is as old as that character's last login, and the other guild never sees anything of Accord's data. Characters known only from a public note show no guild. Older clients ignore the two fields, and the record keeps the size limit of the set that older clients enforce (characters in the roster are kept first, because mutual listing needs them). Details: [SPEC-11 §2](../specs/SPEC-11-data-trust.md#2-la-gilda-degli-alt-fuori-dalla-gilda-m73).
+
 ## Consequences
 
 - Positive: alts grouped without any typing, also across characters not in the guild.
-- Negative: only works for members with the addon; it is personal data, documented in the wiki page "Privacy and Data".
+- Negative: only works for members with the addon; it is personal data, documented in the wiki page "Privacy and Data". From M7.3 it includes the guild of alts outside the guild and the day they were last seen.

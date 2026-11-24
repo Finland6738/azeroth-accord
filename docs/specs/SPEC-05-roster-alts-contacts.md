@@ -51,7 +51,7 @@ Realizzazione (`UI/MemberCard.lua`, M2.4):
 
 - ACC-01: all'accesso con l'addon il personaggio si aggiunge a `chars` dell'account (SavedVariables per account).
 - ACC-02: l'elenco si condivide **sempre** con la gilda (D3), insieme al main.
-- ACC-03: la scheda mostra **tutti** i personaggi dell'account sul reame, anche quelli fuori gilda, con l'indicazione "in guild" / "not in guild".
+- ACC-03: la scheda mostra **tutti** i personaggi dell'account sul reame, anche quelli fuori gilda, con l'indicazione "in guild" / "not in guild". Da M7.3 un personaggio fuori gilda dice la sua gilda e quando è stato visto: "Other guild: <name> · seen <age>" o "No guild · seen <age>"; "not in guild" resta per chi non ha questa informazione (voce di un client precedente), e chi è noto solo da una nota pubblica non mostra nessuna gilda ([SPEC-11 §2](SPEC-11-data-trust.md#2-la-gilda-degli-alt-fuori-dalla-gilda-m73), [ADR 0006](../adr/0006-account-token-and-always-shared-character-list.md), nota di M7.1).
 - ACC-04: un personaggio cancellato o rinominato sparisce quando il suo account lo segnala (controllo all'accesso di ogni personaggio: i GUID che non rispondono a `C_PlayerInfo` per 30 giorni vengono tolti).
 - ACC-05: per chi non ha l'addon si legge come suggerimento una nota pubblica nel formato `alt: <nome>` o `main: <nome>`, mostrata come "dichiarato nella nota".
 
