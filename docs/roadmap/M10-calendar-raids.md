@@ -27,19 +27,20 @@ The declaration holds for the season and changes only when a new season opens, b
 A review of M10 and M11 against FDCP and the other loot addons that run on WoW Forever found that the first plan overlapped them:
 - FDCP already keeps the season pool (MS1, MS2, OS, role, availability, locked for the season), the bench rotation and the attendance per boss;
 - FDCP reads the sign-ups of the game's calendar and gives +1 credit to a raider who did not sign up, so a sign-up kept only inside Accord would cost that raider a credit;
-- other addons on Forever keep their own rosters, attendance or calendars (the survey is in [M11](M11-loot-handbook.md#addons-on-wow-forever)).
+- other loot addons on Forever keep their own raid rosters, reserves or attendance (the survey is in [M11](M11-loot-handbook.md#addons-on-wow-forever)).
 
 So M10 and M11 follow these rules:
 1. **One source for every datum.** The season roster, the lineup and bench, and the attendance belong to one addon per guild. The **source is a guild setting** chosen by an officer and synced to everyone, not a guess of each client, so that every member sees the same truth.
-2. **The game calendar is the shared ground.** Events and sign-ups are read from and written to the game's calendar. Every addon (FDCP, GuildOS, the game's own interface) then sees the same answers. An event that lives only in Accord is a fallback for a client without the calendar, and is marked so.
+2. **The game calendar is the shared ground.** Events and sign-ups are read from and written to the game's calendar. Every addon (FDCP, the game's own interface) then sees the same answers. An event that lives only in Accord is a fallback for a client without the calendar, and is marked so.
 3. **Integrations are read-only.** Accord never writes another addon's data and never reads another addon's saved variables directly: their layout changes without notice. It reads only a **documented, versioned public API**. Without one, Accord only detects the addon and points to it.
 4. **Three levels.**
    - Level 0, detection: the addon is loaded, its version, who in the guild has it, a button or command to open it.
    - Level 1, reading: through the addon's public API, when one exists and its version is known.
    - Level 2, two-way exchange: never.
 5. **If nothing is there, Accord offers it, except loot.** Without a raid addon chosen as source, Accord's own season roster, sign-ups, composition and availability work by themselves. A loot engine is never built (owner's decision of 2026-11-19, SPEC-10 Q6). The loot page names the addon to use instead.
-6. **No attendance in Accord.** Attendance belongs to the raid or loot addon. FDCP keeps it per boss, for officers only. Accord keeps only the availability map, which counts no presence at raids.
-7. **Traffic is shared.** Accord and the other addons send on the same channels under the same server limits. The traffic budget of SPEC-09 counts the guild's other addons, and Accord stays quiet during boss fights as FDCP does.
+6. **Only loot and raid-roster addons.** Integrations are considered only with addons whose job is loot or the raid roster. Other guild-management addons are out of scope: Accord plans no integration with them, does not detect them and does not read their data (owner, 2026-11-24).
+7. **No attendance in Accord.** Attendance belongs to the raid or loot addon. FDCP keeps it per boss, for officers only. Accord keeps only the availability map, which counts no presence at raids.
+8. **Traffic is shared.** Accord and the other addons send on the same channels under the same server limits. The traffic budget of SPEC-09 counts the guild's other addons, and Accord stays quiet during boss fights as FDCP does.
 
 ### M10.1 — Specification
 - Branch: `step/m10-1-spec`
@@ -59,7 +60,7 @@ So M10 and M11 follow these rules:
 - Branch: `step/m10-2-detection`
 - Spec: SPEC-14; ADR 0022
 - Scope:
-  - `Data/Integrations.lua`: a table of known addons with their folder name, kind (loot, raid, guild management) and level. The folder names are confirmed in game before they are trusted.
+  - `Data/Integrations.lua`: a table of known addons with their folder name, kind (loot or raid roster) and level. The folder names are confirmed in game before they are trusted.
   - Each one is checked with `C_AddOns.IsAddOnLoaded` and its version is read with `C_AddOns.GetAddOnMetadata`, both through Compat.
   - The `HELLO` summary gains a compact field: which known addons this client has loaded.
   - Officers see, per addon, who has it in the guild.
@@ -92,7 +93,7 @@ So M10 and M11 follow these rules:
 - Branch: `step/m10-5-events`
 - Spec: SPEC-14
 - Scope:
-  - guild events are read from the game calendar, including those other addons or websites put there;
+  - guild events are read from the game calendar, whoever created them;
   - signing up from Accord writes the answer into the game calendar (accepted, tentative, declined), so FDCP and the game's own interface see it;
   - the role is preselected from MS1 or MS2;
   - only when the client has no usable calendar, events and sign-ups are kept in the addon, marked "not in the game calendar".
@@ -114,7 +115,7 @@ So M10 and M11 follow these rules:
 - Spec: SPEC-14
 - Scope:
   - when members usually play, from their presence online over time, shown by day and hour;
-  - **no attendance**: Accord counts no presence at raids (integration rule 6).
+  - **no attendance**: Accord counts no presence at raids (integration rule 7).
 - Done when:
   - [ ] The map is built from online presence only; nothing about raid attendance is recorded or sent.
 

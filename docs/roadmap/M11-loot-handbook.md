@@ -20,11 +20,12 @@ Loot is documented, not computed. The loot page says which system the guild uses
 - one source for every datum;
 - read-only integrations, through a documented public API only;
 - levels 0 (detection) and 1 (reading), never level 2;
+- only loot and raid-roster addons, never other guild-management addons;
 - no loot engine and no attendance in Accord.
 
 ## Addons on WoW Forever
 
-What runs on Forever, from a survey of their public pages on 2026-11-24 (CurseForge, GitHub, Wago, wowcalc.net, timesaver.gg, guildmanager.app). None of it has been checked in the game; M11.1 checks the list again and M10.2 confirms the folder names in game.
+The loot and raid-roster addons that run on Forever, from a survey of their public pages on 2026-11-24 (CurseForge, GitHub, Wago, wowcalc.net, timesaver.gg, guildmanager.app). Guild-management addons are left out on purpose (M10 integration rule 6). None of it has been checked in the game; M11.1 checks the list again and M10.2 confirms the folder names in game.
 
 | Addon | Kind | Loot system | Public API or exchange | Plan in Accord |
 |---|---|---|---|---|
@@ -35,13 +36,10 @@ What runs on Forever, from a survey of their public pages on 2026-11-24 (CurseFo
 | **Forever Loot Manager** | loot | DKP, open-bid auctions | CSV export, also of attendance | level 0 |
 | **NostalgiaForeverLC** | loot (alpha) | hard and soft reserve, raid leader hands out | text import and export, softres.it CSV | level 0 |
 | **RollForMe** | loot | +1 / MS / OS rolls, soft reserve, DKP, council | not known (the page did not load) | level 0, if M11.1 confirms it |
-| **GuildOS** | guild management with loot | MS/OS rolls, TMB, wishlists, DKP, or "External / Off" | its website and Discord bot; raids put into the game calendar | level 0; its calendar events reach Accord through the game calendar (M10.5) |
-| **Guild Manager** | guild management with soft reserve | soft reserve; points and council in its companion app | companion app | level 0 |
 
 Notes:
 - **RCLootCouncil** had no Forever file at the time of the survey; RaidCore says standalone RCLootCouncil clients do not get its council requests.
 - **GDKP:** Blizzard stated that GDKP is not allowed in WoW Forever, at least in North America and Europe (reported by guildmanager.app, not checked at the source). Accord's templates and texts never propose it.
-- **Guild-management addons** (GuildOS, Guild Manager) overlap with Accord itself, not only with M10 and M11. Accord shares with them only what the game shares: the calendar and the guild roster. It does not read their data.
 
 ### M11.1 — Specification
 - Branch: `step/m11-1-spec`
