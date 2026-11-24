@@ -96,11 +96,11 @@ Release: `v0.9.0`.
 - Branch: `step/m9-9-addons`
 - Spec: SPEC-13; SPEC-10 Q11
 - Scope: the owner asked (2026-11-24) for a tab listing the addons the guild's members use, with a count for each.
-  - **Census:** each client publishes the list of its own **loaded** addons (folder name, title and version, from `C_AddOns` through Compat). It is published at login and again only when the list changes, compressed and capped in size. Blizzard's own addons are left out. A switch in Settings turns sharing off; the "what I share" panel of M7.6 lists it.
+  - **Census:** each client publishes the list of its own **loaded** addons (folder name, title and version, from `C_AddOns` through Compat). It is published at login and again only when the list changes, compressed and capped in size. Blizzard's own addons are left out. Sharing is on by default and a switch in Settings turns it off; the "what I share" panel of M7.6 lists it.
   - **Guild addons tab:**
     - one row per addon: its name, how many members use it, their share of the members who run Accord, and the versions in use;
     - search, and sorting by every column;
-    - who uses a given addon, shown to those allowed by SPEC-10 Q11.
+    - who uses a given addon: officers and the Guild Master only; every member always sees their own (owner, 2026-11-24, SPEC-10 Q11).
   - The count always says it is out of the members **who run Accord and share their list**. Members without Accord are not known.
   - M10.2 reads the known raid and loot addons from this census instead of keeping its own field.
 - Tests: `Tests/test_addons_census.lua`: counts over many authors; an author who turns sharing off disappears from the counts; changed lists replace old ones; oversized lists are capped; old entries drop after the usual retention.
