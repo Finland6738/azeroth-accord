@@ -24,6 +24,7 @@ Addon **non ufficiale** per **WoW: Forever** che aggiunge alla finestra della Gi
 | 09 | [Qualità, spike e rilascio](SPEC-09-quality-release.md) | verifiche nel client (S1–S11), test offline, tappe di rilascio |
 | 10 | [Rischi e domande aperte](SPEC-10-risks-open-questions.md) | rischi tecnici e punti ancora da decidere |
 | 11 | [Fiducia nei dati](SPEC-11-data-trust.md) | M7: etichette di provenienza, gilda degli alt fuori gilda, modalità demo, backup personale, pannello "cosa condivido", limiti contro i client malevoli e le gilde grandi |
+| 12 | [Strumenti per ufficiali](SPEC-12-officer-tools.md) | M8: cronologia osservata del roster, inattività per account con fasce e assenze dichiarate, revisione guidata e coda di azioni manuali (nessuna azione automatica), note estese, esportazioni CSV e per Discord, chi vede cosa e dati degli ufficiali solo su `OFFICER` |
 | — | [Stile dell'interfaccia](ui-style.md) | la famiglia di FDCP: differenze di Accord, impostazioni dell'aspetto, schede, tre temi (Nebula, Aurora, Accord) con contrasto |
 | — | [Mockup e anteprime dell'interfaccia](mockups/README.md) | immagini di progetto di ogni vista principale nel nuovo aspetto (in inglese), generate da `tools/make_mockups.py`, e il [confronto con FDCP](mockups/compare/README.md) |
 

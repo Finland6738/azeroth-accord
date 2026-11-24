@@ -57,7 +57,7 @@ Il ruolo si ricava dal client e si aggiorna a ogni `PLAYER_GUILD_UPDATE`, `GUILD
 | Ruolo | Come si riconosce | Cosa aggiunge |
 |---|---|---|
 | Membro | `IsInGuild()` | tutte le viste in lettura, like, richieste in banca, richieste di crafting |
-| Ufficiale | `C_GuildInfo.IsGuildOfficer()` | notaio dei like, approvazione delle richieste in banca, foto delle schede riservate, indice sociale di tutta la gilda |
+| Ufficiale | `C_GuildInfo.IsGuildOfficer()` | notaio dei like, approvazione delle richieste in banca, foto delle schede riservate, indice sociale di tutta la gilda, strumenti per ufficiali (M8, [SPEC-12](SPEC-12-officer-tools.md)) |
 | GM | `IsGuildLeader()` | come l'ufficiale, più la creazione del segreto di gilda se nessun ufficiale lo ha ancora |
 
 Senza gilda la scheda non compare; `/accord` dice "You are not in a guild".

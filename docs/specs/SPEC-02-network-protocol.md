@@ -5,7 +5,7 @@
 | Distribuzione | Uso | Note |
 |---|---|---|
 | `GUILD` | dati per tutti i membri | il server consegna solo ai membri online |
-| `OFFICER` | dati riservati (segreto dei like, schede riservate della banca) | **[verificare]** S5: finché il client non ha visto un messaggio addon su `OFFICER`, il segreto dei like viaggia anche in whisper tra ufficiali ([SPEC-07 §2.1](SPEC-07-reputation-social.md#21-il-segreto-e-il-notaio-datanotarylua-m41)); le schede riservate della banca no |
+| `OFFICER` | dati riservati (segreto dei like, schede riservate della banca, da M8 gli strumenti per ufficiali di [SPEC-12](SPEC-12-officer-tools.md), che senza S5 restano locali) | **[verificare]** S5: finché il client non ha visto un messaggio addon su `OFFICER`, il segreto dei like viaggia anche in whisper tra ufficiali ([SPEC-07 §2.1](SPEC-07-reputation-social.md#21-il-segreto-e-il-notaio-datanotarylua-m41)); le schede riservate della banca no |
 | `WHISPER` | voto al notaio, richieste puntuali di dati | solo tra compagni di gilda |
 
 Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versioned-protocol.md)).
@@ -20,14 +20,14 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 | `DIGEST` | riservato: non usato dalla sincronizzazione attuale (la risposta a `HELLO` è l'invio diretto dei record, §4) | `WHISPER` |
 | `REQ` | richiesta dei record di uno o più autori (chiavi del riepilogo); con `s` = un insieme (non `*`) chiede **solo i record di quell'insieme**, per una vista che li serve subito (§4, punto 7) | `WHISPER` |
 | `REC` | uno o più record di un insieme | `GUILD` o `WHISPER` |
-| `OHELLO` | come `HELLO` ma per i **record solo per ufficiali** (le schede della banca lette da un ufficiale): riepilogo `s` calcolato solo su quei record; un ufficiale più avanti spedisce i mancanti in whisper (§4) | `OFFICER` |
+| `OHELLO` | come `HELLO` ma per i **record solo per ufficiali** (le schede della banca lette da un ufficiale): riepilogo `s` calcolato solo su quei record; un ufficiale più avanti spedisce i mancanti in whisper (§4). Da M8 anche `m`, il riepilogo per gruppo degli insiemi degli strumenti per ufficiali ([SPEC-12 §1.5](SPEC-12-officer-tools.md#15-sincronizzazione-tra-ufficiali)); un client precedente lo ignora | `OFFICER` |
 | `VOTE` | voto per un like: `g` = GUID del destinatario, `n` = numero del voto ([SPEC-07 §2.2](SPEC-07-reputation-social.md#22-voti-e-libro-datalikeslua-m42)) | `WHISPER` al notaio |
 | `LEDGER` | ricevuta del notaio: `g`, `n`, `r` = esito, `e` = la voce nuova del libro (le voci arrivano a tutti come `REC` dell'insieme `likes`, su `GUILD`) | `WHISPER` al votante |
 | `SALT` | segreto di gilda per gli pseudonimi: `k = "q"` (domanda, `f` = impronte dei salt che si hanno) o `k = "s"` (`s` = lista di `{b = salt in Base64, at = creazione}`) | `OFFICER`; anche `WHISPER` tra ufficiali finché S5 non è provato |
 
 ## 3. Insiemi di dati
 
-`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
+`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2), e da M8 gli insiemi solo per ufficiali `timeline`, `absence`, `onotes`, `ocfg` ([SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali)). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
 
 ## 4. Sincronizzazione
 
@@ -78,4 +78,4 @@ Regole di [ADR 0005](../adr/0005-trust-first-hand-records-and-officer-relays.md)
 - Il nome del mittente arriva dal server e non si può falsificare; i contenuti sì, per questo valgono le regole sopra. Il mittente deve essere nel roster di chi riceve (nome con o senza reame); il suo GUID e il suo grado vengono dal roster, mai dal messaggio.
 - **Regole del proprietario**: oltre alla fiducia, ogni insieme dice cosa un autore può scrivere: solo il proprio record `accounts`; `contacts` e `recipes` solo di un personaggio del proprio account; `bankreq` aperte o annullate dal richiedente (o da un suo alt) con un id che comincia con il suo GUID, decise solo da ufficiali, con il contenuto che non cambia e lo stato più alto che vince ([SPEC-03 §7](SPEC-03-data-model.md#7-richieste-in-banca-bankreq)); schede riservate di `bank` solo da ufficiali; `guildcfg` solo da ufficiali (NET-12, anche dopo che l'autore ha lasciato il grado) e solo con scelte valide ([SPEC-03 §8](SPEC-03-data-model.md#8-impostazioni-della-gilda-guildcfg)). Un client di una versione precedente ignora un insieme che non conosce.
 - **Forma**: `id` (massimo 64 caratteri), `author` (un GUID di giocatore), `rev` intero da 1, `time` non oltre un'ora nel futuro, dimensione massima per insieme. A parità di `rev` vince il `time` più recente, poi il GUID dell'autore maggiore: ogni client tiene la stessa versione.
-- **Conservazione**: co-play 90 giorni, registri della banca 365, richieste chiuse e cancellazioni 60; un record che scadrebbe subito si rifiuta.
+- **Conservazione**: co-play 90 giorni, registri della banca 365, richieste chiuse e cancellazioni 60, cronologia del roster 365 (dal giorno del record), assenze 30 dopo il rientro, note estese cancellate 60 ([SPEC-12](SPEC-12-officer-tools.md)); un record che scadrebbe subito si rifiuta.

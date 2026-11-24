@@ -8,7 +8,7 @@
 - Branch: `step/m8-1-spec`
 - Scope: write a new SPEC-12 ("Strumenti per ufficiali"), in Italian: timeline events, inactivity tiers, the cleanup wizard, the manual-ops queue, extended notes and exports. It also says who can see what, and where officer data goes when the officer channel (S5) is not proven.
 - Done when:
-  - [ ] SPEC-12 is linked from the spec index; `tools/check_docs.py` passes.
+  - [x] SPEC-12 is linked from the spec index; `tools/check_docs.py` passes.
 
 ### M8.2 — Observed timeline
 - Branch: `step/m8-2-timeline`

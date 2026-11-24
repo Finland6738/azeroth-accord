@@ -100,3 +100,7 @@ Da M10.2 ([ADR 0022](../adr/0022-integrations-with-raid-and-loot-addons.md)). Sc
 | `loot` | `none` / `fdcp` | crediti e posto in coda di un membro, riassunto delle regole del loot; predefinito `none` (Accord non ha un motore del loot) |
 
 Lo scrivono solo ufficiali e Guild Master; si accetta solo se il mittente è un ufficiale (NET-12); l'autore può aver perso il grado dopo (`authorAny`). Un record con un id diverso da `sources` o con un valore sconosciuto si rifiuta (`owner`). Senza record valgono i predefiniti. Nessuna scadenza: vale finché un ufficiale non lo cambia.
+
+## 9. Strumenti per ufficiali (`timeline`, `absence`, `onotes`, `ocfg`)
+
+Da M8. Quattro insiemi solo per ufficiali: la cronologia osservata del roster (un record per osservatore e giorno), le assenze dichiarate (dal membro o da un ufficiale), le note estese per personaggio e le fasce dell'inattività. Forma, regole del proprietario, conservazione e canali sono in [SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali); la fotografia del roster e la coda delle azioni manuali restano solo sul computer dell'ufficiale (`AzerothAccordDB.guilds[<chiave>].officer`).
