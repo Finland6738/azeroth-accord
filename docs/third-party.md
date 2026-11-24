@@ -50,6 +50,10 @@ comes from outside the repository (GPL-3.0):
   `assets/nebula-logo-light.png`, the logos of the Italian guild NEBULA, **used with the guild's permission** for the credits
   (dark one on dark themes, light one on the light theme). They are not covered by the GPL-3.0 grant for any other use.
 
+## The design previews
+
+The pictures of `docs/specs/mockups/` (the wiki and README images) are drawings made by `tools/make_mockups.py` in a local browser: they show the glyphs of the fonts above (Outfit, JetBrains Mono and Orbitron, read from `AzerothAccord/Media/Fonts/`, SIL OFL 1.1), the addon's logo and the NEBULA logos (same permission as above). They contain no Blizzard art; the frame of the game's guild window in them is an original imitation. The comparison sheet also shows previews of Finland Dragon Credit Points (same owner, GPL-3.0).
+
 ## Game art
 
 No Blizzard artwork is copied into the repository. The addon uses the game's own textures and fonts only by name at run

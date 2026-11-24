@@ -38,6 +38,7 @@ You may run them all in one session on the same two or three clients. A check th
 | 5 | Is the Italian text right in the game's frames: no overflow, no cut button, no English left? Do the game's own Italian words (ranks, professions, the vault) match ours? | step 3 | a text fix, never a code change |
 | 6 | Does the zip the workflow builds load: `## Version` filled in, `Config.DEV` false, the libraries embedded, no `Tests/` or `docs/`? | step 1 | the workflow's own checks stop it; tell us what is wrong |
 | 7 | Do the **design previews** look like the real window? (they are drawings, [ADR 0019](../adr/0019-design-previews-original-art-invented-data.md)) | step 6 | the previews are replaced by screenshots view by view |
+| 8 | Does the **new look** hold in the real client: the three themes, the fonts and textures, the 9-slice at several scales, the panel inside the guild window, the About page? ([`ui-style.md`](../specs/ui-style.md) §7) | step 7 | a fix of the look (colours, margins, a fallback font); never a loss of function |
 
 ## 1. The package (M6.5)
 
@@ -86,15 +87,28 @@ You may run them all in one session on the same two or three clients. A check th
 1. Open the Accord tab and each view, side by side with its **design preview** (`docs/specs/mockups/previews/`, or the wiki). Write down the differences that matter (a missing control, another order, a colour, a wrong text). The previews are drawings: spacing and fonts will differ.
 2. Take **screenshots** of the views you want in the manual (blur the names; or use a guild of test characters): they replace the previews view by view ([ADR 0019](../adr/0019-design-previews-original-art-invented-data.md), rule 6).
 
-## 7. The release workflow (M6.5): dry run, draft, test tag
+## 7. The look of the ecosystem (M6.8 to M6.16)
 
-Only when steps 1 to 6 pass, and **only you** can do these ([RELEASING](../RELEASING.md)):
+The interface has the look of Finland Dragon Credit Points ([ui-style.md](../specs/ui-style.md), [ADR 0021](../adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md)): everything below is drawn by the addon, with its own textures and fonts, and none of it has been seen in the real client yet. Compare each screen with its preview (`docs/specs/mockups/previews/`, or the wiki) and, if you have FDCP installed, with the same kind of screen there: the two addons should look like one family ([the comparison sheet](../specs/mockups/compare/README.md)). Use `/reload` only where a line says so.
+
+1. **The three themes.** *Settings → Appearance → Theme*: pick **Nebula**, **Aurora** and **Accord** in turn, with the panel open in the guild window **and** in the standalone window (`/accord`). Each change shows **at once**, without `/reload`, in every view that is open (Roster, a member card, Bank, Settings): backgrounds, text, buttons, the sorted column, the selected row. Check the light theme specially: dark text on light surfaces everywhere, class names in the text colour with only the little square coloured, no leftover dark box. `/reload`: the theme you left is still there (it is per account: the same on your other characters).
+2. **Effects and animations off.** Switch **Neon effects** off: the glows behind the primary buttons, the title and the active tab go; nothing else changes and nothing is missing or misplaced. Switch **Animations** off: the tab line, the switches, the popups and the press of a button change at once, without a slide or a fade. Turn both back on.
+3. **The fonts.** *Font*: **Accord's fonts** (Outfit for text, JetBrains Mono for numbers, Orbitron for the title) and **Game font**. With Accord's fonts: the letters are the right ones, the Italian accents (à è é ì ò ù) show in the title, the tabs and the buttons, and no text is cut at the edge of its frame. If one of the files does not load, the addon falls back to the game's font by itself (`/accord debug` → *Theme*, the fonts line says which). Switching to **Game font** and back changes every text; the note under the choice says a font the game has not loaded needs `/reload`.
+4. **Several UI scales.** *Options → Graphics → UI Scale*: 0.64, 0.8, 1.0 and the largest (and *Use UI Scale* off). At each one, open the Roster and the Bank in the guild window: the edges of buttons, chips, cards and the table are **sharp** (no blur, no 1-pixel lines that vanish or double), the rounded corners are round, the glows keep their shape. The window and the tabs fit with Italian texts (5 tabs + search + Pop out in the narrow guild area).
+5. **The panel inside the guild window.** The Accord tab opens a panel that fills the content area on the theme's background, with the other four tabs of the game still working. Open, close and switch tabs ten times; resize the guild window if the game lets you; open the member card, a Select list and the *Columns* menu over the panel: popups are above it and close with a click outside. Nothing the addon draws leaks onto the game's other tabs, and the tab shows the **addon's logo** with the count on the Bank. No taint message, in or out of combat ([M1](M1.md) step on taint).
+6. **The About page.** *Settings → Info* (or `/accord about`): the addon's logo, the name, the version (a real one, not "development", in the release zip), "Created and designed by Finland", "Made with the Italian guild NEBULA" with the **dark NEBULA logo on Nebula and Accord and the light one on Aurora** (switch the theme with the page open: the logo follows it), the permission line, the four links, the licence and the disclaimer. Click a link box: the text is selected, **Ctrl+C** copies it, typing changes nothing. Open the same page in *Options → AddOns → Azeroth Accord*. `/accord about chat` prints the credits in the chat. In the Italian client, every line is Italian apart from the names and the links.
+7. **The standalone window.** `/accord`: the title bar (logo, name in Orbitron, the sync state in mono), **Pop in** and the close button; drag it by the title bar, resize it by the corner (it cannot get smaller than the minimum), close and reopen it: the place and the size are kept. *Pop out* from the guild window and *Pop in* back.
+8. **Write down the differences** from the previews and from FDCP (a colour, a margin, a size, a font) with a screenshot and the theme. The previews are drawings in a browser, so spacing and font smoothing will differ; what must not differ is the **family**: same colours, same shapes, same type.
+
+## 8. The release workflow (M6.5): dry run, draft, test tag
+
+Only when steps 1 to 7 pass, and **only you** can do these ([RELEASING](../RELEASING.md)):
 
 1. **Dry run** (already used above): the zip is built and checked, nothing is published.
 2. **Draft release**: *Run workflow* with `draft_tag` = `v0.0.1-alpha.1`. A *draft* GitHub Release appears with the zip and the **notes taken from the changelog**; read them, then delete the draft.
 3. **Test tag** (public pre-release; delete it afterwards): `git tag -a v0.0.1-alpha.1 -m "Test tag"`, `git push origin v0.0.1-alpha.1`; check the release, the zip, that CurseForge was skipped ("CurseForge skipped" in the run) and then `gh release delete v0.0.1-alpha.1 --cleanup-tag --yes`. **Check `git config user.email` is the noreply address before tagging.**
 
-## 8. The decisions that wait for you (SPEC-10)
+## 9. The decisions that wait for you (SPEC-10)
 
 Decide, or say "as implemented", before `v0.6.0`; nothing here blocks the checks:
 
@@ -109,9 +123,9 @@ Decide, or say "as implemented", before `v0.6.0`; nothing here blocks the checks
 | Q8 | Main recipe source | the game's directory when it answers, the shared lists otherwise |
 | Q9 | Where to distribute (GitHub only, or also CurseForge and others) | GitHub Releases only; CurseForge ready but off |
 
-## 9. Releasing (after the results are in)
+## 10. Releasing (after the results are in)
 
-1. Every box above is ticked, the results are reported, the M1 to M5 checks have passed.
+1. Every box above is ticked, the results are reported, the M1 to M5 checks have passed (the look of step 7 included).
 2. Follow [RELEASING.md](../RELEASING.md), "Releasing a version": promote the changelog (`python -I -X utf8 tools/release_notes.py --promote 0.6.0`), update the status of the READMEs and the wiki, merge, then tag `v0.6.0` **from the merge commit** with the noreply identity and push the tag.
 3. Watch the run, download the release zip once, install it and run steps 1 and 2 of this check on it.
 4. Tick the M6.7 box in [M6-release.md](../roadmap/M6-release.md) and announce.
@@ -128,9 +142,10 @@ Decide, or say "as implemented", before `v0.6.0`; nothing here blocks the checks
 | A name in the report | the line with the name blurred, and the section it was in |
 | The zip does not load | the workflow run link and `/accord debug` |
 | A preview differs from the real window | a screenshot next to the preview's name |
+| The look is wrong (a colour, a blurred edge, a cut text, a missing font) | a screenshot, the theme, the font choice, the UI scale and `/accord debug` → *Theme* |
 
 ## Result
 
-| Date | Client build | Debug report | Package loads | Settings (game panel, clear data) | Italian | S11 numbers | Memory / saved file | Failed view and report | Previews vs real | Workflow dry run | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | | | |
+| Date | Client build | Debug report | Package loads | Settings (game panel, clear data) | Italian | S11 numbers | Memory / saved file | Failed view and report | Previews vs real | Look (themes, effects, fonts, scales, About) | Workflow dry run | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | | | | | |

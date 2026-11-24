@@ -163,7 +163,8 @@
   - A comparison sheet puts Accord's previews beside FDCP's, to check that the two addons match.
   - `docs/checklists/release.md` gains the checks of the look: the three themes, effects and animations off, the fonts, several UI scales, the panel inside the guild window, the About page.
 - Done when:
-  - [ ] `tools/make_mockups.py` makes every preview; the wiki and both READMEs show the new ones; `tools/check_docs.py` passes.
+  - [x] `tools/make_mockups.py` makes every preview (the 24 of M6.6 in the new look, the Info page in Nebula and Aurora, and a few in Aurora and Accord); the comparison sheet `docs/specs/mockups/compare/` puts them beside FDCP's; `docs/checklists/release.md` has the look checks (step 7); the wiki and both READMEs show the new pictures and no "previous look" note is left; `tools/check_docs.py` passes.
+- Real client: how the real window compares with the previews and with FDCP (the three themes, fonts and textures, UI scales, the panel in the guild window, the About page): [the release check](../checklists/release.md), step 7.
 
 ### M6.17 — Italian wiki
 - Branch: `step/m6-17-wiki-it`

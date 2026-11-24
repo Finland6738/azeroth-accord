@@ -18,8 +18,6 @@
 
 ![Bank, Items: every item once with its total and where it is](../specs/mockups/previews/bank-items.webp)
 
-*The pictures of this page still show the previous look (the game's colours, buttons for the modes and the tabs): the view now has the colours of the chosen theme, a pill for each mode and for each bank tab, the slots as rounded squares, the money chart in a card and the request form in a card with its fields. New pictures come before version `v0.6.0`.*
-
 Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, Items, Inbox for officers, Requests, Log, Donations, Money) are the pills at the top of the view.
 
 - **Tabs**: one pill per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab pills you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.

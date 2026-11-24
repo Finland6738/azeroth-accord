@@ -12,8 +12,6 @@ Click a title to sort, click it again to reverse. Every name has a small square 
 
 ![The Roster grouped by account: Brynn's main with two alts shown under it](../specs/mockups/previews/roster-grouped.webp)
 
-*These pictures still show the previous look (the game's colours, the toolbar with check boxes and menus): the table now has the colours of the chosen theme, as described here. New pictures come before version `v0.6.0`.*
-
 ## The member card
 
 Click a row to open the **member card**: beside the table in a wide panel, over it (with a *Back* button) in a narrow one; the cross closes it. The card has the member's name in the colour of the class, a few **badges** under it (*online* or *not in guild*, *main* or *alt* when the player has other characters, and the addon version) and one box per section. It shows zone, last online, rank, the public note (and the officers' note only if the game lets you read it), the addon version and the professions with where each piece of information comes from (the game, shared by the member and how old, or read from your own character); the boxes of the professions and of the other characters carry their count. Lines that do something (a link to another character, **[Make this my main]**, **[Like this player]**) are in the accent colour: click another character in the card to open its card, or a profession line to see that member's recipes. If the card is longer than the window, scroll it with the mouse wheel.
@@ -22,8 +20,6 @@ Click a row to open the **member card**: beside the table in a wide panel, over 
 ![The member card beside the table: details, professions with their source, the characters of the same account, contacts, likes and the social index](../specs/mockups/previews/member-card.webp)
 
 ![The member card with numbered notes](../specs/mockups/img/02-member-card.webp)
-
-*These pictures still show the previous look (one list of lines, the game's colours): the card is now made of boxes with badges, as described above. New pictures come before version `v0.6.0`.*
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 

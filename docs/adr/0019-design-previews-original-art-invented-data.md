@@ -20,6 +20,15 @@ The wiki and the READMEs should show what the interface looks like, as Azeroth G
 
 Rule 4 (the look is the game's guild window) is superseded by [ADR 0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md): the interface takes the ecosystem style of FDCP, so the previews are redrawn in the new look (Nebula, with a few in Aurora and Accord, plus the About page) in step M6.16. The other rules stay: design previews and not screenshots, original art, invented data, drawn from the addon's texts.
 
+## Update (M6.16)
+
+The previews are drawn again in the new look, with the style sheet and the components of FDCP (read only) and Accord's three themes ([`ui-style.md`](../specs/ui-style.md) §8). Rules 1, 3 and 6 stand. Changes to the others:
+
+- Rule 2 (original art): the pictures in a preview are now the addon's own logo and the NEBULA logos of `assets/` (used with the guild's permission), and the fonts are the ones the addon ships (Outfit, JetBrains Mono, Orbitron, SIL OFL 1.1, from `AzerothAccord/Media/Fonts/`), read from the repository by the local headless browser. Still no game screenshot, icon, texture or font, and no network.
+- Rule 4 (the look): superseded in M6.8; the previews show Nebula, the default theme, with a few in Aurora and in Accord. The game's guild window around the panel is an original imitation of its frame, not game art.
+- Rule 5 (files): WebP quality 80 as before; `docs/specs/mockups/html/accord.css` is generated from `tools/mockup_lib.py`, and `tools/check_docs.py` fails when a preview, the style sheet or an annotated page is missing or out of date, or an image has no scene.
+- New: a comparison sheet, `docs/specs/mockups/compare/accord-vs-fdcp.webp` (`tools/make_compare.py`), puts Accord's previews beside FDCP's to check that the two addons look like one family.
+
 ## Consequences
 
 - Positive: a manual with pictures before the first run in the game; no licensing question about game art; reproducible, light and translatable (the Italian previews come from the Italian locale).

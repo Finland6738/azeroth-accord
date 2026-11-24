@@ -274,7 +274,7 @@ personale in nessun file ([CLAUDE.md](../../CLAUDE.md), privacy).
 | **M6.13** viste 1: Roster, scheda membro, Professions | §3 (Tabella, Card, Badge, Chip, Nome di classe), §6 | §3 |
 | **M6.14** viste 2: Reputation, Bank, Settings, rimozione del vecchio aspetto | §3 (Switch, campi, slider, Dialog, Tooltip), §9 ("Colori solo nel tema") | §2, §3 |
 | **M6.15** Info e crediti | §3 (Card, pillole), `UI/Windows/About.lua` | §5 |
-| **M6.16** anteprime e controllo del rilascio | §8 (anteprime) | §4, §5 |
+| **M6.16** anteprime e controllo del rilascio | §8 (anteprime) | §4, §5, §8 |
 
 ## 7. Cosa non è verificato nel client
 
@@ -290,5 +290,40 @@ proprio, §3). In più, per Accord:
 - il logo come icona del Compartment e della linguetta;
 - la leggibilità di Orbitron e degli accenti italiani nel titolo.
 
-Le anteprime ([ADR 0019](../adr/0019-design-previews-original-art-invented-data.md)) saranno ridisegnate nel nuovo
-aspetto in M6.16 e restano disegni, non screenshot.
+Le anteprime ([ADR 0019](../adr/0019-design-previews-original-art-invented-data.md)) sono ridisegnate nel nuovo
+aspetto (M6.16, §8) e restano disegni, non screenshot.
+
+## 8. Anteprime e confronto con FDCP (M6.16)
+
+Le anteprime di progetto ([`mockups/`](mockups/README.md), [ADR 0019](../adr/0019-design-previews-original-art-invented-data.md)) sono
+disegnate nel nuovo aspetto, con gli strumenti di FDCP adattati (`tools/make_mockups.py`, `mockup_lib.py`, `mockup_scenes*.py`,
+`mockup_spec.py`; sola lettura, ADR 0021):
+
+- **Foglio di stile.** `mockups/html/accord.css` è **generato** da `tools/mockup_lib.py` (`--spec`): i token dei tre temi (gli stessi di
+  `UI/Theme.lua`, §4) come variabili CSS (`:root` è Nebula, `[data-theme="aurora"]` e `[data-theme="accord"]` gli altri) e, per ogni
+  componente del kit, la regola che lo disegna con quei token: pulsanti (primario, secondario, ghost, neon), pillole e chip, segmentato,
+  lista a discesa, campi, interruttore, badge, card, tabella (intestazione in maiuscolo su barra arrotondata, colonna ordinata nel colore
+  d'accento, righe da 28 punti, riga scelta tinta), quadrato di classe, slot della banca. Il nome di classe è nel colore della classe
+  nei temi scuri e nel colore del testo in Aurora, come nell'addon. I font sono quelli dell'addon (`Media/Fonts/`, SIL OFL 1.1): nessun
+  font del gioco e nessuna risorsa dalla rete.
+- **Che cosa si disegna.** Il layout reale: schede lungo il bordo alto (con il conteggio sulla Banca), ricerca e Pop out a destra, riga
+  di stato in fondo nella finestra Gilda, barra del titolo con logo, nome in Orbitron e stato nella finestra autonoma (920 × 600), la
+  pagina Impostazioni e la pagina Info come colonna di card larga 520 con il selettore a pillole in alto. Tutti i testi sono letti dai
+  file di lingua (inglese, e italiano per le anteprime in italiano). La cornice della finestra Gilda del gioco è un'imitazione originale
+  (non arte di Blizzard); il pannello dentro è quello dell'addon.
+- **Quali anteprime.** Le 24 di M6.6 ridisegnate in Nebula (la scheda Accord, Roster in tabella e raggruppato, scheda membro, ricette e
+  *chi può creare*, like, indice sociale, mappa dei gruppi, *qualcuno di nuovo*, i sette modi della Banca, Impostazioni in due parti con la
+  scheda Aspetto, la scatola di diagnostica, la finestra autonoma, tre in italiano) più: la pagina **Info** in Nebula (logo NEBULA scuro) e
+  in Aurora (logo chiaro), una in italiano; il Roster e le richieste della Banca in **Aurora**; la scheda membro e gli oggetti della Banca
+  in **Accord**. Le quattro pagine annotate (`mockups/img/`) mostrano la scheda Accord, la scheda membro, le richieste e il sistema di
+  design (i tre temi e il kit).
+- **Confronto.** `mockups/compare/accord-vs-fdcp.webp` (`tools/make_compare.py`) mette le anteprime di Accord accanto a quelle di FDCP
+  per lo stesso tipo di schermata (tabella, card e interruttori, pagina Info, tema chiaro, tema del logo, token): serve a vedere a colpo
+  d'occhio se i due addon sono ancora una famiglia. È un'immagine committata; si rifà a mano quando cambiano le anteprime di uno dei due.
+- **Controllo.** `tools/check_docs.py` costruisce ogni scena dai file di lingua (un testo rimosso o rinominato rompe l'anteprima che lo
+  usa) e fallisce se manca un'anteprima, se il foglio di stile o una pagina annotata non sono aggiornati, se esiste un'immagine che nessuna
+  scena produce o se manca il foglio di confronto. Nel wiki e nei README non resta alcuna nota "aspetto precedente".
+
+Restano disegni nel browser, **non screenshot**: ogni immagine lo dice nella striscia in basso. Quando il proprietario avrà gli
+screenshot veri, sostituiscono le anteprime vista per vista (ADR 0019, regola 6), e il controllo del rilascio
+([`release.md`](../checklists/release.md), passo 7) confronta lo schermo con l'anteprima e con FDCP.

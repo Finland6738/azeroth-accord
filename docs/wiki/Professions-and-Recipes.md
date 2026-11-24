@@ -14,8 +14,6 @@ The list is a table with the columns *Recipe*, *Details* and *Status*: an icon a
 
 ![A guildmate's recipe list: the source and age of the list, the search, a category menu, difficulty colours, the game's own tooltip and Request craft](../specs/mockups/previews/professions-recipes.webp)
 
-*This picture still shows the previous look (the game's colours, a menu button for the category): the view now has the colours of the chosen theme, as described here. New pictures come before version `v0.6.0`.*
-
 ## When there is no list
 
 If the game does not give the list and the member's addon has not shared it, the panel says why and what to do: nobody who has the list is online (ask the member to open their profession window with Azeroth Accord, it is shared at once), the member does not use the addon, or the list is being requested. When you open a member's recipes and the addon does not have their list yet, it asks for it by whisper (to the member if they are online, else to an officer) and the list appears a few seconds later.
@@ -31,8 +29,6 @@ Open the **Professions** view (`/accord professions`, or the **Professions** tab
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 
 ![Who can craft: the guildmates who know each recipe, online first, with the source and age of their list and a Request craft button](../specs/mockups/previews/professions-who-can-craft.webp)
-
-*This picture still shows the previous look; it is replaced before version `v0.6.0`.*
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 

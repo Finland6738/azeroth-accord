@@ -20,7 +20,7 @@ for f in html/*${1:-}*.html; do
   url="file:///$(topath "$PWD/$f")"
   for mode in annotated clean; do
     if [ "$mode" = clean ]; then out="img/clean/$name.png"; q="?clean"; else out="img/$name.png"; q=""; fi
-    "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,754 \
+    "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --allow-file-access-from-files --window-size=1200,754 \
       --virtual-time-budget=3000 --screenshot="$(topath "$PWD/$out")" "$url$q" >/dev/null 2>&1
     echo "rendered $out"
   done

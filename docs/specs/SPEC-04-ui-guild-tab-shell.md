@@ -51,7 +51,7 @@ Da M6.12 la finestra è un frame dell'addon senza modello di Blizzard ([`ui-styl
 
 Aspetto coerente con la finestra della Gilda di Blizzard (bordi, font e colori del client), così la tab sembra nativa. Icone del client per classi, professioni e oggetti, per fileID o atlas.
 
-**Anteprime di progetto (M6.6).** Prima che l'addon giri nel client vero, l'aspetto di ogni vista principale è mostrato in immagini disegnate dal layout e dai testi dell'addon, con la grafica originale e dati inventati ([`mockups/`](mockups/README.md)): l'aspetto è quello della finestra Gilda del gioco, non una pergamena personalizzata come in Azeroth Guild Finder. Non sono screenshot; ogni immagine lo dice nella striscia in basso. Sono incorporate nel wiki e nei README.
+**Anteprime di progetto (M6.6, ridisegnate in M6.16).** Prima che l'addon giri nel client vero, l'aspetto di ogni vista principale è mostrato in immagini disegnate dal layout e dai testi dell'addon, con la grafica originale e dati inventati ([`mockups/`](mockups/README.md)): dal M6.16 nel nuovo aspetto (Nebula, alcune in Aurora e in Accord, più la pagina Info), con il foglio di stile e i componenti di FDCP ([`ui-style.md`](ui-style.md) §8) e un foglio di confronto con le anteprime di FDCP. Non sono screenshot; ogni immagine lo dice nella striscia in basso. Sono incorporate nel wiki e nei README.
 
 ## 6. Impostazioni (M6.1)
 

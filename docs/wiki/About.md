@@ -15,6 +15,12 @@
 
 The same credits are on the **Info** page of Settings: open it with `/accord about`, or with the **Info** pill at the top of the Settings view (also in the game's own settings window, under *Options → AddOns → Azeroth Accord*). The page shows the addon's logo and version, the credits with the NEBULA logo (the dark one on the Nebula and Accord themes, the light one on Aurora), the links, the licence and the notices.
 
+![The Info page in the theme Nebula: the logo, the version, who made it and with whom, with the dark NEBULA logo](../specs/mockups/previews/about.webp)
+
+![The Info page in the light theme Aurora, scrolled to the credits with the light NEBULA logo, the links and the notices](../specs/mockups/previews/about-aurora.webp)
+
+*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
+
 `/accord about chat` prints the credits and the links in the chat instead.
 
 The game cannot open a web page, so every link is a box: click it, the text is selected, press **Ctrl+C** and paste it into your browser. The boxes cannot be edited.

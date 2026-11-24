@@ -12,8 +12,6 @@
 
 ![Reputation, Likes: one row per player with the same total on every character, and Like, Confirm?, pending, liked and you](../specs/mockups/previews/reputation-likes.webp)
 
-*The pictures of this page still show the previous look (the game's colours, buttons for the modes): the view now has the colours of the chosen theme, a pill for each mode (Likes, Social, Groups, Someone new) and rows with the class-coloured square of the Roster. New pictures come before version `v0.6.0`.*
-
 ### Giving a like
 
 - On a guildmate's **member card** (click their row in the Roster): the *Likes* section shows the total of the player and **[Like this player]**. Click it, then click again within a few seconds to confirm: a like cannot be taken back.
