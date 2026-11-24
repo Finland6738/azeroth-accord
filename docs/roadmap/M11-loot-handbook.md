@@ -8,11 +8,40 @@
 - roster management;
 - loot management.
 
-Loot is documented, not computed: the page describes the system the guild uses and names the loot addon, if one is used. Release: `v0.11.0`.
+Loot is documented, not computed. The loot page says which system the guild uses and names its addon. Accord detects that addon in every member's client and, for FDCP, reads what FDCP publishes. Release: `v0.11.0`.
 
-**Exit criterion:** in game, an officer edits the rules page, and a member who logs in later reads the new version marked as updated.
+**Exit criterion:** in game:
+- an officer edits the rules page, and a member who logs in later reads the new version marked as updated;
+- the loot page names the guild's loot addon, and officers see who in the guild has it loaded.
 
 **Owner's decision (2026-11-19):** no loot engine in Accord. The loot page says which system the guild uses and, if there is one, the addon for it. Accord points to that addon, and reads its data only if it turns out to be possible. This answers SPEC-10 Q6.
+
+**Integration rules (owner, 2026-11-24):** the rules of [M10](M10-calendar-raids.md#integration-rules-owner-2026-11-24) apply here too:
+- one source for every datum;
+- read-only integrations, through a documented public API only;
+- levels 0 (detection) and 1 (reading), never level 2;
+- no loot engine and no attendance in Accord.
+
+## Addons on WoW Forever
+
+What runs on Forever, from a survey of their public pages on 2026-11-24 (CurseForge, GitHub, Wago, wowcalc.net, timesaver.gg, guildmanager.app). None of it has been checked in the game; M11.1 checks the list again and M10.2 confirms the folder names in game.
+
+| Addon | Kind | Loot system | Public API or exchange | Plan in Accord |
+|---|---|---|---|---|
+| **Finland Dragon Credit Points (FDCP)** | loot and raid (same owner) | credits: fewest credits wins, then the roll; council | none yet; Accord asks for a read-only versioned API (SPEC-10 Q10) | level 0 now; level 1 when FDCP publishes the API: season roster, lineup and bench, a member's credits and queue place, the rules summary |
+| **Gargul** | loot | soft reserve, rolls and plus-ones, TMB or DFT wishlists, GDKP | imports from softres.it and TMB; no documented API found | level 0 |
+| **RaidCore** | loot | soft reserve, loot council (from RCLootCouncil Classic) | JSON exports for its own website | level 0 |
+| **WLC** | loot | loot council with votes | CSV and TMB-style export | level 0 |
+| **Forever Loot Manager** | loot | DKP, open-bid auctions | CSV export, also of attendance | level 0 |
+| **NostalgiaForeverLC** | loot (alpha) | hard and soft reserve, raid leader hands out | text import and export, softres.it CSV | level 0 |
+| **RollForMe** | loot | +1 / MS / OS rolls, soft reserve, DKP, council | not known (the page did not load) | level 0, if M11.1 confirms it |
+| **GuildOS** | guild management with loot | MS/OS rolls, TMB, wishlists, DKP, or "External / Off" | its website and Discord bot; raids put into the game calendar | level 0; its calendar events reach Accord through the game calendar (M10.5) |
+| **Guild Manager** | guild management with soft reserve | soft reserve; points and council in its companion app | companion app | level 0 |
+
+Notes:
+- **RCLootCouncil** had no Forever file at the time of the survey; RaidCore says standalone RCLootCouncil clients do not get its council requests.
+- **GDKP:** Blizzard stated that GDKP is not allowed in WoW Forever, at least in North America and Europe (reported by guildmanager.app, not checked at the source). Accord's templates and texts never propose it.
+- **Guild-management addons** (GuildOS, Guild Manager) overlap with Accord itself, not only with M10 and M11. Accord shares with them only what the game shares: the calendar and the guild roster. It does not read their data.
 
 ### M11.1 — Specification
 - Branch: `step/m11-1-spec`
@@ -20,10 +49,11 @@ Loot is documented, not computed: the page describes the system the guild uses a
   - the `handbook` data set: pages, revisions, size limits, who can write;
   - the reader and the editor;
   - the default pages;
-  - the loot page and its addon field.
-  It also checks which loot addons Forever guilds use and whether any exposes its data.
+  - the loot page: the guild's loot system, the chosen addon, detection and the FDCP provider.
+
+  It updates the survey above (which addons run on Forever then, their folder names, whether any has gained a public API). It records which data FDCP's API would give to a member's client and which only to an officer's.
 - Done when:
-  - [ ] SPEC-15 is linked from the spec index; SPEC-10 Q6 is marked answered; `tools/check_docs.py` passes.
+  - [ ] SPEC-15 is linked from the spec index; SPEC-10 Q6 stays answered and Q10 is updated; `tools/check_docs.py` passes.
 
 ### M11.2 — Handbook data
 - Branch: `step/m11-2-handbook-data`
@@ -56,23 +86,40 @@ Loot is documented, not computed: the page describes the system the guild uses a
 ### M11.5 — Default pages
 - Branch: `step/m11-5-default-pages`
 - Spec: SPEC-15
-- Scope: empty templates with headings for guild info, rules, FAQ, raid management, roster management (linked to the season roster of M10) and loot management. Officers fill them in game; the templates hold no guild-specific text.
+- Scope: empty templates with headings for guild info, rules, FAQ, raid management, roster management (linked to the season roster of M10 and to its source) and loot management. Officers fill them in game; the templates hold no guild-specific text.
 - Done when:
   - [ ] A new guild gets the templates once; deleting one does not bring it back.
 
-### M11.6 — Loot page and loot addon
+### M11.6 — Loot page and loot addons
 - Branch: `step/m11-6-loot`
-- Spec: SPEC-15
+- Spec: SPEC-15; ADR 0022
 - Scope:
   - the loot page's text, written by officers, with a link to the season roster ("loot follows the declared spec");
-  - a field naming the loot addon and where to get it;
-  - whether each member's client has that addon loaded, shared in the `HELLO` summary;
-  - reading the addon's data only if M11.1 found that it is possible.
+  - two fields chosen by officers:
+    - the guild's **loot system**: rolls MS/OS, soft reserve, loot council, DKP, credits, other;
+    - the **loot addon**: one of the known addons of M10.2, "other" with a name, or none;
+  - who in the guild has that addon loaded (from the `HELLO` field of M10.2), with the version, and a list of who lacks it for officers;
+  - the download address in a read-only box to copy;
+  - with no addon chosen, the page shows nothing about addons and suggests FDCP, the family's loot addon.
 - Done when:
-  - [ ] Officers see who has the loot addon; without an addon named, nothing is checked.
+  - [ ] Officers see who has the chosen addon; without an addon chosen, nothing is checked; the suggestion is a locale text, not guild data.
 
-### M11.7 — In-game check and release
-- Branch: `step/m11-7-check`
+### M11.7 — FDCP reading
+- Branch: `step/m11-7-fdcp`
+- Spec: SPEC-15; ADR 0022; SPEC-10 Q10
+- Depends on: FDCP's public read-only API (a step in the FDCP repository).
+- Scope:
+  - the FDCP provider at level 1: a member's credits and place in the loot queue on the member card, when this client has them;
+  - the season roster and the lineup for M10;
+  - FDCP's rules as a read-only summary beside the loot page, never copied into it;
+  - an unknown API version falls back to level 0 without errors.
+  - If FDCP has no API when this step comes, the step only records that and stays open.
+- Done when:
+  - [ ] With FDCP loaded and its API known, the member card shows the credits that FDCP shows; with FDCP missing, disabled or of an unknown API version, nothing breaks and level 0 remains (`Tests/test_integrations.lua`).
+- Real client: FDCP and Accord loaded together, a `/reload`, and the order in which the two addons load.
+
+### M11.8 — In-game check and release
+- Branch: `step/m11-8-check`
 - Scope: `docs/checklists/M11.md` and the README status. The owner releases `v0.11.0`.
 - Done when:
   - [ ] The checklist exists.

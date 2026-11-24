@@ -14,8 +14,8 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M7** | [M7-data-trust.md](M7-data-trust.md) | Provenance, guild of alts outside the guild, demo, backup, "what I share", hardening | 8 | final check |
 | **M8** | [M8-officer-tools.md](M8-officer-tools.md) | Roster timeline, inactivity, cleanup wizard, manual-ops queue, notes, export | 7 | final check |
 | **M9** | [M9-action-center.md](M9-action-center.md) | Action Center, notifications, quiet hours, login digest | 6 | final check |
-| **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, events and sign-ups, composition, availability, rallies | 8 | final check |
-| **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented | 7 | final check |
+| **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, sign-ups on the game calendar, composition, availability, rallies; raid and loot addons detected, one source per datum | 9 | final check |
+| **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented, detected in the guild, FDCP read through its API | 8 | final check |
 | **M12** | [M12-recruitment.md](M12-recruitment.md) | Recruitment, trials, onboarding, mentors | 6 | final check |
 | **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, wishlist, buy and sell board, goals | 7 | final check |
 | **M14** | [M14-board-polls.md](M14-board-polls.md) | Board, MOTD history, polls, kudos | 6 | final check |

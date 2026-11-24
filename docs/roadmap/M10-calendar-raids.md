@@ -2,14 +2,17 @@
 
 **Goal:**
 - the guild's own season raid roster: every raider declares once per season what they play;
-- event sign-ups, bench and composition;
+- event sign-ups on the game calendar, bench and composition;
 - an availability map;
-- PvP and world rallies.
-Attendance tracking is optional and off by default. Release: `v0.10.0`.
+- PvP and world rallies;
+- all of it working **with** the raid and loot addons the guild already uses, never against them.
+
+Release: `v0.10.0`.
 
 **Exit criterion:** in game:
 - three members declare MS1, MS2 and OS for the season, and an officer sees the role counts and the gaps;
-- a member signs up to an event as tentative, and the officer sees it in the composition.
+- a member signs up to an event as tentative from Accord, and the same answer shows in the game's calendar;
+- with Finland Dragon Credit Points (FDCP) loaded and chosen as the source, the season roster shows FDCP's declarations and Accord asks for none.
 
 **Owner's model (2026-11-19):** the season roster is not a sign-up and not an attendance register. It says what each raider plays for the whole season:
 - **MS1**, required: the main spec, with its role (tank, healer, melee dps or ranged dps);
@@ -19,69 +22,112 @@ Attendance tracking is optional and off by default. Release: `v0.10.0`.
 
 The declaration holds for the season and changes only when a new season opens, because loot follows the declared spec. Each member edits only their own entry. Declaring is optional.
 
+## Integration rules (owner, 2026-11-24)
+
+A review of M10 and M11 against FDCP and the other loot addons that run on WoW Forever found that the first plan overlapped them:
+- FDCP already keeps the season pool (MS1, MS2, OS, role, availability, locked for the season), the bench rotation and the attendance per boss;
+- FDCP reads the sign-ups of the game's calendar and gives +1 credit to a raider who did not sign up, so a sign-up kept only inside Accord would cost that raider a credit;
+- other addons on Forever keep their own rosters, attendance or calendars (the survey is in [M11](M11-loot-handbook.md#addons-on-wow-forever)).
+
+So M10 and M11 follow these rules:
+1. **One source for every datum.** The season roster, the lineup and bench, and the attendance belong to one addon per guild. The **source is a guild setting** chosen by an officer and synced to everyone, not a guess of each client, so that every member sees the same truth.
+2. **The game calendar is the shared ground.** Events and sign-ups are read from and written to the game's calendar. Every addon (FDCP, GuildOS, the game's own interface) then sees the same answers. An event that lives only in Accord is a fallback for a client without the calendar, and is marked so.
+3. **Integrations are read-only.** Accord never writes another addon's data and never reads another addon's saved variables directly: their layout changes without notice. It reads only a **documented, versioned public API**. Without one, Accord only detects the addon and points to it.
+4. **Three levels.**
+   - Level 0, detection: the addon is loaded, its version, who in the guild has it, a button or command to open it.
+   - Level 1, reading: through the addon's public API, when one exists and its version is known.
+   - Level 2, two-way exchange: never.
+5. **If nothing is there, Accord offers it, except loot.** Without a raid addon chosen as source, Accord's own season roster, sign-ups, composition and availability work by themselves. A loot engine is never built (owner's decision of 2026-11-19, SPEC-10 Q6). The loot page names the addon to use instead.
+6. **No attendance in Accord.** Attendance belongs to the raid or loot addon. FDCP keeps it per boss, for officers only. Accord keeps only the availability map, which counts no presence at raids.
+7. **Traffic is shared.** Accord and the other addons send on the same channels under the same server limits. The traffic budget of SPEC-09 counts the guild's other addons, and Accord stays quiet during boss fights as FDCP does.
+
 ### M10.1 — Specification
 - Branch: `step/m10-1-spec`
-- Scope: write a new SPEC-14 ("Calendario, raid e roster della season"), in Italian, from the owner's model above. It covers the `season` data set and its trust rules, events and sign-up states, bench and composition, the availability map, rallies, and optional attendance. It checks `C_Calendar` against the Forever dump and adds a capability for it.
+- Scope:
+  - write a new SPEC-14 ("Calendario, raid e roster della season"), in Italian, from the owner's model and the integration rules above. It covers:
+    - the `season` data set and its trust rules;
+    - the source setting and the providers;
+    - events and sign-ups on the game calendar (`C_Calendar.EventSignUp` and the invite answers, checked against the Forever dump) with the fallback;
+    - bench and composition, the availability map and rallies.
+  - ADR 0022 "Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared".
+  - A note in SPEC-09 on the shared traffic budget.
+  - The FDCP API Accord needs, written as a request for the FDCP repository (SPEC-10 Q10).
 - Done when:
-  - [ ] SPEC-14 is linked from the spec index; open points go to SPEC-10; `tools/check_docs.py` passes.
+  - [ ] SPEC-14 and ADR 0022 are linked from their indexes; open points go to SPEC-10; `tools/check_docs.py` passes.
 
-### M10.2 — Seasons and declarations
-- Branch: `step/m10-2-season`
+### M10.2 — Detection of raid and loot addons
+- Branch: `step/m10-2-detection`
+- Spec: SPEC-14; ADR 0022
+- Scope:
+  - `Data/Integrations.lua`: a table of known addons with their folder name, kind (loot, raid, guild management) and level. The folder names are confirmed in game before they are trusted.
+  - Each one is checked with `C_AddOns.IsAddOnLoaded` and its version is read with `C_AddOns.GetAddOnMetadata`, both through Compat.
+  - The `HELLO` summary gains a compact field: which known addons this client has loaded.
+  - Officers see, per addon, who has it in the guild.
+  - A provider interface (season roster, lineup, loot) with Accord's own provider and the FDCP provider. The FDCP provider stays at level 0 until FDCP publishes its API.
+- Done when:
+  - [ ] Detection works with each known addon loaded, missing or disabled; an unknown version of the FDCP API falls back to level 0; nothing of another addon is ever written (`Tests/test_integrations.lua`).
+- Real client: the folder names and versions of the known addons on Forever.
+
+### M10.3 — Seasons, source and declarations
+- Branch: `step/m10-3-season`
 - Spec: SPEC-14
 - Scope:
-  - officers open a season (name, start date);
-  - each raider writes their own entry: MS1 with its role, MS2, OS and a note, or "not sure yet";
-  - the entry is locked until the next season;
-  - the data set is synced on `GUILD`, and only the author can write their entry.
+  - officers open a season (name, start date) and choose the **source** of the season roster: Accord, or FDCP when it is detected;
+  - with Accord as source, each raider writes their own entry (MS1 with its role, MS2, OS and a note, or "not sure yet"). The entry is locked until the next season. The data set is synced on `GUILD`, and only the author can write their entry;
+  - with FDCP as source, Accord asks for no declaration. It shows FDCP's (level 1) or a button to open FDCP (level 0).
 - Done when:
-  - [ ] An entry cannot change inside a season; a new season starts with empty entries and keeps the old season readable; a forged entry from another author is refused.
+  - [ ] An entry cannot change inside a season; a new season starts with empty entries and keeps the old season readable; a forged entry from another author is refused; with FDCP as source, no Accord entry can be written.
 
-### M10.3 — Season roster for officers
-- Branch: `step/m10-3-season-view`
+### M10.4 — Season roster for officers
+- Branch: `step/m10-4-season-view`
 - Spec: SPEC-14
 - Scope:
-  - officers see the tank, healer, melee and ranged counts by MS1, the cover MS2 would add, and the gaps against a target composition they set;
+  - officers see the tank, healer, melee and ranged counts by MS1, the cover MS2 would add, and the gaps against a target composition they set, from whichever source is chosen;
   - every member sees the declarations;
   - export as Discord-ready text.
 - Done when:
-  - [ ] The counts match the declarations; members without an entry are listed separately, not as a gap.
+  - [ ] The counts match the declarations of the chosen source; members without an entry are listed separately, not as a gap.
 
-### M10.4 — Events and sign-ups
-- Branch: `step/m10-4-events`
+### M10.5 — Events and sign-ups on the game calendar
+- Branch: `step/m10-5-events`
 - Spec: SPEC-14
 - Scope:
-  - guild events, read from the game calendar when the client allows it, otherwise created in the addon;
-  - sign-up states: accepted, tentative, declined and no response;
-  - the role is preselected from MS1 or MS2.
+  - guild events are read from the game calendar, including those other addons or websites put there;
+  - signing up from Accord writes the answer into the game calendar (accepted, tentative, declined), so FDCP and the game's own interface see it;
+  - the role is preselected from MS1 or MS2;
+  - only when the client has no usable calendar, events and sign-ups are kept in the addon, marked "not in the game calendar".
 - Done when:
-  - [ ] Sign-ups converge on every client; a member without a season entry can still sign up.
+  - [ ] A sign-up made in Accord is the same answer in the game calendar; a sign-up made in the game's calendar shows in Accord; addon-only events exist only when the calendar is missing; a member without a season entry can still sign up.
+- Real client: signing up and answering an invite on Forever; the calendar's status codes.
 
-### M10.5 — Bench and composition
-- Branch: `step/m10-5-composition`
-- Spec: SPEC-14
-- Scope: officers place signed-up players in the raid or on the bench, and see the composition against the target. MS2 is offered when a role is short.
-- Done when:
-  - [ ] Only officers can change the composition; the members see where they are placed.
-
-### M10.6 — Availability map and optional attendance
-- Branch: `step/m10-6-availability`
+### M10.6 — Bench and composition
+- Branch: `step/m10-6-composition`
 - Spec: SPEC-14
 - Scope:
-  - when members usually play, from presence over time, shown by day and hour;
-  - attendance counting is a guild setting, off by default, that officers can turn on.
+  - with Accord as source: officers place signed-up players in the raid or on the bench, and see the composition against the target. MS2 is offered when a role is short;
+  - with FDCP as source: the night's lineup and bench are FDCP's. Accord shows them read-only (level 1) or points to FDCP (level 0), and offers no bench of its own.
 - Done when:
-  - [ ] With the setting off, nothing about attendance is recorded or sent.
+  - [ ] Only officers can change the composition; the members see where they are placed; with FDCP as source, no composition can be written in Accord.
 
-### M10.7 — PvP and world rallies
-- Branch: `step/m10-7-rallies`
+### M10.7 — Availability map
+- Branch: `step/m10-7-availability`
+- Spec: SPEC-14
+- Scope:
+  - when members usually play, from their presence online over time, shown by day and hour;
+  - **no attendance**: Accord counts no presence at raids (integration rule 6).
+- Done when:
+  - [ ] The map is built from online presence only; nothing about raid attendance is recorded or sent.
+
+### M10.8 — PvP and world rallies
+- Branch: `step/m10-8-rallies`
 - Spec: SPEC-14
 - Scope: a quick call with a meeting point in text and a start time, answered with "coming" or "not coming". Exact positions are never shared.
 - Done when:
   - [ ] A rally expires by itself; no coordinates are sent.
 
-### M10.8 — In-game check and release
-- Branch: `step/m10-8-check`
-- Scope: `docs/checklists/M10.md` and the README status. The owner releases `v0.10.0`.
+### M10.9 — In-game check and release
+- Branch: `step/m10-9-check`
+- Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without) and the README status. The owner releases `v0.10.0`.
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.10.0`.
