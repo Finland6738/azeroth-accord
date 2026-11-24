@@ -1,5 +1,7 @@
 # FAQ
 
+*Italiano: [[Domande frequenti|FAQ-it]]*
+
 **Do all guildmates need the addon?** No. Some data comes from the game for everyone (when the game provides it). Alts, contacts, shared recipes and bank snapshots exist only for members who use the addon.
 
 **Can I hide my alts?** No: the list of your characters is always shared with the guild (owner's decision, see Privacy and data). It only shows characters of your own Battle.net account on the realm where you played with the addon.

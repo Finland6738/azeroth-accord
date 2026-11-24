@@ -1,5 +1,7 @@
 # Reporting bugs and feedback
 
+*Italiano: [[Segnalare bug e dare feedback|Reporting-Bugs-and-Feedback-it]]*
+
 Open an issue in the repository with the *Bug report* form, or share ideas and questions in the Feedback discussions. Test results from the real game have their own form, *In-game test report*.
 
 ## The report

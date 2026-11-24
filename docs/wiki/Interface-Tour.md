@@ -1,5 +1,7 @@
 # Interface tour
 
+*Italiano: [[Giro dell'interfaccia|Interface-Tour-it]]*
+
 ## The Accord tab
 
 Open the guild window (default key `J`). Under the four tabs of the game (Chat, Roster, Guild Benefits, Guild Info) there is a fifth one with the Accord logo: **Accord**. Its tooltip says *Azeroth Accord*.

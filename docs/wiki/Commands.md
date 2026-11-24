@@ -1,5 +1,7 @@
 # Commands
 
+*Italiano: [[Comandi|Commands-it]]*
+
 Type them in the chat box. `/acc` works everywhere `/accord` does.
 
 | Command | What it does |

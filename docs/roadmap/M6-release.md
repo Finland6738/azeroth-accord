@@ -171,4 +171,4 @@
 - Spec: ADR 0015 (changed: the manual is also in Italian)
 - Scope: an Italian twin `<Page>-it.md` of every wiki page, a language link at the top of each page, and both languages in `_Sidebar.md`. `tools/check_docs.py` checks that every page has its twin and that both show the same images.
 - Done when:
-  - [ ] Every wiki page has its Italian twin; ADR 0015 records the change; `tools/check_docs.py` passes.
+  - [x] Every wiki page has its Italian twin; ADR 0015 records the change; `tools/check_docs.py` passes.

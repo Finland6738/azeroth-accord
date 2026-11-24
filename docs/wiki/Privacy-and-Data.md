@@ -1,5 +1,7 @@
 # Privacy and data
 
+*Italiano: [[Privacy e dati|Privacy-and-Data-it]]*
+
 The addon has no server, sends nothing outside the game and collects no telemetry. Everything travels only to **your guild**, over the guild's hidden addon channels.
 
 | Who sees it | What |

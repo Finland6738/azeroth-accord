@@ -1,6 +1,6 @@
 # Instructions for development sessions
 
-The owner speaks Italian: talk to them in Italian. Code, commits, pull requests, issues, README, wiki and ADRs are in English; the specification in `docs/specs/` is in Italian ([ADR 0015](docs/adr/0015-interface-and-documentation-languages.md)).
+The owner speaks Italian: talk to them in Italian. Code, commits, pull requests, issues, README and ADRs are in English; the wiki is bilingual (every `docs/wiki/<Page>.md` has an Italian twin `<Page>-it.md`, same images, and `tools/check_docs.py` checks it); the specification in `docs/specs/` is in Italian ([ADR 0015](docs/adr/0015-interface-and-documentation-languages.md)).
 
 ## Where things are
 

@@ -1,5 +1,7 @@
 # Settings
 
+*Italiano: [[Impostazioni|Settings-it]]*
+
 Open it with `/accord settings`, or from the **Settings** tab of the panel. The same page is also in the game's own settings window, under *Options → AddOns → Azeroth Accord*. A change made in one place shows in the other at once, and every change is saved as you make it.
 
 The page scrolls with the mouse wheel.

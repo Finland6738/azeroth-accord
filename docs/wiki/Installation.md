@@ -1,5 +1,7 @@
 # Installation
 
+*Italiano: [[Installazione|Installation-it]]*
+
 > **Not available yet.** The first test version (`v0.1.0`) comes at the end of milestone M1.
 
 When it is out:

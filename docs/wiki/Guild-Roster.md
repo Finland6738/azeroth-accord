@@ -1,5 +1,7 @@
 # Guild roster
 
+*Italiano: [[Roster di gilda|Guild-Roster-it]]*
+
 > Available from the roster version (milestone M2). The Likes and Social columns arrive with milestone M4 (Likes: the player's total, green when you liked them, grey while your like is pending; Social: the social index, a dash under 5 hours of group play, shown only to officers and the Guild Master). The profession cells open the member's recipes from the professions version (milestone M3): see [[Professions and Recipes|Professions-and-Recipes]].
 
 The **Roster** view is a table of every member: name, level, class, rank, zone, last online, **profession 1** and **profession 2**, likes, social index, Battle.net and Discord. Click a column header to sort (a second click reverses; the sorted column's title is in the accent colour with an arrow, and members with nothing in that column always go last); use the search box at the top right of the tabs (name or profession) and the filters: the buttons *Online*, *Mains only* and *By account* (lit while they are on) and the *Class*, *Rank* and *Profession* lists (the first entry of each shows everything again); *Columns* opens a list of checks to choose which columns to show, and your choices are remembered for each character. When the panel is narrow the filters continue on a second line. The table stays fast with a guild of 1000 members.

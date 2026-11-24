@@ -1,5 +1,7 @@
 # Professions and recipes
 
+*Italiano: [[Professioni e ricette|Professions-and-Recipes-it]]*
+
 > Available from the professions version (milestone M3): recipe lists, **who can craft** and **Request craft**.
 
 ## Opening a member's recipes

@@ -1,5 +1,7 @@
 # Likes and social index
 
+*Italiano: [[Like e indice sociale|Likes-and-Social-Index-it]]*
+
 > Available from the reputation version (milestone M4): likes, the social index, the group map and *Play with someone new*. **Recording of group play started earlier, in milestone M2** (see below), so that the index has weeks of history when it appears.
 
 ## Likes

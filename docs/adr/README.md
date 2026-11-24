@@ -22,7 +22,7 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0012](0012-git-flow-and-automated-shipping.md) | Git flow and automated shipping of milestone steps | accepted |
 | [0013](0013-github-wiki-generated-from-docs-wiki.md) | The GitHub wiki: a user manual generated from `docs/wiki/` | accepted |
 | [0014](0014-automatic-rules-ci-docs-rule-wiki-sync.md) | Automatic rules: CI, a docs rule and the wiki sync | accepted |
-| [0015](0015-interface-and-documentation-languages.md) | Interface in English and Italian; documentation languages | accepted |
+| [0015](0015-interface-and-documentation-languages.md) | Interface in English and Italian; documentation languages (the manual is bilingual) | accepted |
 | [0016](0016-offline-tests-with-lupa-and-a-mock-client.md) | Offline tests with lupa and a mock client | accepted |
 | [0017](0017-license-gpl-3.md) | Licence: GNU GPL v3.0 | accepted |
 | [0018](0018-reuse-azeroth-guild-finder-foundations.md) | Reuse the foundations of Azeroth Guild Finder | accepted |

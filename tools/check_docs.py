@@ -2,6 +2,8 @@
 
   1. Every relative link in a tracked Markdown file points to an existing file (anchors are not checked).
   2. Every page of docs/wiki/ is listed in docs/wiki/_Sidebar.md, and wiki links ([[Text|Page]] or (Page)) resolve.
+     Every wiki page also has an Italian twin <Page>-it.md (ADR 0015) that shows the same images and links only to
+     Italian pages (apart from its language link to the English page); _Sidebar and _Footer hold both languages.
   3. The ADR index (docs/adr/README.md) lists every ADR file, and every listed ADR exists.
   4. Privacy: no tracked text file contains an email address (except GitHub noreply addresses) or a personal path
      (a drive letter path, /home/<name> or /Users/<name>).
@@ -80,6 +82,63 @@ def check_wiki(problems):
                 problems.append(f"docs/wiki/{page}.md: link to a missing wiki page -> {ref}")
 
 
+IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")
+WIKI_REF = re.compile(r"\[\[(?:[^\]|]*\|)?([^\]]+)\]\]|\]\(([A-Za-z0-9-]+)(?:#[^)]*)?\)")
+
+
+def twin_problems(texts):
+    """texts: {page name: Markdown text} of the wiki. Returns the problems with the Italian twins: a page without its
+    -it twin (or a twin without its English page), a different set of images, or an Italian page that links to an
+    English one other than through its language line (the first line after the title that starts with 'English:')."""
+    problems = []
+    for page in sorted(texts):
+        if page in ("_Sidebar", "_Footer"):
+            continue
+        if page.endswith("-it"):
+            if page[:-3] not in texts:
+                problems.append(f"docs/wiki/{page}.md has no English page {page[:-3]}.md")
+                continue
+            body = "\n".join(l for l in texts[page].splitlines() if not l.startswith("*English:"))
+            for m in WIKI_REF.finditer(body):
+                ref = (m.group(1) or m.group(2)).split("#")[0]
+                if not ref.endswith("-it"):
+                    problems.append(f"docs/wiki/{page}.md: link to an English page -> {ref}")
+            continue
+        twin = texts.get(page + "-it")
+        if twin is None:
+            problems.append(f"docs/wiki/{page}.md has no Italian twin {page}-it.md")
+            continue
+        if set(IMAGE.findall(texts[page])) != set(IMAGE.findall(twin)):
+            problems.append(f"docs/wiki/{page}.md and {page}-it.md do not show the same images")
+    for page in ("_Sidebar", "_Footer"):
+        if page in texts and "-it" not in texts[page] and page == "_Sidebar":
+            problems.append("docs/wiki/_Sidebar.md does not list the Italian pages")
+    return problems
+
+
+def check_twins(problems):
+    folder = os.path.join(ROOT, "docs", "wiki")
+    texts = {}
+    for f in os.listdir(folder):
+        if f.endswith(".md"):
+            texts[f[:-3]] = read(f"docs/wiki/{f}").decode("utf-8")
+    problems.extend(twin_problems(texts))
+    # the check's own cases
+    img = "![a](../x.webp)"
+    cases = [
+        ({"Home": img, "Home-it": img}, 0),
+        ({"Home": img}, 1),
+        ({"Home": img, "Home-it": ""}, 1),
+        ({"Home": "", "Home-it": "[[Home|Home]]"}, 1),
+        ({"Home": "", "Home-it": "*English: [[Home|Home]]*\n[[Altro|Other-it]]", "Other": "", "Other-it": ""}, 0),
+        ({"Home-it": ""}, 1),
+    ]
+    for texts_, expected in cases:
+        got = len([p for p in twin_problems(texts_) if "_Sidebar" not in p])
+        if got != expected:
+            problems.append(f"tools/check_docs.py: twin check gave {got} problem(s) for {sorted(texts_)}, expected {expected}")
+
+
 def check_adr_index(problems):
     folder = os.path.join(ROOT, "docs", "adr")
     files = sorted(f for f in os.listdir(folder) if re.match(r"^\d{4}-.+\.md$", f))
@@ -140,6 +199,7 @@ def main():
     files = tracked_files()
     check_links([f for f in files if f.endswith(".md")], problems)
     check_wiki(problems)
+    check_twins(problems)
     check_adr_index(problems)
     check_text_files(files, problems)
     check_rules(problems)

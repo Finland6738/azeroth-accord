@@ -1,4 +1,4 @@
-**[[Home|Home]]**
+**[[Home|Home]]** · **[[Italiano|Home-it]]**
 
 **Getting started**
 - [[Installation|Installation]]
@@ -15,5 +15,21 @@
 **Reference**
 - [[Privacy and Data|Privacy-and-Data]]
 - [[FAQ|FAQ]]
-- [[About and credits|About]] ([[Informazioni|About-it]])
+- [[About and credits|About]]
 - [[Reporting Bugs and Feedback|Reporting-Bugs-and-Feedback]]
+
+---
+
+**Italiano**
+- [[Installazione|Installation-it]]
+- [[Giro dell'interfaccia|Interface-Tour-it]]
+- [[Comandi|Commands-it]]
+- [[Impostazioni|Settings-it]]
+- [[Roster di gilda|Guild-Roster-it]]
+- [[Professioni e ricette|Professions-and-Recipes-it]]
+- [[Like e indice sociale|Likes-and-Social-Index-it]]
+- [[Banca di gilda|Guild-Bank-it]]
+- [[Privacy e dati|Privacy-and-Data-it]]
+- [[Domande frequenti|FAQ-it]]
+- [[Informazioni e crediti|About-it]]
+- [[Segnalare bug e dare feedback|Reporting-Bugs-and-Feedback-it]]

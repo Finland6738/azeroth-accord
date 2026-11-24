@@ -4,7 +4,7 @@
 
 ![Logo di Azeroth Accord](../../assets/logo-source.webp)
 
-**Azeroth Accord** è un addon di gilda per World of Warcraft: Forever: una sola finestra con il roster, le professioni, le reputazioni e la banca di gilda. Funziona solo nel tuo client, e quello che condivide va solo alla tua gilda ([[Privacy and Data|Privacy-and-Data]]).
+**Azeroth Accord** è un addon di gilda per World of Warcraft: Forever: una sola finestra con il roster, le professioni, le reputazioni e la banca di gilda. Funziona solo nel tuo client, e quello che condivide va solo alla tua gilda ([[Privacy e dati|Privacy-and-Data-it]]).
 
 ## Crediti
 
