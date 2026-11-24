@@ -269,6 +269,26 @@ describe("ROS-02: grouped by account", function()
 		eq(m:Count(), 5)
 	end)
 
+	it("the row of an alt outside the guild says its guild and last login, or that it has none (M7.3)", function()
+		local m = grouped()
+		m:ToggleExpand(A().Accounts:GroupOf(BOB).id)
+		local day = GetServerTime() - GetServerTime() % 86400
+		local rec = A().Store:Records("accounts")[BOB]
+		rec.chars[3].guild, rec.chars[3].seen = "Other Guild", day - 2 * 86400
+		A().Accounts:MarkDirty()
+		m:Invalidate()
+		local out = m:Rows()[4].entry
+		eq(M().Cell("lastOnline", out), "Other guild: Other Guild · seen 2 d ago")
+		rec.chars[3].guild = ""
+		A().Accounts:MarkDirty()
+		m:Invalidate()
+		eq(M().Cell("lastOnline", m:Rows()[4].entry), "No guild · seen 2 d ago")
+		rec.chars[3].guild, rec.chars[3].seen = nil, nil
+		A().Accounts:MarkDirty()
+		m:Invalidate()
+		eq(M().Cell("lastOnline", m:Rows()[4].entry), "not in guild")
+	end)
+
 	it("orders the accounts by their main's value, and the alts like any list", function()
 		local m = grouped()
 		m:ExpandAll(true)

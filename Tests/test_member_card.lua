@@ -107,6 +107,28 @@ describe("the content", function()
 		truthy(section.lines[2].muted)
 	end)
 
+	it("says the guild and the last login of an alt outside the guild instead of 'not in guild' (M7.3)", function()
+		setup()
+		local rec = A().Store:Records("accounts")[BOB]
+		local day = GetServerTime() - GetServerTime() % 86400
+		rec.chars[3].guild, rec.chars[3].seen = "Les Chevaliers d'Épée", day - 3 * 86400
+		A().Accounts:MarkDirty()
+		local lines, section = text(desc(BOBALT), "account")
+		deepEq(lines, { "Bob (50 Mage) - main", "Elsewhere (12 Hunter) - Other guild: Les Chevaliers d'Épée · seen 3 d ago" })
+		eq(section.lines[2].prov.set, "altGuild"); eq(section.lines[2].prov.source, "shared"); eq(section.lines[2].prov.author, BOB)
+		-- its own card says it too, under the explanation of why it is not in the roster
+		local d = Card().Describe(Card().EntryFor(OUT))
+		deepEq(text(d, "details"), { "Not in this guild: listed by the member's other characters.",
+			"Other guild: Les Chevaliers d'Épée · seen 3 d ago" })
+		rec.chars[3].guild, rec.chars[3].seen = "", day
+		A().Accounts:MarkDirty()
+		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12 Hunter) - No guild · seen today")
+		rec.chars[3].guild, rec.chars[3].seen = nil, nil
+		A().Accounts:MarkDirty()
+		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12 Hunter) - not in guild")
+		deepEq(text(Card().Describe(Card().EntryFor(OUT)), "details"), { "Not in this guild: listed by the member's other characters." })
+	end)
+
 	it("tells the main that it is the main, and the others who the alts are", function()
 		local lines = text(desc(BOB), "account")
 		eq(lines[1], "This is the main character.")

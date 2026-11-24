@@ -30,8 +30,8 @@ The About page and the credits, first planned here, moved to M6.15 (2026-11-23).
   - Characters known only from a public note show no guild.
   - Older clients ignore the new fields. The record stays inside its size limit.
 - Done when:
-  - [ ] On a third client, an alt in another guild shows that guild's name and age; an alt with no guild shows "No guild"; a change of guild shows after that alt logs in again (`Tests/test_accounts.lua`).
-  - [ ] The wiki page on alts explains what is shown, that it is as old as the last login of that alt, and that the other guild does not see Accord's data.
+  - [x] On a third client, an alt in another guild shows that guild's name and age; an alt with no guild shows "No guild"; a change of guild shows after that alt logs in again (`Tests/test_accounts.lua`).
+  - [x] The wiki page on alts explains what is shown, that it is as old as the last login of that alt, and that the other guild does not see Accord's data.
 - Real client: the guild name read at login (`GetGuildInfo("player")`) on an alt in another guild, and its spelling with spaces and accents.
 
 ### M7.4 — Demo mode

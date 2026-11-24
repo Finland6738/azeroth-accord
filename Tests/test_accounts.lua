@@ -381,6 +381,235 @@ describe("ACC-05: hints from public notes", function()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------
+-- M7.3: the guild of the alts outside the guild and the day of their last login (SPEC-11 §2)
+-----------------------------------------------------------------------------------------------------------------------
+local DAYSEC = 86400
+
+-- an alt of this account, last played on `at`, in guild `key` ("" = none; nil = never read, as before M7.3)
+local function altOf(guid, name, key, at)
+	local e = A():Register{ guid = guid, name = name, realm = "TestRealm", classID = 5, level = 20, guild = key }
+	e.seen = at
+	if key == nil then e.guildAt = nil end
+	return e
+end
+
+local function recordOf(guid)
+	for _, c in ipairs(S():Get("accounts", ME).chars) do if c.guid == guid then return c end end
+end
+
+describe("the own record: guild and last login of an alt (M7.3)", function()
+	before_boot(function(M) guild() end)
+
+	it("an alt in another guild carries the guild's NAME and the day of its last login", function()
+		local t = GetServerTime()
+		altOf(OUT, "Elsewhere", "TestRealm/Other Guild", t - 3 * DAYSEC - 777)
+		truthy(A():Publish())
+		local c = recordOf(OUT)
+		eq(c.guild, "Other Guild")
+		eq(c.seen, (t - 3 * DAYSEC - 777) - (t - 3 * DAYSEC - 777) % DAYSEC, "rounded to the start of the day")
+		falsy(c.inGuild)
+	end)
+
+	it("an alt with no guild says so with an empty name", function()
+		altOf(OUT, "Elsewhere", "", GetServerTime())
+		A():Publish()
+		eq(recordOf(OUT).guild, "")
+		notNil(recordOf(OUT).seen)
+	end)
+
+	it("keeps spaces and accents, cuts at 24 characters without cutting an accent in two", function()
+		altOf(OUT, "Elsewhere", "TestRealm/Les Chevaliers d'Épée", GetServerTime())
+		A():Publish()
+		eq(recordOf(OUT).guild, "Les Chevaliers d'Épée")
+		local long = ("é"):rep(30)
+		altOf(OUT, "Elsewhere", "TestRealm/" .. long, GetServerTime())
+		A():Publish()
+		eq(recordOf(OUT).guild, ("é"):rep(24))
+	end)
+
+	it("a character in the guild's roster carries neither field", function()
+		altOf(ALT, "Altone", "TestRealm/Accord", GetServerTime())
+		A():Publish()
+		local c = recordOf(ALT)
+		truthy(c.inGuild); isNil(c.guild); isNil(c.seen)
+		isNil(S():Get("accounts", ME).chars[1].guild, "nor does the character itself")
+	end)
+
+	it("an entry written before M7.3 (no guildAt) shares no guild, only its last login", function()
+		altOf(OUT, "Elsewhere", nil, GetServerTime() - DAYSEC)
+		cfg().chars.TestRealm[OUT].guild = "TestRealm/Old Guild"   -- the old key stays in the saved data
+		A():Publish()
+		local c = recordOf(OUT)
+		isNil(c.guild); notNil(c.seen)
+	end)
+
+	it("an alt whose last key is this very guild but who is not in the roster shares no guild", function()
+		altOf(OUT, "Elsewhere", "TestRealm/Accord", GetServerTime())
+		A():Publish()
+		isNil(recordOf(OUT).guild)
+	end)
+
+	it("a change of guild or of the day of the last login is a change of the record, nothing else is", function()
+		local t = GetServerTime()
+		altOf(OUT, "Elsewhere", "TestRealm/First", t)
+		truthy(A():Publish())
+		local rev = S():Get("accounts", ME).rev
+		falsy(A():Publish())
+		altOf(OUT, "Elsewhere", "TestRealm/First", t + 3600)   -- same day, same guild
+		falsy(A():Publish(), "the hour is not shared")
+		altOf(OUT, "Elsewhere", "TestRealm/Second", t + 3600)
+		truthy(A():Publish())
+		eq(recordOf(OUT).guild, "Second")
+		eq(S():Get("accounts", ME).rev, rev + 1)
+		altOf(OUT, "Elsewhere", "TestRealm/Second", t + 2 * DAYSEC)
+		truthy(A():Publish())
+		eq(S():Get("accounts", ME).rev, rev + 2)
+	end)
+
+	it("a login reads the guild: its key, then nothing after leaving, and nothing new while the name has not arrived", function()
+		local e = A():RegisterSelf()
+		eq(e.guild, "TestRealm/Accord"); notNil(e.guildAt)
+		Mock.SetServerTime(GetServerTime() + 5)
+		local was = e.guildAt
+		local Key = AzerothAccord.GuildKey
+		local current = Key.Current
+		Key.Current = function() return nil end   -- in a guild, but the game has not given its name yet
+		A():RegisterSelf()
+		eq(e.guild, "TestRealm/Accord"); eq(e.guildAt, was, "unchanged")
+		Mock.guild.Leave()
+		A():RegisterSelf()
+		eq(e.guild, ""); eq(e.guildAt, was + 5)
+		Key.Current = current
+	end)
+
+	it("a character without a guild is added to the list at login, and again when it leaves one", function()
+		A().AUTO = true
+		Mock.guild.Leave()
+		A():Start()
+		eq(cfg().chars.TestRealm[ME].guild, "")
+		falsy(A():Publish())
+	end)
+
+	it("a list of 40 characters with long names and guilds stays inside the limit an old client accepts", function()
+		local t = GetServerTime()
+		for i = 1, 40 do
+			altOf(("Player-1-%08X"):format(0x9000 + i), ("Alt%02d"):format(i) .. ("é"):rep(5), "OtherRealm/" .. ("Ñ"):rep(24), t - i * DAYSEC)
+		end
+		truthy(A():Publish())
+		local rec = S():Get("accounts", ME)
+		truthy(AzerothAccord.Config.EstimateSize(rec) <= 4096, "record " .. AzerothAccord.Config.EstimateSize(rec))
+		truthy(AzerothAccord.Config.EstimateSize(rec.chars) <= A().MAX_BYTES)
+		eq(rec.chars[1].guid, ME)
+		-- an older client runs the same Store (its limit is the same 4096 B): it accepts the record with the new fields
+		local copy = {}
+		for k, v in pairs(rec) do copy[k] = v end
+		copy.rev = rec.rev + 1
+		truthy(S():Accept("accounts", copy, { sender = "Testchar" }))
+	end)
+
+	it("when the list does not fit, the guild's characters stay before the ones outside, the freshest of those first", function()
+		local t = GetServerTime()
+		local names = {}
+		for i = 1, 40 do
+			local guid = ("Player-1-%08X"):format(0x9000 + i)
+			altOf(guid, ("Alt%02d"):format(i) .. ("é"):rep(8), "OtherRealm/" .. ("Ñ"):rep(24), t - i * DAYSEC)
+		end
+		altOf(ALT, "Altone", nil, t - 400 * DAYSEC)   -- in the roster, the oldest login of all
+		A():Publish()
+		local rec = S():Get("accounts", ME)
+		local kept, has = {}, {}
+		for _, c in ipairs(rec.chars) do has[c.guid] = true kept[#kept + 1] = c end
+		truthy(has[ME] and has[ALT], "the character itself and the roster's alt stay")
+		truthy(#kept < 41, "some were left out")
+		-- the ones left out are the oldest logins
+		local oldestKept, newestGone = math.huge, 0
+		for _, c in ipairs(kept) do if not c.inGuild and c.seen < oldestKept then oldestKept = c.seen end end
+		for i = 1, 40 do
+			local guid = ("Player-1-%08X"):format(0x9000 + i)
+			if not has[guid] then newestGone = math.max(newestGone, (t - i * DAYSEC) - (t - i * DAYSEC) % DAYSEC) end
+		end
+		truthy(newestGone < oldestKept, "the freshest logins were kept")
+	end)
+end)
+
+describe("reading the guild of an alt (M7.3)", function()
+	before_boot(function(M) guild() end)
+	local T0 = 1700000000 - 1700000000 % DAYSEC
+
+	local function claimed(extra, rev)
+		local entry = { guid = OUT, name = "Elsewhere", level = 12, classID = 3 }
+		for k, v in pairs(extra or {}) do entry[k] = v end
+		return acct(BOB, { { guid = BOB, name = "Bob", level = 60 }, entry }, { rev = rev or 1 })
+	end
+
+	it("a third client sees the guild's name and the day, and no guild as '' ", function()
+		truthy(accept(claimed{ guild = "Other Guild", seen = T0 }, "Bob"))
+		local m = A():GroupOf(BOB).byGUID[OUT]
+		eq(m.altGuild.guild, "Other Guild"); eq(m.altGuild.seen, T0); eq(m.altGuild.author, BOB)
+		truthy(accept(claimed({ guild = "", seen = T0 }, 2), "Bob"))
+		eq(A():GroupOf(BOB).byGUID[OUT].altGuild.guild, "")
+	end)
+
+	it("a change of guild shows after the account publishes again", function()
+		truthy(accept(claimed{ guild = "First", seen = T0 }, "Bob"))
+		eq(A():GroupOf(BOB).byGUID[OUT].altGuild.guild, "First")
+		truthy(accept(claimed({ guild = "Second", seen = T0 + DAYSEC }, 2), "Bob"))
+		local ag = A():GroupOf(BOB).byGUID[OUT].altGuild
+		eq(ag.guild, "Second"); eq(ag.seen, T0 + DAYSEC)
+	end)
+
+	it("an entry from before M7.3 says nothing", function()
+		truthy(accept(claimed(), "Bob"))
+		isNil(A():GroupOf(BOB).byGUID[OUT].altGuild)
+	end)
+
+	it("takes the entry with the highest 'seen' among the records of the account, then the newest record", function()
+		local t = GetServerTime()
+		local function listing(self, other, extra)
+			local list = { { guid = self, name = self == BOB and "Bob" or "Bobalt" }, { guid = other, name = other == BOB and "Bob" or "Bobalt" } }
+			local entry = { guid = OUT, name = "Elsewhere" }
+			for k, v in pairs(extra) do entry[k] = v end
+			list[3] = entry
+			return acct(self, list, { token = "BOBTOKEN", time = extra.time or t })
+		end
+		truthy(accept(listing(BOB, BOBALT, { guild = "Old", seen = T0, time = t }), "Bob"))
+		truthy(accept(listing(BOBALT, BOB, { guild = "New", seen = T0 + 5 * DAYSEC, time = t - 100 }), "Bobalt"))
+		local ag = A():GroupOf(BOB).byGUID[OUT].altGuild
+		eq(ag.guild, "New"); eq(ag.author, BOBALT, "the freshest login wins over the newer record")
+		truthy(accept(listing(BOB, BOBALT, { guild = "Tied", seen = T0 + 5 * DAYSEC, rev = 2, time = t + 50 }), "Bob"))
+		eq(A():GroupOf(BOB).byGUID[OUT].altGuild.guild, "Tied", "same day: the newer record")
+	end)
+
+	it("cleans what others wrote: control characters out, '|' doubled, cut to 24 characters, bad types ignored", function()
+		truthy(accept(claimed{ guild = "Evil|cffff0000 Guild\n", seen = T0 }, "Bob"))
+		eq(A():GroupOf(BOB).byGUID[OUT].altGuild.guild, "Evil||cffff0000 Guild")
+		truthy(accept(claimed({ guild = ("x"):rep(60), seen = T0 }, 2), "Bob"))
+		eq(A():GroupOf(BOB).byGUID[OUT].altGuild.guild, ("x"):rep(24))
+		truthy(accept(claimed({ guild = 42, seen = "yesterday" }, 3), "Bob"))
+		isNil(A():GroupOf(BOB).byGUID[OUT].altGuild)
+		truthy(accept(claimed({ guild = "\1\2", seen = -5 }, 4), "Bob"))
+		isNil(A():GroupOf(BOB).byGUID[OUT].altGuild, "nothing is left of the name")
+		truthy(accept(claimed({ guild = "Ok", seen = 1e30 }, 5), "Bob"))
+		isNil(A():GroupOf(BOB).byGUID[OUT].altGuild.seen)
+	end)
+
+	it("the guild's own members never get one, and neither do characters known only from a note", function()
+		bobAccount()
+		truthy(accept(acct(BOB, { { guid = BOB, name = "Bob", level = 60, guild = "Fake", seen = T0 }, { guid = BOBALT, name = "Bobalt", level = 30 } },
+			{ token = "BOBTOKEN", rev = 2 }), "Bob"))
+		isNil(A():GroupOf(BOB).byGUID[BOB].altGuild)
+		isNil(A():GroupOf(BOB).byGUID[BOBALT].altGuild)
+	end)
+
+	it("an older client ignores both fields and still groups", function()
+		truthy(accept(claimed{ guild = "Other Guild", seen = T0 }, "Bob"))
+		local m = A():GroupOf(BOB).byGUID[OUT]
+		truthy(m.claimed); falsy(m.inGuild)
+		eq(m.name, "Elsewhere")
+	end)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------
 -- Several clients (Tests/sim): the third client sees the alts of two accounts grouped
 -----------------------------------------------------------------------------------------------------------------------
 local TOKEN_X, TOKEN_Y = "XXXXXXXXXXXXXXXXXXXXXXXX", "YYYYYYYYYYYYYYYYYYYYYYYY"
@@ -440,6 +669,46 @@ describe("alts of simulated accounts", function()
 			notNil(g, "client " .. i)
 			eq(#g.members, 2, "client " .. i)
 		end
+	end)
+end)
+
+describe("the guild of an alt, seen by a third client (M7.3)", function()
+	local ALT_OTHER, ALT_NONE = "Player-1-0000DD01", "Player-1-0000DD02"
+
+	-- the owner's client logs in the two alts of its account (outside this guild) and publishes
+	local function alts(owner, key1, key2)
+		local a = owner:addon().Accounts
+		a:Register{ guid = ALT_OTHER, name = "Dwarfhunter", realm = "TestRealm", classID = 3, level = 30, guild = key1 }
+		a:Register{ guid = ALT_NONE, name = "Loner", realm = "TestRealm", classID = 3, level = 30, guild = key2 }
+		a:Publish()
+	end
+
+	it("sees the other guild's name and age, 'No guild', and a change after the alt logs in again", function()
+		local sim = Sim.new{ clients = 4, seed = 5, latency = 0.1, accounts = true }
+		link(sim, TOKEN_X, 1, 2)
+		local owner, observer = sim:client(1), sim:client(3):addon()
+		sim:advance(30)
+		alts(owner, "OtherRealm/Les Chevaliers d'Épée", "")
+		local function see(guid)
+			local g = observer.Accounts:GroupOf(Sim.guidOf(1))
+			return g and g.byGUID[guid] and g.byGUID[guid].altGuild
+		end
+		local ok = sim:advanceUntil(function() return see(ALT_OTHER) ~= nil and see(ALT_NONE) ~= nil end, 180)
+		truthy(ok, "the third client received the alts")
+		eq(see(ALT_OTHER).guild, "Les Chevaliers d'Épée")
+		eq(see(ALT_NONE).guild, "")
+		local P = observer.Provenance
+		eq(P.AltGuildText(see(ALT_OTHER)), "Other guild: Les Chevaliers d'Épée · seen today")
+		eq(P.AltGuildText(see(ALT_NONE)), "No guild · seen today")
+		-- three days later the alt logs in once more, now in another guild, and the account publishes again
+		sim:advance(3 * DAYSEC)
+		alts(owner, "OtherRealm/Second Guild", "")
+		local changed = sim:advanceUntil(function() return see(ALT_OTHER).guild == "Second Guild" end, 180)
+		truthy(changed, "the change reached the third client")
+		eq(P.AltGuildText(see(ALT_OTHER)), "Other guild: Second Guild · seen today")
+		-- and it grows old on the third client
+		sim:advance(3 * DAYSEC)
+		eq(P.AltGuildText(see(ALT_OTHER)), "Other guild: Second Guild · seen 3 d ago")
 	end)
 end)
 

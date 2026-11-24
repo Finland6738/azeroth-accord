@@ -16,7 +16,12 @@
 --                without the addon a public note `main: <name>` ("my main is ...") or `alt: <name>` ("<name> is my
 --                alt") is a hint (ACC-05), shown as "declared in the note".
 --
--- Group: { id, members = { { guid, name, realm, classID, classFile, level, inGuild, claimed, hint, isMain }, ... },
+-- Alts outside the guild (SPEC-11 §2, M7.3): the local `chars` entry keeps `guild` (a guild key, or "" for no guild) with
+--   `guildAt` (when it was read) and `seen`; the record lists, for characters outside the guild only, `guild` (the NAME,
+--   or "" = no guild) and `seen` (the day of the last login with the addon). Old clients ignore both fields.
+--
+-- Group: { id, members = { { guid, name, realm, classID, classFile, level, inGuild, claimed, hint, isMain,
+--                            altGuild = { guild = name | "" | nil, seen, author, time } }, ... },
 --          main = guid, mainSource = "chosen"|"default"|"hint", token, conflict }.
 -- Main: the player's choice (Accounts:SetMain, saved per realm), else the highest level, then the character added first
 -- (the time played would need /played, which writes in the chat).
@@ -38,6 +43,7 @@ Accounts.PUBLISH_DELAY = 8      -- seconds after login (the roster has loaded by
 Accounts.REPUBLISH_MIN = 600    -- seconds between two publications caused by a change of the guild roster
 Accounts.AUTO = true            -- the offline tests switch the automatic start off (Tests/lib/harness.lua)
 Accounts.GUID_PATTERN = "^Player%-%d+%-%x+$"
+Accounts.GUILD_NAME_MAX = 24    -- characters, as in the game (SPEC-11 §2.2); longer is cut
 
 local function compat() return ns.Compat end
 local function now() return compat() and compat().ServerTime() or time() end
@@ -45,6 +51,29 @@ local function emit(event, ...) if ns.Bus then ns.Bus:Emit(event, ...) end end
 local function lower(s) return type(s) == "string" and s:lower() or nil end
 local function isGUID(v) return type(v) == "string" and #v <= 40 and v:find(Accounts.GUID_PATTERN) ~= nil end
 local function accountDB() return ns.Config and ns.Config.db and ns.Config.db.account or nil end
+
+-- At most `max` UTF-8 characters of `text` (never cuts inside a character: accents take two bytes).
+local function cutChars(text, max)
+	local count = 0
+	for i = 1, #text do
+		local b = text:byte(i)
+		if b < 0x80 or b >= 0xC0 then
+			count = count + 1
+			if count > max then return text:sub(1, i - 1) end
+		end
+	end
+	return text
+end
+
+-- A guild name read from a record, made safe to show (SPEC-11 §2.4): control characters out, cut to the game's length,
+-- `|` doubled so that nothing in it is a link or a colour. nil when nothing is left of a non-empty name.
+function Accounts.SafeGuildName(text)
+	if type(text) ~= "string" then return nil end
+	if text == "" then return "" end
+	text = cutChars(text:gsub("[%c]", ""), Accounts.GUILD_NAME_MAX)
+	if text == "" then return nil end
+	return (text:gsub("|", "||"))
+end
 
 local state = { dirty = true, groups = {}, byGUID = {}, list = {}, lastPublish = nil, publishedOnce = false,
 	proved = false, pruned = 0, stats = { published = 0, skipped = 0 } }
@@ -75,21 +104,24 @@ function Accounts:Register(info)
 	entry.name = info.name
 	entry.classID = tonumber(info.classID) or entry.classID
 	entry.level = tonumber(info.level) or entry.level
-	if info.guild ~= nil then entry.guild = info.guild end
+	if info.guild ~= nil then entry.guild, entry.guildAt = info.guild, now() end
 	entry.seen = now()
 	entry.answered = entry.seen
 	state.dirtyOwn = true
 	return entry
 end
 
--- The character that is logged in now, added to the account's list.
+-- The character that is logged in now, added to the account's list. Its guild is read every time (SPEC-11 §2.1): the guild
+-- key, "" when the game says it is in no guild, and unchanged while it is in a guild whose name has not arrived yet.
 function Accounts:RegisterSelf()
 	local C = compat()
 	if not C then return nil, "compat" end
 	local guid, name = C.Player.GUID(), C.Player.Name()
 	if not guid or not name then return nil, "player" end
+	local guild = ns.GuildKey and ns.GuildKey:Current() or nil
+	if guild == nil and not C.Guild.InGuild() then guild = "" end
 	return self:Register{ guid = guid, name = name, realm = C.Player.Realm(), classID = C.Player.ClassID(), level = C.Player.Level(),
-		guild = ns.GuildKey and ns.GuildKey:Current() or nil }
+		guild = guild }
 end
 
 -- The characters this account lists for the current guild: every character of this realm and the ones last seen in this
@@ -111,7 +143,7 @@ function Accounts:OwnChars()
 					elseif rosterLoaded then inGuild = R:ByGUID(guid) ~= nil
 					else inGuild = key ~= nil and e.guild == key end
 					out[#out + 1] = { guid = guid, name = e.name, realm = r, classID = e.classID, level = e.level, inGuild = inGuild,
-						added = e.added or 0, isSelf = guid == me }
+						added = e.added or 0, isSelf = guid == me, guildKey = e.guild, guildAt = e.guildAt, seen = e.seen }
 				end
 			end
 		end
@@ -204,6 +236,17 @@ function Accounts:Prune()
 	return removed
 end
 
+-- The guild of a character outside this guild, as the record says it (SPEC-11 §2.1-2.2): its name, "" for no guild, nil when
+-- unknown (an entry written before M7.3 has no `guildAt`, and a stale key of this very guild says nothing about another one).
+function Accounts.SharedGuild(e, key)
+	if type(e.guildAt) ~= "number" or type(e.guildKey) ~= "string" then return nil end
+	if e.guildKey == "" then return "" end
+	if key ~= nil and e.guildKey == key then return nil end
+	local _, name = ns.GuildKey.Split(e.guildKey)
+	if type(name) ~= "string" or name == "" then return nil end
+	return cutChars(name, Accounts.GUILD_NAME_MAX)
+end
+
 -- The fields of this character's own `accounts` record.
 function Accounts:BuildRecord()
 	local C, db = compat(), accountDB()
@@ -212,12 +255,41 @@ function Accounts:BuildRecord()
 	local token = ns.Config:Token()
 	if type(token) ~= "string" or token == "" then return nil end
 	local list = self:OwnChars()
-	local chars = {}
+	local key = ns.GuildKey and ns.GuildKey:Current() or nil
+	local entries = {}
 	for i, e in ipairs(list) do
-		if i > Accounts.MAX_CHARS then break end
-		chars[#chars + 1] = { guid = e.guid, name = e.name, realm = e.realm, classID = e.classID, level = e.level, inGuild = e.inGuild }
+		entries[i] = { guid = e.guid, name = e.name, realm = e.realm, classID = e.classID, level = e.level, inGuild = e.inGuild }
+		if not e.inGuild then   -- SPEC-11 §2.2: only characters outside this guild carry their guild and last login
+			entries[i].guild = Accounts.SharedGuild(e, key)
+			if type(e.seen) == "number" then entries[i].seen = e.seen - e.seen % DAY end
+		end
 	end
-	while #chars > 1 and ns.Config.EstimateSize(chars) > Accounts.MAX_BYTES do table.remove(chars) end
+	-- who stays when the list does not fit (SPEC-11 §2.3): the character itself, the guild's characters (the mutual
+	-- listing needs them), then the ones outside by most recent login; whole entries go from the end of that order
+	local order = {}
+	for i, e in ipairs(list) do order[i] = i end
+	table.sort(order, function(x, y)
+		local a, b = list[x], list[y]
+		if a.isSelf ~= b.isSelf then return a.isSelf end
+		if a.inGuild ~= b.inGuild then return a.inGuild end
+		if not a.inGuild and (entries[x].seen or 0) ~= (entries[y].seen or 0) then return (entries[x].seen or 0) > (entries[y].seen or 0) end
+		if (a.level or 0) ~= (b.level or 0) then return (a.level or 0) > (b.level or 0) end
+		if a.name ~= b.name then return a.name < b.name end
+		return a.guid < b.guid
+	end)
+	local kept = {}
+	for n = 1, math.min(#order, Accounts.MAX_CHARS) do kept[n] = order[n] end
+	local function build()
+		local keep, out = {}, {}
+		for _, i in ipairs(kept) do keep[i] = true end
+		for i, e in ipairs(entries) do if keep[i] then out[#out + 1] = e end end
+		return out
+	end
+	local chars = build()
+	while #kept > 1 and ns.Config.EstimateSize(chars) > Accounts.MAX_BYTES do
+		table.remove(kept)
+		chars = build()
+	end
 	local mine = false
 	for _, c in ipairs(chars) do if c.guid == me then mine = true end end
 	if not mine then return nil end   -- the owner rule: a record lists its own character
@@ -233,7 +305,7 @@ local function sameChars(a, b)
 	for i, x in ipairs(a) do
 		local y = b[i]
 		if type(y) ~= "table" or x.guid ~= y.guid or x.name ~= y.name or x.realm ~= y.realm or x.classID ~= y.classID
-			or x.level ~= y.level or x.inGuild ~= y.inGuild then return false end
+			or x.level ~= y.level or x.inGuild ~= y.inGuild or x.guild ~= y.guild or x.seen ~= y.seen then return false end
 	end
 	return true
 end
@@ -305,6 +377,28 @@ local function entryFor(rec, guid)
 	return nil
 end
 
+-- What the records say about a character outside the guild (SPEC-11 §2.4): from the entry with the highest `seen` among
+-- the records of the account (a tie goes to the newest record, then the smaller author), cleaned like any text of others.
+-- { guild = name | "" | nil, seen = number | nil, author, time }, or nil when no record knows anything.
+function Accounts.AltGuildOf(guid, guids, recs)
+	local best
+	for _, id in ipairs(guids) do
+		local rec = recs[id]
+		for _, c in ipairs(rec.chars) do
+			if type(c) == "table" and c.guid == guid and c.inGuild ~= true then
+				local seen = type(c.seen) == "number" and c.seen >= 0 and c.seen < 2 ^ 40 and c.seen or nil
+				local name = Accounts.SafeGuildName(c.guild)
+				if name ~= nil or seen ~= nil then
+					local better = not best or (seen or -1) > (best.seen or -1)
+						or ((seen or -1) == (best.seen or -1) and (rec.time or 0) > (best.time or 0))
+					if better then best = { guild = name, seen = seen, author = rec.author, time = rec.time } end
+				end
+			end
+		end
+	end
+	return best
+end
+
 -- Rebuilds the groups from the store and the roster.
 function Accounts:Rebuild()
 	local S, R = ns.Store, ns.Roster
@@ -355,6 +449,10 @@ function Accounts:Rebuild()
 					g.members[#g.members + 1], g.byGUID[cg] = m, m
 				end
 			end
+		end
+		-- the guild and last login of the members outside the guild (SPEC-11 §2.4)
+		for _, m in ipairs(g.members) do
+			if not m.inGuild then m.altGuild = Accounts.AltGuildOf(m.guid, comp.guids, recs) end
 		end
 		-- the main: the choice in the newest record, else the highest level
 		g.main, g.mainSource = nil, "default"
@@ -486,8 +584,8 @@ end
 -- At login (once the guild is known): add the character, check the stale ones, publish.
 function Accounts:Start()
 	if not self.AUTO then return false end
+	self:RegisterSelf()   -- also without a guild: the other characters of the account show "No guild" (SPEC-11 §2.1)
 	if not (ns.GuildKey and ns.GuildKey:Current()) then return false end
-	self:RegisterSelf()
 	schedule(Accounts.PUBLISH_DELAY, function()
 		if not (ns.GuildKey and ns.GuildKey:Current()) then return end
 		Accounts:Prune()
@@ -537,7 +635,7 @@ if ns.addon then
 		end)
 		ns.Bus:On("GUILD_CHANGED", function(key)
 			state.dirty, state.publishedOnce, state.lastPublish = true, false, nil
-			if key then Accounts:Start() end
+			Accounts:Start()
 		end)
 	end
 	if ns.OnEnable then ns.OnEnable(function() Accounts:Start() end) end

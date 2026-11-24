@@ -32,7 +32,13 @@ Clicca una riga per aprire la **scheda del membro**: accanto alla tabella in un 
 
 Sui tuoi personaggi la scheda offre **[Rendi questo il mio main]**. La scheda elenca **tutti i personaggi dello stesso account Battle.net nel reame**, anche quelli fuori dalla gilda, per ogni membro che usa l'addon. Attiva *Per account* nella tabella per vedere una riga per giocatore con gli alt sotto (clicca **+** per mostrarli).
 
-Un personaggio che non è in gilda compare lo stesso, segnato *fuori gilda*. Il main è quello scelto dal giocatore, altrimenti il personaggio di livello più alto.
+Un personaggio che non è in gilda compare lo stesso. Il main è quello scelto dal giocatore, altrimenti il personaggio di livello più alto.
+
+**Alt in un'altra gilda.** Per un personaggio fuori dalla gilda la scheda e le righe raggruppate dicono dov'è: *Altra gilda: <nome> · visto 3 g fa*, oppure *Nessuna gilda · visto oggi* se il personaggio non ha gilda. La riga è letta dai personaggi di quel giocatore che sono nella tua gilda, quindi:
+
+- è **vecchia quanto l'ultimo accesso di quell'alt** con l'addon (si mostra a giorni: *oggi*, *3 g fa*); se l'alt entra in una gilda o ne esce, lo vedi solo dopo che quell'alt ha fatto l'accesso e il giocatore ha fatto l'accesso con un personaggio della tua gilda. Una riga più vecchia di un mese è attenuata, e la sua etichetta dice chi l'ha condivisa;
+- un personaggio noto solo da una nota pubblica non mostra nessuna gilda, e nemmeno uno che l'addon non ha più visto da prima di questa funzione: mostra *fuori gilda* come prima;
+- **l'altra gilda non vede nulla dei dati di Accord della tua gilda.** Nell'elenco dei personaggi che la tua gilda già riceve viaggiano solo il nome della gilda e il giorno dell'ultimo accesso di quell'alt.
 
 Per i membri senza l'addon, una nota pubblica di gilda scritta come `main: <nome>` (il mio main è quel personaggio) o `alt: <nome>` (quel personaggio è un mio alt) è mostrata come indizio, con l'etichetta *dichiarato nella nota*. Un membro che ha l'addon non viene mai spostato da una nota.
 

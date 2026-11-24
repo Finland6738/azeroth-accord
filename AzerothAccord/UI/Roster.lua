@@ -190,6 +190,10 @@ local function rowTip(row)
 	if not d then return nil end
 	local lines = { d.entry.name or "?" }
 	if d.kind == "group" then lines[#lines + 1] = L["ROW_TIP_GROUP"]:format(d.count) end
+	if d.entry.notInGuild and d.entry.altGuild then   -- the cell is narrow: the whole line, and where it comes from (M7.3)
+		lines[#lines + 1] = ns.Provenance.AltGuildText(d.entry.altGuild)
+		for _, tip in ipairs(ns.Provenance.TipLines(ns.Provenance.AltGuildInfo(d.entry.altGuild))) do lines[#lines + 1] = tip end
+	end
 	lines[#lines + 1] = L["ROW_TIP_CLICK"]
 	return lines
 end

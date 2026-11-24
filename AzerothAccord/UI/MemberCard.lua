@@ -55,6 +55,11 @@ local function detailsSection(e)
 	local lines = {}
 	if e.notInGuild then
 		lines[#lines + 1] = line(L["CARD_NOT_IN_GUILD"], true)
+		-- the guild the character's own account says it is in, and when it last logged in (SPEC-11 §2.4)
+		local P = ns.Provenance
+		if e.altGuild and e.altGuild.guild ~= nil then
+			lines[#lines + 1] = line(P.AltGuildText(e.altGuild), true, nil, nil, nil, P.AltGuildInfo(e.altGuild))
+		end
 	else
 		if e.zone and e.zone ~= "" then lines[#lines + 1] = line(L["CARD_ZONE"]:format(e.zone)) end
 		if e.online then lines[#lines + 1] = line(L["CARD_ONLINE"])
@@ -103,11 +108,13 @@ local function accountSection(e)
 				local text = (m.name or "?") .. (#what > 0 and (" (" .. table.concat(what, " ") .. ")") or "")
 				local tags = {}
 				if m.isMain then tags[#tags + 1] = L["CARD_MAIN"] end
-				if not m.inGuild then tags[#tags + 1] = L["NOT_IN_GUILD_SHORT"] end
+				local ag = not m.inGuild and not m.hint and m.altGuild or nil
+				if not m.inGuild then tags[#tags + 1] = ns.Provenance.AltGuildText(ag) end
 				if m.hint then tags[#tags + 1] = L["CARD_HINT"] end
 				if #tags > 0 then text = text .. " - " .. table.concat(tags, ", ") end
 				lines[#lines + 1] = line(text, not m.inGuild, m.guid, nil, nil,
-					m.hint and { source = "note", member = m.name } or { source = "shared", observedAt = g.time, author = g.author })
+					m.hint and { source = "note", member = m.name } or ns.Provenance.AltGuildInfo(ag)
+					or { source = "shared", observedAt = g.time, author = g.author })
 			end
 		end
 	end

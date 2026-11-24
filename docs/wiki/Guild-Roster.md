@@ -33,7 +33,13 @@ Click a row to open the **member card**: beside the table in a wide panel, over 
 
 On your own characters the card offers **[Make this my main]**. The card lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. Turn on *By account* in the table to see one row per player with the alts underneath (click **+** to show them).
 
-A character that is not in the guild appears too, marked *not in guild*. The main is the one the player chose, otherwise the highest-level character.
+A character that is not in the guild appears too. The main is the one the player chose, otherwise the highest-level character.
+
+**Alts in another guild.** For a character outside the guild the card and the grouped rows say where it is: *Other guild: <name> · seen 3 d ago*, or *No guild · seen today* when the character has no guild. The line is read from the characters of that player who are in your guild, so:
+
+- it is **as old as the last login of that alt** with the addon (shown by day: *today*, *3 d ago*); if the alt joins or leaves a guild, you see it only after that alt has logged in and the player has logged in with a character of your guild. A line older than a month is dimmed, and its label says who shared it;
+- a character known only from a public note shows no guild, and neither does one the addon has not seen since this feature was added: it shows *not in guild* as before;
+- **the other guild does not see anything of Accord's data in your guild.** Only the guild's name and the day of the last login of that alt travel in the account list your guild already receives.
 
 For members without the addon, a public guild note written as `main: <name>` (my main is that character) or `alt: <name>` (that character is my alt) is shown as a hint, labelled *declared in the note*. A member who has the addon is never moved by a note.
 

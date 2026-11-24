@@ -103,7 +103,7 @@ function Model.Cell(id, e)
 	elseif id == "zone" then
 		return e.zone or ""
 	elseif id == "lastOnline" then
-		if e.notInGuild then return L["NOT_IN_GUILD_SHORT"], "muted" end
+		if e.notInGuild then return ns.Provenance.AltGuildText(e.altGuild), "muted" end
 		if e.online then return L["ONLINE"], "green" end
 		return Model.LastOnlineText(e.lastOnlineHours), "muted"
 	elseif id == "prof1" or id == "prof2" then
@@ -359,7 +359,7 @@ local function pseudoEntry(m)
 	local R = ns.Roster
 	local classFile = m.classFile or (m.classID and R and R.ClassFile(m.classID)) or nil
 	return { name = m.name or "?", short = m.name, guid = m.guid, level = m.level, classID = m.classID, classFile = classFile,
-		online = false, professions = {}, notInGuild = true, claimed = true }
+		online = false, professions = {}, notInGuild = true, claimed = true, altGuild = m.altGuild }
 end
 
 Model.PseudoEntry = pseudoEntry

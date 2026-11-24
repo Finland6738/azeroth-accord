@@ -6,6 +6,9 @@
 --   Provenance.Age(observedAt, now)  seconds, never negative (a time up to an hour in the future is age zero)
 --   Provenance.IsDim(info, now)      true for a `shared` value older than the threshold of its `set` (SPEC-11 §1.4)
 --   Provenance.Describe(info, now)   { label, lines = { tooltip lines }, dim }
+--   Provenance.SeenText(seen, now)   "today" for the day of `seen`, else the age in whole days (SPEC-11 §2.4)
+--   Provenance.AltGuildText(altGuild, now)  "Other guild: X · seen 3 d ago" / "No guild · seen today" / "not in guild" (M7.3)
+--   Provenance.AltGuildInfo(altGuild)       the `info` of that line: shared, observed at the last login, dimmed after 30 days
 --   Provenance.AuthorName(guid)      roster name, else the author's own record, else "a former guild member"; never the GUID
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -113,6 +116,27 @@ end
 function Provenance.TipLines(info, at)
 	local d = Provenance.Describe(info, at)
 	return d and d.lines or {}
+end
+
+-- When an alt outside the guild last logged in, to the day: `seen` is the start of a UTC day, so the same day is "today".
+function Provenance.SeenText(seen, at)
+	at = at or now()
+	if type(seen) ~= "number" or at - seen < DAY then return L["AGE_TODAY"] end
+	return Provenance.AgeText(floor((at - seen) / DAY) * DAY)
+end
+
+-- The line for a character outside the guild (SPEC-11 §2.4); `altGuild` is the table Accounts:Rebuild gives a member.
+function Provenance.AltGuildText(ag, at)
+	if type(ag) ~= "table" or ag.guild == nil then return L["NOT_IN_GUILD_SHORT"] end
+	local text = ag.guild == "" and L["ALT_GUILD_NONE"] or L["ALT_GUILD_OTHER"]:format(ag.guild)
+	if type(ag.seen) == "number" then text = L["ALT_GUILD_SEEN"]:format(text, Provenance.SeenText(ag.seen, at)) end
+	return text
+end
+
+-- Shared by the author of the record the line was read from; its age is the last login, so it dims after a month.
+function Provenance.AltGuildInfo(ag)
+	if type(ag) ~= "table" or ag.guild == nil then return nil end
+	return { source = "shared", observedAt = ag.seen or ag.time, author = ag.author, set = "altGuild" }
 end
 
 -- The `info` of a profession of the Roster entry (`source` native | shared | own, `time`, `author`).
