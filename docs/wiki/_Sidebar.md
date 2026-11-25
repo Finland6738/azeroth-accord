@@ -17,6 +17,7 @@
 - [[Season Roster|Season-Roster]]
 - [[Events|Events]]
 - [[Raid-Helper events|Raid-Helper]]
+- [[Availability|Availability]]
 - [[Raid and Loot Addons|Raid-and-Loot-Addons]]
 
 **Reference**
@@ -42,6 +43,7 @@
 - [[Roster della season|Season-Roster-it]]
 - [[Eventi|Events-it]]
 - [[Eventi di Raid-Helper|Raid-Helper-it]]
+- [[Disponibilità|Availability-it]]
 - [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]
 - [[Privacy e dati|Privacy-and-Data-it]]
 - [[Domande frequenti|FAQ-it]]

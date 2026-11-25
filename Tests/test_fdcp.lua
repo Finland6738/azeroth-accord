@@ -305,7 +305,9 @@ describe("an officer's client (LEDGER)", function()
 		pool[1].ms1 = 0
 		pool[1].alts[1] = "Changed"
 		eq(f.data.pool[1].ms1, PROT); eq(f.data.pool[1].alts[1], "Annalt-TestRealm")
-		isNil(pool[1].avail)
+		-- the declared days are read since M10.8 (the Availability view), as a copy like the rest
+		pool[1].avail[1] = "SUN"
+		deepEq(f.data.pool[1].avail, { "MON", "WED" })
 		isNil(F().Night().absent)
 		isNil(F().Rules().attendance)
 		isNil(F().Season().extra)

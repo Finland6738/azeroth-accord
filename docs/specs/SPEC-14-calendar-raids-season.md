@@ -300,17 +300,21 @@ La formazione e la panchina della serata sono di FDCP (`GetNight()`, sola lettur
 
 ## 8. Mappa della disponibilità (M10.8)
 
+Fatta in M10.8: `Data/Availability.lua`, `UI/Availability.lua`, `Tests/test_availability.lua`.
+
 ### 8.1 Che cosa si misura
 
-**Solo la presenza online** del proprio account: ogni client conta i minuti in cui un personaggio dell'account è connesso, per ora della settimana (168 caselle, ora del reame), nelle ultime **8 settimane** (`AzerothAccordDB.avail`, per account e non per gilda). Nient'altro: non dove si trova il giocatore, non che cosa fa, non se era a un raid (RAID-05). I personaggi di altre gilde contano, perché dicono quando la persona gioca.
+**Solo la presenza online** del proprio account: ogni client conta i minuti in cui un personaggio dell'account è connesso, per ora della settimana (168 caselle, la prima è lunedì 00:00, ora del reame: `Compat.RealmTime()`, altrimenti l'ora del server letta come UTC), nelle ultime **8 settimane** (`AzerothAccordDB.avail = { since, weeks }`, per account e non per gilda; si tengono la settimana corrente e le 8 precedenti, e i valori rovinati o di un orologio andato avanti si scartano). Nient'altro: non dove si trova il giocatore, non che cosa fa, non se era a un raid (RAID-05). I personaggi di altre gilde contano, perché dicono quando la persona gioca. Il conteggio non entra nei backup. Con l'interruttore `season` spento non si conta niente.
+
+Una settimana **conta** per una casella quando l'account vi è stato online almeno **10 minuti** (`Availability.MIN_MINUTES`). Le settimane misurate di una casella sono le ultime 8 a partire dalla prima registrata (`since`); l'ora della settimana corrente entra nel conto solo quando è passata, o se l'account c'è già stato.
 
 ### 8.2 L'insieme `avail`
 
-Un record per personaggio che scrive (`id` = il suo GUID), con `p` = le 168 caselle ridotte a 4 livelli (0: mai; 1: meno di una settimana su quattro; 2: fino a metà; 3: più della metà), in 42 byte codificati, e `w` = il numero di settimane misurate. Si pubblica al più una volta al giorno e solo se `p` è cambiato; conservazione 30 giorni. La vista unisce per account (il record più recente). Prima mano o ritrasmissione di un ufficiale; un record di un altro account si rifiuta (`owner`). Costo: circa 70 byte per account al giorno.
+Un record per personaggio che scrive (`id` = il suo GUID), con `p` = le 168 caselle ridotte a 4 livelli (0: mai; 1: meno di una settimana su quattro; 2: fino a metà; 3: più della metà), in 42 byte (due bit per casella, la prima nei bit bassi del primo byte), e `w` = il numero di settimane misurate (1–8), oppure `{ del = true }`; nessun altro campo (un record con altro si rifiuta, `owner`). Massimo 256 byte. Il primo controllo parte 2–4 minuti dopo il primo `HELLO` della sessione, poi uno ogni ora. Si pubblica solo se `p` è diverso dall'ultimo record dell'account (di qualsiasi suo personaggio), e **al più una volta a settimana** (al più una volta al giorno finché la settimana misurata è una sola): ogni record cambiato fa richiedere ai client i dati del suo autore, e questo è ciò che tiene basso il traffico (§11). Un record uguale si riscrive dopo 14 giorni, prima che scada. Conservazione 30 giorni. La vista unisce per account (il record più recente dei suoi personaggi in gilda). Prima mano o ritrasmissione di un ufficiale; un record di un altro account si rifiuta (`owner`).
 
 ### 8.3 Chi condivide e chi vede
 
-Decisa dal proprietario come proposto in SPEC-10 Q23 (2026-11-25): condivisione **accesa di default**, con l'interruttore *Share when I usually play* nelle Impostazioni e in *What I share* (M7.6); spenta, il client manda un record vuoto che ritira quello vecchio e non pubblica più (il conteggio locale continua, per mostrarlo al giocatore). Tutti vedono la mappa della gilda come **conteggi per casella** ("12 members usually online"); il dettaglio per membro (chi c'è in una casella) lo vedono gli ufficiali e il Guild Master, e ognuno il proprio (`Availability.NAMES_VISIBLE_TO = "officers"`, un solo punto). Con FDCP come fonte, gli ufficiali vedono in più i giorni dichiarati in FDCP (`avail`), etichettati come dichiarazione, non come misura.
+Decisa dal proprietario come proposto in SPEC-10 Q23 (2026-11-25): condivisione **accesa di default**, con l'interruttore *Share when I usually play* (`account.settings.shareAvailability`) nelle Impostazioni e in *What I share* (M7.6); spenta, il client manda un record vuoto che ritira quello vecchio (di ogni personaggio dell'account che ne ha uno) e non pubblica più (il conteggio locale continua, per mostrarlo al giocatore). Tutti vedono la mappa della gilda come **conteggi per casella** ("12 members usually online": gli account dal livello 2 in su, `Availability.USUAL`, su quelli che condividono); il dettaglio per membro (chi c'è in una casella, per livello) lo vedono gli ufficiali e il Guild Master, e ognuno il proprio (`Availability.NAMES_VISIBLE_TO = "officers"`, un solo punto). È una regola dell'interfaccia: i record arrivano a tutta la gilda. Con FDCP come fonte, gli ufficiali vedono in più, per il giorno della casella scelta, chi lo ha dichiarato in FDCP (`avail` del pool), etichettato come dichiarazione, non come misura, e mai sommato ai conteggi.
 
 ## 9. Raduni PvP e nel mondo (M10.9)
 
@@ -330,7 +334,16 @@ Come FDCP, Accord **non manda nulla** durante un incontro con un boss: da `ENCOU
 
 ## 11. Traffico
 
-Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): dichiarazioni una volta per season (circa 200 byte ciascuna); ruoli per evento circa 60 byte a iscritto; un'importazione al massimo 2 KB per evento; disponibilità circa 70 byte per account al giorno; raduni come gli annunci di gruppo. Un'importazione `H:` sul filo è compressa (i 12 KB di §5.5 sono la stima in memoria). In media meno di **20 B/min** per client oltre al traffico di oggi, da misurare nel simulatore in M10.3 (season), M10.5 (eventi) e M10.8 (disponibilità). Il budget condiviso è in [SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10).
+Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): dichiarazioni una volta per season (circa 200 byte ciascuna); ruoli per evento circa 60 byte a iscritto; un'importazione al massimo 2 KB per evento; disponibilità circa 125 byte sul filo per record, al più uno a settimana per account; raduni come gli annunci di gruppo. Un'importazione `H:` sul filo è compressa (i 12 KB di §5.5 sono la stima in memoria). In media meno di **20 B/min** per client oltre al traffico di oggi, da misurare nel simulatore in M10.3 (season), M10.5 (eventi) e M10.8 (disponibilità). Il budget condiviso è in [SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10).
+
+**Misurato in M10.8** (`Tests/test_availability.lua`, 50 client, i 45 minuti di accessi, uscite, scritture e lockdown dello scenario di SPEC-02 §4, con `season` acceso; media per client in B/min, tra parentesi senza la mappa):
+
+| Scenario | Media | Client più carico |
+|---|---|---|
+| gilda allineata, in cui un account su sette ha una mappa nuova (i cambi di un giorno intero, in 45 minuti) | 324 (249) | 1811 (843) |
+| **primo scambio**: metà gilda mai entrata e nessuno ha la mappa di nessuno | **530** (370) | **2353** (1034) |
+
+La stima dei 20 B/min non regge: ogni mappa nuova o cambiata fa richiedere tutto il gruppo del suo autore (account, contatti, addon e mappa). La riduzione fatta è la pubblicazione al più settimanale (§8.2). Nel primo scambio la media supera il limite di 450 B/min e il client più carico i 2 KB/min: la scelta spetta al proprietario ([SPEC-10](SPEC-10-risks-open-questions.md) Q26, rischio R17), prima che M10.10 accenda l'interruttore.
 
 ## 12. Test per passo
 

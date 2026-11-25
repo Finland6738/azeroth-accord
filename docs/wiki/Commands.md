@@ -12,6 +12,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord addons` | Opens the **Guild addons** view: which addons the guild's members use (see [[Guild addons|Guild-Addons]]) *(M9.9, from `v0.9.0`)* |
 | `/accord season` | Opens the **Season** view: the season roster and your declaration (see [[Season roster|Season-Roster]]) *(M10.3, arrives with `v0.10.0`)* |
 | `/accord events` | Opens the **Events** view: the guild's events and your sign-up on the game calendar (see [[Events|Events]]) *(M10.5, arrives with `v0.10.0`)* |
+| `/accord availability` | Opens the **Availability** view: when the guild usually plays (see [[Availability|Availability]]) *(M10.8, arrives with `v0.10.0`)* |
 | `/accord roster` | Opens the Roster view |
 | `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view: likes of every player and the Like button, your social index, the group map (officers), *Someone new* to play with *(M4)* |

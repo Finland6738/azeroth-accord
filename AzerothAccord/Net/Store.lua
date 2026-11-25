@@ -41,6 +41,8 @@
 -- are first hand (an officer may relay them); a declaration cannot change its specs after its lock (`transition` "locked")
 -- and one that arrives before its season waits for it (`wait`, Data/Season.lua). Events and sign-ups (`raidev`, SPEC-14
 -- §5.5) are the same: the events of the addon and the Raid-Helper imports need officers, a role or an answer is first hand.
+-- The availability map (`avail`, SPEC-14 §8.2) is an ordinary set (first hand, officer relay, saved): one small record per
+-- character, the 168 levels of when its account is online, or its withdrawal.
 --
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
@@ -311,6 +313,12 @@ Store.SETS = {
 		owner = function(rec, s) if not ns.Calendar then return false end return ns.Calendar.ValidRecord(rec, s) end,
 		expires = function(rec, t) return ns.Calendar ~= nil and ns.Calendar.Expired(rec, t) end,   -- 2 days after the event
 	},
+	avail = {      -- when members usually play (Data/Availability.lua, M10.8, SPEC-14 §8): id = character GUID, { p, w } or { del }
+		feature = "season",                       -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 256,
+		owner = function(rec, s) return ns.Availability ~= nil and ns.Availability.ValidRecord(rec, s) end,
+		expires = function(rec, t) return ns.Availability ~= nil and ns.Availability.Expired(rec, t) end,   -- 30 days
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -321,7 +329,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

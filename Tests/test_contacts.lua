@@ -112,8 +112,9 @@ describe("the own contacts (CON-01, CON-02)", function()
 
 	it("is always shared: no setting turns it off (D3)", function()
 		for key in pairs(A().Config.rules) do
-			-- the co-play switch is Q12 and the addon list's one is Q11, not contacts
-			if key ~= "account.settings.shareCoplay" and key ~= "account.settings.shareAddons" then
+			-- the co-play switch is Q12, the addon list's one Q11 and the availability one Q23, not contacts
+			if key ~= "account.settings.shareCoplay" and key ~= "account.settings.shareAddons"
+				and key ~= "account.settings.shareAvailability" then
 				falsy(key:find("share", 1, true), key)
 			end
 		end

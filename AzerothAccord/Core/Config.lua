@@ -41,7 +41,7 @@ Config.LIMITS = {
 	BANK_REQUEST_CLOSED_DAYS = 60,
 }
 
-Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "raid", "addons", "settings" }
+Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "availability", "raid", "addons", "settings" }
 
 -- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
 Config.THEMES = { "nebula", "aurora", "accord" }
@@ -64,7 +64,8 @@ Config.defaults = {
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
 			groupFilter = { kinds = {}, fits = true, roles = {} },   -- the saved filters of the Groups view (SPEC-13 §6.10)
 			shareCoplay = true,     -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
-			shareAddons = true },   -- publish the list of the loaded addons (M9.9, SPEC-13 §8.3), Data/Census.lua
+			shareAddons = true,     -- publish the list of the loaded addons (M9.9, SPEC-13 §8.3), Data/Census.lua
+			shareAvailability = true },   -- publish when this account usually plays (M10.8, SPEC-14 §8.3), Data/Availability.lua
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
@@ -96,6 +97,8 @@ Config.rules = {
 	["account.settings.font"] = { type = "string", enum = Config.FONT_SOURCES },
 	["account.settings.shareCoplay"] = { type = "boolean" },
 	["account.settings.shareAddons"] = { type = "boolean" },
+	["account.settings.shareAvailability"] = { type = "boolean" },
+	["account.avail"] = { type = "table", optional = true },   -- the minutes online per hour of the week (Data/Availability.lua)
 	["account.settings.groupFilter"] = { type = "table", validate = function(v)
 		if v.fits ~= nil and type(v.fits) ~= "boolean" then return false end
 		for _, key in ipairs({ "kinds", "roles" }) do

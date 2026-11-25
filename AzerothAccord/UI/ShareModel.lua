@@ -7,7 +7,7 @@
 --                                note = text | nil }
 --   ShareModel.Add(id, def)   another data set (M9.9, the addon list): def = { order, to, when, switch, build(me, at) ->
 --                                lines, records, rev, updated, note }
---   ShareModel.SetSwitch(key, on)   the switch of a row ("shareCoplay"; "shareAddons", M9.9)
+--   ShareModel.SetSwitch(key, on)   the switch of a row ("shareCoplay"; "shareAddons", M9.9; "shareAvailability", M10.8)
 -- A row with `feature` shows only while that switch of Core/Features.lua is on. A row with a switch may name its texts
 -- (switchLabel, switchTip, offNote: locale keys); without them they are the co-play ones.
 -- The other characters' own `accounts` rows are not shown as published by this one (SPEC-11 §5): the page says so.
@@ -368,6 +368,30 @@ builders.raidev = function(guid)
 end
 Model.Add("raidev", { set = "raidev", feature = "season", build = builders.raidev, title = "SHARE_EVENTS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_EVENTS" })
+
+-- when this account usually plays (M10.8, SPEC-14 §8.3): the own record as it was last sent
+builders.avail = function(guid)
+	local rec = S():Get("avail", guid)
+	local lines, recs = {}, { rec }
+	if not rec then
+		lines[1] = L["SHARE_NOTHING_YET"]
+	elseif rec.del == true then
+		lines[1] = L["SHARE_AVAIL_WITHDRAWN"]
+	else
+		local A = ns.Availability
+		local usual, any = 0, 0
+		for _, level in pairs(A and A.Decode(rec.p) or {}) do
+			if level > 0 then any = any + 1 end
+			if level >= A.USUAL then usual = usual + 1 end
+		end
+		lines[1] = L["SHARE_AVAIL_LINE"]:format(usual, any, rec.w or 0)
+	end
+	lines[#lines + 1] = L["SHARE_AVAIL_NAMES"]
+	return lines, recs
+end
+Model.Add("avail", { set = "avail", feature = "season", build = builders.avail, title = "SHARE_AVAIL",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_AVAIL", switch = "shareAvailability", switchLabel = "SHARE_AVAIL_SWITCH",
+	switchTip = "SHARE_AVAIL_SWITCH_TIP", offNote = "SHARE_AVAIL_OFF_NOTE" })
 
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",

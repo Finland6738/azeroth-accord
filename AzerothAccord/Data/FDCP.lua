@@ -127,6 +127,17 @@ local STATE = { OPEN = true, CLOSED = true }
 local SOURCE = { LEDGER = true, SNAPSHOT = true }
 local RULES_SOURCE = { GUILD = true, DEFAULT = true }
 
+-- The days a member declared ("MON".."SUN"; FDCP gives them on an officer's client): the list, or nil without one.
+local function days(v)
+	if type(v) ~= "table" then return nil end
+	local out = {}
+	for i = 1, 7 do
+		local d = text(v[i], 3)
+		if d then out[#out + 1] = d end
+	end
+	return out[1] and out or nil
+end
+
 local function poolEntry(e)
 	if type(e) ~= "table" then return nil end
 	local name = text(e.name)
@@ -135,6 +146,7 @@ local function poolEntry(e)
 		name = name, faction = text(e.faction), class = text(e.class), role = text(e.role),
 		ms1 = number(e.ms1), ms2 = number(e.ms2), os = number(e.os), status = oneOf(e.status, STATUS) or "ACTIVE",
 		alts = names(e.alts) or {}, twin = text(e.twin), viaAlt = e.viaAlt == true or nil,
+		avail = days(e.avail),
 	}
 end
 

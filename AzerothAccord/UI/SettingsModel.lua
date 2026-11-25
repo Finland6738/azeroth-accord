@@ -7,6 +7,8 @@
 --   notifyOfficer   a chat line when a bank request arrives that an officer has not seen (officers only)
 --   notifyDecision  a chat line when a bank request of the player was approved, rejected or fulfilled
 --   shareCoplay     record and publish the time played together (M7.6; Data/CoPlay.lua), on the "What I share" page
+--   shareAvailability  publish when this account usually plays (M10.8; Data/Availability.lua), on the same two places as
+--                   shareAddons; only while the switch `season` is on
 --   shareAddons     publish the list of the loaded addons (M9.9; Data/Census.lua), on the "What I share" page and in the
 --                   contacts card of Settings; only while the switch `census` is on (Core/Features.lua)
 -- The look (theme, effects, animations, font: account.settings.*, M6.14) has its own small table, Model.LOOK, read by the
@@ -35,6 +37,9 @@ Model.OPTIONS = {
 	-- the addon census (M9.9, SPEC-13 §8.3): on "What I share" and in the contacts card
 	{ key = "shareAddons", path = "account.settings.shareAddons", label = "SHARE_ADDONS_SWITCH", tip = "SHARE_ADDONS_SWITCH_TIP",
 		group = "sharing", feature = "census" },
+	-- when this account usually plays (M10.8, SPEC-14 §8.3): on "What I share" and in the contacts card
+	{ key = "shareAvailability", path = "account.settings.shareAvailability", label = "SHARE_AVAIL_SWITCH",
+		tip = "SHARE_AVAIL_SWITCH_TIP", group = "sharing", feature = "season" },
 }
 
 local byKey = {}

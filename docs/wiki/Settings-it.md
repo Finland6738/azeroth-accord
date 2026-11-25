@@ -34,6 +34,8 @@ Entrambi sono **sempre condivisi con la tua gilda**, così i compagni possono ra
 
 Dalla `v0.9.0` questa carta ha anche **Condividi l'elenco dei miei addon** (acceso di default), lo stesso interruttore della pagina *Cosa condivido*: vedi [[Addon della gilda|Guild-Addons-it]].
 
+Dalla `v0.10.0` (non ancora pubblicata) ha anche **Condividi quando gioco di solito** (acceso di default): vedi [[Disponibilità|Availability-it]].
+
 ## Personaggio principale
 
 Scegli quale dei tuoi personaggi è il tuo **main**. Guida i tuoi personaggi nel Roster raggruppato e nella scheda del membro ([[Roster di gilda|Guild-Roster-it]]). Finché non ne scegli uno, guida il personaggio di livello più alto. Il menu elenca i personaggi del tuo account in questo reame.
@@ -76,6 +78,7 @@ Ogni card dice **chi lo riceve**, **quando parte** e **cosa contiene adesso**, c
 | Ricette | ogni professione: nome, grado e numero di ricette |
 | Tempo giocato insieme | gli ultimi 7 giorni: quante coppie e quanti minuti per giorno. Le coppie nominano i tuoi compagni, non solo te |
 | Addon caricati *(dalla `v0.9.0`)* | quanti addon ha il tuo elenco e i primi cinque, con l'interruttore **Condividi l'elenco dei miei addon**; l'elenco arriva a tutta la gilda, e Accord mostra chi usa un addon solo agli ufficiali ([[Addon della gilda|Guild-Addons-it]]) |
+| Quando giochi di solito *(arriva con la `v0.10.0`)* | quante ore della settimana ha la tua mappa e su quante settimane, con l'interruttore **Condividi quando gioco di solito** ([[Disponibilità|Availability-it]]) |
 | Foto della banca di gilda | le schede lette (nome, numero di oggetti), il denaro e i registri |
 | Le tue richieste alla banca | le tue ultime 5 richieste e il loro stato |
 | Like | quanti like ha dato il tuo account (tenuto solo su questo computer) |
@@ -88,7 +91,7 @@ Gli altri tuoi personaggi non sono elencati come pubblicati da questo: ognuno pu
 
 ### L'unico interruttore
 
-**Registra il tempo giocato insieme** (acceso di default) è l'unica cosa che qui si può spegnere. Spento, questo client smette di contare e di pubblicare il tempo giocato insieme e non scrive record nuovi. I record già pubblicati restano finché scadono (90 giorni), e i client dei compagni continuano a osservare i gruppi in cui c'è anche questo personaggio; la card lo dice. Ricette e foto della banca non hanno interruttore perché sono la funzione stessa, e i tuoi personaggi, il BattleTag e il Discord sono sempre condivisi ([[Privacy e dati|Privacy-and-Data-it]]).
+**Registra il tempo giocato insieme** (acceso di default) è l'unica cosa che qui si può spegnere. Spento, questo client smette di contare e di pubblicare il tempo giocato insieme e non scrive record nuovi. I record già pubblicati restano finché scadono (90 giorni), e i client dei compagni continuano a osservare i gruppi in cui c'è anche questo personaggio; la card lo dice. Dalla `v0.10.0` c'è anche **Condividi quando gioco di solito** (acceso di default; spento, la tua mappa della disponibilità si ritira, [[Disponibilità|Availability-it]]). Ricette e foto della banca non hanno interruttore perché sono la funzione stessa, e i tuoi personaggi, il BattleTag e il Discord sono sempre condivisi ([[Privacy e dati|Privacy-and-Data-it]]).
 
 ## Backup e ripristino
 

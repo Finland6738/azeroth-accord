@@ -161,6 +161,10 @@ local function refreshContacts(f)
 	f.checks.shareAddons:SetChecked(Model().Get("shareAddons"))
 	f.checks.shareAddons:SetShown(census)
 	f.addonsNote:SetShown(census)
+	local avail = Model().Visible("shareAvailability")
+	f.checks.shareAvailability:SetChecked(Model().Get("shareAvailability"))
+	f.checks.shareAvailability:SetShown(avail)
+	f.availNote:SetShown(avail)
 end
 
 local function refreshMain(f)
@@ -519,6 +523,11 @@ local function buildContacts(f, page)
 		{ L["SHARE_ADDONS_SWITCH"], L["SHARE_ADDONS_SWITCH_TIP"] }, function(on) Model().Set("shareAddons", on) end), 14)
 	f.addonsNote = card:Add(text(card, "Small", "text-3"), 6)
 	f.addonsNote:SetText(L["SHARE_ADDONS_NAMES"])
+	-- when this account usually plays (M10.8, SPEC-14 §8.3): shown only while its feature switch is on
+	f.checks.shareAvailability = card:Add(switchRow(card, L["SHARE_AVAIL_SWITCH"],
+		{ L["SHARE_AVAIL_SWITCH"], L["SHARE_AVAIL_SWITCH_TIP"] }, function(on) Model().Set("shareAvailability", on) end), 14)
+	f.availNote = card:Add(text(card, "Small", "text-3"), 6)
+	f.availNote:SetText(L["SHARE_AVAIL_NAMES"])
 	return card
 end
 

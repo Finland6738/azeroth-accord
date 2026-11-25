@@ -57,6 +57,12 @@ When an officer imports a **Raid-Helper** event from Discord, the guild receives
 
 A raid **line-up** written by an officer (who is in the raid, who is on the bench, who plays their MS2) reaches the guild until 2 days after the event. It is a plan, not a record of who came. See [[Events|Events]].
 
+## When you usually play
+
+> Arrives with `v0.10.0`.
+
+Accord counts, on your computer, the minutes your account is online per hour of the week over the last 8 weeks, and nothing else: no place, no activity, no raid and no attendance. The guild receives, per hour, one of four levels and the number of weeks measured, kept for 30 days. Everybody sees how many members are online in each hour; **who** they are Accord shows only to officers and the Guild Master, and to you your own entry (a rule of the interface: the maps reach the whole guild). **Share when I usually play** is on by default; off, your map is withdrawn and nothing more is sent, while your own keeps counting on your computer. See [[Availability|Availability]].
+
 ## Other addons
 
 Apart from that list (new in `v0.9.0`), the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.

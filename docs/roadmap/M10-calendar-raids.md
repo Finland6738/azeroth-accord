@@ -147,8 +147,9 @@ So M10 and M11 follow these rules:
 - Scope:
   - when members usually play, from their presence online over time, shown by day and hour;
   - **no attendance**: Accord counts no presence at raids (integration rule 7).
+  - *Done (2026-11-26):* `Data/Availability.lua` (only the minutes online of the account, per hour of the realm's week, 8 weeks, `AzerothAccordDB.avail`; 4 levels in 42 bytes; the data set `avail`, published at most once a week, once a day in the first week; the switch *Share when I usually play*, which withdraws the map while the count goes on; counts for everybody, names for officers and the own entry; FDCP's declared days apart, for officers), the **Availability** view (`UI/Availability.lua`, `/accord availability`), the wiki page [Availability](../wiki/Availability.md), `Tests/test_availability.lua`. Traffic (SPEC-14 §11): inside the budget in a guild in step; **over it in the first exchange** (530 B/min average against 450), left to the owner (SPEC-10 Q26, R17) before M10.10.
 - Done when:
-  - [ ] The map is built from online presence only; nothing about raid attendance is recorded or sent.
+  - [x] The map is built from online presence only; nothing about raid attendance is recorded or sent.
 
 ### M10.9 — PvP and world rallies
 - Branch: `step/m10-9-rallies`

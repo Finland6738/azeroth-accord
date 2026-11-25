@@ -12,6 +12,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord addons` | Apre la vista **Addon della gilda**: quali addon usano i membri (vedi [[Addon della gilda|Guild-Addons-it]]) *(M9.9, dalla `v0.9.0`)* |
 | `/accord season` | Apre la vista **Season**: il roster della season e la tua dichiarazione (vedi [[Roster della season|Season-Roster-it]]) *(M10.3, arriva con la `v0.10.0`)* |
 | `/accord events` | Apre la vista **Eventi**: gli eventi della gilda e la tua iscrizione nel calendario del gioco (vedi [[Eventi|Events-it]]) *(M10.5, arriva con la `v0.10.0`)* |
+| `/accord availability` | Apre la vista **Disponibilità**: quando la gilda gioca di solito (vedi [[Disponibilità|Availability-it]]) *(M10.8, arriva con la `v0.10.0`)* |
 | `/accord roster` | Apre la vista Roster |
 | `/accord professions` | Apre la vista Professioni su **chi può creare** (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) |
 | `/accord reputation` | Apre la vista Reputazione: i like di ogni giocatore e il pulsante Like, il tuo indice sociale, la mappa dei gruppi (ufficiali), *Qualcuno di nuovo* con cui giocare *(M4)* |

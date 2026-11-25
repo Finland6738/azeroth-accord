@@ -75,7 +75,9 @@ describe("the two locale tables", function()
 				matches(k, "^[A-Z][A-Z0-9_]*$", name .. " key")
 				eq(type(v), "string", name .. " " .. k)
 				truthy(v ~= "", name .. " " .. k .. " is empty")
-				falsy(v:find("%s$"), name .. " " .. k .. " ends with a space")
+				-- ASCII spaces only: %s follows the C locale, which may take the last byte of "à" for a space
+				local last = v:byte(-1)
+				falsy(last == 32 or (last >= 9 and last <= 13), name .. " " .. k .. " ends with a space")
 			end
 		end
 	end)

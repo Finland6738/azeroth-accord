@@ -60,6 +60,7 @@ Data\Composition.lua
 Data\Calendar.lua
 Data\RaidHelperText.lua
 Data\RaidHelper.lua
+Data\Availability.lua
 Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua
@@ -109,6 +110,7 @@ UI\Raid.lua
 UI\Season.lua
 UI\RaidHelperBox.lua
 UI\Events.lua
+UI\Availability.lua
 UI\TimelineCard.lua
 UI\Officers.lua
 UI\OfficersOps.lua
