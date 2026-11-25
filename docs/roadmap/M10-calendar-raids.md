@@ -59,7 +59,7 @@ So M10 and M11 follow these rules:
   - ADR 0022 "Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared".
   - A note in SPEC-09 on the shared traffic budget.
   - The FDCP API Accord needs, written as a request for the FDCP repository (SPEC-10 Q10).
-  - *Done (2026-11-25):* [SPEC-14](../specs/SPEC-14-calendar-raids-season.md) (the data sets `season`, `raidev`, `avail` and `rally`, the trust rules SEA-01…SEA-06, the providers, the calendar calls checked against the Forever dump, which lacks the values of `Enum.CalendarStatus`, the Raid-Helper JSON of its API v4, silence during boss fights); ADR 0022 amended with points 11–15; SPEC-09 §7 on the shared traffic budget; the [FDCP API requests](../integrations/FDCP-API-requests.md) (F1–F8, none blocking); SPEC-10 Q20–Q25 and risks R15–R16, applied as proposed until the owner answers.
+  - *Done (2026-11-25):* [SPEC-14](../specs/SPEC-14-calendar-raids-season.md) (the data sets `season`, `raidev`, `avail` and `rally`, the trust rules SEA-01…SEA-06, the providers, the calendar calls checked against the Forever dump, which lacks the values of `Enum.CalendarStatus`, the Raid-Helper JSON of its API v4, silence during boss fights); ADR 0022 amended with points 11–15; SPEC-09 §7 on the shared traffic budget; the [FDCP API requests](../integrations/FDCP-API-requests.md) (F1–F8, none blocking); SPEC-10 Q20–Q25 and risks R15–R16, applied as proposed and accepted by the owner on 2026-11-25.
 - Done when:
   - [x] SPEC-14 and ADR 0022 are linked from their indexes; open points go to SPEC-10; `tools/check_docs.py` passes.
 

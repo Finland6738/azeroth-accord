@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Documentation
+
+- The owner accepted SPEC-10 Q20-Q25 as proposed (2026-11-25): season roster entries lock 30 minutes after the first write with the note always editable and no officer unlocking another member's entry, the current and 3 previous seasons kept, one character per account per season; officers and the Guild Master manage seasons, events, Raid-Helper imports and line-ups; manual Discord matches stay on the importing officer's computer; the availability map is shared by default with counts for everyone and names for officers and the Guild Master; any member may call a rally (one open per character, 4 per hour, 15 minutes to 2 hours); Accord writes other members' calendar status only after an officer's confirmation and never over an answer they already gave. SPEC-14 and the M10 roadmap say so; nothing changes in the addon.
+
 ### Added
 
 - M10.2: in the **Raid view** (behind the switch `raid`, still off), a section **Raid and loot addons in the guild**: for each known raid and loot addon, its detection on this client (loaded, switched off, installed or missing, version, level 0 or 1, whether its folder name is confirmed) and, from the addon census of M9.9, how many members who share their list have it loaded, out of how many, and the versions. Officers and the Guild Master see **who** has it, with the version and the characters; everybody else the counts and their own entry. With the census off, nobody sharing yet or the player not sharing, one line says so. Nothing is written to another addon and nothing is sent. Display names in `Integrations.KNOWN`; English and Italian strings; `Tests/test_integrations.lua`; SPEC-14 §3.4; the wiki page *Raid and loot addons* in both languages.
