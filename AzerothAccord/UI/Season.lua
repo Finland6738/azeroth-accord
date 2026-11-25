@@ -9,10 +9,13 @@
 --     change. The list shows every declaration of the chosen season, one per account (SEA-05).
 --   * FDCP: Accord asks for no declaration (SEA-06): FDCP's season and pool, read from its public API at level 1 (the
 --     lines of UI/Raid.lua, M11.7), or why there is nothing and the Open FDCP button at level 0.
+-- Counts (M10.4, SPEC-14 §4.5; Data/Composition.lua): for the current season of the chosen source, everybody sees per
+-- role the raiders by MS1, what MS2 would add, the gaps against the officers' target composition, then "Not sure yet" and
+-- unknown roles apart, and the accounts without a declaration in a list of their own, never as a gap. Officers set the
+-- target (with either source) and export the shown declarations (UI/ExportBox.lua, SPEC-14 §4.6).
 -- At the end, "Raid and loot addons in the guild" (M10.2): the same lines as the Raid view (UI/Raid.lua).
 --
 -- View.Model(n) reads everything now; View.Lines(model) is a plain function of it (tested offline); the frames only draw.
--- The officers' counts, the gaps and the export come with M10.4.
 -- While Core/Features.lua "season" is off there is no tab, no command and nothing is redrawn.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -21,13 +24,15 @@ ns.SeasonView, ns.modules = View, ns.modules or {}
 ns.modules.SeasonView = View
 
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
-local type, ipairs, tostring, floor, max, min, concat = type, ipairs, tostring, math.floor, math.max, math.min, table.concat
+local type, pairs, ipairs, tostring, tonumber = type, pairs, ipairs, tostring, tonumber
+local floor, max, min, concat = math.floor, math.max, math.min, table.concat
 
 View.ROW_HEIGHT = 20
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.SEP = " · "
 View.NONE = "-"                 -- the "no spec" choice of the MS2 and OS pickers
+View.NAMES_PER_LINE = 8         -- names written in one line of the lists of names
 
 local function on() return ns.Features ~= nil and ns.Features.On("season") end
 View.Enabled = on
@@ -82,6 +87,27 @@ function View.Model(n)
 		m.isCurrent = m.current ~= nil and chosen.n == m.current.n
 		if m.isCurrent then m.canDeclare, m.why = Se:CanDeclare() end
 	end
+	-- the declarations in one shape (the export) and, for the current season of the source, the counts
+	local C = ns.Composition
+	local counted = false
+	if m.raid == "fdcp" then
+		if m.pool then
+			m.rows, m.inactive = C.FromPool(m.pool)
+			counted = true
+		end
+	elseif chosen then
+		m.rows = C.FromAccord(m.entries)
+		counted = m.isCurrent
+	end
+	m.canSetTarget = C:CanSet()
+	m.target = C:Target()
+	if counted then
+		m.counts = C.Count(m.rows)
+		m.gaps = C.Gaps(m.counts, m.target)
+		m.missing = C.Missing(m.rows)
+		m.noMS2 = m.raid == "fdcp" and m.source == "SNAPSHOT"
+	end
+	m.canExport = ns.Export.Allowed() and m.rows ~= nil and #m.rows > 0
 	if ns.RaidView and ns.RaidView.AddonsModel then ns.RaidView.AddonsModel(m) end
 	return m
 end
@@ -126,6 +152,52 @@ local function ownLines(m, add)
 	add(L["SEASON_HOLDS"], "muted")
 end
 
+-- A line of text, then the short names under it, NAMES_PER_LINE to a line.
+local function nameLines(out, head, names)
+	if #names == 0 then return end
+	out[#out + 1] = { text = head:format(#names), sub = true }
+	for i = 1, #names, View.NAMES_PER_LINE do
+		local part = {}
+		for j = i, min(#names, i + View.NAMES_PER_LINE - 1) do part[#part + 1] = short(names[j]) end
+		out[#out + 1] = { text = concat(part, ", "), indent = true }
+	end
+end
+
+-- Roles by MS1, what MS2 would add and the gaps against the target (SPEC-14 §4.5).
+local function countLines(out, m, add)
+	local c = m.counts
+	if not c then return end
+	add(L["SEASON_ROLES"], "sub")
+	local t = m.target
+	if t then
+		add(L["SEASON_TARGET_LINE"]:format(t.size), "muted")
+		local free = t.size
+		for _, role in ipairs(ns.Composition.ROLES) do free = free - t[role] end
+		if free > 0 then add(L["SEASON_TARGET_FREE"]:format(free), "muted") end
+	else
+		add(L["SEASON_TARGET_NONE"], "muted")
+	end
+	if m.noMS2 then add(L["SEASON_MS2_OFFICERS"], "muted") end
+	for i, role in ipairs(ns.Composition.ROLES) do
+		local parts = { L["SEASON_COUNT"]:format(L["SEASON_FIELD_" .. role:upper()], c.ms1[role]) }
+		if not m.noMS2 then parts[#parts + 1] = L["SEASON_COUNT_MS2"]:format(c.ms2[role]) end
+		local g = m.gaps and m.gaps[i]
+		if g then
+			parts[#parts + 1] = L["SEASON_COUNT_TARGET"]:format(g.target)
+			if g.missing == 0 then
+				parts[#parts + 1] = L["SEASON_COUNT_MET"]
+			else
+				parts[#parts + 1] = L["SEASON_COUNT_MISSING"]:format(g.missing)
+				if not m.noMS2 then parts[#parts + 1] = L["SEASON_COUNT_COVER"]:format(g.cover) end
+			end
+		end
+		out[#out + 1] = { text = concat(parts, View.SEP), indent = true, warn = g ~= nil and g.missing > 0 or nil }
+	end
+	nameLines(out, L["SEASON_UNSURE_NAMES"], c.unsure)
+	nameLines(out, L["SEASON_NOROLE_NAMES"], c.unknown)
+	if (m.inactive or 0) > 0 then add(L["SEASON_INACTIVE"]:format(m.inactive), "muted") end
+end
+
 -- { { text, heading?, sub?, muted?, warn?, indent? } } for a model.
 function View.Lines(m)
 	local out = {}
@@ -149,6 +221,7 @@ function View.Lines(m)
 				local state = s.state == "OPEN" and L["SEASON_OPEN"] or s.state == "CLOSED" and L["SEASON_CLOSED"] or "?"
 				add(L["RAID_SEASON_LINE"]:format(s.name or tostring(s.id or "?"), state))
 			end
+			countLines(out, m, add)
 			if m.pool == nil then add(L["RAID_NO_POOL"], "muted")
 			elseif #m.pool == 0 then add(L["RAID_POOL_EMPTY"], "muted")
 			else
@@ -156,6 +229,7 @@ function View.Lines(m)
 				if m.source == "SNAPSHOT" then add(L["RAID_POOL_MEMBER"], "muted") end
 				for _, e in ipairs(m.pool) do out[#out + 1] = RV.MemberLine(e) end
 			end
+			nameLines(out, L["SEASON_MISSING"], m.missing or {})
 		end
 	else
 		local s = m.season
@@ -166,6 +240,7 @@ function View.Lines(m)
 			add(L["SEASON_LINE"]:format(s.name, state, dayText(s.start)))
 			if not m.current then add(m.canOpen and L["SEASON_NONE_OFFICER"] or L["SEASON_NONE"], "muted") end
 			ownLines(m, add)
+			countLines(out, m, add)
 			add(L["SEASON_LIST"]:format(#m.entries), "sub")
 			if #m.entries == 0 then add(L["SEASON_EMPTY"], "muted") end
 			local hidden = 0
@@ -174,6 +249,7 @@ function View.Lines(m)
 				hidden = hidden + #row.hidden
 			end
 			if hidden > 0 then add(L["SEASON_HIDDEN_ALTS"]:format(hidden), "muted") end
+			nameLines(out, L["SEASON_MISSING"], m.missing or {})
 		end
 	end
 	if m.addons and ns.RaidView.AddonsLines then ns.RaidView.AddonsLines(out, m, add) end
@@ -208,9 +284,20 @@ end
 
 local REASONS = { off = "SEASON_ERR_OFF", source = "SEASON_ERR_SOURCE", season = "SEASON_ERR_SEASON", account = "SEASON_ERR_ACCOUNT",
 	class = "SEASON_ERR_CLASS", content = "SEASON_ERR_CONTENT", locked = "SEASON_ERR_LOCKED", officer = "SEASON_ERR_OFFICER",
-	name = "SEASON_ERR_NAME" }
+	name = "SEASON_ERR_NAME", target = "SEASON_ERR_TARGET" }
 function View.ReasonText(why)
 	return L[REASONS[why] or "SEASON_ERR_OTHER"]
+end
+
+-- The target from the editor's values: the size as chosen, an empty field is 0, anything else than a number is kept
+-- out (SetTarget then refuses it).
+function View.Target(v)
+	local t = { size = tonumber(v.size) }
+	for _, role in ipairs(ns.Composition.ROLES) do
+		local text = v[role]
+		if text == nil or text == "" then t[role] = 0 else t[role] = tonumber(text) end
+	end
+	return t
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -266,6 +353,30 @@ function View:Build(f)
 		View:CloseSeason()
 	end })
 	f.closeSeason:SetPoint("LEFT", f.openSeason, "RIGHT", 8, 0)
+
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28, onClick = function() View:Export() end })
+
+	-- officers: the target composition
+	f.target = CreateFrame("Frame", nil, f)
+	f.target:SetHeight(32)
+	label(f.target, L["SEASON_TARGET"], 0, 0)
+	f.size = Widgets.Select(f.target, { width = 120, rows = 4 })
+	f.size:SetPoint("TOPLEFT", f.target, "TOPLEFT", 70, 0)
+	local sizes = {}
+	for _, n in ipairs(ns.Composition.SIZES) do sizes[#sizes + 1] = { id = tostring(n), text = L["SEASON_TARGET_SIZE"]:format(n) } end
+	f.size:SetChoices(sizes)
+	f.counts = {}
+	local x = 200
+	for _, role in ipairs(ns.Composition.ROLES) do
+		label(f.target, L["SEASON_FIELD_" .. role:upper()], x, 0)
+		local box = Widgets.EditBox(f.target, { width = 40, maxLetters = 2 })
+		box:SetPoint("TOPLEFT", f.target, "TOPLEFT", x + 58, 0)
+		f.counts[role] = box
+		x = x + 106
+	end
+	f.setTarget = Widgets.Button(f.target, { text = L["SEASON_TARGET_BUTTON"], style = "secondary", height = 28,
+		onClick = function() View:SetTarget() end })
+	f.setTarget:SetPoint("TOPLEFT", f.target, "TOPLEFT", x, 0)
 
 	-- the own declaration
 	f.form = CreateFrame("Frame", nil, f)
@@ -336,6 +447,25 @@ function View:CloseSeason()
 	self:Say(ok and L["SEASON_CLOSED_DONE"]:format(cur.name) or View.ReasonText(why))
 	self:Redraw()
 	return ok
+end
+
+function View:SetTarget()
+	local f = self.frame
+	if not f then return false end
+	local v = { size = f.size:Selected() }
+	for role, box in pairs(f.counts) do v[role] = box:GetText() end
+	local ok, why = ns.Composition:SetTarget(View.Target(v))
+	self:Say(ok and L["SEASON_TARGET_SAVED"] or View.ReasonText(why == "content" and "target" or why))
+	if ok then self.targetKey = nil end
+	self:Redraw()
+	return ok, why
+end
+
+-- The shown declarations as CSV or text for Discord, in the officers' export box.
+function View:Export()
+	local m = View.Model(self.chosen)
+	if not m.canExport then return nil end
+	return ns.ExportBox:Open("season", m.rows)
 end
 
 -- The form's values now.
@@ -412,8 +542,24 @@ function View:Redraw()
 	local y = -40
 	local officer = m.raid ~= "fdcp" and m.canOpen
 	f.officer:SetShown(officer)
-	if officer then
-		f.closeSeason:SetShown(m.current ~= nil)
+	if officer then f.closeSeason:SetShown(m.current ~= nil) end
+	f.export:SetShown(m.canExport)
+	f.export:ClearAllPoints()
+	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, y)
+	if officer or m.canExport then y = y - 40 end
+	f.target:SetShown(m.canSetTarget)
+	if m.canSetTarget then
+		f.target:ClearAllPoints()
+		f.target:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
+		f.target:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+		-- refilled only when the guild's target changed, so that a redraw does not undo what is being typed
+		local t = m.target
+		local key = t and tostring(t.rev) .. ":" .. tostring(t.author) or "none"
+		if self.targetKey ~= key then
+			self.targetKey = key
+			f.size:Select(tostring(t and t.size or 40), true)
+			for role, box in pairs(f.counts) do box:SetText(t and tostring(t[role]) or "") end
+		end
 		y = y - 40
 	end
 	local own = m.own
@@ -509,7 +655,7 @@ if ns.addon then
 	ns.addon.SeasonView = View
 	if ns.Bus then
 		local function changed() if on() then View:Changed() end end
-		for _, event in ipairs({ "SEASON_CHANGED", "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED", "CENSUS_CHANGED" }) do
+		for _, event in ipairs({ "SEASON_CHANGED", "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED", "CENSUS_CHANGED", "ROSTER_UPDATED", "ACCOUNTS_UPDATED" }) do
 			ns.Bus:On(event, changed)
 		end
 	end

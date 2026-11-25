@@ -84,7 +84,17 @@ end
 local function entries() return A().RosterModel.new():Entries() end
 local function rows() return I():Rows({ minTier = 1, away = true, unknown = true }) end
 local function changes() return V().TimelineRows({ days = 365 }) end
-local ITEMS = { roster = entries, inactive = rows, timeline = changes }
+-- the season roster's declarations (M10.4): the rows of Data/Composition.lua, built from two entries
+local function declarations()
+	local out = {}
+	for _, guid in ipairs({ BOB, ANN }) do
+		local member = A().Roster:ByGUID(guid)
+		out[#out + 1] = { guid = guid, name = member and member.name,
+			rec = { class = "MAGE", ms1 = { spec = "FROST", role = "ranged" }, unsure = false, first = GetServerTime() } }
+	end
+	return A().Composition.FromAccord(out)
+end
+local ITEMS = { roster = entries, inactive = rows, timeline = changes, season = declarations }
 
 local function build(kind, format) return X().Build(kind, format, ITEMS[kind]()) end
 
@@ -257,7 +267,7 @@ describe("EXP-01: nothing secret", function()
 				texts = texts + 1
 			end
 		end
-		eq(texts, 6)
+		eq(texts, 8)
 	end
 
 	it("no token, no GUID, no guild key, no officer note of either kind", function()

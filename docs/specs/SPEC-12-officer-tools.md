@@ -246,6 +246,8 @@ Tre esportazioni, ognuna in **CSV** o in **testo per Discord**: `Roster`, `Inact
 
 **Realizzazione (M8.6).** `Data/Export.lua` (colonne, escape, parti per Discord, limite) e `UI/ExportBox.lua` (la casella, con lo stesso campo a più righe del backup: `CopyBox.Area` in `UI/CopyBox.lua`, usato da entrambe). La casella ricorda il formato scelto per la sessione (`CSV` all'inizio) e si chiude da sola alla retrocessione e al cambio di gilda. Nel Roster raggruppato per account l'esportazione comprende anche gli alt degli account chiusi (`RosterModel:Entries`). `Roster`: `class` è il valore di `classFile` così com'è (`MAGE`); `last_seen_date` e `days_inactive` sono del personaggio, `tier` e `away_until` del suo account (`away_until` solo finché l'assenza è valida). Un personaggio di un altro reame nelle colonne senza `realm` (`main` del Roster, `characters`, `last_seen_character`) si scrive `Nome-Reame`. Nel testo per Discord intestazioni, titolo ed eventi sono nella lingua dell'interfaccia (il CSV resta in inglese), `Last seen` è una data e un account assente non ha fascia, come nella pagina. Test: `Tests/test_export.lua`.
 
+Da M10.4 la stessa casella esporta anche il roster della season ([SPEC-14 §4.6](SPEC-14-calendar-raids-season.md#46-esportazione), colonne là).
+
 ### 6.2 Colonne CSV
 
 Intestazione in inglese, fissa (non tradotta, per chi legge il file con un programma). Date in UTC: `AAAA-MM-GG` (`_date`) o `AAAA-MM-GG HH:MM` (`_utc`).

@@ -34,7 +34,7 @@ Da M10.3 M10 ha un interruttore suo, `season`, in [`Core/Features.lua`](../../Az
 | `UI/Season.lua` | la vista *Season*: la propria dichiarazione, l'elenco, i conteggi per gli ufficiali, l'esportazione (§4.6) | M10.3, M10.4 |
 | `Data/Calendar.lua` | lettura degli eventi di gilda e delle risposte, la propria risposta, gli eventi solo dell'addon (§5) | M10.5 |
 | `Data/RaidHelper.lua` | lettura del testo incollato, abbinamento, copia nel calendario (§6) | M10.6 |
-| `Data/Composition.lua` | formazione e panchina, composizione obiettivo (§7) | M10.7 |
+| `Data/Composition.lua` | composizione obiettivo, conteggi del roster della season (§4.5, §7.1); formazione e panchina (§7.2) | M10.4, M10.7 |
 | `UI/Events.lua` | la vista *Events*: elenco, dettaglio, iscrizione, importazione, composizione | M10.5–M10.7 |
 | `Data/Availability.lua`, `UI/Availability.lua` | la mappa della disponibilità (§8) | M10.8 |
 | `Data/Rallies.lua` | i raduni (§9), mostrati nella vista *Events* e nel Centro azioni | M10.9 |
@@ -143,9 +143,13 @@ Dalla fonte scelta, per la season corrente:
 
 Tutti i membri vedono l'elenco delle dichiarazioni (nome, classe, MS1, MS2, OS, nota). I conteggi e le mancanze li vedono tutti: sono numeri del roster, non dati riservati.
 
+**Realizzazione (M10.4,** `Data/Composition.lua`, `UI/Season.lua`**).** I conteggi ci sono solo per la season corrente (una vecchia mostra le dichiarazioni). Le due fonti si riducono alle stesse righe (`FromAccord`, `FromPool`). Con FDCP: il ruolo di MS1 è quello di FDCP (`TANK`, `HEALER`; un `DAMAGER` è mischia o distanza secondo la specializzazione, `Specs.GAME`, con gli id del client **[verificare]**), MS2 e OS hanno il ruolo della loro specializzazione; i main `INACTIVE` non si contano né si esportano (la vista dice quanti sono), così il client di un ufficiale e quello di un membro (che non li riceve) contano gli stessi; chi non ha un ruolo riconoscibile è elencato a parte; sul client di un membro (`SNAPSHOT`) la copertura di MS2 non si mostra. **Senza dichiarazione** è un account della gilda (gruppo di [SPEC-05](SPEC-05-roster-alts-contacts.md)) di cui nessun personaggio ha una voce, o con FDCP nessuno è un main o un alt di un main contato: si elenca una volta, con il nome del main, senza filtri di livello.
+
 ### 4.6 Esportazione
 
 Un testo pronto per Discord (con le parti di [SPEC-12 §6](SPEC-12-officer-tools.md#6-esportazioni-m86): blocchi sotto il limite di un messaggio), e un CSV con colonne `name`, `realm`, `class`, `role`, `ms1`, `ms2`, `os`, `unsure`, `note`, `declared_date`, nella casella di copia (`UI/ExportBox.lua`). Come le esportazioni di M8, sopra la casella c'è l'avviso che il testo esce dal gioco.
+
+**Realizzazione (M10.4,** `Data/Export.lua`, tipo `season`**).** Esportano ufficiali e Guild Master, come le altre esportazioni (EXP-01 vale anche qui): le righe della season mostrata, senza chi non ha dichiarato. Nel CSV `role` è il ruolo di MS1, `ms1` il nome inglese del ramo, `ms2` e `os` il ramo con il ruolo tra parentesi (`Fury (melee)`); con FDCP `note` e `declared_date` sono vuote. Il testo per Discord ha le colonne nome, classe, MS1, MS2, OS, nota nella lingua dell'interfaccia.
 
 ## 5. Eventi e iscrizioni sul calendario del gioco (M10.5)
 
@@ -258,7 +262,7 @@ La composizione decisa nel gioco (§7) si esporta come testo da incollare su Dis
 
 ### 7.1 Composizione obiettivo
 
-Un secondo record di `guildcfg`, id `target`: `size` (10, 20, 25 o 40), `tank`, `healer`, `melee`, `ranged` (interi, somma ≤ `size`). Lo scrivono solo gli ufficiali (come `sources`), vale per tutta la gilda; senza record nessuna mancanza si calcola. `Integrations.ValidRecord` accetta `sources` **o** `target`, ciascuno con i suoi campi.
+Un secondo record di `guildcfg`, id `target`: `size` (10, 20, 25 o 40), `tank`, `healer`, `melee`, `ranged` (interi, somma ≤ `size`). Lo scrivono solo gli ufficiali (come `sources`), vale per tutta la gilda; senza record nessuna mancanza si calcola. `Integrations.ValidRecord` accetta `sources` **o** `target`, ciascuno con i suoi campi. Fatto in M10.4 (`Composition:SetTarget`, un campo vuoto vale 0; i posti oltre la somma dei ruoli restano senza ruolo; nessun comando per togliere l'obiettivo, si cambia).
 
 ### 7.2 Con Accord come fonte
 

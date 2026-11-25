@@ -145,9 +145,12 @@ local function valid(datum, value)
 end
 Integrations.ValidChoice = valid
 
--- The owner rule of the set `guildcfg` (Net/Store.lua): only the record "sources", with a valid choice for every datum.
+-- The owner rule of the set `guildcfg` (Net/Store.lua): the record "sources", with a valid choice for every datum, or
+-- the record "target", the target composition (Data/Composition.lua, M10.4).
 function Integrations.ValidRecord(rec)
-	if type(rec) ~= "table" or rec.id ~= Integrations.SOURCES_ID then return false end
+	if type(rec) ~= "table" then return false end
+	if ns.Composition and rec.id == ns.Composition.ID then return ns.Composition.ValidTarget(rec) end
+	if rec.id ~= Integrations.SOURCES_ID then return false end
 	for _, datum in ipairs(Integrations.DATA) do
 		if not valid(datum, rec[datum]) then return false end
 	end
@@ -157,7 +160,7 @@ end
 -- The record the officers wrote, or nil (then every datum has its default).
 function Integrations:SourcesRecord()
 	local rec = ns.Store and ns.Store:Get(Integrations.SET, Integrations.SOURCES_ID)
-	if Integrations.ValidRecord(rec) then return rec end
+	if rec and rec.id == Integrations.SOURCES_ID and Integrations.ValidRecord(rec) then return rec end
 	return nil
 end
 

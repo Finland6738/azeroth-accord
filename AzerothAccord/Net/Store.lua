@@ -238,7 +238,7 @@ Store.SETS = {
 		transition = function(held, rec) return ns.BankRequests.Transition(held, rec) end,   -- the content of a request never changes
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
-	guildcfg = {   -- guild settings chosen by officers (Data/Integrations.lua, M10.2): id = "sources", { raid, loot }
+	guildcfg = {   -- guild settings of officers: "sources" { raid, loot } (Data/Integrations.lua), "target" (Data/Composition.lua)
 		feature = "season",                       -- Core/Features.lua (M10; also on with "raid"): off, neither written, accepted nor sent
 		maxBytes = 256,
 		authority = function() return true end,   -- written and passed on only by officers (NET-12)

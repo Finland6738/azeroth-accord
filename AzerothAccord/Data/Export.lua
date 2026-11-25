@@ -1,10 +1,12 @@
--- Export: the roster, the inactive accounts and the timeline as CSV or as text for Discord (SPEC-12 §6, M8.6). Lua 5.1.
+-- Export: the roster, the inactive accounts, the timeline and the season roster as CSV or as text for Discord (SPEC-12 §6,
+-- M8.6; SPEC-14 §4.6, M10.4). Lua 5.1.
 -- Pure text: it reads what a page of the officer tools shows (the items) and writes columns; UI/ExportBox.lua shows it.
 --
 --   Export.Build(kind, format, items, t) -> text, { rows = rows in the text, left = rows left out } or nil, "officer" | "kind"
 --     kind    "roster"    items: the roster entries the view shows (characters in the guild), in its order
 --             "inactive"  items: the accounts of Inactivity:Rows
 --             "timeline"  items: { { ev, name }, ... } of OfficersView.TimelineRows
+--             "season"    items: the declarations of the Season view (the rows of Data/Composition.lua)
 --     format  "csv" | "discord"
 --   Export.Display(text)  the text as the edit box takes it: "|" doubled (EXP-04)
 --
@@ -23,7 +25,7 @@ local type, ipairs, tostring = type, ipairs, tostring
 local floor, max = math.floor, math.max
 local concat = table.concat
 
-Export.KINDS = { "roster", "inactive", "timeline" }
+Export.KINDS = { "roster", "inactive", "timeline", "season" }
 Export.FORMATS = { "csv", "discord" }
 Export.MAX_TEXT = 262144       -- 256 KB, as the backup
 Export.PART_MAX = 1900         -- characters of one Discord part (a message takes 2000)
@@ -36,6 +38,7 @@ Export.CSV = {
 	inactive = { "main", "realm", "characters", "highest_rank", "days_inactive", "tier", "last_seen_date",
 		"last_seen_character", "last_seen_source", "grouped_by_note", "away_until" },
 	timeline = { "date_utc", "since_utc", "event", "name", "realm", "from", "to", "observers" },
+	season = { "name", "realm", "class", "role", "ms1", "ms2", "os", "unsure", "note", "declared_date" },
 }
 local SOURCES = { native = "game", shared = "shared", own = "you" }
 
@@ -161,6 +164,25 @@ function RECORDS.timeline(rows)
 	return out
 end
 
+-- The season roster: MS1's role has its own column; MS2 and OS carry theirs in brackets, when it is known.
+local function withRole(p)
+	if not p then return "" end
+	return p.role and ("%s (%s)"):format(p.name, p.role) or p.name
+end
+
+function RECORDS.season(rows)
+	local out = {}
+	for _, r in ipairs(rows) do
+		local name, realm = nameRealm(r.guid, nil, r.name)
+		out[#out + 1] = {
+			name = name, realm = realm, class = r.class or "", role = r.role or "", ms1 = r.ms1 and r.ms1.name or "",
+			ms2 = withRole(r.ms2), os = withRole(r.os), unsure = yesNo(r.unsure), note = r.note or "",
+			declared_date = dayText(r.first), _row = r,
+		}
+	end
+	return out
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- CSV (§6.3)
 ---------------------------------------------------------------------------------------------------------------------
@@ -226,6 +248,13 @@ end
 
 local function name(v) return value(v, Export.NAME_CUT) end
 
+-- "Protection (tank)" in the language of the interface, "" without that spec.
+local function pickText(p)
+	if not p then return "" end
+	local role = p.role and ns.L["SEASON_ROLE_" .. p.role:upper()]
+	return role and ns.L["SEASON_PICK"]:format(p.text, role) or p.text
+end
+
 -- kind -> { { heading key, record -> cell }, ... }
 local DISCORD = {
 	roster = {
@@ -253,6 +282,14 @@ local DISCORD = {
 		{ "EXPORT_COL_DATE", function(r) return ns.Timeline.WhenText(r._ev) end },
 		{ "COL_TL_NAME", function(r) return name(r.name) end },
 		{ "COL_TL_EVENT", eventText },
+	},
+	season = {
+		{ "COL_NAME", function(r) return name(r.name) end },
+		{ "COL_CLASS", function(r) return r.class ~= "" and ns.Roster.ClassName(r.class) or "" end },
+		{ "SEASON_MS1", function(r) return r._row.unsure and ns.L["SEASON_UNSURE"] or pickText(r._row.ms1) end },
+		{ "SEASON_MS2", function(r) return pickText(r._row.ms2) end },
+		{ "SEASON_OS", function(r) return pickText(r._row.os) end },
+		{ "EXPORT_COL_NOTE", function(r) return value(r.note, Export.NOTE_CUT) end },
 	},
 }
 

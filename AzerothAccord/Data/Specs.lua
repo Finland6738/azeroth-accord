@@ -67,6 +67,34 @@ function Specs.Valid(classFile, spec, role)
 	return false
 end
 
+-- The English name of a tree ("BEAST_MASTERY" -> "Beast Mastery"), for the exports, which are not translated.
+function Specs.English(spec)
+	if type(spec) ~= "string" then return "?" end
+	return (spec:lower():gsub("_", " "):gsub("(%a)(%a*)", function(first, rest) return first:upper() .. rest end))
+end
+
+-- The game's specialization ids, as another addon declares them (FDCP's pool, M10.4): id -> { tree, role }. A damage
+-- dealer is melee or ranged by its tree, as above. [verify] on WoW Forever, as the ids of FDCP's own table.
+Specs.GAME = {
+	[71] = { "ARMS", "melee" }, [72] = { "FURY", "melee" }, [73] = { "PROTECTION", "tank" },
+	[65] = { "HOLY", "healer" }, [66] = { "PROTECTION", "tank" }, [70] = { "RETRIBUTION", "melee" },
+	[253] = { "BEAST_MASTERY", "ranged" }, [254] = { "MARKSMANSHIP", "ranged" }, [255] = { "SURVIVAL", "ranged" },
+	[259] = { "ASSASSINATION", "melee" }, [260] = { "COMBAT", "melee" }, [261] = { "SUBTLETY", "melee" },
+	[256] = { "DISCIPLINE", "healer" }, [257] = { "HOLY", "healer" }, [258] = { "SHADOW", "ranged" },
+	[262] = { "ELEMENTAL", "ranged" }, [263] = { "ENHANCEMENT", "melee" }, [264] = { "RESTORATION", "healer" },
+	[62] = { "ARCANE", "ranged" }, [63] = { "FIRE", "ranged" }, [64] = { "FROST", "ranged" },
+	[265] = { "AFFLICTION", "ranged" }, [266] = { "DEMONOLOGY", "ranged" }, [267] = { "DESTRUCTION", "ranged" },
+	[102] = { "BALANCE", "ranged" }, [103] = { "FERAL", "melee" }, [104] = { "GUARDIAN", "tank" },
+	[105] = { "RESTORATION", "healer" },
+}
+
+-- The English tree name and the role of a game specialization id, or nil (unknown id).
+function Specs.Game(id)
+	local row = Specs.GAME[id]
+	if not row then return nil end
+	return Specs.English(row[1]), row[2]
+end
+
 -- The text of a tree ("Arms"), or the key itself when the locale has none.
 function Specs.Name(spec)
 	if type(spec) ~= "string" then return "?" end

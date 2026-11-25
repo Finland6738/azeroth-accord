@@ -56,6 +56,7 @@ Data\FDCP.lua
 Data\Integrations.lua
 Data\Specs.lua
 Data\Season.lua
+Data\Composition.lua
 Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua

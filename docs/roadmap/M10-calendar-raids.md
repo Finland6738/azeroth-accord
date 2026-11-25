@@ -95,8 +95,9 @@ So M10 and M11 follow these rules:
   - officers see the tank, healer, melee and ranged counts by MS1, the cover MS2 would add, and the gaps against a target composition they set, from whichever source is chosen;
   - every member sees the declarations;
   - export as Discord-ready text.
+  - *Done (2026-11-25):* `Data/Composition.lua` (the target composition, the record `target` of `guildcfg`, written by `Raid.WRITERS`; the rows of Accord's season or of FDCP's pool in one shape; counts by MS1, MS2 cover, gaps; the accounts without a declaration), in the **Season** view the counts and the list of who is missing for everybody, the target editor and **Export** for officers (CSV and Discord text in the M8.6 box, `Data/Export.lua` kind `season`). With FDCP, inactive mains are not counted and a member's client shows no MS2 cover. `Tests/test_season_view.lua`.
 - Done when:
-  - [ ] The counts match the declarations of the chosen source; members without an entry are listed separately, not as a gap.
+  - [x] The counts match the declarations of the chosen source; members without an entry are listed separately, not as a gap.
 
 ### M10.5 — Events and sign-ups on the game calendar
 - Branch: `step/m10-5-events`
