@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-25
+
 ### Fixed
 
 - M9.10: when an officer is demoted, the officer data is now deleted at the change of role also if the roster had been read before it (the ranks are read afresh); before, it could wait for the next timeline read.
