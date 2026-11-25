@@ -17,6 +17,7 @@
 --           title,    -- already in the interface language, cut at TITLE_MAX characters
 --           detail,   -- optional, cut at DETAIL_MAX
 --           who,      -- optional: the name to show
+--           mark,     -- optional: string or number that changes when the thing itself changes (the login digest)
 --           open,     -- function(): opens the view that resolves the row
 --           dismiss } -- optional: function(), only for local reminders the player closes by hand
 --
@@ -142,6 +143,7 @@ local function clean(def, r)
 		title = Actions.Cut(r.title, Actions.TITLE_MAX),
 		detail = type(r.detail) == "string" and r.detail ~= "" and Actions.Cut(r.detail, Actions.DETAIL_MAX) or nil,
 		who = type(r.who) == "string" and r.who ~= "" and r.who or nil,
+		mark = (type(r.mark) == "string" or type(r.mark) == "number") and r.mark or nil,
 		open = r.open, dismiss = type(r.dismiss) == "function" and r.dismiss or nil,
 	}
 end

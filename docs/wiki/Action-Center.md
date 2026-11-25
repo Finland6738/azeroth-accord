@@ -84,6 +84,25 @@ Set them in [[Settings|Settings]], card **Notifications**. The history of the **
 
 When nothing holds them any more, the waiting notices come out **once, in the order they arrived**: 3 seconds after combat, 5 seconds after leaving the instance, within a minute of the end of the quiet hours. They come together: three chat lines at most and *and N more*, one on-screen box and one sound at most. A notice you have read meanwhile, one that is no longer true, or one that waited more than 12 hours stays in the history only. So do the waiting notices if you reload the interface or log out.
 
-## Not yet here
+## Summary at login
 
-The summary at login is the next step of M9.
+> **Not in a release yet.** The summary at login (step M9.5) arrives with `v0.9.0`. Nothing of this has been checked in the real game.
+
+A few seconds after you **log in** (not after a `/reload`), the addon says what changed **since your last session** in this guild:
+
+| Line | What it counts | A click opens |
+|---|---|---|
+| *2 new members: …* | who joined, with up to three names | the Roster |
+| *1 member left: …* | who is no longer in the guild | the Roster |
+| *3 things wait for you* | the **Now** and **To do** lines of the Inbox | the Inbox |
+| *You received 2 likes* | **the number only, never who gave them** | Reputation |
+| *Bank: +120g, 14 movements* | the change of the guild's gold and the new entries of the bank logs you may see | the Bank |
+| *5 unread notices* | the notices you have not read | the **Notices** page |
+
+A line is there only when it is not zero. **When nothing changed there is nothing**: no chat line, no card, no sound. Things that were already waiting at your last session do not bring up the summary by themselves; they are counted when something is new.
+
+- The lines are on the card **Since your last session** at the top of the Inbox page. Click one to open its view. **Close** takes the card away; otherwise it stays until your next login.
+- One chat line sums them up with numbers only: *Accord: since your last session: 2 new members, 2 likes. /accord inbox*. It waits during combat, in instances and in your quiet hours. To switch it off: [[Settings|Settings]], card **Notifications**, *Summary at login*.
+- What guild members did while you were away reaches your computer over the first minutes: the card is completed for about two and a half minutes after the login. If there was nothing to say at first, the chat line comes at the end of that time. What arrives later is not in the summary.
+- With more than 50 members joined and left together, or after more than 90 days away, the roster lines give numbers without names.
+- The first time in a guild there is no summary: the addon only remembers how things are.

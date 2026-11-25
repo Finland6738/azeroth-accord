@@ -47,7 +47,7 @@ Tell your officers when you will be back: type the **return date** (YYYY-MM-DD, 
 | Tell me in chat about new bank requests | officers only | on |
 | Tell me in chat when my bank requests are decided | everyone | on |
 
-Each option is a switch. From `v0.9.0` the same card also lets you choose whether the bank notices come as a chat line, a box on screen or a sound, and every notice is kept in the history ([[Action Center|Action-Center]]). It will also have the **quiet hours**: when notices wait ([[Action Center|Action-Center]]). These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
+Each option is a switch. From `v0.9.0` the same card also lets you choose whether the bank notices come as a chat line, a box on screen or a sound, and every notice is kept in the history ([[Action Center|Action-Center]]). It will also have the **quiet hours**: when notices wait ([[Action Center|Action-Center]]), and the switch of the chat line of the **summary at login**. These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
 
 ## Roster columns
 

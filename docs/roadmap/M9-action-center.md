@@ -51,7 +51,8 @@ Release: `v0.9.0`.
 - Spec: SPEC-13
 - Scope: a short summary a few seconds after login: new and departed members, pending items, likes received (the number only), bank changes. Each line links to its view.
 - Done when:
-  - [ ] The digest is empty and silent when nothing changed; it never names who gave a like.
+  - [x] The digest is empty and silent when nothing changed; it never names who gave a like.
+  - *Done (2026-11-25):* `Data/Digest.lua` (after a login only, 10 seconds after the roster is read; new and departed members, rows to do of the Action Center, likes as a number, bank gold and movements, unread notices, each line opening its view), the card *Since your last session* on the Inbox page, one chat line that waits like a notice; what the sync brings counts for 150 seconds after the login (SPEC-13 §5.4); `Tests/test_digest.lua`. Behind the switch `actions`. Not checked in the game.
 
 ### M9.6 — Guild group finder: listings and applications
 - Branch: `step/m9-6-groups-data`

@@ -10,6 +10,7 @@
 --                     --   group  locale key of the text of many notices of this kind ("%d new bank requests")
 --                     --   option key of UI/SettingsModel.lua that switches the kind (the two M5 bank options)
 --                     --   off    locale key of the switch of a kind without `option` (account.settings.notify.<m>.off.<id>)
+--            outputs, -- optional: the outputs the module has, of OUTPUTS (default: all three)
 --            open,    -- optional: function(entry), opens the view of an entry; the default opens entry.view
 --            check }  -- optional: function(), called every TICK seconds and at the start (notices nothing announces)
 --   n    = { key,     -- identity of the notice: an unread entry with the same key is updated, not repeated (NTF-07)
@@ -73,6 +74,7 @@ local state
 local function fresh(old)
 	return {
 		pending = {}, timer = nil,                 -- pending: { entry, still, held = server time or nil }, in order
+		waiting = {},                              -- of WhenFree: { fn, held = server time }, in order
 		serial = old and old.serial or 0,          -- of the flush timers: only the last one armed flushes
 		fighting = old and old.fighting or false,  -- between PLAYER_REGEN_DISABLED and PLAYER_REGEN_ENABLED
 		window = nil,                              -- { limit, ends, hello, groups = { [m.k] = group }, order = {} }
@@ -394,17 +396,41 @@ local function queue(entry, still)
 	if not scheduled then flush() end
 end
 
--- QUI-03: lets the held notices out when nothing holds any more. True when it did.
+-- Runs what waited in WhenFree, in order; what waited more than HELD_MAX seconds is dropped, like a notice.
+local function runWaiting()
+	local list = state.waiting
+	state.waiting = {}
+	for _, item in ipairs(list) do
+		if serverTime() - item.held <= Notify.HELD_MAX then
+			local ok = pcall(item.fn)
+			if not ok then Notify.errorCount = Notify.errorCount + 1 end
+		end
+	end
+end
+
+-- For an output that is not a notice of the history (the login digest, SPEC-13 §5): `fn` runs now, or, while notices are
+-- held, once at the release, after the held ones.
+function Notify:WhenFree(fn)
+	if not Notify.Enabled() then return false end
+	state.waiting[#state.waiting + 1] = { fn = fn, held = serverTime() }
+	if not self:Holding() then runWaiting() end
+	return true
+end
+
+-- QUI-03: lets the held notices out when nothing holds any more. True when it let notices out.
 function Notify:Release()
 	if not Notify.Enabled() or self:Holding() then return false end
 	if ns.Toast then ns.Toast:Resume() end
+	local out = false
 	for _, item in ipairs(state.pending) do
 		if item.held then
 			flush()
-			return true
+			out = true
+			break
 		end
 	end
-	return false
+	runWaiting()
+	return out
 end
 
 local function releaseIn(seconds)

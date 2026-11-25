@@ -33,6 +33,8 @@
 --   NOTICE_POSTED(entry)                              Data/Notify.lua; a new entry of the history of notices (M9.3).
 --   NOTICES_CHANGED()                                 Data/Notify.lua; the history changed (posted, read, cleared, or
 --                                                     another guild).
+--   DIGEST_CHANGED()                                  Data/Digest.lua; the card of the login digest changed (new lines,
+--                                                     closed, or another guild), M9.5.
 --   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
 --                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.

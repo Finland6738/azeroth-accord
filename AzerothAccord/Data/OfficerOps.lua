@@ -334,6 +334,7 @@ function Ops:ActionRows(t)
 		if count[op] then
 			local key = "ACT_OPS_" .. op:upper() .. (count[op] == 1 and "_ONE" or "")
 			rows[#rows + 1] = { key = "queue:" .. op, urgency = 2, time = oldest[op], title = ns.L[key]:format(count[op]),
+				mark = count[op],
 				open = function() if ns.OfficersView then ns.OfficersView:OpenPage("queue") end end }
 		end
 	end

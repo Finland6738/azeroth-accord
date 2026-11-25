@@ -560,7 +560,7 @@ local function buildNotices(f, page)
 		local head = card:Add(text(card, "Eyebrow", "text-3"), 14)
 		head:SetText(L[def.label])
 		f.noticeHeads[module], f.noticeOutputs[module] = head, {}
-		for _, output in ipairs(ns.Notify.OUTPUTS) do
+		for _, output in ipairs(def.outputs or ns.Notify.OUTPUTS) do
 			local key = "SET_NOTICE_" .. output:upper()
 			f.noticeOutputs[module][output] = card:Add(switchRow(card, L[key], { L[key], L[key .. "_TIP"] },
 				function(on) M.SetOutput(module, output, on) end), 6)

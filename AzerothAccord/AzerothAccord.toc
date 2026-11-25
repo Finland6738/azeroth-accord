@@ -60,6 +60,7 @@ Data\Absence.lua
 Data\OfficerNotes.lua
 Data\Inactivity.lua
 Data\OfficerOps.lua
+Data\Digest.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua

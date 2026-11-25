@@ -126,6 +126,7 @@ function H.boot(opts)
 		loadChunk(file.path, file.name)(Mock, H)
 	end
 	Mock.Reload = H.reload
+	Mock.Relog = function(away, change) return H.relog(away, change) end
 	Mock.player.loggedIn = false
 
 	for _, setup in ipairs(opts.setups or {}) do setup(Mock) end
@@ -207,6 +208,15 @@ function H.logout()
 		if value ~= nil then saved[name] = serialize(value, name) end
 	end
 	return saved
+end
+
+-- Logout, `away` seconds out of the game, and a new login (not a /reload): the digest of the login (M9.5). `change` runs
+-- while out of the game, on the world only (the guild's members, the clock).
+function H.relog(away, change)
+	local saved = H.logout()
+	Mock.SetServerTime(E.GetServerTime() + (away or 0))
+	if change then change() end
+	H.boot({ carry = true, saved = saved })
 end
 
 -- Another independent client: a second copy of this harness without test files. Returns its H (H.boot, H.E, H.Mock).

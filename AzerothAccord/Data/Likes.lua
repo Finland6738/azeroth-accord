@@ -160,6 +160,31 @@ function Likes:Invalidate()
 	state.index, state.totals = nil, {}
 end
 
+-- How many likes the characters of this player's account received after the server time `since`: the distinct pseudonyms
+-- of the newer entries that no older entry holds. A number and nothing else: who gave them is not known and the entries
+-- stay here (LIKE-04, SPEC-13 §5.2).
+function Likes:ReceivedSince(since)
+	local me = myGUID()
+	if not (me and ns.Store and type(since) == "number") then return 0 end
+	local own = {}
+	local function add(guid)
+		for _, g in ipairs(self:AccountChars(guid)) do own[g] = true end
+	end
+	add(me)
+	for _, c in ipairs(ns.Accounts and ns.Accounts:OwnChars() or {}) do add(c.guid) end
+	local old, new = {}, {}
+	for _, rec in pairs(ns.Store:Records("likes")) do
+		if type(rec) == "table" and own[rec.target] and type(rec.pseudonym) == "string" and type(rec.time) == "number" then
+			if rec.time > since then new[rec.pseudonym] = true else old[rec.pseudonym] = true end
+		end
+	end
+	local n = 0
+	for pseudonym in pairs(new) do
+		if not old[pseudonym] then n = n + 1 end
+	end
+	return n
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- The notice of likes received (SPEC-13 §3.2: quiet, the number only, never who gave them)
 ---------------------------------------------------------------------------------------------------------------------

@@ -2,7 +2,8 @@
 --
 -- On top the chips of the providers (All, then one per provider present), under them the table: the mark of the urgency
 -- (err now, accent to do, text-3 reminder), what, the detail, who and since when. A click on a row opens the view that
--- resolves it; Done shows only on a local reminder. The page Notices (M9.3, SPEC-13 §3.3) lists the history of
+-- resolves it; Done shows only on a local reminder. Above the chips, the card of the login digest (M9.5, SPEC-13 §5.3,
+-- Data/Digest.lua) when there is one. The page Notices (M9.3, SPEC-13 §3.3) lists the history of
 -- Data/Notify.lua, the newest first: All or Unread, Mark all read, Clear (two clicks); a click on a notice marks it read
 -- and opens its view, and the page's name carries the number of unread ones. Further pages register with View.AddPage.
 -- The tab is there only while the switch `actions` is on.
@@ -24,6 +25,9 @@ local type, ipairs, tostring = type, ipairs, tostring
 View.PAGER_HEIGHT = 44
 View.FILTER_HEIGHT = 36
 View.MARK_SIZE = 8
+View.DIGEST_HEAD = 36          -- the card of the login digest: its title line, each line under it, the gap to the chips
+View.DIGEST_LINE = 24
+View.DIGEST_GAP = 12
 View.URGENCY_TOKEN = { [1] = "text-3", [2] = "accent", [3] = "err" }
 
 View.pages = {}            -- { id, label, order, build(frame, view), refresh(frame, view) }
@@ -83,6 +87,14 @@ function View.TipLines(r)
 	return tip
 end
 
+-- The lines of the card "Since your last session" (SPEC-13 §5.3): { { line, text } }, empty when there is no card.
+function View.DigestRows()
+	local card = ns.Digest and ns.Digest:Card()
+	local out = {}
+	for i, line in ipairs(card and card.rows or {}) do out[i] = { line = line, text = ns.Digest.Text(line) } end
+	return out
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames: the Inbox page
 ---------------------------------------------------------------------------------------------------------------------
@@ -122,21 +134,82 @@ local function updateRow(row, data)
 	row.done:SetShown(data.dismiss ~= nil)
 end
 
+-- The card of the login digest: each line opens its view, Close takes the card away until the next login.
+local function digestCard(f, self)
+	local card = Widgets.Card(f)
+	card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	card:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	card.title = Widgets.Text(card, "Eyebrow", "text-3")
+	card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -14)
+	card.title:SetText(L["DIGEST_TITLE"])
+	card.close = Widgets.Button(card, { text = L["DIGEST_CLOSE"], style = "ghost", height = 22, width = 80, onClick = function()
+		ns.Digest:Close()
+		self:Redraw()
+	end })
+	card.close:SetPoint("TOPRIGHT", card, "TOPRIGHT", -8, -8)
+	card.lines = {}
+	card:Hide()
+	return card
+end
+
+local function digestLine(card, i)
+	local row = card.lines[i]
+	if row then return row end
+	row = CreateFrame("Button", nil, card)
+	row:SetHeight(View.DIGEST_LINE)
+	local y = -View.DIGEST_HEAD - (i - 1) * View.DIGEST_LINE
+	row:SetPoint("TOPLEFT", card, "TOPLEFT", 8, y)
+	row:SetPoint("TOPRIGHT", card, "TOPRIGHT", -8, y)
+	Widgets.RowHover(row)
+	row.label = Widgets.Text(row, "Body", "text-1", "LEFT")
+	row.label:SetPoint("LEFT", row, "LEFT", 6, 0)
+	row.label:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+	row.label:SetWordWrap(false)
+	row:SetScript("OnClick", function(r) if r.line then ns.Digest:Open(r.line) end end)
+	card.lines[i] = row
+	return row
+end
+
+-- Fills the card and returns the room it takes above the chips (0 when there is none).
+local function refreshDigest(f)
+	local rows = View.DigestRows()
+	for i, r in ipairs(rows) do
+		local row = digestLine(f.digest, i)
+		row.line = r.line
+		row.label:SetText(r.text)
+		row:Show()
+	end
+	for i = #rows + 1, #f.digest.lines do f.digest.lines[i]:Hide() end
+	f.digest:SetShown(#rows > 0)
+	if #rows == 0 then return 0 end
+	local height = View.DIGEST_HEAD + #rows * View.DIGEST_LINE + 8
+	f.digest:SetHeight(height)
+	return height + View.DIGEST_GAP
+end
+
+local function placeInbox(f, top)
+	f.chips:ClearAllPoints()
+	f.chips:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
+	f.chips:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -top)
+	f.table:ClearAllPoints()
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top - View.FILTER_HEIGHT)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+end
+
 local function buildInbox(f, self)
+	f.digest = digestCard(f, self)
 	f.chips = Widgets.ChipRow(f, function(id)
 		self.filter = id
 		self:Redraw()
 	end, { height = 26, gap = 6 })
-	f.chips:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.chips:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ACT_EMPTY"],
 		onRowClick = function(r) ns.Actions:Open(r) end,
 		rowSetup = function(row) setupRow(self, row) end, rowUpdate = updateRow })
-	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.FILTER_HEIGHT)
-	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	placeInbox(f, 0)
 end
 
 local function refreshInbox(f, self)
+	placeInbox(f, refreshDigest(f))
 	local chips, known = View.Chips(), false
 	for _, c in ipairs(chips) do if c.id == self.filter then known = true end end
 	if not known then self.filter = "all" end
@@ -342,6 +415,7 @@ if ns.addon then
 	if ns.Bus then
 		ns.Bus:On("ACTIONS_CHANGED", function() View:Changed() end)
 		ns.Bus:On("NOTICES_CHANGED", function() View:Changed() end)
+		ns.Bus:On("DIGEST_CHANGED", function() View:Changed() end)
 		ns.Bus:On("GUILD_CHANGED", function() View.filter, View.noticeFilter = "all", "all" end)
 	end
 end

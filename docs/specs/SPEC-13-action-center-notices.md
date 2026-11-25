@@ -72,7 +72,7 @@ Una vista con le cose che **aspettano il giocatore**. Non salva nulla di suo: og
 Una **riga**: `{ key, urgency, time, title, detail, who, open, dismiss }`:
 
 - `key` (stringa, al massimo 64 caratteri) unica nel fornitore; `urgency` 3, 2 o 1 (§2.2); `time` = l'ora del server da cui la cosa aspetta (apertura della richiesta, arrivo della candidatura);
-- `title` (al massimo 80 caratteri) e `detail` (facoltativo, 120) già nella lingua dell'interfaccia; `who` facoltativo, il nome da mostrare (tagliato con i puntini, SPEC-11 §6.6);
+- `title` (al massimo 80 caratteri) e `detail` (facoltativo, 120) già nella lingua dell'interfaccia; `who` facoltativo, il nome da mostrare (tagliato con i puntini, SPEC-11 §6.6); `mark` facoltativo (stringa o numero), che cambia quando cambia la cosa stessa (§5.4);
 - `open()` apre la vista che risolve la riga (sempre presente); `dismiss()` solo per i **promemoria locali** (§2.3, `craft`), che il giocatore chiude a mano.
 
 Regole:
@@ -227,6 +227,17 @@ Nell'ordine, ognuna **solo se diversa da zero**:
 - **DIG-02** Una sola riga in chat (se l'uscita `chat` del modulo `digest` è accesa): `Accord: since your last session: 2 new members, 3 things wait for you, 2 likes. /accord inbox`, solo i numeri.
 - In cima alla pagina *Inbox* la scheda *Since your last session* con le righe di §5.2, ognuna cliccabile verso la sua vista, fino al prossimo accesso (o finché il giocatore la chiude). Nessun collegamento cliccabile nella chat (eviterebbe un hook sulla chat del gioco).
 - **DIG-03** Niente è cambiato: nessuna riga in chat, nessuna scheda, nessun suono (criterio di M9.5).
+
+### 5.4 Come è fatto (M9.5)
+
+- Tutto in `Data/Digest.lua`; la scheda è in `UI/Actions.lua`, in cima alla pagina *Inbox*. `GuildKey:Data().digest = { at, roster, cut, pending, money, moves, card }`: dell'account per gilda, mai inviato, mai nel backup; *Clear guild data* lo toglie (l'accesso dopo è una prima volta).
+- Finché il riepilogo di un accesso non è uscito, né `at` né la fotografia si rinnovano: un logout subito dopo l'accesso non perde nulla. Un `/reload` prima del riepilogo lo salta. Se la gilda non è nota entro la fine del recupero, per quell'accesso non c'è riepilogo.
+- **Recupero**: ciò che è successo mentre il giocatore era via arriva con la sincronizzazione, dopo il primo `HELLO`. Fino a **150 s dall'accesso** le righe si rileggono quando arriva qualcosa (raccolti per 2 s) e la scheda si aggiorna; poi resta com'è. La riga in chat (DIG-02) esce **una volta**: al riepilogo, o alla fine del recupero se prima non c'era nulla. Ciò che arriva oltre i 150 s, o con un'ora precedente a `digest.at` (un like scritto prima dell'ultima sessione e ricevuto solo ora), non compare.
+- **Cose che aspettano** (DIG-03): da sole non sono un cambiamento. La riga conta tutte quelle di urgenza 2 e 3, ma il riepilogo esce per esse solo se almeno una è **nuova o diversa** dall'ultima sessione (`digest.pending`, per fornitore e chiave, con il `mark` facoltativo della riga: lo stato di una richiesta in banca, il numero di una coda degli ufficiali). Se qualcos'altro è cambiato, la riga c'è comunque.
+- **Membri**: confronto per GUID alla prima lettura completa del roster; i nomi senza reame, in ordine alfabetico. «Più di 50» vale per la somma di entrati e usciti, e allora tutte e due le righe hanno solo il numero. Oltre 1000 membri niente righe del roster.
+- **Like**: `Likes:ReceivedSince(at)` restituisce **solo un numero** (gli pseudonimi nuovi sui personaggi dell'account che nessuna voce più vecchia ha); niente altro dei libri passa al riepilogo o alla scheda.
+- **Banca**: il denaro è confrontato con `digest.money` quando la foto è più recente di `at`. I movimenti sono le voci dei registri visibili non presenti in `digest.moves` (le ultime 48 ore al momento del salvataggio, perché il gioco arrotonda le ore dei registri anche di un giorno), unite con `BankLog.Merge`.
+- **Uscita**: la riga in chat non passa dalla cronologia degli avvisi né dalla finestra di NTF-05; aspetta con `Notify:WhenFree` (stesse condizioni di QUI-01, stesse 12 ore, dopo gli avvisi trattenuti) e usa l'ora in cui esce: se la scheda è stata chiusa nel frattempo non esce. Il modulo `digest` si registra in `Notify` con la sola uscita `chat` (`outputs = { "chat" }`), quindi la carta di Settings mostra solo quella.
 
 ## 6. Cercagruppi della gilda (M9.6–M9.7)
 

@@ -289,6 +289,7 @@ function Inbox:ActionRows()
 			local open = r.status == "open"
 			if officer then
 				rows[#rows + 1] = { key = "do:" .. r.id, urgency = 2, time = r.created or 0, detail = detail, who = r.name or "?",
+					mark = r.status,
 					title = L[open and "ACT_BANK_NEW" or "ACT_BANK_DELIVER"]:format(what), open = openRequest(r.id, "inbox") }
 			end
 			if r.own then

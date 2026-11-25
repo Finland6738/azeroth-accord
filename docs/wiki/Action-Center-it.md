@@ -84,6 +84,25 @@ Si impostano nelle [[Impostazioni|Settings-it]], card **Notifiche**. La cronolog
 
 Quando nulla li trattiene più, gli avvisi in attesa escono **una volta sola, nell'ordine di arrivo**: 3 secondi dopo il combattimento, 5 secondi dopo l'uscita dall'istanza, entro un minuto dalla fine delle ore di quiete. Escono insieme: al massimo tre righe in chat e *e altri N*, un solo riquadro sullo schermo e un solo suono. Un avviso che hai letto nel frattempo, che non è più vero o che ha aspettato più di 12 ore resta solo nella cronologia. Lo stesso gli avvisi in attesa se ricarichi l'interfaccia o esci dal gioco.
 
-## Non ancora qui
+## Riepilogo all'accesso
 
-Il riepilogo all'accesso è il prossimo passo di M9.
+> **Non ancora in un rilascio.** Il riepilogo all'accesso (passo M9.5) arriva con la `v0.9.0`. Nulla di questo è stato verificato nel gioco vero.
+
+Pochi secondi dopo l'**accesso** (non dopo un `/reload`), l'addon dice che cosa è cambiato **dall'ultima sessione** in questa gilda:
+
+| Riga | Che cosa conta | Un clic apre |
+|---|---|---|
+| *2 nuovi membri: …* | chi è entrato, con al massimo tre nomi | il Roster |
+| *1 membro uscito: …* | chi non è più in gilda | il Roster |
+| *3 cose ti aspettano* | le righe **Adesso** e **Da fare** della pagina **In arrivo** | la pagina **In arrivo** |
+| *Hai ricevuto 2 like* | **solo il numero, mai chi li ha dati** | Reputazione |
+| *Banca: +120o, 14 movimenti* | la differenza dell'oro di gilda e le voci nuove dei registri della banca che puoi vedere | la Banca |
+| *5 avvisi non letti* | gli avvisi che non hai letto | la pagina **Avvisi** |
+
+Una riga c'è solo se non è zero. **Se non è cambiato nulla non compare nulla**: né riga in chat, né scheda, né suono. Le cose che aspettavano già all'ultima sessione non fanno comparire il riepilogo da sole; sono contate quando c'è qualcosa di nuovo.
+
+- Le righe sono nella scheda **Dall'ultima sessione**, in cima alla pagina **In arrivo**. Fai clic su una per aprire la sua vista. **Chiudi** toglie la scheda; altrimenti resta fino al prossimo accesso.
+- Una riga in chat le riassume con i soli numeri: *Accord: dall'ultima sessione: 2 nuovi membri, 2 like. /accord inbox*. Aspetta durante il combattimento, nelle istanze e nelle ore di quiete. Per spegnerla: [[Impostazioni|Settings-it]], card **Notifiche**, *Riepilogo all'accesso*.
+- Ciò che i membri hanno fatto mentre eri via arriva sul tuo computer nei primi minuti: la scheda si completa per circa due minuti e mezzo dopo l'accesso. Se all'inizio non c'era niente da dire, la riga in chat esce alla fine di quel tempo. Ciò che arriva più tardi non è nel riepilogo.
+- Con più di 50 persone tra entrate e uscite, o dopo più di 90 giorni di assenza, le righe del roster danno solo i numeri.
+- La prima volta in una gilda non c'è riepilogo: l'addon si limita a ricordare come stanno le cose.
