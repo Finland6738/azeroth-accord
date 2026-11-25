@@ -62,7 +62,7 @@ In the **Requests** mode of the Bank view you can:
 
 - When you ask for an item, you may promise a **tip** in whole gold, up to 10000 (leave it empty or 0 for none). It is a plain donation to the guild bank, not a bet or a price: the officers decide your request as they see fit.
 - The tip is a **promise**. The addon never moves gold: you pay it by depositing the gold in the guild bank yourself.
-- Who sees it: you (and your other characters), the officers and the Guild Master. The other members do not see it in the addon. It travels with the request, which the whole guild receives, so treat it as hidden from view, not as a secret.
+- Who sees it: the whole guild, as the rest of the request. In `v0.8.0` the addon shows it only to you (and your other characters), the officers and the Guild Master.
 - Once sent, the tip cannot be changed: cancel the request and send a new one.
 - A guildmate with an older version of the addon sees the request without the tip.
 

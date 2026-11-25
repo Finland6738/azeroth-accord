@@ -59,7 +59,7 @@
 - Scope (added by the owner, 2026-11-25):
   - a withdrawal request picks its item from the bank tab snapshots the member can see (search by name, the available quantity shown and capping the request, the age of the snapshot); a link or an item number stays as a fallback;
   - an optional tip in whole gold, a promise only: the member deposits it in the bank, the money log gives a "looks paid" hint and an officer checks it by hand;
-  - the officers' list shows date and time, requester, item, quantity and tip, sortable by date (oldest first by default) and by tip. Whether members see others' tips is SPEC-10 Q16.
+  - the officers' list shows date and time, requester, item, quantity and tip, sortable by date (oldest first by default) and by tip. Members see everybody's tip (SPEC-10 Q16, answered by the owner on 2026-11-25).
 - Done when:
   - [x] An item is picked from the snapshot and the quantity is capped; the officers' list sorts by date and by tip; an older client ignores the tip; the addon never moves gold or items.
 - Note: the popup list under the item box, its height in the guild window, the two-line rows of the officers' list and the local date and time are [verify] in the client.

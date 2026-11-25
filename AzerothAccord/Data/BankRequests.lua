@@ -28,8 +28,8 @@
 --
 -- A withdrawal of an item can be picked from the bank as this character sees it (BANK-25): Req:BankItems sums the newest
 -- snapshot of every visible tab, and what it shows caps the quantity of a new request (a received record is never checked
--- against the snapshots: every client holds different ones). Who sees a tip is a display rule (BANK-27, SPEC-10 Q16:
--- Req.TIP_VISIBLE_TO); the record itself reaches the whole guild.
+-- against the snapshots: every client holds different ones). Everyone sees the tips, as the record reaches the whole
+-- guild (BANK-27, SPEC-10 Q16); who is shown them is the one display rule Req.TIP_VISIBLE_TO.
 --
 -- Delivering the item stays manual (mail, trade or the vault): the addon only keeps the record (BANK-24).
 local ADDON_NAME, ns = ...
@@ -54,7 +54,7 @@ Req.MAX_AMOUNT = 1000000000   -- copper: 100,000 gold
 Req.MAX_HISTORY = 8
 Req.COPPER_PER_GOLD = 10000
 Req.MAX_TIP = 100000000       -- copper: 10,000 gold
-Req.TIP_VISIBLE_TO = "officers"   -- SPEC-10 Q16: "officers" (officers, the GM and the requester) or "everyone"
+Req.TIP_VISIBLE_TO = "everyone"   -- SPEC-10 Q16: "everyone", or "officers" (officers, the GM and the requester)
 
 local KIND = { withdraw = true, deposit = true, donation = true }
 

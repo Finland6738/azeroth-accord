@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Bank requests: the **tip** of a request is now shown to the whole guild, as the rest of the request (SPEC-10 Q16, the owner's answer of 2026-11-25; one switch, `BankRequests.TIP_VISIBLE_TO`). **Looks paid** stays for officers. `v0.8.0` clients still show other members' tips only to officers and the Guild Master.
+
 ### Added
 
 - M9.3: the **notification centre** ([SPEC-13](docs/specs/SPEC-13-action-center-notices.md) §3), behind the same switch `actions`, off until M9.10: with it off the bank notices of M5 work as in `v0.8.0`. A history of notices (200 entries, 30 days, per guild) with read and unread on the new page **Notices** of the Action Center (All / Unread, *Mark all read*, *Clear*); per module a **chat line**, an **on-screen box** of the addon and a **sound** (off by default), in the Notifications card of Settings; the two bank options keep their keys, defaults and words, and a notice switched off is still kept, marked *muted*. Against floods: nothing announced on the first run in a guild, grouping in the first minutes after a login, bursts and repeated notices merged, at most 30 per session. Quiet notices (history only) for officers when a member is back and for likes received (the number only). What was already announced moves over from the M5 data, and *Clear guild data* keeps it. Saved data schema 4 (`settings.notify`); English and Italian strings; `Tests/test_notify.lua`; the wiki in both languages.

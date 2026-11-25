@@ -410,7 +410,7 @@ Un record per personaggio, `id` = il suo GUID, `author` = un personaggio dello s
 | **chi** usa un addon | no | sì |
 | il proprio elenco (il proprio account segnato in ogni riga) | sì | sì |
 
-La scelta è quella **decisa dal proprietario** (2026-11-24, [SPEC-10 Q11](SPEC-10-risks-open-questions.md#2-domande-aperte-per-il-proprietario)) e sta in un punto solo, `Census.NAMES_VISIBLE_TO = "officers"`. È una regola **dell'interfaccia**: i record arrivano a tutta la gilda, come la mancia di Q16; tenerli davvero riservati chiederebbe il canale degli ufficiali (S5, non provato). Decisa dal proprietario come proposto ([SPEC-10 Q17](SPEC-10-risks-open-questions.md#2-domande-aperte-per-il-proprietario), 2026-11-25); il manuale e *What I share* lo dicono.
+La scelta è quella **decisa dal proprietario** (2026-11-24, [SPEC-10 Q11](SPEC-10-risks-open-questions.md#2-domande-aperte-per-il-proprietario)) e sta in un punto solo, `Census.NAMES_VISIBLE_TO = "officers"`. È una regola **dell'interfaccia**: i record arrivano a tutta la gilda; tenerli davvero riservati chiederebbe il canale degli ufficiali (S5, non provato). Decisa dal proprietario come proposto ([SPEC-10 Q17](SPEC-10-risks-open-questions.md#2-domande-aperte-per-il-proprietario), 2026-11-25); il manuale e *What I share* lo dicono.
 
 ### 8.5 Conteggi
 

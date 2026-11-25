@@ -565,7 +565,7 @@ describe("the tip", function()
 		truthy(A().Config.EstimateSize(rec) <= S().SETS.bankreq.maxBytes, tostring(A().Config.EstimateSize(rec)))
 	end)
 
-	it("a member sees the tip of their own requests only; an officer and the Guild Master see all", function()
+	it("every member sees the tip of every request; the one switch can still hide the others' tips", function()
 		ask(2 * GOLD)
 		theirs(1, { tip = 7 * GOLD })
 		local function tips()
@@ -573,27 +573,32 @@ describe("the tip", function()
 			for _, r in ipairs(R():List()) do out[r.requester] = r.tip or 0 end
 			return out
 		end
-		eq(tips()[ME], 2 * GOLD); eq(tips()[BOB], 0, "somebody else's tip is not shown")
+		eq(tips()[ME], 2 * GOLD); eq(tips()[BOB], 7 * GOLD, "SPEC-10 Q16: a member sees somebody else's tip")
+		for _, r in ipairs(RV().Rows({})) do
+			if r.requester == BOB then truthy(r.tipText) end
+		end
+		R().TIP_VISIBLE_TO = "officers"
+		eq(tips()[ME], 2 * GOLD); eq(tips()[BOB], 0, "hidden by the switch")
 		for _, r in ipairs(RV().Rows({})) do
 			if r.requester == BOB then
 				isNil(r.tipText)
 				for _, line in ipairs(RV().TooltipLines(r)) do falsy(type(line) == "table" and line.text:find("Tip:")) end
 			end
 		end
-		R().TIP_VISIBLE_TO = "everyone"
-		eq(tips()[BOB], 7 * GOLD, "the one switch of SPEC-10 Q16")
-		R().TIP_VISIBLE_TO = "officers"
 		asOfficer()
-		eq(tips()[BOB], 7 * GOLD)
+		eq(tips()[BOB], 7 * GOLD, "an officer sees it with either value")
+		R().TIP_VISIBLE_TO = "everyone"
 	end)
 
-	it("the requester's alt sees the tip too", function()
+	it("with the switch on officers, the requester's alt sees the tip too", function()
 		theirs(1, { tip = 7 * GOLD })
+		R().TIP_VISIBLE_TO = "officers"
 		for _, pair in ipairs({ { ME, BOB }, { BOB, ME } }) do
 			S():Records("accounts")[pair[1]] = { id = pair[1], author = pair[1], rev = 1, time = GetServerTime(), token = "T",
 				chars = { { guid = pair[1] }, { guid = pair[2] } } }
 		end
 		eq(R():List()[1].tip, 7 * GOLD)
+		R().TIP_VISIBLE_TO = "everyone"
 	end)
 
 	it("What I share says the tip of the player's own requests", function()

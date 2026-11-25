@@ -264,7 +264,7 @@ def req_rows(officer, me="Fenwick"):
         if officer and st == "approved":
             acts = btn(T("BANKREQ_FULFILL"), small=True)
         nt = f'<span class="muted small"> - {esc(T("BANKREQ_NOTE", note))}</span>' if note else ""
-        if n in GIFTS and (officer or n == me):
+        if n in GIFTS:
             nt = f'<span class="muted small"> - {esc(T("BANKREQ_GIFT_SHORT", money(GIFTS[n])))}</span>' + nt
         rows += (f'<tr><td style="width:150px">{badge(c)}{name(n, c)}</td><td style="width:100px" class="muted">{esc(T("BANKREQ_KIND_" + kind.upper()))}</td>'
                  f'<td style="width:300px">{esc(what)}{nt}</td><td style="width:100px" class="{STATUS_COLOR[st]}">{esc(T("BANKREQ_STATUS_" + st.upper()))}</td>'

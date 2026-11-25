@@ -62,7 +62,7 @@ Nella modalità **Richieste** della vista Banca puoi:
 
 - Quando chiedi un oggetto puoi promettere una **mancia** in monete d'oro intere, fino a 10000 (vuota o 0 per nessuna). È una semplice donazione alla banca di gilda, non una scommessa né un prezzo: gli ufficiali decidono la tua richiesta come ritengono.
 - La mancia è una **promessa**. L'addon non sposta mai oro: la paghi tu depositando l'oro nella banca di gilda.
-- Chi la vede: tu (e i tuoi altri personaggi), gli ufficiali e il Guild Master. Gli altri membri nell'addon non la vedono. Viaggia però con la richiesta, che arriva a tutta la gilda: consideratela nascosta alla vista, non segreta.
+- Chi la vede: tutta la gilda, come il resto della richiesta. In `v0.8.0` l'addon la mostra solo a te (e ai tuoi altri personaggi), agli ufficiali e al Guild Master.
 - Una volta inviata la mancia non si cambia: annulla la richiesta e mandane una nuova.
 - Un compagno con una versione più vecchia dell'addon vede la richiesta senza la mancia.
 
