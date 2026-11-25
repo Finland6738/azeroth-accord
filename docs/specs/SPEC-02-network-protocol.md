@@ -29,7 +29,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 
 ## 3. Insiemi di dati
 
-`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2), e da M8 gli insiemi solo per ufficiali `timeline`, `absence`, `onotes`, `ocfg` ([SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali)), e da M9 `groups` (annunci di gruppo: **volatile**, fuori da ogni riepilogo e solo di prima mano, [SPEC-13 §6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)) e `addons` (censimento degli addon, [SPEC-13 §8.2](SPEC-13-action-center-notices.md#82-linsieme-addons)). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
+`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2), e da M8 gli insiemi solo per ufficiali `timeline`, `absence`, `onotes`, `ocfg` ([SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali)), e da M9 `groups` (annunci di gruppo: **volatile**, fuori da ogni riepilogo e solo di prima mano, [SPEC-13 §6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)) e `addons` (censimento degli addon, [SPEC-13 §8.2](SPEC-13-action-center-notices.md#82-linsieme-addons)), e da M10 `season`, `raidev`, `avail` e `rally` (volatile) ([SPEC-14](SPEC-14-calendar-raids-season.md), dietro l'interruttore `raid`). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
 
 ## 4. Sincronizzazione
 
