@@ -46,6 +46,12 @@ Accord condivide con la tua gilda l'**elenco degli addon che questo personaggio 
 
 Quando dichiari per una season di raid (MS1, MS2, OS, una nota, oppure *Non ancora sicuro*), la dichiarazione arriva a tutta la gilda ed è elencata in *Cosa condivido*. Solo il tuo account può scriverla. Si tengono la season corrente e le 3 precedenti; quelle più vecchie si cancellano. Vedi [[Roster della season|Season-Roster-it]].
 
+## Eventi
+
+> Arriva con la `v0.10.0`.
+
+Quando ti iscrivi a un evento della gilda da Accord, la tua risposta va nel **calendario del gioco**, come se avessi risposto nel gioco. Il **ruolo** che scegli per l'evento, che il calendario del gioco non può tenere, arriva a tutta la gilda ed è elencato in *Cosa condivido*; così le tue risposte agli eventi tenuti solo in Accord (quando un client non ha il calendario del gioco). Solo il tuo account può scriverli, e si cancellano 2 giorni dopo l'evento. Accord non registra presenze. Vedi [[Eventi|Events-it]].
+
 ## Altri addon
 
 A parte quell'elenco (novità della `v0.9.0`), l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.

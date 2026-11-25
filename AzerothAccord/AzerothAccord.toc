@@ -57,6 +57,7 @@ Data\Integrations.lua
 Data\Specs.lua
 Data\Season.lua
 Data\Composition.lua
+Data\Calendar.lua
 Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua
@@ -104,6 +105,7 @@ UI\BankLog.lua
 UI\BankRequests.lua
 UI\Raid.lua
 UI\Season.lua
+UI\Events.lua
 UI\TimelineCard.lua
 UI\Officers.lua
 UI\OfficersOps.lua

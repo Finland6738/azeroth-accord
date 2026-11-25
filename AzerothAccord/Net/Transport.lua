@@ -14,6 +14,7 @@
 --     messages sent with the same opts.rateGroup count once;
 --   * NET-05: nothing is handed to the client during a chat lockdown or an addon restriction: the messages wait, the
 --     latest one per `key` wins, BULK ones older than BULK_TTL are dropped; a lockdown refusal of the client is a wait;
+--   * SPEC-14 §10: during a boss encounter only ALERT messages go, the others wait (switch "season", M10.5);
 --   * a throttle result retries after RETRY_DELAY seconds, at most MAX_RETRIES times;
 --   * every message carries the guild key it was written for: it waits while the guild is not known yet and is dropped
 --     if the character is in another guild by then (a message of one guild never reaches another);
@@ -292,6 +293,13 @@ local function setGate(held, readOnly)
 end
 
 function Transport:IsReadOnly() return state.readOnly end
+
+-- SPEC-14 §10 (M10.5): during a boss encounter (ENCOUNTER_START to ENCOUNTER_END, or while the client says one is in
+-- progress) NORMAL and BULK messages wait in the queue; only ALERT ones go. Behind the switch "season" until M10.10.
+function Transport.BossSilence()
+	if not (ns.Features and ns.Features.On("season")) then return false end
+	return compat().EncounterInProgress() and true or false
+end
 function Transport:Held() return state.held end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -408,12 +416,13 @@ local function guildCheck(current)
 	for _, item in ipairs(doomed or {}) do drop(item, "guild") end
 end
 
--- The first message that may go now, in priority order; nil when none may.
-local function pick(t, current)
+-- The first message that may go now, in priority order; nil when none may. During a boss encounter only ALERT goes.
+local function pick(t, current, boss)
 	for _, item in ipairs(state.queue) do
 		local gap = Transport.GAP[item.dist] or 1
 		local last = state.lastAt[item.dist]
 		local ok = item.notBefore <= t and (state.holdUntil[item.dist] or 0) <= t
+			and (not boss or item.prio == "ALERT")
 			and (last == nil or t - last >= gap - 1e-9)
 			and (item.guild == nil or item.guild == current)
 		if ok and not rateFits(item, t) then ok = false end
@@ -493,9 +502,11 @@ pass = function()
 	local held = (Chat.InChatLockdown() and "lockdown") or Chat.RestrictionAny() or nil
 	local readOnly = Chat.OutgoingAddonRestricted()
 	setGate(held, readOnly)
+	local boss = Transport.BossSilence()
+	state.boss = boss
 	if not held and not readOnly then
 		for _ = 1, Transport.QUEUE_MAX do
-			local item = pick(t, current)
+			local item = pick(t, current, boss)
 			if not item then break end
 			if item.officerOnly and not officerAllowed(item.dist, item.target) then
 				drop(item, "officerOnly")   -- checked again as it leaves: the target may have been demoted while it waited
@@ -760,6 +771,11 @@ if ns.addon then
 	-- each module embeds AceEvent itself: one handler per event and object, so modules never replace each other's
 	LibStub("AceEvent-3.0"):Embed(Transport)
 	Transport:RegisterEvent("PLAYER_LOGOUT", function() Transport:SaveQueue() end)
+	Transport:RegisterEvent("ENCOUNTER_START", function() if ns.Compat then ns.Compat.encounter = true end end)
+	Transport:RegisterEvent("ENCOUNTER_END", function()
+		if ns.Compat then ns.Compat.encounter = nil end
+		if #state.queue > 0 then pass() end
+	end)
 	if ns.Bus then ns.Bus:On("GUILD_CHANGED", function() Transport:ResetFlood() end) end
 	if ns.OnEnable then ns.OnEnable(function() Transport:RestoreQueue() end) end
 end

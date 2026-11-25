@@ -170,6 +170,8 @@ Verificato il 2026-11-25 sul dump di Forever `1.60.1` (build 70170, `../WoW-Addo
 
 I valori di `Enum.CalendarStatus` **non sono nel dump** (solo il nome del tipo). Si usano quelli del client moderno, gli stessi che legge FDCP: 0 invitato, 1 disponibile, 2 rifiutato, 3 confermato, 4 fuori, 5 riserva, 6 iscritto, 7 non iscritto, 8 forse **[verificare]**. Accord li riduce a tre risposte come FDCP: **sì** = 1, 3, 6; **forse** = 5, 8; **no** = 2, 4; 0 e 7 = nessuna risposta. Anche `CalendarEventType` (raid = 0) è un valore del client moderno **[verificare]**.
 
+*Fatto in M10.5:* i valori stanno in **una sola costante**, `Compat.CALENDAR_STATUS` in `Core/Compat.lua` (con la riduzione `Compat.CALENDAR_ANSWER` e `Compat.CALENDAR_EVENT_RAID`); se il client ha `Enum.CalendarStatus` valgono i suoi (`Compat.Calendar.Status()`). Tutte le chiamate a `C_Calendar` passano da `Compat.Calendar`; nei test c'è un `C_Calendar` finto (`Tests/mock/62_calendar.lua`).
+
 ### 5.2 Leggere
 
 - Al primo `PLAYER_ENTERING_WORLD` con l'interruttore acceso, `OpenCalendar()` (una volta: lo fa anche FDCP e l'interfaccia del gioco); a ogni `CALENDAR_UPDATE_EVENT_LIST` e `CALENDAR_UPDATE_GUILD_EVENTS` si rilegge l'elenco degli **eventi di gilda dei prossimi 14 giorni** e dei 7 passati, chiunque li abbia creati, con `GetGuildEventInfo`.
@@ -177,16 +179,19 @@ I valori di `Enum.CalendarStatus` **non sono nel dump** (solo il nome del tipo).
 - **L'evento aperto è uno solo per il client**, condiviso con la finestra del calendario del gioco e con gli altri addon. Accord non apre un evento mentre la finestra del calendario è visibile (`CalendarFrame:IsShown()`) o `IsActionPending()` è vero, e richiude sempre l'evento che ha aperto; se la finestra del gioco si apre a metà, Accord smette e riprova dopo.
 - Niente si legge in combattimento o durante un boss (§10).
 - Un evento si identifica con la chiave `c<eventID>`; il titolo e le risposte non si salvano né si mandano: si rileggono dal calendario.
+- *Fatto in M10.5 (`Data/Calendar.lua`):* l'ora di un evento è quella del calendario (ora del reame) letta come UTC (`Calendar.Stamp`); le finestre di 7 e 14 giorni e la scadenza di 2 giorni hanno margini di giorni, quindi la differenza di fuso con l'ora del server non conta. Se la finestra del gioco apre un evento mentre Accord ne tiene uno aperto (`CALENDAR_OPEN_EVENT` con la finestra visibile), Accord lo lascia e lo dice.
 
 ### 5.3 Rispondere da Accord
 
-Dalla vista *Events*, un clic del giocatore su **Sign up**, **Tentative** o **Decline**: Accord apre l'evento, chiama `EventSignUp()` (evento di iscrizione di gilda) oppure `EventAvailable()` (invito), `EventTentative()` o `EventDecline()`, aspetta `CALENDAR_UPDATE_INVITE_LIST` o `CALENDAR_UPDATE_ERROR`, richiude e mostra l'esito. Così **la stessa risposta** è nel calendario del gioco, in FDCP e negli altri client. Una risposta data nella finestra del gioco compare in Accord alla rilettura. Le chiamate partono solo da un clic **[verificare]**: se il client le rifiuta da un addon (azione protetta), il pulsante apre la finestra del calendario del gioco su quell'evento e lo dice.
+Dalla vista *Events*, un clic del giocatore su **Sign up**, **Tentative** o **Decline**: Accord apre l'evento, chiama `EventSignUp()` (evento di iscrizione di gilda, `calendarType` `GUILD_EVENT`, a cui il giocatore non ha ancora risposto) oppure `EventAvailable()` (invito, o un evento a cui ha già risposto) **[verificare]**, `EventTentative()` o `EventDecline()`, aspetta che lo stato proprio nell'evento sia la risposta data (`CALENDAR_UPDATE_INVITE_LIST` o `CALENDAR_UPDATE_EVENT`; il client li manda anche all'apertura, prima della risposta del server) o `CALENDAR_UPDATE_ERROR`, al massimo 10 s (`Calendar.ANSWER_WAIT`), richiude e mostra l'esito. Così **la stessa risposta** è nel calendario del gioco, in FDCP e negli altri client. Una risposta data nella finestra del gioco compare in Accord alla rilettura. Le chiamate partono solo da un clic **[verificare]**: se il client le rifiuta da un addon (azione protetta: `ADDON_ACTION_BLOCKED` su una funzione di `C_Calendar`, o la chiamata non parte), Accord richiude l'evento, apre la finestra del calendario del gioco (`ToggleCalendar`) e lo dice.
 
 **Il ruolo** non ha un posto nel calendario del gioco (nessuna funzione scrive la nota di un invito). Accord lo tiene in un record suo (`R:`, §5.5), preselezionato da MS1 o, se MS1 è già coperta e un ruolo manca, da MS2; il giocatore lo cambia. Un membro senza dichiarazione può iscriversi lo stesso (ruolo dalla classe).
 
+*Fatto in M10.5:* "coperta" vuol dire che gli altri iscritti (sì o forse) con quel ruolo sono già quanti ne chiede la composizione obiettivo (§7.1), e il ruolo di MS2 non lo è; senza obiettivo vale MS1. Con FDCP come fonte la dichiarazione è quella del pool di FDCP (`Entry` del fornitore). Il ruolo dalla classe è il primo ruolo del primo ramo di `Data/Specs.lua`. Il ruolo scelto prima per quell'evento resta preselezionato.
+
 ### 5.4 Il ripiego solo nell'addon
 
-**Solo** quando il client non ha un calendario usabile (capacità `calendar` di Compat: `C_Calendar` assente, oppure nessun `CALENDAR_UPDATE_EVENT_LIST` entro 60 s da `OpenCalendar`), un ufficiale può creare un evento nell'addon, e i membri rispondono nell'addon. Questi eventi sono sempre segnati **"Not in the game calendar"**, anche sui client che il calendario ce l'hanno. Con `loot = fdcp`, l'evento mostra in più: "FDCP reads sign-ups from the game calendar only: answers here do not count for FDCP". Quando il calendario torna usabile, Accord non crea più eventi propri e suggerisce all'ufficiale di creare l'evento nel gioco (§6.5 lo fa per un'importazione).
+**Solo** quando il client non ha un calendario usabile (capacità `calendar` di Compat: `C_Calendar` assente, oppure nessun `CALENDAR_UPDATE_EVENT_LIST` entro 60 s da `OpenCalendar`), un ufficiale può creare un evento nell'addon, e i membri rispondono nell'addon. Questi eventi sono sempre segnati **"Not in the game calendar"**, anche sui client che il calendario ce l'hanno. Con FDCP come fonte (`loot = fdcp`, o da M10.5 anche `raid = fdcp`), l'evento mostra in più: "FDCP reads sign-ups from the game calendar only: answers here do not count for FDCP". *Fatto in M10.5:* finché il client aspetta ancora la lista (stato `unknown`) nessuno crea eventi propri; un evento dell'addon inizia da un'ora fa a 60 giorni avanti e ha una dimensione da 5 a 40. Quando il calendario torna usabile, Accord non crea più eventi propri e suggerisce all'ufficiale di creare l'evento nel gioco (§6.5 lo fa per un'importazione).
 
 ### 5.5 L'insieme `raidev`
 
@@ -194,13 +199,15 @@ Gli eventi del calendario non si copiano: `raidev` tiene solo ciò che il calend
 
 | Record | Id | Campi | Chi scrive | Scadenza |
 |---|---|---|---|---|
-| Ruolo per un evento | `R:<chiave>:<GUID>` | `role`, `spec` (`ms1` \| `ms2` \| `class`) | l'account del personaggio | 2 giorni dopo l'evento |
+| Ruolo per un evento | `R:<chiave>:<GUID>` | `role`, `spec` (`ms1` \| `ms2` \| `class`), `at` (l'inizio dell'evento, da M10.5) | l'account del personaggio | 2 giorni dopo l'evento |
 | Evento solo dell'addon (§5.4) | `F:<GUID>:<n>` | `title` (1–48), `start` (ora del server), `size` (5–40), `note` (0–120) | solo ufficiali | 2 giorni dopo l'inizio |
-| Risposta a un evento solo dell'addon | `A:<chiave>:<GUID>` | `answer` = `yes` \| `maybe` \| `no`, `role` | l'account del personaggio | come l'evento |
+| Risposta a un evento solo dell'addon | `A:<chiave>:<GUID>` | `answer` = `yes` \| `maybe` \| `no`, `role`, `at` (l'inizio dell'evento, da M10.5) | l'account del personaggio | come l'evento |
 | Importazione di Raid-Helper (§6) | `H:<id dell'evento Discord>` | `title`, `start`, `at` (ora dell'importazione), `s` = `{ { g = GUID, st, role, class, spec } }` (al massimo 80) | solo ufficiali | 2 giorni dopo `start` |
 | Composizione (§7) | `C:<chiave>` | `raid = { GUID }`, `bench = { GUID }` (al massimo 40 + 40) | solo ufficiali | 2 giorni dopo l'evento |
 
 La chiave di un evento è `c<eventID>` (calendario) o `f<GUID>:<n>` (solo addon). Fiducia: `R:` e `A:` come SEA-01 (prima mano o ritrasmissione di un ufficiale, mai la voce di un altro); `F:`, `H:` e `C:` NET-12 con `authorAny`. Dimensione massima 2 KB (`H:` con 80 iscritti). Nessuno di questi record dice chi c'era a un raid (RAID-05): una composizione è un piano, non una presenza, e scade con l'evento.
+
+*Fatto in M10.5:* l'insieme `raidev` (`Net/Store.lua`, 512 byte per record finché non arriva `H:`, dietro `season`) accetta `R:`, `F:` e `A:`; `H:` e `C:` si rifiutano finché M10.6 e M10.7 non li aggiungono. I ruoli e le risposte propri sono in *What I share*.
 
 ## 6. Gli eventi di Raid-Helper da Discord (M10.6)
 
@@ -300,6 +307,8 @@ Una chiamata veloce: "PvP at the crossroads in 15 minutes", con le risposte **co
 
 Come FDCP, Accord **non manda nulla** durante un incontro con un boss: da `ENCOUNTER_START` a `ENCOUNTER_END` (entrambi nel dump), o finché `C_InstanceEncounter.IsEncounterInProgress()` (o la globale `IsEncounterInProgress`) è vero, la coda di `Transport` trattiene i messaggi `NORMAL` e `BULK`; restano solo le risposte `ALERT` brevi già previste (NET-05). Le chiamate a `C_Calendar` e la lettura delle risposte aspettano la fine del combattimento. La regola vale per tutto il traffico di Accord, non solo per M10; si aggiunge in M10.5 alla capacità `Encounter` già presente in `Compat.RESTRICTION_KINDS`.
 
+*Fatto in M10.5:* `Transport.BossSilence()` (da `ENCOUNTER_START` a `ENCOUNTER_END`, `Compat.EncounterInProgress()`) trattiene in coda tutto tranne `ALERT`, e la coda riparte a `ENCOUNTER_END`. Come il resto di M10 è dietro l'interruttore `season` finché M10.10 non lo accende.
+
 ## 11. Traffico
 
 Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): dichiarazioni una volta per season (circa 200 byte ciascuna); ruoli per evento circa 60 byte a iscritto; un'importazione al massimo 2 KB per evento; disponibilità circa 70 byte per account al giorno; raduni come gli annunci di gruppo. In media meno di **20 B/min** per client oltre al traffico di oggi, da misurare nel simulatore in M10.3 (season), M10.5 (eventi) e M10.8 (disponibilità). Il budget condiviso è in [SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10).
@@ -321,7 +330,8 @@ Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-p
 Nella prova di M10.10 (`docs/checklists/M10.md`), con una gilda che ha FDCP e una senza:
 
 - i valori di `Enum.CalendarStatus` e `CalendarEventType`, che il dump non ha;
-- se `EventSignUp`, `EventAvailable`, `EventTentative`, `EventDecline` funzionano chiamati da un addon (dal clic) o sono protetti;
+- se `EventSignUp`, `EventAvailable`, `EventTentative`, `EventDecline` funzionano chiamati da un addon (dal clic) o sono protetti, e quale dei due serve per "sì" su un evento di iscrizione di gilda già risposto (M10.5 usa `EventAvailable`);
+- che il client mandi `CALENDAR_UPDATE_EVENT_LIST` dopo `OpenCalendar` entro 60 s (altrimenti Accord passa agli eventi solo dell'addon);
 - se un ufficiale può creare un evento di iscrizione di gilda e scrivere lo stato di un altro membro (`EventSetInviteStatus`) su Forever;
 - se gli eventi di gilda si caricano senza aprire la finestra del calendario;
 - il formato attuale dell'esportazione JSON e CSV di Raid-Helper (campi di un'iscrizione, stati speciali);

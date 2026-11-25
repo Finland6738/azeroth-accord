@@ -39,7 +39,8 @@
 --
 -- The season roster (`season`, SPEC-14 §4) mixes both: its seasons need officers (NET-12, `authorAny`), its declarations
 -- are first hand (an officer may relay them); a declaration cannot change its specs after its lock (`transition` "locked")
--- and one that arrives before its season waits for it (`wait`, Data/Season.lua).
+-- and one that arrives before its season waits for it (`wait`, Data/Season.lua). Events and sign-ups (`raidev`, SPEC-14
+-- §5.5) are the same: the events of the addon need officers, a role or an answer is first hand.
 --
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
@@ -302,6 +303,14 @@ Store.SETS = {
 		expires = function(rec, t) return ns.Season ~= nil and ns.Season.Expired(rec, t) end,     -- current + 3 previous (Q20)
 		wait = function(rec, ctx) if ns.Season then ns.Season.Wait(rec, ctx) end end,             -- an entry before its season
 	},
+	raidev = {     -- events and sign-ups (Data/Calendar.lua, M10.5, SPEC-14 §5.5): "R:<key>:<GUID>" a role, "F:<GUID>:<n>" an
+		feature = "season",                       -- event only of the addon (officers), "A:<key>:<GUID>" an answer to one; off: nothing
+		maxBytes = 512,
+		authority = function(rec) return ns.Calendar ~= nil and ns.Calendar.Authority(rec) end,   -- F: officers (NET-12)
+		authorAny = true,                         -- an event stays valid after its officer was demoted
+		owner = function(rec, s) if not ns.Calendar then return false end return ns.Calendar.ValidRecord(rec, s) end,
+		expires = function(rec, t) return ns.Calendar ~= nil and ns.Calendar.Expired(rec, t) end,   -- 2 days after the event
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -312,7 +321,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

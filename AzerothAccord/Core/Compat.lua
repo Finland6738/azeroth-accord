@@ -1248,6 +1248,161 @@ function Compat.SlashHandler(command)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The game calendar (M10.5, SPEC-14 §5)
+---------------------------------------------------------------------------------------------------------------------
+-- Every C_Calendar name below is in the Forever dump (checked 2026-11-25, Forever 1.60.1 build 70170), as are the
+-- globals ToggleCalendar, Calendar_LoadUI and IsEncounterInProgress and C_InstanceEncounter.IsEncounterInProgress.
+-- Whether the answer calls work from an addon (from a click) or are protected is [verify] (SPEC-14 §13).
+local Cal = {}
+Compat.Calendar = Cal
+
+-- The values of Enum.CalendarStatus. The dump names the type but has NOT its values: these are the modern client's,
+-- the same FDCP reads [verify in game, SPEC-14 §5.1]. This is the one place they are written; when the client has
+-- Enum.CalendarStatus its values win (Cal.Status).
+Compat.CALENDAR_STATUS = { Invited = 0, Available = 1, Declined = 2, Confirmed = 3, Out = 4, Standby = 5, Signedup = 6,
+	NotSignedup = 7, Tentative = 8 }
+-- The three answers Accord shows, as FDCP reduces them: yes, maybe, no; Invited and NotSignedup are no answer.
+Compat.CALENDAR_ANSWER = { Available = "yes", Confirmed = "yes", Signedup = "yes", Standby = "maybe", Tentative = "maybe",
+	Declined = "no", Out = "no" }
+-- Enum.CalendarEventType.Raid of the modern client, also missing from the dump [verify].
+Compat.CALENDAR_EVENT_RAID = 0
+
+-- name -> value of the calendar statuses: the client's enum when it has one, else Compat.CALENDAR_STATUS.
+function Cal.Status()
+	local enum = Resolve("Enum.CalendarStatus")
+	if type(enum) == "table" and type(enum.Available) == "number" then return enum end
+	return Compat.CALENDAR_STATUS
+end
+
+-- "yes" | "maybe" | "no" for a status number, or nil (no answer, unknown or hidden).
+function Cal.Answer(status)
+	if type(status) ~= "number" then return nil end
+	for name, value in pairs(Cal.Status()) do
+		if value == status then return Compat.CALENDAR_ANSWER[name] end
+	end
+	return nil
+end
+
+-- True when the client has the calls Accord needs to read guild events and answer them.
+function Cal.Has()
+	for _, path in ipairs({ "C_Calendar.OpenCalendar", "C_Calendar.GetNumGuildEvents", "C_Calendar.GetGuildEventInfo",
+		"C_Calendar.GetEventIndexInfo", "C_Calendar.OpenEvent", "C_Calendar.CloseEvent", "C_Calendar.GetEventInfo" }) do
+		if type(Resolve(path)) ~= "function" then return false end
+	end
+	return true
+end
+
+-- Asks the server for the calendar (the answer is CALENDAR_UPDATE_EVENT_LIST). True when the call ran.
+function Cal.Open()
+	local state = Compat.Call("C_Calendar.OpenCalendar")
+	return state == AVAILABLE
+end
+
+-- The guild events the client holds now: { { eventID, year, month, monthDay, hour, minute, eventType, title,
+-- calendarType, inviteStatus } }. Hidden fields are nil; a row without an eventID is left out.
+function Cal.GuildEvents()
+	local out = {}
+	local n = first("C_Calendar.GetNumGuildEvents")
+	if type(n) ~= "number" then return out end
+	for i = 1, min(n, 200) do
+		local info = first("C_Calendar.GetGuildEventInfo", i)
+		info = type(info) == "table" and readableCopy(info) or nil
+		if info and type(info.eventID) == "number" then
+			out[#out + 1] = { eventID = info.eventID, year = num(info.year), month = num(info.month), monthDay = num(info.monthDay),
+				hour = num(info.hour), minute = num(info.minute), eventType = num(info.eventType), title = str(info.title),
+				calendarType = str(info.calendarType), inviteStatus = num(info.inviteStatus) }
+		end
+	end
+	return out
+end
+
+-- True while the game's calendar window is shown (Accord then never opens an event: there is one open event per client).
+function Cal.FrameShown()
+	local frame = Resolve("CalendarFrame")
+	if type(frame) ~= "table" or type(frame.IsShown) ~= "function" then return false end
+	local ok, shown = pcall(frame.IsShown, frame)
+	return ok and shown and true or false
+end
+
+-- True while the client waits for the server on a calendar action; true also when it cannot tell (safe side).
+function Cal.Pending()
+	local v, state = first("C_Calendar.IsActionPending")
+	if state == AVAILABLE then return v and true or false end
+	return state ~= MISSING
+end
+
+-- Opens the event `eventID` as the client's open event. True when the client said so.
+function Cal.OpenEvent(eventID)
+	if type(eventID) ~= "number" then return false end
+	local idx = first("C_Calendar.GetEventIndexInfo", eventID)
+	idx = type(idx) == "table" and readableCopy(idx) or nil
+	if not (idx and type(idx.offsetMonths) == "number" and type(idx.monthDay) == "number" and type(idx.eventIndex) == "number") then
+		return false
+	end
+	local ok = first("C_Calendar.OpenEvent", idx.offsetMonths, idx.monthDay, idx.eventIndex)
+	return ok == true
+end
+
+-- The open event: { title, calendarType, inviteStatus, inviteType, isLocked }, or nil.
+function Cal.EventInfo()
+	local info = first("C_Calendar.GetEventInfo")
+	info = type(info) == "table" and readableCopy(info) or nil
+	if not info then return nil end
+	return { title = str(info.title), calendarType = str(info.calendarType), inviteStatus = num(info.inviteStatus),
+		inviteType = num(info.inviteType), isLocked = info.isLocked == true }
+end
+
+-- The answers of the open event: { { name, guid, classFile, status, mine } }.
+function Cal.Invites()
+	local out = {}
+	local n = first("C_Calendar.GetNumInvites")
+	if type(n) ~= "number" then return out end
+	for i = 1, min(n, 500) do
+		local info = first("C_Calendar.EventGetInvite", i)
+		info = type(info) == "table" and readableCopy(info) or nil
+		if info then
+			out[#out + 1] = { name = str(info.name), guid = str(info.guid), classFile = str(info.classFilename),
+				status = num(info.inviteStatus), mine = info.inviteIsMine == true }
+		end
+	end
+	return out
+end
+
+function Cal.CloseEvent()
+	return (Compat.Call("C_Calendar.CloseEvent")) == AVAILABLE
+end
+
+-- The answer calls: "signup" EventSignUp (a guild sign-up event), "available" EventAvailable (an invite), "tentative",
+-- "decline". Returns the state of the call ("available" when it ran).
+local RESPOND = { signup = "C_Calendar.EventSignUp", available = "C_Calendar.EventAvailable",
+	tentative = "C_Calendar.EventTentative", decline = "C_Calendar.EventDecline" }
+function Cal.Respond(kind)
+	local path = RESPOND[kind]
+	if not path then return MISSING end
+	return (Compat.Call(path))
+end
+
+-- Opens the game's calendar window (the fallback when the client refuses an answer from an addon). True when it opened.
+function Cal.ShowGame()
+	if type(Resolve("ToggleCalendar")) ~= "function" then
+		Compat.Call("Calendar_LoadUI")
+	end
+	if Cal.FrameShown() then return true end
+	return (Compat.Call("ToggleCalendar")) == AVAILABLE
+end
+
+-- True while a boss encounter is in progress (SPEC-14 §10): C_InstanceEncounter.IsEncounterInProgress or the global;
+-- Compat.encounter is set from ENCOUNTER_START to ENCOUNTER_END (Net/Transport.lua).
+function Compat.EncounterInProgress()
+	if Compat.encounter then return true end
+	local v, state = first("C_InstanceEncounter.IsEncounterInProgress")
+	if state == AVAILABLE then return v and true or false end
+	v, state = first("IsEncounterInProgress")
+	if state == AVAILABLE then return v and true or false end
+	return false
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Build, API probe and feature capabilities
 ---------------------------------------------------------------------------------------------------------------------
 function Compat.BuildInfo()
@@ -1331,6 +1486,14 @@ local CAPS = {
 	{ "addons.GetNumAddOns", "addons", "C_AddOns.GetNumAddOns", call = true },
 	{ "addons.GetAddOnInfo", "addons", "C_AddOns.GetAddOnInfo", note = "[verify] by index; security of Blizzard's addons" },
 	{ "spec.GetSpecializationInfoByID", "spec", "GetSpecializationInfoByID" },
+	{ "calendar.OpenCalendar", "calendar", "C_Calendar.OpenCalendar" },
+	{ "calendar.GetGuildEventInfo", "calendar", "C_Calendar.GetGuildEventInfo" },
+	{ "calendar.OpenEvent", "calendar", "C_Calendar.OpenEvent" },
+	{ "calendar.EventSignUp", "calendar", "C_Calendar.EventSignUp", note = "[verify] protected? only from a click (SPEC-14 §5.3)" },
+	{ "calendar.EventAvailable", "calendar", "C_Calendar.EventAvailable", note = "[verify] protected?" },
+	{ "calendar.EventTentative", "calendar", "C_Calendar.EventTentative", note = "[verify] protected?" },
+	{ "calendar.EventDecline", "calendar", "C_Calendar.EventDecline", note = "[verify] protected?" },
+	{ "calendar.CalendarStatus", "calendar", "Enum.CalendarStatus", table = true, note = "values not in the dump" },
 	{ "time.GetServerTime", "time", "GetServerTime", call = true },
 	{ "time.GetTime", "time", "GetTime", call = true },
 	{ "time.NewTicker", "time", "C_Timer.NewTicker" },
@@ -1371,7 +1534,7 @@ end
 -- can tell at login; modules refine them later with Compat:SetFeature (the Accord tab when it attaches, the roster when
 -- members come in, the transport when an OFFICER message comes back, the bank when the vault opens).
 Compat.FEATURES = { "guildTab", "clubProfessions", "clubDiscord", "guildRecipesNative", "ownRecipes", "officerAddonChannel",
-	"groupGUIDs", "battleTag", "bankLogs", "bankTabs", "gameFinderPrivate" }
+	"groupGUIDs", "battleTag", "bankLogs", "bankTabs", "gameFinderPrivate", "calendar" }
 
 local function hasAll(...)
 	for i = 1, select("#", ...) do
@@ -1441,6 +1604,9 @@ local function probeFeatures()
 	else
 		set("gameFinderPrivate", AVAILABLE, "isPrivateGroup not confirmed yet")
 	end
+	-- SPEC-14 §5.4: usable once the server sent the event list after OpenCalendar (Data/Calendar.lua refines it to
+	-- available, or to missing when no list came within Calendar.FALLBACK_WAIT seconds)
+	set("calendar", Cal.Has() and UNKNOWN or MISSING, Cal.Has() and "no event list yet" or "C_Calendar calls missing")
 	if hasAll("GetNumGuildBankTransactions", "GetGuildBankTransaction") then
 		set("bankLogs", UNKNOWN, "vault not opened yet")
 	else

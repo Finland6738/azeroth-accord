@@ -23,6 +23,10 @@
 --                                                     (locally, from an officer, or a change of guild).
 --   SEASON_CHANGED()                                  Data/Season.lua; a season or a declaration changed (written here or
 --                                                     received), or the source of the season roster changed (M10.3).
+--   CALENDAR_CHANGED()                                Data/Calendar.lua; the guild events of the game calendar or the
+--                                                     calendar's state were read again, or an event of the addon changed (M10.5).
+--   EVENT_CHANGED(key)                                Data/Calendar.lua; the answers, the roles or the outcome of an answer
+--                                                     of one event changed ("c<eventID>" or "f<GUID>:<n>"), M10.5.
 --   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).

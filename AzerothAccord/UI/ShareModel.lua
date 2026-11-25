@@ -337,6 +337,29 @@ end
 Model.Add("season", { set = "season", feature = "season", build = builders.season, title = "SHARE_SEASON",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_SEASON" })
 
+-- the own roles and answers for events (M10.5, SPEC-14 §5.5); the answer to a calendar event is in the game calendar
+builders.raidev = function(guid)
+	local lines, recs = {}, {}
+	for _, rec in ipairs(own("raidev", guid)) do
+		local C = ns.Calendar
+		local kind = C and C.KindOf(rec)
+		if kind == "R" or kind == "A" then
+			recs[#recs + 1] = rec
+			local key = C.SplitCharId(rec.id)
+			local e = C:Event(key)
+			local f = not e and C.LocalIdOf(key) and ns.Store:Get(C.SET, C.LocalIdOf(key))
+			local title = (e and e.title) or (f and f.title) or (ns.EventsView and ns.EventsView.WhenText(rec.at)) or "?"
+			local what = L["SEASON_ROLE_" .. tostring(rec.role):upper()] or tostring(rec.role)
+			if kind == "A" and ns.EventsView then what = ns.EventsView.AnswerText(rec.answer) .. ", " .. what end
+			lines[#lines + 1] = L["SHARE_EVENTS_LINE"]:format(title, what)
+		end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("raidev", { set = "raidev", feature = "season", build = builders.raidev, title = "SHARE_EVENTS",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_EVENTS" })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

@@ -41,7 +41,7 @@ Config.LIMITS = {
 	BANK_REQUEST_CLOSED_DAYS = 60,
 }
 
-Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "raid", "addons", "settings" }
+Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "raid", "addons", "settings" }
 
 -- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
 Config.THEMES = { "nebula", "aurora", "accord" }

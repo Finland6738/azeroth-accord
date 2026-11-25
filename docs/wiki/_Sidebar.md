@@ -15,6 +15,7 @@
 - [[Likes and Social Index|Likes-and-Social-Index]]
 - [[Guild Bank|Guild-Bank]]
 - [[Season Roster|Season-Roster]]
+- [[Events|Events]]
 - [[Raid and Loot Addons|Raid-and-Loot-Addons]]
 
 **Reference**
@@ -38,6 +39,7 @@
 - [[Like e indice sociale|Likes-and-Social-Index-it]]
 - [[Banca di gilda|Guild-Bank-it]]
 - [[Roster della season|Season-Roster-it]]
+- [[Eventi|Events-it]]
 - [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]
 - [[Privacy e dati|Privacy-and-Data-it]]
 - [[Domande frequenti|FAQ-it]]
