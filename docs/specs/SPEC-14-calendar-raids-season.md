@@ -343,7 +343,7 @@ Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-p
 | gilda allineata, in cui un account su sette ha una mappa nuova (i cambi di un giorno intero, in 45 minuti) | 324 (249) | 1811 (843) |
 | **primo scambio**: metà gilda mai entrata e nessuno ha la mappa di nessuno | **530** (370) | **2353** (1034) |
 
-La stima dei 20 B/min non regge: ogni mappa nuova o cambiata fa richiedere tutto il gruppo del suo autore (account, contatti, addon e mappa). La riduzione fatta è la pubblicazione al più settimanale (§8.2). Nel primo scambio la media supera il limite di 450 B/min e il client più carico i 2 KB/min: la scelta spetta al proprietario ([SPEC-10](SPEC-10-risks-open-questions.md) Q26, rischio R17), prima che M10.10 accenda l'interruttore.
+La stima dei 20 B/min non regge: ogni mappa nuova o cambiata fa richiedere tutto il gruppo del suo autore (account, contatti, addon e mappa). La riduzione fatta è la pubblicazione al più settimanale (§8.2). Nel primo scambio la media supera il limite di 450 B/min e il client più carico i 2 KB/min: il proprietario lo ha **accettato** (2026-11-26, [SPEC-10](SPEC-10-risks-open-questions.md) Q26, rischio R17): nel primo scambio la media può arrivare a circa 550 B/min e il client più carico al picco misurato; a gilda allineata restano i limiti di 450 B/min e 2 KB/min.
 
 ## 12. Test per passo
 

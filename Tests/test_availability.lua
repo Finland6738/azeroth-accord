@@ -664,13 +664,14 @@ describe("the availability map between clients", function()
 		truthy(st.avg.bytesPerMinute - base.avg.bytesPerMinute <= 100, "added " .. (st.avg.bytesPerMinute - base.avg.bytesPerMinute))
 	end)
 
-	-- The first exchange does NOT fit the 450 B/min of the budget: it is measured here and left to the owner
-	-- (SPEC-10 Q26, R17). The bounds below only keep it from growing.
-	it("measures the first exchange of the maps of 50 members, which is over the budget (SPEC-10 R17)", function()
+	-- The first exchange does not fit the 450 B/min of the budget: it is measured here.
+	-- The owner accepted it (SPEC-10 Q26, 2026-11-26): up to about 550 B/min on average while the maps are first
+	-- exchanged; the bound of the busiest client only keeps the measured peak from growing (R17).
+	it("measures the first exchange of the maps of 50 members, inside the peak the owner accepted (SPEC-10 Q26)", function()
 		local base = churn(false, false)
 		local st = churn(true, false)
 		report("first exchange", st, base)
-		truthy(st.avg.bytesPerMinute <= 600, "first exchange average " .. st.avg.bytesPerMinute)
+		truthy(st.avg.bytesPerMinute <= 550, "first exchange average " .. st.avg.bytesPerMinute)
 		truthy(st.max.bytesPerMinute <= 2560, "first exchange busiest client " .. st.max.bytesPerMinute)
 	end)
 end)
