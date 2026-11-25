@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- M8.8: `docs/checklists/M8.md`, the in-game check of M8 for the owner (observed timeline, inactive accounts and absences, cleanup review and queue, demotion, extended notes, export, bank requests with a tip, with the exit criterion and the unverified API questions); README status: M8 is complete in code. The owner releases `v0.8.0` without waiting for the check.
 - M7.8: `docs/checklists/M7.md`, the in-game check of M7 for the owner (provenance labels, alts in another guild, demo mode, personal backup, hardening, names with a space, "What I share" and the co-play switch), with the unverified API questions; README status. The `v0.7.0` tag follows the owner's check.
 - SPEC-11 §6.5 gains the numbers of the 1000-login scenario measured on the Linux CI (Long tests) beside the Windows ones: the same limits are met, but the convergence after the last write takes 1480 s, 20 s inside the 25-minute limit (730 s on Windows); the tight margin is noted in SPEC-10 R9.
 

@@ -68,5 +68,5 @@
 - Branch: `step/m8-8-check`
 - Scope: `docs/checklists/M8.md` and the README status. The owner releases `v0.8.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.8.0`.
