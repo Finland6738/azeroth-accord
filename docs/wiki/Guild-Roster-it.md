@@ -110,6 +110,28 @@ I comandi, i permessi e il limite di 31 caratteri non sono ancora stati verifica
 
 Tutti i cambiamenti osservati della gilda, con filtri per tipo (entrati, usciti, grado, livello, nota pubblica) e per periodo (7, 30, 90 o 365 giorni; all'inizio 30). Aperta con **Mostra tutto** da una scheda mostra solo quel giocatore; clicca **Solo <nome>** per rivedere tutti.
 
+## Esportazione (solo ufficiali)
+
+Gli ufficiali e il Guild Master possono copiare fuori dal gioco ciò che una pagina mostra, in un foglio di calcolo o su Discord. Il pulsante **Esporta** è nella vista **Roster** e nelle pagine **Inattivi** e **Cronologia** della scheda *Ufficiali*. I membri non ce l'hanno.
+
+- L'esportazione contiene **ciò che la pagina mostra**, con i suoi filtri e la ricerca. Nel Roster raggruppato *Per account*, gli alt di un account chiuso sono compresi; un personaggio fuori dalla gilda no.
+- Si apre una casella con il testo **già selezionato**: premi **Ctrl+C**, poi incolla. Sopra c'è scritto: *Questo testo esce dal gioco: condividilo solo con gli ufficiali.* In alto a destra scegli **CSV** o **Discord**; la casella ricorda la scelta finché non esci dal gioco.
+- **CSV**: una riga con i nomi delle colonne in inglese, poi una riga per voce, separata da virgole. Le date sono in UTC. Incollalo in un file che finisce in `.csv` (UTF-8) o in un foglio di calcolo e dividilo alle virgole. Un testo che il foglio di calcolo potrebbe eseguire come formula (che inizia con `=`, `+`, `-` o `@`) riceve davanti un apostrofo `'`.
+- **Discord**: un blocco di codice con le colonne allineate, così menzioni come `@everyone` restano testo. Un'esportazione lunga è divisa in parti di al massimo 1900 caratteri, numerate *(1/3)* e separate da una riga vuota: manda una parte per messaggio. I nomi lunghi (24 caratteri) e le note (30) sono accorciati con `…`.
+- Un'esportazione molto lunga (oltre 256 KB) tiene solo le prime righe e la casella dice quante righe sono escluse: restringi i filtri.
+
+| Esportazione | Colonne CSV |
+|---|---|
+| Roster (una riga per personaggio in gilda) | `name`, `realm`, `main`, `class`, `level`, `rank`, `last_seen_date`, `days_inactive`, `account_days_inactive`, `tier`, `away_until`, `public_note`, `has_addon` |
+| Account inattivi (una riga per giocatore) | `main`, `realm`, `characters`, `highest_rank`, `days_inactive`, `tier`, `last_seen_date`, `last_seen_character`, `last_seen_source`, `grouped_by_note`, `away_until` |
+| Cronologia (una riga per cambiamento) | `date_utc`, `since_utc`, `event`, `name`, `realm`, `from`, `to`, `observers` |
+
+`class` è il codice inglese della classe usato dal gioco (per esempio `MAGE`); `main` è vuoto per un principale o per chi ha un solo personaggio; `tier` va da 0 (attivo) a 4 ed è vuoto se non si sa; `last_seen_source` è `game`, `shared` o `you`; `event` è `join`, `leave`, `rank`, `level` o `note`; `realm` è vuoto per il tuo reame.
+
+**Non si esportano mai:** le note ufficiali del gioco, le [note degli ufficiali](#note-degli-ufficiali-solo-ufficiali) di Accord, i codici degli account e gli identificatori interni del gioco. La nota **pubblica** è nelle esportazioni del Roster e della Cronologia.
+
+Quanto testo può tenere la casella, e l'incolla in Discord o in un foglio di calcolo, non sono ancora stati verificati nel gioco.
+
 ## Assenze dichiarate
 
 Una **data di rientro** dice agli ufficiali che un giocatore è via di proposito: fino a quel giorno, compreso, non conta come inattivo. Non c'è un motivo né testo libero.

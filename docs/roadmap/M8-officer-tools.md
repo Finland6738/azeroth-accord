@@ -50,7 +50,8 @@
 - Spec: SPEC-12
 - Scope: the roster, inactive accounts and the timeline as CSV or as Discord-ready text, in a selectable box.
 - Done when:
-  - [ ] Each export round-trips through a CSV parser in the tests; no account token or GUID is in it.
+  - [x] Each export round-trips through a CSV parser in the tests; no account token or GUID is in it.
+- Note: the length the export box holds, the doubled `|` copied back as one, and pasting into Discord and into a spreadsheet are [verify] in the client.
 
 ### M8.7 — In-game check and release
 - Branch: `step/m8-7-check`

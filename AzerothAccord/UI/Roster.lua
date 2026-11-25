@@ -70,6 +70,8 @@ local FILTERS = {   -- the three selects: kind, the label of "all"
 	{ kind = "profession", all = "FILTER_ALL_PROFESSIONS", title = "FILTER_PROFESSION" },
 }
 
+local function exportAllowed() return ns.Export ~= nil and ns.Export.Allowed() end
+
 local function buildToolbar(self, f)
 	local bar = CreateFrame("Frame", nil, f)
 	bar:SetHeight(View.TOOLBAR_LINE)
@@ -98,6 +100,9 @@ local function buildToolbar(self, f)
 	end
 	bar.columns = Widgets.Button(bar, { text = L["COLUMNS"], style = "secondary", height = 28, onClick = function(b) View:ShowColumnMenu(b) end })
 	Widgets.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
+	-- officers only (SPEC-12 §6): the export of the characters the table shows
+	bar.export = Widgets.Button(bar, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28,
+		onClick = function() View:OpenExport() end })
 	bar.count = Theme.NewText(bar, "Small", "text-3")
 	bar.count:SetJustifyH("RIGHT")
 	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -9)
@@ -106,7 +111,13 @@ local function buildToolbar(self, f)
 		if w ~= View.toolbarWidth then View.toolbarWidth = w View:LayoutToolbar() end   -- the height it sets is not a reason to run again
 	end)
 	f.toolbar = bar
-	self.toolbarItems = { bar.online, bar.mains, bar.grouped, bar.class, bar.rank, bar.profession, bar.columns }
+	self.toolbarItems = { bar.online, bar.mains, bar.grouped, bar.class, bar.rank, bar.profession, bar.columns, bar.export }
+	bar.export:SetShown(exportAllowed())
+end
+
+function View:OpenExport()
+	if not exportAllowed() then return nil end
+	return ns.ExportBox:Open("roster", self:Model():Entries())
 end
 
 -- Puts the controls in line and wraps them to a second line when they do not fit beside the count; the table starts under
@@ -120,11 +131,13 @@ function View:LayoutToolbar()
 	local limit = width - View.COUNT_WIDTH
 	local x, line = 0, 0
 	for _, item in ipairs(self.toolbarItems) do
-		local w = item:GetWidth() or 0
-		if x > 0 and x + w > limit and line == 0 then x, line = 0, 1 elseif x + w > width and x > 0 then x, line = 0, line + 1 end
-		item:ClearAllPoints()
-		item:SetPoint("TOPLEFT", bar, "TOPLEFT", x, -line * View.TOOLBAR_LINE - 2)
-		x = x + w + 8
+		if item ~= bar.export or item:IsShown() then   -- a member has no export button: it takes no room
+			local w = item:GetWidth() or 0
+			if x > 0 and x + w > limit and line == 0 then x, line = 0, 1 elseif x + w > width and x > 0 then x, line = 0, line + 1 end
+			item:ClearAllPoints()
+			item:SetPoint("TOPLEFT", bar, "TOPLEFT", x, -line * View.TOOLBAR_LINE - 2)
+			x = x + w + 8
+		end
 	end
 	local h = (line + 1) * View.TOOLBAR_LINE
 	bar:SetHeight(h)
@@ -461,6 +474,12 @@ if ns.addon then
 		end
 		ns.Bus:On("ROSTER_UPDATED", refresh)
 		ns.Bus:On("ACCOUNTS_UPDATED", refresh)
+		ns.Bus:On("ROLE_CHANGED", function()
+			local bar = View.frame and View.frame.toolbar
+			if not bar then return end
+			bar.export:SetShown(exportAllowed())
+			View:LayoutToolbar()
+		end)
 		ns.Bus:On("GUILD_CHANGED", function() View.selected = nil refresh() end)
 	end
 end

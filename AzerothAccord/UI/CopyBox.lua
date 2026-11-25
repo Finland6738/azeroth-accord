@@ -1,5 +1,6 @@
 -- CopyBox: a small box with one text already selected, so the player presses Ctrl+C (addons cannot reach the clipboard)
 -- (SPEC-05 CON-03: a click on a contact opens it). Read-only: typing is undone at once. Esc closes it. Lua 5.1.
+-- CopyBox.Area is the field of the long texts (the personal backup, SPEC-11 §4, and the exports, SPEC-12 §6).
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Box = {}
@@ -9,6 +10,35 @@ ns.modules.CopyBox = Box
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 Box.NAME = "AzerothAccordCopyBox"
 Box.WIDTH, Box.HEIGHT = 380, 196
+Box.WHEEL_STEP = 40
+
+-- A multi-line edit box in a surface-2 field that scrolls with the wheel: returns the field (the caller places it), the
+-- scroll frame and the edit box. The edit box has no limit of letters; the caller sets the scripts and checks the length.
+function Box.Area(parent, width)
+	local field = CreateFrame("Frame", nil, parent)
+	field.fill = Theme.Slice(field, "rr_fill_8", "surface-2", "BACKGROUND")
+	field.fill:SetAllPoints(field)
+	field.ring = Theme.Slice(field, "rr_ring_8", "border", "BORDER")
+	field.ring:SetAllPoints(field)
+	local scroll = CreateFrame("ScrollFrame", nil, field)
+	scroll:SetPoint("TOPLEFT", field, "TOPLEFT", 10, -8)
+	scroll:SetPoint("BOTTOMRIGHT", field, "BOTTOMRIGHT", -10, 8)
+	scroll:EnableMouseWheel(true)
+	scroll:SetScript("OnMouseWheel", function(self, delta)
+		local range = self.GetVerticalScrollRange and self:GetVerticalScrollRange() or 0
+		local v = (self:GetVerticalScroll() or 0) - delta * Box.WHEEL_STEP
+		self:SetVerticalScroll(math.min(range, math.max(0, v)))
+	end)
+	local edit = CreateFrame("EditBox", nil, scroll)
+	edit:SetMultiLine(true)
+	edit:SetAutoFocus(false)
+	edit:SetMaxLetters(0)
+	edit:SetFontObject(Theme.Font("MonoSmall"))
+	Theme.Text(edit, "text-1")
+	edit:SetWidth(width)
+	scroll:SetScrollChild(edit)
+	return field, scroll, edit
+end
 
 -- A Widgets.Dialog (a veil over the screen and a centred card, Esc closes it): the title, the hint, one read-only field with
 -- its text selected, and a Close button.

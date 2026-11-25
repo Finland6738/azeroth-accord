@@ -30,6 +30,8 @@ local E, Mock = {}, {}
 H.E, H.Mock = E, Mock
 
 local T = assert(loadstring(cfg.readfile(cfg.assertPath), "@Tests/lib/assert.lua"))()
+-- the strict CSV reader of the export tests (Tests/lib/csv.lua), for the test files as `CSV`
+T.CSV = assert(loadstring(cfg.readfile((cfg.assertPath:gsub("assert%.lua$", "csv.lua"))), "@Tests/lib/csv.lua"))()
 
 local STD_GLOBALS = {
 	"assert", "error", "ipairs", "pairs", "next", "pcall", "xpcall", "select", "tonumber", "tostring", "type", "unpack",

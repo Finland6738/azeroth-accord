@@ -473,6 +473,25 @@ function Model:Count()
 	return #self:Rows()
 end
 
+-- The characters in the guild that the table shows, in its order: in the grouped view every account is taken as open, so
+-- the alts a closed row hides are there too. For the export (SPEC-12 §6).
+function Model:Entries()
+	local rows = self:Rows()
+	if self.grouped then
+		local open = self.expanded
+		local all = {}
+		for _, row in ipairs(rows) do if row.group then all[row.group.id] = true end end
+		self.expanded = all
+		rows = groupedRows(self, self:Members())
+		self.expanded = open
+	end
+	local out = {}
+	for _, row in ipairs(rows) do
+		if not row.entry.notInGuild then out[#out + 1] = row.entry end
+	end
+	return out
+end
+
 -- What the filter menus offer, from the members the roster has now: { { key, label }, ... } sorted by label.
 function Model:Choices(kind)
 	local seen, out = {}, {}

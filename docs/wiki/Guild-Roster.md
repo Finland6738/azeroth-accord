@@ -111,6 +111,28 @@ The commands, the permissions and the 31-character limit have not been checked i
 
 All the observed changes of the guild, with filters by kind (joined, left, rank, level, public note) and by period (7, 30, 90 or 365 days; 30 at first). Opened from **Show all** of a member card it shows that player only; click **Only <name>** to show everybody again.
 
+## Export (officers only)
+
+Officers and the Guild Master can copy what a page shows out of the game, to a spreadsheet or to Discord. The **Export** button is on the **Roster** view and on the **Inactive** and **Timeline** pages of the *Officers* tab. Members do not have it.
+
+- The export holds **what the page shows**, with its filters and the search. In the Roster view grouped *By account*, the alts of a closed account are included; a character outside the guild is not.
+- A box opens with the text **already selected**: press **Ctrl+C**, then paste. Above it: *This text leaves the game: share it only with your officers.* Choose **CSV** or **Discord** at the top right; the box remembers the choice until you log out.
+- **CSV**: one line of column names in English, then one row per line, separated by commas. Dates are UTC. Paste it into a file ending in `.csv` (UTF-8) or into a spreadsheet and split it by commas. A text that a spreadsheet could run as a formula (starting with `=`, `+`, `-` or `@`) gets an apostrophe `'` in front.
+- **Discord**: a code block with aligned columns, so mentions such as `@everyone` stay plain text. A long export is cut into parts of at most 1900 characters, numbered *(1/3)* and separated by an empty line: send one part per message. Long names (24 characters) and notes (30) are shortened with `…`.
+- A very long export (over 256 KB) keeps the first rows only, and the box says how many rows were left out: narrow the filters.
+
+| Export | CSV columns |
+|---|---|
+| Roster (one row per character in the guild) | `name`, `realm`, `main`, `class`, `level`, `rank`, `last_seen_date`, `days_inactive`, `account_days_inactive`, `tier`, `away_until`, `public_note`, `has_addon` |
+| Inactive accounts (one row per player) | `main`, `realm`, `characters`, `highest_rank`, `days_inactive`, `tier`, `last_seen_date`, `last_seen_character`, `last_seen_source`, `grouped_by_note`, `away_until` |
+| Timeline (one row per change) | `date_utc`, `since_utc`, `event`, `name`, `realm`, `from`, `to`, `observers` |
+
+`class` is the game's English class code (such as `MAGE`); `main` is empty for a main or a player with one character; `tier` goes from 0 (active) to 4 and is empty when unknown; `last_seen_source` is `game`, `shared` or `you`; `event` is `join`, `leave`, `rank`, `level` or `note`; `realm` is empty for your own realm.
+
+**Never exported:** the game's officer notes, Accord's [officer notes](#officer-notes-officers-only), account codes and the game's internal identifiers. The **public** note is in the Roster and Timeline exports.
+
+How long a text the box can hold, and pasting it into Discord or a spreadsheet, have not been checked in the game yet.
+
 ## Declared absences
 
 A **return date** tells the officers that a player is away on purpose: until that day, included, the player does not count as inactive. There is no reason and no free text.

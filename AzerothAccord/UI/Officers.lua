@@ -9,6 +9,7 @@
 --   View:OpenTimeline(guid, name)       the Timeline page on one account ("Show all" of the member card)
 --   View:OpenAbsence(guid, name)        the dialog an officer sets a return date in
 --   View:OpenTiers()                    the dialog of the four tiers
+--   View:OpenExport(kind)               the export box of the Inactive or the Timeline page ("inactive" | "timeline")
 --   View.CardSection(entry)             the section "Absence" of the member card
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -361,6 +362,10 @@ local function buildInactive(f, self)
 	f.tiers:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.review = Widgets.Button(f, { text = L["OPS_REVIEW"], style = "primary", height = 26, onClick = function() self:OpenReview() end })
 	f.review:SetPoint("RIGHT", f.tiers, "LEFT", -8, 0)
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 26,
+		onClick = function() self:OpenExport("inactive") end })
+	-- under the review and the tiers, at the right of the "show" chips
+	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -View.FILTER_HEIGHT)
 	local function toggle(key, label)
 		return Widgets.Chip(f, { text = label, height = 26, onClick = function(chip)
 			self.inactive[key] = not self.inactive[key]
@@ -389,6 +394,7 @@ local function refreshInactive(f, self)
 	f.tierChips:SetItems(items, self.inactive.minTier)
 	f.tierChips:SetWidth(f.tierChips.width or 10)
 	f.review:SetShown(ns.OfficerOps.Allowed())
+	f.export:SetShown(ns.Export.Allowed())
 	f.away:SetSelected(self.inactive.away)
 	f.unknown:SetSelected(self.inactive.unknown)
 	local filter = self.inactive
@@ -431,6 +437,9 @@ local function buildTimeline(f, self)
 		self:Redraw()
 	end })
 	f.only:SetPoint("LEFT", f.periods, "RIGHT", 16, 0)
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 26,
+		onClick = function() self:OpenExport("timeline") end })
+	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -View.FILTER_HEIGHT)
 	f.table = Widgets.DataTable(f, timelineColumns(), { emptyText = L["TLP_EMPTY"],
 		rowSetup = function(row)
 			Widgets.Tooltip.Attach(row, function(r)
@@ -454,6 +463,7 @@ local function refreshTimeline(f, self)
 	f.periods:SetWidth(f.periods.width or 10)
 	if filter.guids then f.only:SetLabel(L["TLP_ONLY"]:format(escape(filter.who or "?"))) end
 	f.only:SetShown(filter.guids ~= nil)
+	f.export:SetShown(ns.Export.Allowed())
 	self.rows = View.TimelineRows({ kind = filter.kind, days = filter.days, guids = filter.guids, search = self.search })
 	f.table:SetData(self.rows, true)
 	f.count:SetText(L["TLP_COUNT"]:format(#self.rows))
@@ -536,6 +546,22 @@ function View:OpenTimeline(guid, name)
 	if not (ns.Shell and ns.Shell:Select("officers")) then return false end
 	self:ShowPage("timeline")
 	return true
+end
+
+-- The export of what the page shows now, with its filters and the search (SPEC-12 §6).
+function View:OpenExport(kind)
+	if not (ns.Export.Allowed() and View.Allowed()) then return nil end
+	local items
+	if kind == "inactive" then
+		local f = self.inactive
+		items = ns.Inactivity:Rows({ minTier = f.minTier, away = f.away, unknown = f.unknown, search = self.search })
+	elseif kind == "timeline" then
+		local f = self.timeline
+		items = View.TimelineRows({ kind = f.kind, days = f.days, guids = f.guids, search = self.search })
+	else
+		return nil
+	end
+	return ns.ExportBox:Open(kind, items)
 end
 
 -- The data changed: one redraw after the burst, only while the view is visible. An officer demoted meanwhile: nothing of

@@ -12,7 +12,6 @@ ns.modules.BackupBox = Box
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 Box.NAME = "AzerothAccordBackupBox"
 Box.WIDTH, Box.HEIGHT = 640, 480
-Box.WHEEL_STEP = 40
 
 local function B() return ns.Backup end
 
@@ -33,31 +32,11 @@ local function build()
 	f.hint:SetPoint("TOPLEFT", f.warning, "BOTTOMLEFT", 0, -4)
 	f.hint:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 
-	-- the text: a multi-line edit box in a surface-2 field that scrolls with the wheel
-	f.field = CreateFrame("Frame", nil, card)
+	-- the text: a multi-line edit box that scrolls with the wheel (no limit of letters: Data/Backup.lua checks 256 KB)
+	local scroll, edit
+	f.field, scroll, edit = ns.CopyBox.Area(card, Box.WIDTH - 68)
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -96)
 	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 88)
-	f.field.fill = Theme.Slice(f.field, "rr_fill_8", "surface-2", "BACKGROUND")
-	f.field.fill:SetAllPoints(f.field)
-	f.field.ring = Theme.Slice(f.field, "rr_ring_8", "border", "BORDER")
-	f.field.ring:SetAllPoints(f.field)
-	local scroll = CreateFrame("ScrollFrame", nil, f.field)
-	scroll:SetPoint("TOPLEFT", f.field, "TOPLEFT", 10, -8)
-	scroll:SetPoint("BOTTOMRIGHT", f.field, "BOTTOMRIGHT", -10, 8)
-	scroll:EnableMouseWheel(true)
-	scroll:SetScript("OnMouseWheel", function(self, delta)
-		local range = self.GetVerticalScrollRange and self:GetVerticalScrollRange() or 0
-		local v = (self:GetVerticalScroll() or 0) - delta * Box.WHEEL_STEP
-		self:SetVerticalScroll(math.min(range, math.max(0, v)))
-	end)
-	local edit = CreateFrame("EditBox", nil, scroll)
-	edit:SetMultiLine(true)
-	edit:SetAutoFocus(false)
-	edit:SetMaxLetters(0)   -- no limit: the length is checked by Data/Backup.lua (256 KB)
-	edit:SetFontObject(Theme.Font("MonoSmall"))
-	Theme.Text(edit, "text-1")
-	edit:SetWidth(Box.WIDTH - 68)
-	scroll:SetScrollChild(edit)
 	f.scroll, f.edit = scroll, edit
 
 	-- export and preview are read-only (typing is undone at once); in the paste step the player writes freely

@@ -15,7 +15,7 @@
 --
 --   Inactivity:Accounts(t) -> every account: { key, main = { guid, name, classFile }, chars = { guid, ... } (in the guild),
 --     rankIndex, rankName, officer, byNote, last, days, tier (0 active .. 4, nil unknown), unknown, lastGUID, lastName,
---     lastSource, online, away, back, absence, name (of the main) }
+--     lastSource, online, away, back, absence, name (of the main), seen = { [guid] = last seen of that character } }
 --   Inactivity:Rows({ minTier, away, unknown, search }, t) -> the rows of the Inactive page, the longest away first
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -154,7 +154,7 @@ local function build(t)
 		if guid and not done[guid] then
 			local group = A and A:GroupOf(guid) or nil
 			local members = group and group.members or { { guid = guid } }
-			local account = { chars = {}, key = guid, officer = false, byNote = false }
+			local account = { chars = {}, key = guid, officer = false, byNote = false, seen = {} }
 			local guids = {}
 			for i, m in ipairs(members) do
 				local entry = R:ByGUID(m.guid)
@@ -170,6 +170,7 @@ local function build(t)
 					if isOfficerRank(entry.rankIndex) then account.officer = true end
 				end
 				local last, source, online = Inactivity.LastSeen(m.guid, entry, group and m or nil, own, t)
+				if last then account.seen[m.guid] = last end
 				if online then account.online = true end
 				if last and (not account.last or last > account.last or (last == account.last and online)) then
 					account.last, account.lastGUID, account.lastSource = last, m.guid, source
