@@ -36,6 +36,7 @@ Net\Transport.lua
 Net\Store.lua
 Net\Sync.lua
 Data\Actions.lua
+Data\Notify.lua
 Data\Roster.lua
 Data\Accounts.lua
 Data\Contacts.lua
@@ -99,6 +100,7 @@ UI\Officers.lua
 UI\OfficersOps.lua
 UI\OfficerNotes.lua
 UI\Actions.lua
+UI\Toast.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

@@ -2,8 +2,12 @@
 --
 -- On top the chips of the providers (All, then one per provider present), under them the table: the mark of the urgency
 -- (err now, accent to do, text-3 reminder), what, the detail, who and since when. A click on a row opens the view that
--- resolves it; Done shows only on a local reminder. Further pages (Notices, M9.3) register with View.AddPage and a
--- selector appears. The tab is there only while the switch `actions` is on.
+-- resolves it; Done shows only on a local reminder. The page Notices (M9.3, SPEC-13 §3.3) lists the history of
+-- Data/Notify.lua, the newest first: All or Unread, Mark all read, Clear (two clicks); a click on a notice marks it read
+-- and opens its view, and the page's name carries the number of unread ones. Further pages register with View.AddPage.
+-- The tab is there only while the switch `actions` is on.
+--   View.NoticeRows(filter)     the entries of the page, "all" or "unread"
+--   View.NoticeText(e, column)  the text of a cell
 --   View.Rows(filter)           the rows of the list, of one provider or of all ("all")
 --   View.Chips()                the filter chips: { { id, text } }
 --   View.Text(row, column, t)   the text of a cell (plain, tested offline)
@@ -25,6 +29,8 @@ View.URGENCY_TOKEN = { [1] = "text-3", [2] = "accent", [3] = "err" }
 View.pages = {}            -- { id, label, order, build(frame, view), refresh(frame, view) }
 View.pageId = "inbox"
 View.filter = "all"
+View.noticeFilter = "all"
+View.CONFIRM_SECONDS = 8
 
 local function now() return ns.Compat.ServerTime() end
 local function escape(text) return ns.Contacts and ns.Contacts.Escape(text) or (tostring(text):gsub("|", "||")) end
@@ -142,6 +148,115 @@ end
 View.AddPage("inbox", { label = L["ACT_PAGE_INBOX"], order = 10, build = buildInbox, refresh = refreshInbox })
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The Notices page (SPEC-13 §3.3)
+---------------------------------------------------------------------------------------------------------------------
+function View.NoticeRows(filter)
+	return ns.Notify and ns.Notify:Entries(filter == "unread") or {}
+end
+
+function View.NoticeText(e, column, t)
+	if column == "module" then
+		local def = ns.Notify:Module(e.module)
+		return def and L[def.label] or e.module
+	end
+	-- player text in the arguments was made safe when it was posted: only a line break could still break a row
+	if column == "text" then return (ns.Notify.Text(e):gsub("[\r\n]+", " ")) end
+	if column == "muted" then return e.muted and L["NOTICE_MUTED"] or "" end
+	if column == "age" then return ns.Provenance.AgeText(math.max(0, (t or now()) - e.time)) end
+	return ""
+end
+
+local function noticeColumns()
+	local function col(id, key, opts)
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.text = opts.text or function(e) return View.NoticeText(e, id) end
+		return opts
+	end
+	local function third() return "text-3" end
+	return {
+		col("mark", nil, { width = 20, text = function() return "" end }),
+		col("module", "NOTICE_COL_MODULE", { flex = 1, token = third }),
+		col("text", "NOTICE_COL_TEXT", { flex = 4, token = function(e) return e.read and "text-3" or "text-1" end }),
+		col("muted", nil, { width = 60, token = third }),
+		col("age", "NOTICE_COL_AGE", { width = 80, mono = true, token = third }),
+	}
+end
+
+local function noticeTip(e)
+	local tip = { View.NoticeText(e, "text") }
+	if e.muted then tip[#tip + 1] = { text = L["NOTICE_MUTED_TIP"], token = "text-3" } end
+	return tip
+end
+
+local function disarm(f)
+	f.armed = false
+	f.clear:SetLabel(L["NOTICE_CLEAR"])
+end
+
+-- Clear asks twice: the second click within CONFIRM_SECONDS empties the history.
+local function clearClicked(f, self)
+	if not f.armed then
+		f.armed = true
+		f.clear:SetLabel(L["NOTICE_CLEAR_CONFIRM"])
+		ns.Compat.After(View.CONFIRM_SECONDS, function() disarm(f) end)
+		return
+	end
+	disarm(f)
+	ns.Notify:Clear()
+	self:Redraw()
+end
+
+local function buildNotices(f, self)
+	f.chips = Widgets.ChipRow(f, function(id)
+		self.noticeFilter = id
+		self:Redraw()
+	end, { height = 26, gap = 6 })
+	f.chips:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.chips:SetSize(240, 26)
+	f.clear = Widgets.Button(f, { text = L["NOTICE_CLEAR"], style = "ghost", height = 26, width = 180,
+		onClick = function() clearClicked(f, self) end })
+	f.clear:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
+	f.markAll = Widgets.Button(f, { text = L["NOTICE_MARK_ALL"], style = "secondary", height = 26, width = 180, onClick = function()
+		ns.Notify:MarkAllRead()
+		self:Redraw()
+	end })
+	f.markAll:SetPoint("RIGHT", f.clear, "LEFT", -8, 0)
+	f.table = Widgets.DataTable(f, noticeColumns(), { emptyText = L["NOTICE_EMPTY"],
+		onRowClick = function(e) ns.Notify:Open(e) self:Redraw() end,
+		rowSetup = function(row)
+			row.mark = row:CreateTexture(nil, "ARTWORK")
+			row.mark:SetSize(View.MARK_SIZE, View.MARK_SIZE)
+			row.mark:SetPoint("LEFT", row, "LEFT", 10, 0)
+			row.mark:SetTexture(ns.Assets.textures.circle.path)
+			Widgets.Tooltip.Attach(row, function(r) return r.data and noticeTip(r.data) or nil end, "LEFT")
+		end,
+		rowUpdate = function(row, e)
+			Theme.Tint(row.mark, "accent")
+			row.mark:SetShown(not e.read)
+		end })
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.FILTER_HEIGHT)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+end
+
+local function refreshNotices(f, self)
+	f.chips:SetItems({ { id = "all", text = L["ACT_ALL"] }, { id = "unread", text = L["NOTICE_UNREAD"] } }, self.noticeFilter)
+	self.shownNotices = View.NoticeRows(self.noticeFilter)
+	f.table.empty:SetText(L[self.noticeFilter == "unread" and "NOTICE_EMPTY_UNREAD" or "NOTICE_EMPTY"])
+	f.table:SetData(self.shownNotices, true)
+	f.markAll:SetEnabled(ns.Notify:Unread() > 0)
+	f.clear:SetEnabled(#View.NoticeRows("all") > 0)
+end
+
+View.AddPage("notices", { label = L["NOTICE_PAGE"], order = 20, build = buildNotices, refresh = refreshNotices })
+
+-- The number of unread notices on the page's name.
+local function pagerCount(f)
+	if not (f.pager and ns.Notify) then return end
+	local n = ns.Notify:Unread()
+	f.pager:SetItemText("notices", n > 0 and L["NOTICE_PAGE_COUNT"]:format(n) or L["NOTICE_PAGE"])
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Frames: the view
 ---------------------------------------------------------------------------------------------------------------------
 local function pageOf(id)
@@ -171,6 +286,7 @@ end
 function View:Redraw()
 	local f = self.frame
 	if not f then return end
+	pagerCount(f)
 	local holder, def = f.holders[self.pageId], pageOf(self.pageId)
 	if holder and def then def.refresh(holder, self) end
 end
@@ -225,6 +341,7 @@ if ns.addon then
 	pcall(View.RegisterEvent, View, "GET_ITEM_INFO_RECEIVED", function() if ns.Actions then ns.Actions:Changed() end end)
 	if ns.Bus then
 		ns.Bus:On("ACTIONS_CHANGED", function() View:Changed() end)
-		ns.Bus:On("GUILD_CHANGED", function() View.filter = "all" end)
+		ns.Bus:On("NOTICES_CHANGED", function() View:Changed() end)
+		ns.Bus:On("GUILD_CHANGED", function() View.filter, View.noticeFilter = "all", "all" end)
 	end
 end

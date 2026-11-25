@@ -47,7 +47,7 @@ Tell your officers when you will be back: type the **return date** (YYYY-MM-DD, 
 | Tell me in chat about new bank requests | officers only | on |
 | Tell me in chat when my bank requests are decided | everyone | on |
 
-Each option is a switch. These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
+Each option is a switch. From `v0.9.0` the same card also lets you choose whether the bank notices come as a chat line, a box on screen or a sound, and every notice is kept in the history ([[Action Center|Action-Center]]). These are single chat lines (never a flood at login). Switching them off does not hide anything: the counter on the Accord tab and the Bank view always show what is waiting ([[Guild Bank|Guild-Bank]]).
 
 ## Roster columns
 
@@ -59,7 +59,7 @@ Shows how big the addon's saved data is on your computer (estimates of the saved
 
 **Clear guild data** forgets everything the addon holds about the current guild and asks your guildmates to send it again. Click it once to see how much will be freed, then click again within 8 seconds to clear (otherwise it is cancelled).
 
-It **keeps** what only your computer knows and the guild cannot send back: your likes (so you cannot give the same like twice), the guild's likes key if you are an officer, the bank's money history and which bank notices you have already seen. It never touches your account data (your characters, your main, your Discord name), your settings or the data of another guild. It is safe to use when the data looks wrong or too big; the guild refills it within a few minutes of guildmates being online.
+It **keeps** what only your computer knows and the guild cannot send back: your likes (so you cannot give the same like twice), the guild's likes key if you are an officer, the bank's money history and which notices you have already seen (from `v0.9.0` the history of notices is emptied). It never touches your account data (your characters, your main, your Discord name), your settings or the data of another guild. It is safe to use when the data looks wrong or too big; the guild refills it within a few minutes of guildmates being online.
 
 ## What I share
 

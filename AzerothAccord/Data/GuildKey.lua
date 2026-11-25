@@ -113,9 +113,13 @@ end
 
 -- Tables of a guild that Clear keeps unless told otherwise: what only this computer knows and the guild cannot send
 -- back. The notary's salts (the likes key of the guild: losing the only copy would let an old like be given twice,
--- ADR 0007), this account's own likes memory (SPEC-07 LIKE-04) and the bank table (the money history observed at the
--- vault and which request notices were already shown, so a resend is not announced again).
-GuildKey.KEEP_ON_CLEAR = { "salts", "likes", "bank" }
+-- ADR 0007), this account's own likes memory (SPEC-07 LIKE-04), the bank table (the money history observed at the
+-- vault and which request notices were already shown, so a resend is not announced again) and, of the notices
+-- (SPEC-13 §3), only what was already announced.
+GuildKey.KEEP_ON_CLEAR = { "salts", "likes", "bank", "notify" }
+
+-- A kept table of which only a part stays.
+GuildKey.TRIM_ON_CLEAR = { notify = function(t) return { seen = t.seen } end }
 
 -- "Clear guild data" (M6.1): forgets everything the addon holds about the current guild except `keep` (default
 -- KEEP_ON_CLEAR) and starts again from the guild: the modules reset (GUILD_CHANGED with the same key twice in a row is
@@ -133,7 +137,11 @@ function GuildKey:Clear(key, keep)
 	local kept = {}
 	for _, name in ipairs(keep or GuildKey.KEEP_ON_CLEAR) do kept[name] = true end
 	for name in pairs(data) do
-		if not kept[name] and name ~= "firstSeen" then data[name] = nil end
+		if not kept[name] and name ~= "firstSeen" then
+			data[name] = nil
+		elseif GuildKey.TRIM_ON_CLEAR[name] and type(data[name]) == "table" then
+			data[name] = GuildKey.TRIM_ON_CLEAR[name](data[name])
+		end
 	end
 	data.lastSeen = now()
 	if ns.Bus then ns.Bus:Emit("GUILD_CHANGED", key, key) end

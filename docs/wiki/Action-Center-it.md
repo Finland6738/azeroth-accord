@@ -35,6 +35,41 @@ Prima le più urgenti; a parità, ciò che aspetta da più tempo. Il numero sull
 
 I filtri in alto mostrano **Tutto** o un solo tipo: *Banca*, *Creazioni*, *Ufficiali e assenze*. Quando un tipo ha più di 50 righe, un'ultima riga dice *e altre N*; l'elenco ne tiene al massimo 200. Se non c'è nulla dice *Non c'è niente in attesa.*
 
+## Avvisi
+
+> **Non ancora in un rilascio.** Gli avvisi (passo M9.3) arrivano con la `v0.9.0`. Fino ad allora gli avvisi della banca funzionano come descritto in [[Banca di gilda|Guild-Bank-it]]. Nulla di questo è stato verificato nel gioco vero; in particolare quali suoni offre il gioco.
+
+La seconda pagina del Centro azioni, **Avvisi**, è la cronologia di ciò che l'addon ti ha detto, dal più recente. Il nome della pagina mostra quanti non ne hai **letti**: *Avvisi (3)*.
+
+- Un avviso è letto quando ci fai **clic** (si apre anche la vista a cui si riferisce) o con **Segna tutti come letti**. Nessuno si segna letto da solo.
+- I filtri mostrano **Tutto** o solo i **Non letti**. **Svuota** cancella la cronologia: clic, poi di nuovo clic entro 8 secondi.
+- La cronologia tiene al massimo 200 avvisi e 30 giorni, sul tuo computer, una per gilda. Mostra gli avvisi di questo personaggio e quelli per tutto il tuo account.
+- *muto* segna un avviso che hai spento: non è comparso in chat né sullo schermo, ma resta qui.
+
+| Avviso | Chi lo riceve | Mostrato di predefinito |
+|---|---|---|
+| *Nuova richiesta alla banca di …* | ufficiali e Guild Master | una riga in chat |
+| *La tua richiesta alla banca (…) è stata approvata / rifiutata / consegnata* | tu, per le tue richieste | una riga in chat |
+| *Rientro di … (assente fino al …)* | ufficiali e Guild Master | solo qui |
+| *Hai ricevuto … like* (il numero, mai chi) | tu | solo qui |
+
+### Chat, schermo o suono
+
+Nelle [[Impostazioni|Settings-it]], card **Notifiche**, scegli per gli avvisi della banca quello che vuoi tra:
+
+- **Riga in chat**: una riga che comincia con `Accord:`. Gli avvisi che arrivano insieme escono insieme, al massimo tre righe e *e altri N*.
+- **Avviso sullo schermo**: un riquadro in alto sullo schermo per 6 secondi. Clic per aprire la sua vista, clic destro per chiuderlo. Uno alla volta; quando ne aspettano molti sono riassunti in un riquadro.
+- **Suono**: un suono del gioco, al massimo uno ogni 10 secondi. È spento di predefinito.
+
+I due interruttori per le richieste nuove e per le decisioni sono quelli di prima, con lo stesso predefinito (acceso). Con tutte e tre le uscite spente gli avvisi vanno solo nella cronologia.
+
+### Niente inondazioni
+
+- La prima volta che l'addon gira in una gilda, ciò che c'è già non viene annunciato.
+- Nei primi minuti dopo l'accesso gli avvisi dello stesso tipo sono raggruppati (*5 nuove richieste alla banca*) e mostrati una volta, quando quel tempo finisce (al massimo 5 minuti dopo l'accesso).
+- Più di 20 avvisi dello stesso tipo in un minuto diventano uno solo.
+- Dopo 30 avvisi in una sessione gli altri vanno solo nella cronologia, e una riga dice *Altri avvisi in /accord inbox*.
+
 ## Non ancora qui
 
-La cronologia degli avvisi, le ore di quiete e il riepilogo all'accesso sono i prossimi passi di M9.
+Le ore di quiete (e il trattenere gli avvisi in combattimento) e il riepilogo all'accesso sono i prossimi passi di M9.

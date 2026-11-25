@@ -47,7 +47,7 @@ Dì agli ufficiali quando torni: scrivi la **data di rientro** (AAAA-MM-GG, al m
 | Avvisami in chat delle nuove richieste alla banca | solo gli ufficiali | sì |
 | Avvisami in chat quando le mie richieste alla banca sono decise | tutti | sì |
 
-Ogni opzione è un interruttore. Sono singole righe in chat (mai un diluvio all'accesso). Spegnerle non nasconde nulla: il contatore sulla scheda Accord e la vista Banca mostrano sempre cosa è in attesa ([[Banca di gilda|Guild-Bank-it]]).
+Ogni opzione è un interruttore. Dalla `v0.9.0` la stessa card fa anche scegliere se gli avvisi della banca arrivano come riga in chat, riquadro sullo schermo o suono, e ogni avviso resta nella cronologia ([[Centro azioni|Action-Center-it]]). Sono singole righe in chat (mai un diluvio all'accesso). Spegnerle non nasconde nulla: il contatore sulla scheda Accord e la vista Banca mostrano sempre cosa è in attesa ([[Banca di gilda|Guild-Bank-it]]).
 
 ## Colonne del roster
 
@@ -59,7 +59,7 @@ Mostra quanto sono grandi i dati salvati dall'addon nel tuo computer (stime del 
 
 **Cancella i dati della gilda** dimentica tutto ciò che l'addon ha sulla gilda attuale e chiede ai compagni di rimandarlo. Cliccalo una volta per vedere quanto si libererà, poi clicca di nuovo entro 8 secondi per cancellare (altrimenti si annulla).
 
-**Conserva** ciò che solo il tuo computer conosce e la gilda non può rimandare: i tuoi like (così non puoi dare due volte lo stesso like), la chiave dei like della gilda se sei ufficiale, lo storico del denaro della banca e gli avvisi della banca già visti. Non tocca mai i dati dell'account (i tuoi personaggi, il tuo main, il tuo nome Discord), le tue impostazioni o i dati di un'altra gilda. Si può usare tranquillamente quando i dati sembrano sbagliati o troppo grandi; la gilda li riempie di nuovo entro pochi minuti, quando ci sono compagni online.
+**Conserva** ciò che solo il tuo computer conosce e la gilda non può rimandare: i tuoi like (così non puoi dare due volte lo stesso like), la chiave dei like della gilda se sei ufficiale, lo storico del denaro della banca e quali avvisi ti sono già stati dati (dalla `v0.9.0` la cronologia degli avvisi si svuota). Non tocca mai i dati dell'account (i tuoi personaggi, il tuo main, il tuo nome Discord), le tue impostazioni o i dati di un'altra gilda. Si può usare tranquillamente quando i dati sembrano sbagliati o troppo grandi; la gilda li riempie di nuovo entro pochi minuti, quando ci sono compagni online.
 
 ## Cosa condivido
 

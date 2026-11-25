@@ -110,3 +110,8 @@ C_AddOns = {
 	end,
 }
 function IsAddOnLoaded(name) return C_AddOns.IsAddOnLoaded(name) end
+
+-- Sounds: PlaySound records the id; SOUNDKIT is the client's table of constants (the values are the retail ones).
+SOUNDKIT = { TELL_MESSAGE = 3081, RAID_WARNING = 8959 }
+Mock.sounds = {}
+function PlaySound(id) Mock.sounds[#Mock.sounds + 1] = id return true end

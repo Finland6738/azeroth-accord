@@ -16,7 +16,7 @@
 --   GUILD_CHANGED(guildKey, oldGuildKey)              Core/Role.lua; the character joined, left or changed guild (either
 --                                                     key may be nil). Modules drop what they hold of the old guild.
 --   SETTINGS_CHANGED(key)                             UI/SettingsModel.lua; an option ("notifyOfficer", "notifyDecision"), the "main", the
---                                                     "columns" or "clear" (guild data cleared) changed.
+--                                                     "columns", "notify" (an output of the notices) or "clear" (guild data cleared) changed.
 --   INTEGRATIONS_CHANGED()                            Data/Integrations.lua; a known raid or loot addon was detected again with
 --                                                     another status, version or level (M10.2).
 --   SOURCES_CHANGED()                                 Data/Integrations.lua; the officers' choice of a source per datum changed
@@ -30,6 +30,9 @@
 --   TIMELINE_CHANGED()                                Data/Timeline.lua; the observed roster changes of the guild changed (an
 --                                                     event was written, or a record arrived from another officer), M8.2.
 --   ACTIONS_CHANGED()                                 Data/Actions.lua; the list of the Action Center changed (M9.2).
+--   NOTICE_POSTED(entry)                              Data/Notify.lua; a new entry of the history of notices (M9.3).
+--   NOTICES_CHANGED()                                 Data/Notify.lua; the history changed (posted, read, cleared, or
+--                                                     another guild).
 --   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
 --                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.

@@ -303,7 +303,7 @@ end
 -- --- Segmented (pill selector) ----------------------------------------------------------------------------------------
 
 -- items: { { id, text } }. A surface-2 pill with the selected segment raised. :Select(id), :Active(), :Clear(),
--- :SetEnabled(bool). onSelect(id) runs after a change.
+-- :SetEnabled(bool), :SetItemText(id, text). onSelect(id) runs after a change.
 function Widgets.Segmented(parent, items, onSelect)
 	local seg = CreateFrame("Frame", nil, parent)
 	seg:SetHeight(32)
@@ -356,6 +356,22 @@ function Widgets.Segmented(parent, items, onSelect)
 		seg.order[#seg.order + 1] = item.id
 	end
 	seg:SetWidth(x + 2)
+	-- A new text for a segment (a count on a page's name): the segments move to make room.
+	function seg:SetItemText(id, text)
+		local b = self.buttons[id]
+		if not b then return false end
+		b.label:SetText(text or "")
+		b:SetWidth(max(48, b.label:GetStringWidth() + 24))
+		local at = 4
+		for _, other in ipairs(self.order) do
+			local ob = self.buttons[other]
+			ob:ClearAllPoints()
+			ob:SetPoint("LEFT", self, "LEFT", at, 0)
+			at = at + ob:GetWidth() + 2
+		end
+		self:SetWidth(at + 2)
+		return true
+	end
 	return seg
 end
 

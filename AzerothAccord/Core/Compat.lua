@@ -934,6 +934,32 @@ function Compat.InCombat()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The outputs of the notices (SPEC-13 §3.4)
+---------------------------------------------------------------------------------------------------------------------
+-- A line in the default chat frame; print() when the client has none.
+function Compat.ChatLine(text)
+	local frame = Resolve("DEFAULT_CHAT_FRAME")
+	if type(frame) == "table" and type(frame.AddMessage) == "function" and pcall(frame.AddMessage, frame, text) then return true end
+	print(text)
+	return false
+end
+
+-- One sound of the game per level of notice, by the name of its SOUNDKIT constant [verify which exist on Forever]; no
+-- number is written here, so a client without the constant is silent.
+Compat.Sound = { KITS = { alert = { "RAID_WARNING", "TELL_MESSAGE" }, normal = { "TELL_MESSAGE" } } }
+function Compat.Sound.Play(level)
+	local kit = Resolve("SOUNDKIT")
+	if type(kit) ~= "table" then return false end
+	for _, name in ipairs(Compat.Sound.KITS[level] or {}) do
+		if type(kit[name]) == "number" then
+			local _, state = first("PlaySound", kit[name])
+			return state == AVAILABLE
+		end
+	end
+	return false
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Time and encoding
 ---------------------------------------------------------------------------------------------------------------------
 function Compat.ServerTime()

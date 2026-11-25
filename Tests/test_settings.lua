@@ -563,7 +563,7 @@ describe("the share switch and its migration", function()
 
 	it("the migration adds shareCoplay = true to saved data of schema 2 and keeps the rest", function()
 		T.boot(function() AzerothAccordDB = { schemaVersion = 2, settings = { theme = "aurora", notifyOfficer = false } } end)
-		eq(AzerothAccordDB.schemaVersion, 3)
+		eq(AzerothAccordDB.schemaVersion, 4)
 		eq(AzerothAccordDB.settings.shareCoplay, true)
 		eq(AzerothAccordDB.settings.theme, "aurora")
 		eq(AzerothAccordDB.settings.notifyOfficer, false)

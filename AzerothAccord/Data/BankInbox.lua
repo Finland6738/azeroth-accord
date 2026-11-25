@@ -12,7 +12,9 @@
 --             approved by Boss"). What a character has been told is kept per guild in GuildKey:Data().bank.seen
 --             ({ [request id] = the status seen }); the first time the addon runs everything held is taken as seen, so an
 --             install or a new guild does not start with a flood. Notices of one burst (a login brings many) are printed
---             together after NOTICE_WAIT seconds, MAX_LINES at most plus "and N more".
+--             together after NOTICE_WAIT seconds, MAX_LINES at most plus "and N more". That is how it works while the
+--             switch `actions` is off (as released in v0.8.0). With it on, the same events are posted to the notification
+--             centre (Data/Notify.lua, SPEC-13 §3), which keeps the history, the book of what was told and the outputs.
 -- Proposal    BANK-24: delivery stays manual; when the bank log shows the movement that matches a request (an item taken out
 --             by the requester's account for a withdrawal, deposited for a deposit or a donation, the gold in the money log),
 --             the inbox says so next to the request and the officer marks it fulfilled with one click.
@@ -28,8 +30,9 @@ ns.modules.BankInbox = Inbox
 local type, pairs, ipairs, tostring, max = type, pairs, ipairs, tostring, math.max
 local sort = table.sort
 
-Inbox.NOTICE_WAIT = 3         -- seconds a notice waits for the rest of its burst
-Inbox.MAX_LINES = 3
+-- Of the notices without the centre; with it, the same limits of Data/Notify.lua apply.
+Inbox.NOTICE_WAIT = ns.Notify and ns.Notify.NOTICE_WAIT or 3   -- seconds a notice waits for the rest of its burst
+Inbox.MAX_LINES = ns.Notify and ns.Notify.MAX_LINES or 3
 Inbox.MATCH_SLACK = 3600      -- an entry up to this long before the request still counts (its time is rounded down)
 Inbox.SORTS = { "oldest", "newest", "tip" }
 
@@ -147,7 +150,15 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Notices
 ---------------------------------------------------------------------------------------------------------------------
+-- The notification centre when the switch `actions` is on, else nil.
+local function centre()
+	local N = ns.Notify
+	return N and N.Enabled() and N or nil
+end
+
 local function seen(create)
+	local N = centre()
+	if N then return N:Seen("bank") end
 	local data = ns.GuildKey and ns.GuildKey:Data()
 	if not data then return nil end
 	if type(data.bank) ~= "table" then
@@ -208,17 +219,39 @@ function Inbox:OnRequest(id)
 	local before = book[id]
 	book[id] = rec.status
 	if before == rec.status then return end
+	local N = centre()
 	local me = compat() and compat().Player.GUID()
 	local own = me ~= nil and S:SameAccount(me, rec.requester)
 	if rec.status == "open" and before == nil then
-		if isOfficer() and not own and wanted("notifyOfficer") then
-			queue(L["BANKNOTE_NEW"]:format(nameOf(rec.requester), whatOf(rec)))
+		if isOfficer() and not own then
+			if N then
+				N:Post("bank", "officer", { key = id .. ":open", text = "BANKNOTE_NEW", args = { nameOf(rec.requester), whatOf(rec) },
+					view = "bank", page = "inbox", char = me, still = function()
+						local held = S:Get("bankreq", id)
+						return held ~= nil and held.status == "open"
+					end })
+			elseif wanted("notifyOfficer") then
+				queue(L["BANKNOTE_NEW"]:format(nameOf(rec.requester), whatOf(rec)))
+			end
 		end
-	elseif own and (rec.status == "approved" or rec.status == "rejected" or rec.status == "fulfilled") and wanted("notifyDecision") then
+	elseif own and (rec.status == "approved" or rec.status == "rejected" or rec.status == "fulfilled") then
+		-- switched off: the centre still keeps it, as muted (NTF-01); without the centre nothing happens
+		if not (N or wanted("notifyDecision")) then return end
 		local last = rec.history and rec.history[#rec.history]
-		local text = L["BANKNOTE_" .. rec.status:upper()]:format(whatOf(rec), last and nameOf(last.by) or "?")
-		if rec.status == "rejected" and rec.note then text = text .. " " .. L["BANKREQ_NOTE"]:format(rec.note) end
-		queue(text)
+		local key = "BANKNOTE_" .. rec.status:upper()
+		local what, by = whatOf(rec), last and nameOf(last.by) or "?"
+		local note = rec.status == "rejected" and rec.note or nil
+		if N then
+			local args = { what, by }
+			if note then
+				key, args[3] = "BANKNOTE_REJECTED_NOTE", ns.Contacts and ns.Contacts.Escape(note) or note
+			end
+			N:Post("bank", "decision", { key = id .. ":" .. rec.status, text = key, args = args, view = "bank", page = "requests" })
+		else
+			local text = L[key]:format(what, by)
+			if note then text = text .. " " .. L["BANKREQ_NOTE"]:format(note) end
+			queue(text)
+		end
 	end
 end
 
@@ -265,6 +298,23 @@ function Inbox:ActionRows()
 		end
 	end
 	return rows
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The notification centre (SPEC-13 §3)
+---------------------------------------------------------------------------------------------------------------------
+-- A click on a bank notice: the list it comes from, on its request when the notice is about one.
+local function openNotice(entry)
+	if not ns.BankRequestsView then return end
+	local id = type(entry.key) == "string" and entry.key:match("^(.+):%a+$") or nil
+	ns.BankRequestsView.ShowRequest(id, entry.page)
+end
+
+if ns.Notify then
+	ns.Notify:Register("bank", { label = "ACT_PROVIDER_BANK", order = 10, open = openNotice, kinds = {
+		{ id = "officer", level = "normal", option = "notifyOfficer", group = "NOTICE_BANK_OFFICER_MANY" },
+		{ id = "decision", level = "normal", option = "notifyDecision", group = "NOTICE_BANK_DECISION_MANY" },
+	} })
 end
 
 ---------------------------------------------------------------------------------------------------------------------

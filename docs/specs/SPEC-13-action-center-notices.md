@@ -168,6 +168,16 @@ Un modulo pubblica con `Notify:Post(module, kind, n)`, `n = { key, level, text, 
 - **NTF-07 Stessa chiave**: un avviso con la `key` di una voce non letta aggiorna quella voce (ora e testo), non ne crea una nuova e non esce di nuovo.
 - **NTF-08 Per sessione**: al massimo 30 uscite (chat o toast); oltre, solo cronologia e una riga `More notices in /accord inbox`.
 
+### 3.6 Come è fatto (M9.3)
+
+- `Data/Notify.lua` non conosce nessun modulo: ognuno si registra con `Notify:Register(modulo, { label, order, kinds, open, check })`; ogni tipo ha `level`, il testo di gruppo `group` e l'interruttore (`option`, un'opzione di `SettingsModel`, o `off`, l'etichetta dell'interruttore `notify.<modulo>.off.<tipo>`). Registrati: `bank` (`Data/BankInbox.lua`), `officer` (`Data/Absence.lua`, tipo `back`), `likes` (`Data/Likes.lua`, tipo `received`); `officer` e `likes`, solo `quiet`, non hanno uscite nella carta. `check` (ogni 60 s e all'accesso) coglie ciò che nessun evento annuncia.
+- La chiave di `bank.decision` contiene lo stato (`<id>:<stato>`): approvata e poi consegnata sono due avvisi, come in M5; il motivo di un rifiuto è un testo suo (`BANKNOTE_REJECTED_NOTE`), con le stesse parole.
+- **NTF-05**: la finestra si apre solo a un accesso (`isInitialLogin`), non dopo un `/reload`. Nella finestra ogni tipo ha una voce (quelle `muted` a parte) che **esce una volta alla fine della finestra**: con un solo avviso con le sue parole, con più d'uno con il testo di gruppo; una voce letta nel frattempo non esce.
+- `officer.back` e `likes.received` seguono NTF-04: la prima volta si ricorda soltanto. I like nuovi aggiornano la stessa voce non letta (il numero si somma).
+- *Clear guild data* svuota la cronologia e tiene `notify.seen`; le chiavi nuove di `account.settings` di M9.4–M9.9 si aggiungono allo stesso passo di migrazione 4 (nessuna release ha ancora lo schema 4).
+- `NOTICE_WAIT` e `MAX_LINES` sono di `Notify`; `BankInbox` le riprende per il percorso con l'interruttore spento. La riga e il suono passano da `Compat.ChatLine` e `Compat.Sound.Play`, che usa il nome di una costante di `SOUNDKIT` (`TELL_MESSAGE`; per `alert` prima `RAID_WARNING`) **[verificare]**.
+- Le scelte delle uscite non entrano nel backup personale (SPEC-11 §4), che porta solo le impostazioni semplici.
+
 ## 4. Ore di quiete (M9.4)
 
 - **Impostazione** `account.settings.quiet = { on, from, to, instances }`: ore intere locali; `from = 23, to = 8` vuol dire dalle 23:00 alle 7:59; `from ≠ to` (uguali si rifiutano: la regola di `Config` rimette il predefinito). Nella carta *Notices* di Settings: *Quiet hours* (spento di predefinito), *From*, *To*, *Also in dungeons, raids and battlegrounds* (acceso).

@@ -181,6 +181,20 @@ local function refreshNotices(f)
 			check:SetShown(M.Visible(o.key))
 		end
 	end
+	-- the outputs of the notices (M9.3) show only while the switch `actions` is on; off, the card is the one of M5
+	local on = ns.Notify ~= nil and ns.Notify.Enabled()
+	for module, row in pairs(f.noticeOutputs) do
+		f.noticeHeads[module]:SetShown(on)
+		for output, check in pairs(row) do
+			check:SetChecked(M.GetOutput(module, output))
+			check:SetShown(on)
+		end
+	end
+	for _, k in pairs(f.noticeKinds) do
+		k.row:SetChecked(M.GetKind(k.module, k.kind))
+		k.row:SetShown(on)
+	end
+	f.noticeNote:SetText(on and L["SET_NOTIFY_NOTE_CENTRE"] or L["SET_NOTIFY_NOTE"])
 end
 
 local function refreshColumns(f)
@@ -500,14 +514,39 @@ local function buildAbsence(f, page)
 	return card
 end
 
+-- The notices card: per module a heading, its three outputs and its switches (M9.3); the two bank options of M5 are the
+-- switches of the module `bank`.
 local function buildNotices(f, page)
 	local card = stackCard(page)
+	local M = Model()
 	f.noticeTitle = title(card, L["SET_NOTIFY_TITLE"])
-	for _, o in ipairs(Model().OPTIONS) do
-		if o.group == "notifications" then
-			f.checks[o.key] = card:Add(switchRow(card, L[o.label], { L[o.label], L[o.tip] },
-				function(on) Model().Set(o.key, on) end), 6)
+	f.noticeOutputs, f.noticeHeads, f.noticeKinds = {}, {}, {}
+	local function option(o)
+		if f.checks[o.key] then return end
+		f.checks[o.key] = card:Add(switchRow(card, L[o.label], { L[o.label], L[o.tip] },
+			function(on) M.Set(o.key, on) end), 6)
+	end
+	for _, def in ipairs(M.NoticeModules()) do
+		local module = def.id
+		local head = card:Add(text(card, "Eyebrow", "text-3"), 14)
+		head:SetText(L[def.label])
+		f.noticeHeads[module], f.noticeOutputs[module] = head, {}
+		for _, output in ipairs(ns.Notify.OUTPUTS) do
+			local key = "SET_NOTICE_" .. output:upper()
+			f.noticeOutputs[module][output] = card:Add(switchRow(card, L[key], { L[key], L[key .. "_TIP"] },
+				function(on) M.SetOutput(module, output, on) end), 6)
 		end
+		for _, k in ipairs(def.kinds) do
+			if k.option then
+				option(M.OPTION[k.option])
+			elseif k.level ~= "quiet" and k.off then
+				local row = card:Add(switchRow(card, L[k.off], nil, function(on) M.SetKind(module, k.id, on) end), 6)
+				f.noticeKinds[module .. "." .. k.id] = { row = row, module = module, kind = k.id }
+			end
+		end
+	end
+	for _, o in ipairs(M.OPTIONS) do
+		if o.group == "notifications" then option(o) end
 	end
 	f.noticeNote = card:Add(text(card, "Small", "text-3"), 8)
 	f.noticeNote:SetText(L["SET_NOTIFY_NOTE"])

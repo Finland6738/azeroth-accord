@@ -21,7 +21,9 @@ local type, pairs, ipairs, pcall, tostring, next, select = type, pairs, ipairs, 
 local floor, huge = math.floor, math.huge
 local byte, char, concat = string.byte, string.char, table.concat
 
-Config.SCHEMA_VERSION = 3   -- 2 (M6.10): the look settings of the account (theme, effects, animations, font); 3 (M7.6): shareCoplay
+-- 2 (M6.10): the look settings of the account (theme, effects, animations, font); 3 (M7.6): shareCoplay;
+-- 4 (M9, SPEC-13 §1.4): notify, the outputs of the notices (M9.3; the later steps of M9 add their keys to this step)
+Config.SCHEMA_VERSION = 4
 
 -- Development build. A checkout of the repository is one; the BigWigs packager comments out the block between the
 -- debug markers below in every packaged build, so a release has DEV = false (tools/check_package.py checks it).
@@ -52,6 +54,11 @@ Config.defaults = {
 		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
 		settings = { notifyOfficer = true, notifyDecision = true,     -- plus discord (typed, optional): UI/SettingsModel.lua
+			notify = {            -- the outputs of the notices per module (SPEC-13 §3.2), Data/Notify.lua
+				bank = { chat = true, toast = false, sound = false, off = {} },
+				groups = { chat = true, toast = true, sound = false, off = { match = true } },
+				digest = { chat = true, toast = false, sound = false, off = {} },
+			},
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
 			shareCoplay = true },   -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
 	},
@@ -77,6 +84,7 @@ Config.rules = {
 	["account.settings.discord"] = { type = "string", optional = true, maxLen = 32 },
 	["account.settings.notifyOfficer"] = { type = "boolean" },
 	["account.settings.notifyDecision"] = { type = "boolean" },
+	["account.settings.notify"] = { type = "table" },
 	["account.settings.theme"] = { type = "string", enum = Config.THEMES },
 	["account.settings.effects"] = { type = "boolean" },
 	["account.settings.animations"] = { type = "boolean" },
@@ -93,12 +101,34 @@ Config.rules = {
 	["char.outbox"] = { type = "table" },
 }
 
+-- The switches of account.settings.notify.<module>: three outputs and `off`, the kinds switched off.
+for _, module in ipairs({ "bank", "groups", "digest" }) do
+	local path = "account.settings.notify." .. module
+	Config.rules[path] = { type = "table" }
+	for _, output in ipairs({ "chat", "toast", "sound" }) do Config.rules[path .. "." .. output] = { type = "boolean" } end
+	Config.rules[path .. ".off"] = { type = "table", validate = function(v)
+		for kind, off in pairs(v) do
+			if type(kind) ~= "string" or type(off) ~= "boolean" then return false end
+		end
+		return true
+	end }
+end
+
 -- Migrations: Config.migrations[scope][n] brings data from version n-1 to n. Each step must be idempotent (running it
 -- on data that already has the new shape changes nothing). Version 1 is the first schema: data without a version is
 -- treated as 0 and only needs the defaults and the rules, so step 1 has nothing to do.
 -- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
 -- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
 -- Version 3 (M7.6) adds `shareCoplay` (default true) to the account's settings, when it is not there yet.
+-- Version 4 (M9) adds `notify` to the account's settings, when it is not there yet.
+local function deep(v)
+	if type(v) ~= "table" then return v end
+	local out = {}
+	for k, x in pairs(v) do out[k] = deep(x) end
+	return out
+end
+local function defaultSetting(key) return deep(Config.defaults.account.settings[key]) end
+
 Config.migrations = {
 	account = {
 		[1] = function(db) end,
@@ -112,8 +142,12 @@ Config.migrations = {
 			if type(db.settings) ~= "table" then db.settings = {} end
 			if db.settings.shareCoplay == nil then db.settings.shareCoplay = Config.defaults.account.settings.shareCoplay end
 		end,
+		[4] = function(db)
+			if type(db.settings) ~= "table" then db.settings = {} end
+			if db.settings.notify == nil then db.settings.notify = defaultSetting("notify") end
+		end,
 	},
-	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end },
+	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end, [4] = function(db) end },
 }
 
 Config.issues = {}          -- problems found and fixed by the last Load (text only, no names)

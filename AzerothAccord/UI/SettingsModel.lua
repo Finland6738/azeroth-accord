@@ -83,6 +83,50 @@ function Model.Visible(key)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The outputs of the notices (SPEC-13 §3.2, M9.3): account.settings.notify.<module>, read by Data/Notify.lua
+---------------------------------------------------------------------------------------------------------------------
+-- The modules the Notices card offers choices for: the registered ones with a notice that can come out.
+function Model.NoticeModules()
+	local out = {}
+	local N = ns.Notify
+	for _, def in ipairs(N and N:Modules() or {}) do
+		if N.HasOutputs(def) then out[#out + 1] = def end
+	end
+	return out
+end
+
+function Model.GetOutput(module, output)
+	return ns.Config ~= nil and ns.Config:Get("account.settings.notify." .. module .. "." .. output) == true
+end
+
+function Model.SetOutput(module, output, value)
+	if type(value) ~= "boolean" then return false, "expected boolean" end
+	local ok, why = ns.Config:Set("account.settings.notify." .. module .. "." .. output, value)
+	if not ok then return false, why end
+	emit("SETTINGS_CHANGED", "notify")
+	return true
+end
+
+-- The switch of a kind of notice that has no option of its own (true = on).
+function Model.GetKind(module, kind)
+	local off = ns.Config and ns.Config:Get("account.settings.notify." .. module .. ".off")
+	return not (type(off) == "table" and off[kind] == true)
+end
+
+function Model.SetKind(module, kind, on)
+	local path = "account.settings.notify." .. module .. ".off"
+	local old = ns.Config and ns.Config:Get(path)
+	if type(old) ~= "table" or type(on) ~= "boolean" then return false, "unknown" end
+	local off = {}
+	for k, v in pairs(old) do off[k] = v end
+	off[kind] = not on
+	local ok, why = ns.Config:Set(path, off)
+	if not ok then return false, why end
+	emit("SETTINGS_CHANGED", "notify")
+	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Appearance (M6.14, docs/specs/ui-style.md §2): the look, saved per account; UI/Theme.lua repaints on CONFIG_CHANGED
 ---------------------------------------------------------------------------------------------------------------------
 -- key -> { path, values (the allowed strings) | nil for a boolean }. The values come from Config (THEMES, FONT_SOURCES).
@@ -235,7 +279,7 @@ function Model.Sizes()
 end
 
 -- Clears what the addon holds about the current guild (GuildKey:Clear keeps what only this computer knows: the notary's
--- salts, the account's likes memory, the bank money history and the bank notices already seen). Returns the bytes freed, or false and the reason.
+-- salts, the account's likes memory, the bank money history and the notices already seen; the history of notices goes). Returns the bytes freed, or false and the reason.
 function Model.ClearGuildData()
 	local GK = ns.GuildKey
 	if not GK then return false, "unavailable" end

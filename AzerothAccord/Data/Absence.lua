@@ -262,34 +262,74 @@ end
 -- The Action Center (SPEC-13 §2.3): part of the provider `officer` (Data/OfficerOps.lua registers it)
 ---------------------------------------------------------------------------------------------------------------------
 -- For officers: every account whose declared return date is today or at most BACK_ROWS days ago (the newest record of the
+-- account counts, INA-06; an account with nobody left in the guild is not listed): { char, name, day, number }. Nothing
+-- for a member.
+function Absence:Returned(t)
+	local out = {}
+	if not ns.Officer.CanSee("absences") then return out end
+	t = t or now()
+	local today = Absence.Today(t)
+	local newest, shown = {}, {}   -- account key -> its newest record, a character of it that is in the guild
+	for guid, rec in pairs(Absence.ByChar()) do
+		local key = ns.Accounts and ns.Accounts:AccountKey(guid) or guid
+		if newer(rec, newest[key]) then newest[key] = rec end
+		if ns.Roster and ns.Roster:ByGUID(guid) and (not shown[key] or guid < shown[key]) then shown[key] = guid end
+	end
+	for key, rec in pairs(newest) do
+		local a = Absence.Read(rec, t)
+		local n = a and timeline().DayNumber(a.day)
+		if n and n <= today and today - n <= Absence.BACK_ROWS then
+			local main = ns.Accounts and ns.Accounts:MainOf(rec.char)
+			local e = ns.Roster and (main and ns.Roster:ByGUID(main.guid) or ns.Roster:ByGUID(rec.char)
+				or shown[key] and ns.Roster:ByGUID(shown[key]))
+			if e then out[#out + 1] = { char = rec.char, name = e.short or e.name or "?", day = a.day, number = n } end
+		end
+	end
+	return out
+end
+
+local function openInactive() if ns.OfficersView then ns.OfficersView:OpenPage("inactive") end end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The notice of a member who is back (SPEC-13 §3.2: quiet, officers)
+---------------------------------------------------------------------------------------------------------------------
+-- The first look in a guild is only remembered.
+function Absence:Notice()
+	local N = ns.Notify
+	local me = myGUID()
+	if not (N and N.Enabled() and me and ns.Officer.CanSee("absences") and ns.Roster and ns.Roster:ByGUID(me)) then return end
+	local book = N:Seen("officer")
+	if not book then return end
+	local first = not book.__baseline
+	book.__baseline = true
+	for _, r in ipairs(self:Returned()) do
+		if book[r.char] ~= r.day then
+			book[r.char] = r.day
+			if not first then
+				N:Post("officer", "back", { key = r.char .. ":" .. r.day, text = "ACT_ABSENCE_BACK",
+					args = { r.name, Absence.DayText(r.day) }, view = "officers", page = "inactive", char = me })
+			end
+		end
+	end
+end
+
+if ns.Notify then
+	ns.Notify:Register("officer", { label = "NOTICE_MODULE_OFFICER", order = 30, open = openInactive,
+		check = function() Absence:Notice() end,
+		kinds = { { id = "back", level = "quiet", group = "NOTICE_BACK_MANY" } } })
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- For officers: every account whose declared return date is today or at most BACK_ROWS days ago (the newest record of the
 -- account counts, INA-06; an account with nobody left in the guild is not listed). For everybody: the own declaration that
 -- ends within ENDING_ROWS days. It only reads.
 function Absence:ActionRows(t)
 	local L, rows = ns.L, {}
 	t = t or now()
 	local today = Absence.Today(t)
-	if ns.Officer.CanSee("absences") then
-		local newest, shown = {}, {}   -- account key -> its newest record, a character of it that is in the guild
-		for guid, rec in pairs(Absence.ByChar()) do
-			local key = ns.Accounts and ns.Accounts:AccountKey(guid) or guid
-			if newer(rec, newest[key]) then newest[key] = rec end
-			if ns.Roster and ns.Roster:ByGUID(guid) and (not shown[key] or guid < shown[key]) then shown[key] = guid end
-		end
-		for key, rec in pairs(newest) do
-			local a = Absence.Read(rec, t)
-			local n = a and timeline().DayNumber(a.day)
-			if n and n <= today and today - n <= Absence.BACK_ROWS then
-				local main = ns.Accounts and ns.Accounts:MainOf(rec.char)
-				local e = ns.Roster and (main and ns.Roster:ByGUID(main.guid) or ns.Roster:ByGUID(rec.char)
-					or shown[key] and ns.Roster:ByGUID(shown[key]))
-				if e then
-					local name = e.short or e.name or "?"
-					rows[#rows + 1] = { key = "back:" .. rec.char, urgency = 1, time = n * DAY, who = name,
-						title = L["ACT_ABSENCE_BACK"]:format(name, Absence.DayText(a.day)),
-						open = function() if ns.OfficersView then ns.OfficersView:OpenPage("inactive") end end }
-				end
-			end
-		end
+	for _, r in ipairs(self:Returned(t)) do
+		rows[#rows + 1] = { key = "back:" .. r.char, urgency = 1, time = r.number * DAY, who = r.name,
+			title = L["ACT_ABSENCE_BACK"]:format(r.name, Absence.DayText(r.day)), open = openInactive }
 	end
 	local own = self:Own(t)
 	local n = own and own.away and timeline().DayNumber(own.day)
@@ -364,6 +404,8 @@ if ns.addon then
 	end
 	if ns.Bus then
 		ns.Bus:On("SYNC_HELLO", function(sent) if sent then Absence:OnHello() end end)
+		ns.Bus:On("STORE_CHANGED", function(set) if set == Absence.SET then Absence:Notice() end end)
+		ns.Bus:On("ROSTER_UPDATED", function() Absence:Notice() end)
 		ns.Bus:On("GUILD_CHANGED", function()
 			if state.timer then state.timer:Cancel() state.timer = nil end
 			state.loginDone = false

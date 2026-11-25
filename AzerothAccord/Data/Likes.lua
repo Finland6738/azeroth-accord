@@ -161,6 +161,31 @@ function Likes:Invalidate()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The notice of likes received (SPEC-13 §3.2: quiet, the number only, never who gave them)
+---------------------------------------------------------------------------------------------------------------------
+-- Posts how many likes arrived since the last look; the first look of a character in a guild is only remembered.
+function Likes:Notice()
+	local N = ns.Notify
+	local me = ns.Compat and ns.Compat.Player.GUID()
+	if not (N and N.Enabled() and me) then return end
+	local book = N:Seen("likes")
+	if not book then return end
+	local total = self:Total(me)
+	local before = book[me]
+	if before == nil or total > before then book[me] = total end
+	if before == nil or total <= before then return end
+	local old = N:Find("likes", "received")
+	local count = total - before + (old and old.args and tonumber(old.args[1]) or 0)
+	N:Post("likes", "received", { key = "received", text = count == 1 and "NOTICE_LIKES_ONE" or "NOTICE_LIKES",
+		args = { count }, view = "reputation" })
+end
+
+if ns.Notify then
+	ns.Notify:Register("likes", { label = "NOTICE_MODULE_LIKES", order = 40, check = function() Likes:Notice() end,
+		kinds = { { id = "received", level = "quiet", group = "NOTICE_LIKES" } } })
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- The voter: queue, delivery, receipts
 ---------------------------------------------------------------------------------------------------------------------
 local function own(create)
@@ -450,7 +475,7 @@ if ns.addon then
 			if type(msg) == "table" and (msg.t == "VOTE" or msg.t == "LEDGER") then Likes:OnMessage(msg, sender, dist) end
 		end)
 		ns.Bus:On("STORE_CHANGED", function(set)
-			if set == "likes" then Likes:Invalidate() emit("LIKES_UPDATED")
+			if set == "likes" then Likes:Invalidate() emit("LIKES_UPDATED") Likes:Notice()
 			elseif set == "accounts" then state.totals = {} end   -- alts linked: totals merge
 		end)
 		ns.Bus:On("ACCOUNTS_UPDATED", function() state.totals = {} end)

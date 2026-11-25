@@ -35,6 +35,41 @@ The most urgent come first; among equals, what has been waiting longest. The num
 
 The chips on top show **All** lines or those of one kind: *Bank*, *Crafting*, *Officers and absences*. When one kind has more than 50 lines, a last line says *and N more*; the list holds at most 200. With nothing to show it says *Nothing waits for you.*
 
+## Notices
+
+> **Not in a release yet.** The notices (step M9.3) arrive with `v0.9.0`. Until then the bank notices work as described in [[Guild Bank|Guild-Bank]]. Nothing of this has been checked in the real game; in particular, which sounds the game offers.
+
+The second page of the Action Center, **Notices**, is the history of what the addon told you, the newest first. The name of the page shows how many you have **not read**: *Notices (3)*.
+
+- A notice is read when you **click** it (it also opens the view it is about) or with **Mark all read**. Nothing is marked read by itself.
+- The chips show **All** notices or only the **Unread** ones. **Clear** empties the history: click it, then click again within 8 seconds.
+- The history keeps at most 200 notices and 30 days, on your computer, one history per guild. It shows the notices of this character and those for your whole account.
+- *muted* marks a notice you switched off: it was not shown in chat or on screen, but it is kept here.
+
+| Notice | Who gets it | Shown by default |
+|---|---|---|
+| *New bank request from …* | officers and the Guild Master | a chat line |
+| *Your bank request (…) was approved / rejected / fulfilled* | you, for your own requests | a chat line |
+| *… is back (away until …)* | officers and the Guild Master | here only |
+| *You received … likes* (the number, never who) | you | here only |
+
+### Chat, screen or sound
+
+In [[Settings|Settings]], card **Notifications**, choose for the bank notices any of:
+
+- **Chat line**: one line starting with `Accord:`. Notices that arrive together are printed together, three lines at most and *and N more*.
+- **On-screen notice**: a small box at the top of the screen for 6 seconds. Click it to open its view, right-click to close it. One at a time; when many are waiting they are summed up in one box.
+- **Sound**: a sound of the game, at most one every 10 seconds. It is off by default.
+
+The two switches for new requests and for decisions are the same as before, with the same default (on). With all three outputs off, the notices only go to the history.
+
+### No floods
+
+- The first time the addon runs in a guild, what is already there is not announced.
+- In the first minutes after you log in, notices of one kind are grouped (*5 new bank requests*) and shown once, when that time ends (at most 5 minutes after the login).
+- More than 20 notices of one kind in a minute become one.
+- After 30 notices in one session the others only go to the history, and one line says *More notices in /accord inbox*.
+
 ## Not yet here
 
-The history of notices, quiet hours and the summary at login are the next steps of M9.
+Quiet hours (and holding notices in combat) and the summary at login are the next steps of M9.

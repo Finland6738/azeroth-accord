@@ -35,7 +35,8 @@ Release: `v0.9.0`.
 - Spec: SPEC-13
 - Scope: a history of notices with read and unread, a switch per module, and a choice of chat line, toast or sound. It replaces the bank notices of M5 without changing their defaults.
 - Done when:
-  - [ ] The M5 options still work; a muted module produces no notice but still adds to the history.
+  - [x] The M5 options still work; a muted module produces no notice but still adds to the history.
+  - *Done (2026-11-25):* `Data/Notify.lua` (history of 200 entries and 30 days, read and unread, chat line, toast `UI/Toast.lua` and sound per module, NTF-01 to NTF-08), the page *Notices* of the Action Center, the outputs in the Settings card, schema 4 with `settings.notify`; `Tests/test_notify.lua`. Behind the switch `actions`: with it off the bank notices work as in `v0.8.0`. Not checked in the game.
 
 ### M9.4 — Quiet hours
 - Branch: `step/m9-4-quiet`
