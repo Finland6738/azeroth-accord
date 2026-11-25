@@ -191,12 +191,16 @@ builders.otools = function(guid)
 	end
 	local cfg = own("ocfg", guid)
 	if #set > 0 then lines[#lines + 1] = L["SHARE_ABSENCE_SET"]:format(#set) end
+	-- the extended notes this officer wrote (M8.5): a count, never a text
+	local notes = {}
+	for _, r in ipairs(own("onotes", guid)) do if r.text ~= "" then notes[#notes + 1] = r end end
+	if #notes > 0 then lines[#lines + 1] = L["SHARE_NOTES_WRITTEN"]:format(#notes) end
 	for _, r in ipairs(cfg) do
 		if ns.Inactivity and ns.Inactivity.ValidConfig(r) then
 			lines[#lines + 1] = L["SHARE_TIERS"]:format(table.concat(r.tiers, " / "))
 		end
 	end
-	for _, list in ipairs({ set, cfg }) do for _, r in ipairs(list) do recs[#recs + 1] = r end end
+	for _, list in ipairs({ set, cfg, notes }) do for _, r in ipairs(list) do recs[#recs + 1] = r end end
 	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
 	if not (ns.Officer and ns.Officer.ChannelProven()) then lines[#lines + 1] = L["SHARE_OTOOLS_LOCAL"] end
 	return lines, recs

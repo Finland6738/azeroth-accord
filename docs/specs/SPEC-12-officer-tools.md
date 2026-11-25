@@ -233,6 +233,7 @@ Test (`Tests/test_officer_ops.lua`): nessun nome di OPS-01 nel codice; ogni `op`
 - **ONT-03** Viaggiano **solo su `OFFICER`** (e in whisper tra ufficiali come risposta a un `OHELLO`, §1.5) e solo con il canale provato; finché non lo è restano su questo computer (OFF-07). Mai su `GUILD`, mai in whisper a un non ufficiale (OFF-04, OFF-05): il test di M8.5 manda una nota da un ufficiale con il canale provato e con quello non provato e controlla ogni messaggio del simulatore.
 - **ONT-04** Un ufficiale retrocesso le perde (OFF-10); un membro non le riceve mai (OFF-01) e un client precedente le ignora.
 - Le note estese non sono la nota ufficiale del gioco (31 caratteri, letta con `CanViewOfficerNote`): Accord non la cambia (OPS-01) e la mostra a parte, come oggi.
+- **Realizzazione (M8.5).** `Data/OfficerNotes.lua` (formato, limiti, scrittura e cancellazione), `UI/OfficerNotes.lua` (la sezione della scheda, ordine 7.4, e la finestra a più righe con il conteggio `<n> / 500 caratteri · <n> / 1000 byte`). Il testo si pulisce prima di salvare (a capo `\n`, tabulazioni come spazi, altri caratteri di controllo tolti, spazi agli estremi tolti). L'icona della pagina Inactive e della revisione è il libro del foglio di icone dell'addon (`Assets.IconText("book")`); nella revisione la nota del main (altrimenti del primo personaggio che ne ha una) sta su una riga, tagliata a 90 caratteri. Il pannello "Cosa condivido" conta le note scritte, mai il testo. Test: `Tests/test_officer_notes.lua`.
 
 ## 6. Esportazioni (M8.6)
 
@@ -284,4 +285,5 @@ Una scheda `Officers` / `Ufficiali` dopo le altre viste, visibile solo quando `R
 - Che un roster caricato del tutto dia sempre `GetNumGuildMembers()` uguale alle righe lette, e quanto spesso arriva un roster a metà dopo l'accesso (TL-01, TL-04).
 - S5: che un membro semplice **non** riceva i messaggi addon su `OFFICER` ([SPEC-09 S5](SPEC-09-quality-release.md#1-spike-tecnico-m0)); Accord rifiuta comunque i record (OFF-01).
 - I comandi `/gremove`, `/gpromote`, `/gdemote` su Forever, il limite di 31 caratteri delle note del gioco, e i permessi `CanGuildPromote`, `CanGuildDemote`, `CanGuildRemove`, `CanEditPublicNote`, `C_GuildInfo.CanEditOfficerNote` (M8.4).
+- La casella a più righe delle note estese (`maxLetters` 500, a capo, rotellina) e l'icona del libro disegnata dentro un testo (`|T…|t`) nella tabella della pagina Inactive (M8.5).
 - Il copia e incolla di `|` dalla casella dell'esportazione (EXP-04) e di un testo di 1900 caratteri in Discord (M8.6).

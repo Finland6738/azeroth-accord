@@ -32,6 +32,7 @@
 --
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
+-- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -233,6 +234,16 @@ Store.SETS = {
 		group = function() return "absence" end,
 		expires = function(rec, t) return ns.Absence ~= nil and ns.Absence.Expired(rec, t) end,
 	},
+	onotes = {     -- the officers' extended notes (Data/OfficerNotes.lua, M8.5): id = character GUID, { char, text }
+		maxBytes = 1280,
+		officerTool = true,
+		restricted = function() return true end,
+		authority = function() return true end,
+		authorAny = true,                          -- a note stays valid after its author was demoted
+		owner = function(rec) return ns.OfficerNotes ~= nil and ns.OfficerNotes.ValidRecord(rec) end,
+		group = function(rec) return ns.OfficerNotes.Group(rec) end,   -- 32 groups by a hash of the GUID (SPEC-12 §1.5)
+		expires = function(rec, t) return ns.OfficerNotes ~= nil and ns.OfficerNotes.Expired(rec, t) end,   -- deletions only
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -243,7 +254,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "ocfg" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

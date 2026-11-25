@@ -54,6 +54,7 @@ Data\Integrations.lua
 Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua
+Data\OfficerNotes.lua
 Data\Inactivity.lua
 Data\OfficerOps.lua
 Data\Demo.lua
@@ -92,6 +93,7 @@ UI\Raid.lua
 UI\TimelineCard.lua
 UI\Officers.lua
 UI\OfficersOps.lua
+UI\OfficerNotes.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

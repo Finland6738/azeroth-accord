@@ -13,7 +13,7 @@
 --   token, ownChars, main        the account of the player: its token, its characters ([guid] = the entry
 --                                AzerothAccordDB.chars keeps) and the main
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
---                                likes, bank, bankreq, guildcfg, timeline, absence; ocfg stays empty: the default tiers), written as the clients would hold them
+--                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes = { given, queue }, bank = { history } }
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
@@ -118,7 +118,7 @@ function DemoData.Build(now)
 	local D = { guildName = DemoData.GUILD_NAME, realm = DemoData.REALM, key = DemoData.KEY, ranks = DemoData.RANKS, sets = {},
 		guildData = { likes = { given = {}, queue = {} }, bank = { history = {} } } }
 	local sets = D.sets
-	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "ocfg" }) do sets[set] = {} end
+	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg" }) do sets[set] = {} end
 
 	-- The roster ------------------------------------------------------------------------------------------------------
 	local members = {}
@@ -432,6 +432,21 @@ function DemoData.Build(now)
 			local written = now - (away * 2) * DAY
 			sets.absence[m.guid .. ":" .. kind] = { id = m.guid .. ":" .. kind, author = kind == "self" and m.guid or members[1].guid,
 				rev = 1, time = written, char = m.guid, from = dayOf(written), ["until"] = dayOf(now + (away * 9) * DAY) }
+		end
+	end
+
+	-- Five extended notes of the officers (SPEC-12 §5, §7), written by the Guild Master and two officers; one is two lines long
+	do
+		local texts = {
+			{ 7, 1, "Raid leader on Thursdays. Keeps the loot list.\nAsk before changing the raid times." },
+			{ 12, 3, "Recruited from the trade channel, very helpful with new players." },
+			{ 25, 4, "Asked for a break: exams until the end of the month." },
+			{ 33, 1, "Alt of a former member, rejoined in the spring." },
+			{ 40, 3, "Enchanter: wants the materials sent by mail, not traded." },
+		}
+		for k, n in ipairs(texts) do
+			local m, author = members[n[1]], members[n[2]]
+			sets.onotes[m.guid] = { id = m.guid, author = author.guid, rev = 1, time = now - (k * 3) * DAY, char = m.guid, text = n[3] }
 		end
 	end
 

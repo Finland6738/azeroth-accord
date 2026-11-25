@@ -63,12 +63,19 @@ function View.TierText(tier)
 	return L["INA_TIER"]:format(tiers[tier])
 end
 
+-- The mark of an account with an extended note (SPEC-12 §5.2), on the Inactive page and in the review.
+function View.NotesMark()
+	return ns.Assets and ns.Assets.IconText("book", 12) or ""
+end
+
 local function nameText(a)
 	local marks = {}
 	if a.officer then marks[#marks + 1] = L["INA_MARK_OFFICER"] end
 	if a.byNote then marks[#marks + 1] = L["INA_MARK_NOTE"] end
 	local text = escape(a.name)
 	if #marks > 0 then text = text .. " (" .. concat(marks, ", ") .. ")" end
+	-- an extended note on one of the account's characters (SPEC-12 §5.2): the book icon after the name
+	if ns.OfficerNotes and ns.OfficerNotes:AnyOf(a.chars) then text = text .. " " .. View.NotesMark() end
 	return text
 end
 
@@ -100,6 +107,7 @@ function View.InactiveTip(a, t)
 	tip[#tip + 1] = L["INA_TIP_CHARS"]:format(#a.chars)
 	if a.officer then tip[#tip + 1] = L["INA_TIP_OFFICER"] end
 	if a.byNote then tip[#tip + 1] = L["INA_TIP_NOTE"] end
+	if ns.OfficerNotes and ns.OfficerNotes:AnyOf(a.chars) then tip[#tip + 1] = L["ONT_TIP_HAS"] end
 	tip[#tip + 1] = lastText(a, t)
 	local key = a.lastSource and View.SOURCE_KEYS[a.lastSource]
 	if key then tip[#tip + 1] = L["INA_TIP_SOURCE"]:format(L[key]) end

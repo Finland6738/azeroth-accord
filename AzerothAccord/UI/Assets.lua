@@ -79,6 +79,16 @@ function Assets.TexturePaths()
 	return out
 end
 
+-- An icon of the sheet as an inline texture escape for a text ("|T...|t"), `size` points high (default 12); "" for an unknown name.
+function Assets.IconText(name, size)
+	local l, r, t, b = Assets.IconCoords(name)
+	if not l then return "" end
+	local sheet = Assets.textures.icons
+	size = size or 12
+	return ("|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t"):format(sheet.path, size, size, sheet.w, sheet.h,
+		l * sheet.w, r * sheet.w, t * sheet.h, b * sheet.h)
+end
+
 -- Texture coordinates of an icon of the sheet: left, right, top, bottom.
 function Assets.IconCoords(name)
 	for i, n in ipairs(Assets.icons) do

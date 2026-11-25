@@ -9,6 +9,7 @@
 --   View:OpenReview()                the review: step 1 (which accounts), 2 (one choice per account), 3 (summary)
 --   View:ReviewStep(step)            moves between the steps; View:ApplyReview() adds the actions to the queue
 --   View:SelectAccount(key), View:SelectTarget(guid), View:SetAction(op), View:SetRank(index), View:SetNote(kind, text)
+--   View.NoteLine(draft)             the extended note of an account in step 2, on one line (M8.5)
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = ns.OfficersView
@@ -286,6 +287,38 @@ function View.EventLines(draft)
 	return out
 end
 
+-- The extended note of an account in step 2 (SPEC-12 §4.1): the main's (else the first character with one), on one line
+-- of at most NOTE_SHOWN characters, with the book mark; nil when no character of the account has a note.
+View.NOTE_SHOWN = 90
+function View.NoteLine(draft)
+	local Notes = ns.OfficerNotes
+	if not Notes then return nil end
+	local chars, main = draft.account.chars, draft.account.main and draft.account.main.guid
+	local order = {}
+	if main then order[1] = main end
+	for _, g in ipairs(chars) do if g ~= main then order[#order + 1] = g end end
+	for _, g in ipairs(order) do
+		local rec = Notes:Get(g)
+		if rec then
+			local text = rec.text:gsub("\n", " / ")
+			if Notes.Length(text) > View.NOTE_SHOWN then
+				-- cut at a character boundary: count the bytes that start a UTF-8 character
+				local n, cut = 0, #text
+				for i = 1, #text do
+					local b = text:byte(i)
+					if b < 0x80 or b >= 0xC0 then
+						n = n + 1
+						if n > View.NOTE_SHOWN then cut = i - 1 break end
+					end
+				end
+				text = text:sub(1, cut) .. "…"
+			end
+			return ns.OfficersView.NotesMark() .. " " .. escape(text)
+		end
+	end
+	return nil
+end
+
 -- The summary of step 3: one line per entry to add and per choice left out.
 function View.SummaryRows(plan)
 	local out = {}
@@ -545,7 +578,8 @@ local function drawStep2(self, f, r, typing)
 	f.selected:SetText(escape(draft.account.name))
 	f.chars:SetData(View.CharRows(draft), true)
 	local lines = View.EventLines(draft)
-	f.events:SetText(#lines > 0 and concat(lines, "\n") or L["OPS_NO_EVENTS"])
+	local note = View.NoteLine(draft)
+	f.events:SetText((note and note .. "\n" or "") .. (#lines > 0 and concat(lines, "\n") or L["OPS_NO_EVENTS"]))
 	local choice = choiceFor(r, draft)
 	local e = r.target and ns.Roster:ByGUID(r.target)
 	f.target:SetText(e and L["OPS_TARGET_CHAR"]:format(escape(e.short or e.name)) or L["OPS_TARGET_ACCOUNT"])

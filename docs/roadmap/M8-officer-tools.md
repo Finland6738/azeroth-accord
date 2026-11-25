@@ -42,7 +42,8 @@
 - Spec: SPEC-12
 - Scope: longer officer notes per member. They are synced only on `OFFICER` once S5 is proven; until then they stay local.
 - Done when:
-  - [ ] Notes never travel on `GUILD` or `WHISPER` to a non-officer; a demoted officer loses them.
+  - [x] Notes never travel on `GUILD` or `WHISPER` to a non-officer; a demoted officer loses them.
+- Note: the multi-line note box, the book icon drawn inside a text (`|T…|t`) and the length count are [verify] in the client.
 
 ### M8.6 — Export
 - Branch: `step/m8-6-export`

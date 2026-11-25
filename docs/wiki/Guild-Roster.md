@@ -63,6 +63,17 @@ A line is the time and what happened: *joined the guild*, *left the guild* (the 
 - **Where it is kept.** On the computer of the officer who observed it. It is shared with the other officers on the **officer channel only** (never with the guild, never by whisper to a member) and **only after the addon has seen that channel carry an addon message in the session**; until then the box says *Only on this computer until the officer channel works* and the box shows *Officer channel: working* or *not proven yet*. If you stop being an officer, with all your characters, Accord removes this data from your computer.
 - Accord never changes the roster: it only watches it. Nothing is promoted, demoted or removed by the addon.
 
+## Officer notes (officers only)
+
+Officers and the Guild Master see an **Officer notes** box on the member card: a longer note about that character, for the officers only. It is not the game's own officer note (31 characters), which Accord shows apart, as before, and never changes.
+
+- **Write a note…** (or **Edit the note…**) opens a box of up to **500 characters** and **20 lines** (and 1000 bytes: letters with accents take two). The count under the box says how much is left; a note over the limit is not saved and the box says why. **Delete the note** removes it for every officer.
+- The box shows who wrote the latest version and when (*Written by you, 3 d ago*), and below, read-only, the notes of the player's other characters, each with its name. Two officers who edit the same note at once: the later save wins.
+- The **Inactive** page marks with a book icon the players who have a note on one of their characters, and the second step of the cleanup review shows the player's note on one line.
+- **Kept forever.** The note of a player who left the guild stays (the box says *Left the guild on <date>*), so it is there if they come back. Only **Delete the note** removes it.
+- **Only officers.** Members never see the box and never receive the notes. They travel like the timeline: on the **officer channel only**, never with the guild, never by whisper to a member, and only after the addon has seen that channel work in the session; until then a note stays on the computer where it was written (*Only on this computer until the officer channel works*). They are never in an export, nor in your personal backup; *What I share* only counts the notes you wrote.
+- If you stop being an officer, with all your characters, Accord deletes the notes from your computer; promoted again, you receive them back from the other officers.
+
 ## The Officers tab (officers only)
 
 Officers and the Guild Master have one more tab, **Officers**, with three pages: **Inactive**, **Queue** and **Timeline**. Members do not see the tab. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
@@ -73,7 +84,7 @@ The **Inactive** page lists the **players**, not the characters, who have not be
 
 - **Last seen** is the most recent among all the characters of the player: online now or the game's own *last online* for the characters in the guild, the day of the last login with the addon for an alt outside the guild (shared by that player's addon), and your own logins for your characters. Characters are put together as on the member card; if a public note (`main:` / `alt:`) is what joins them, the row says *grouped by a note*, because nobody verifies it.
 - **Tiers**: 14, 30, 60 and 90 days by default. **Tiers…** changes them: four increasing numbers from 1 to 365, **the same for all officers** (any officer can change them), with *Reset to defaults*.
-- **Columns**: the main, how many characters are in the guild, the highest rank, the days, the tier, when and on which character the player was last seen, and the absence. Hover a row for the source of the date. Rows are sorted by days, the longest first; players with an officer character are marked *officer*.
+- **Columns**: the main, how many characters are in the guild, the highest rank, the days, the tier, when and on which character the player was last seen, and the absence. Hover a row for the source of the date. Rows are sorted by days, the longest first; players with an officer character are marked *officer*, players with an [officer note](#officer-notes-officers-only) a book icon.
 - **Filters**: the lowest tier shown, **Show away** (players with a declared absence, hidden otherwise) and **Show unknown** (players of whom no date is known, listed last; the game may not tell the *last online* of every member).
 - **Click a row** to set or clear an absence, or to open the member card.
 
@@ -84,7 +95,7 @@ The addon only lists them. It never removes, demotes or messages anyone.
 **Review…** on the Inactive page helps you decide what to do with the players who stayed away. **Accord never changes the roster**: it does not promote, demote, remove or write notes. It only prepares a list of things for you to do by hand.
 
 1. **Which accounts.** Choose the lowest tier (90 days or more at first). Two switches add the accounts you reviewed in the last 30 days and the ones of which no date is known. Accounts with a declared absence or with an officer character are never proposed.
-2. **One choice per account**, grouped by tier. Click an account to see its characters in the guild (rank, level, last seen) and its last three timeline changes, then choose **Keep** (the default), **Remove**, **Demote**, **Promote** or **Edit note**. The choice counts for every character of the account; click a character to give it a different one. For a rank change Accord proposes the next rank and lets you pick any rank below your own. For a note you choose the public or the officer one and write the new text (at most 31 characters). Actions your rank may not do are left out.
+2. **One choice per account**, grouped by tier. Click an account to see its characters in the guild (rank, level, last seen) its officer note, if it has one, and its last three timeline changes, then choose **Keep** (the default), **Remove**, **Demote**, **Promote** or **Edit note**. The choice counts for every character of the account; click a character to give it a different one. For a rank change Accord proposes the next rank and lets you pick any rank below your own. For a note you choose the public or the officer one and write the new text (at most 31 characters). Actions your rank may not do are left out.
 3. **Summary.** **Add N actions to the queue** fills the queue and does nothing else. The accounts left on *Keep* are not proposed again for 30 days. Choices that could not be added are listed with the reason.
 
 The **Queue** page lists what is left to do, the oldest first; the tab shows how many. Click an entry to see the name (selected, copy it with Ctrl+C) and either the game's command to type in the chat (`/gremove`, `/gpromote`, `/gdemote`) or the text to paste in the note, with a button that opens the guild window. You type or click it yourself.
