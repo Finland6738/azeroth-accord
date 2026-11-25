@@ -1,6 +1,7 @@
 -- The feature switches (Core/Features.lua): with "raid" off, as every release ships it, nothing of M10.2 and M11.7 is
 -- visible, no FDCP callback is registered and nothing of it is written or sent, even with FDCP loaded and a guild
--- choice of FDCP left over from a development build.
+-- choice of FDCP left over from a development build. The switches of M9 (actions, groups, census) are on since M9.10:
+-- their features are there with the shipped code, and each switch still hides its own when a test turns it off.
 local function A() return AzerothAccord end
 
 local FOLDER, GLOBAL = "FinlandDragonCreditPoints", "FinlandDragonCreditPointsAPI"
@@ -49,7 +50,7 @@ describe("the raid switch, off", function()
 	it("falls back to another view when the last one saved was the Raid view", function()
 		A().Config:Set("char.ui.lastView", "raid")
 		Mock.Slash("/accord")
-		eq(A().Shell.selected, "roster")
+		eq(A().Shell.selected, "actions", "the first tab")
 	end)
 
 	it("has no /accord raid command, in the help or when typed", function()
@@ -134,8 +135,63 @@ describe("the raid switch, off, in demo mode", function()
 	end)
 end)
 
+describe("the switches of M9, as shipped (M9.10)", function()
+	before_boot(withFDCP)
+
+	local M9 = { { "actions", "inbox" }, { "groups", "groups" }, { "addons", "addons" } }
+
+	it("are on, and raid stays off", function()
+		for _, name in ipairs({ "actions", "groups", "census" }) do
+			eq(A().Features[name], true)
+			truthy(A().Features.On(name), name)
+		end
+		eq(A().Features.raid, false)
+		truthy(A().Store.IsActive("groups"))
+		truthy(A().Store.IsActive("addons"))
+		falsy(A().Store.IsActive("guildcfg"))
+	end)
+
+	it("show their views, commands and help lines, and no Raid", function()
+		Mock.Slash("/accord help")
+		local help = table.concat(Mock.PlainOutput(), "\n")
+		for _, pair in ipairs(M9) do
+			contains(help, "/accord " .. pair[2])
+			Mock.Slash("/accord " .. pair[2])
+			eq(A().Shell.selected, pair[1])
+			truthy(A().Shell.views[pair[1]].frame:IsVisible(), pair[1])
+			isNil(A().Shell.views[pair[1]].failed, pair[1])
+		end
+		falsy(help:find("/accord raid", 1, true))
+		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "raid") end
+		eq(#Mock.errors, 0)
+	end)
+
+	it("show the Compartment line, the notice modules, the sharing switch and the debug sections", function()
+		A().Store:Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(),
+			requester = BOB, kind = "withdraw", status = "open", amount = 10000, created = GetServerTime(), history = {} }
+		A().Bus:Emit("STORE_CHANGED", "bankreq", BOB .. ":1", "remote")
+		Mock.Advance(65)
+		local tip = { lines = {} }
+		function tip:AddLine(t) self.lines[#self.lines + 1] = t end
+		A().Shell.FillTooltip(tip)
+		contains(table.concat(tip.lines, "\n"), "Action Center")
+		local modules = {}
+		for _, def in ipairs(A().SettingsModel.NoticeModules()) do modules[def.id] = true end
+		truthy(modules.bank); truthy(modules.groups); truthy(modules.digest)
+		truthy(A().SettingsModel.Visible("shareAddons"))
+		local share = false
+		for _, section in ipairs(A().ShareModel.Describe()) do if section.id == "addons" then share = true end end
+		truthy(share, "What I share lists the addons")
+		local titles = {}
+		for _, section in ipairs(A().Diagnostics.Collect().sections) do titles[section.title] = true end
+		for _, title in ipairs({ "Actions", "Notify", "Digest", "Groups", "Game finder", "Census" }) do truthy(titles[title], title) end
+		falsy(titles.Integrations); falsy(titles.FDCP)
+	end)
+end)
+
 describe("the actions switch, off", function()
 	before_boot(function(M)
+		M.features = { actions = false }
 		M.guild.Set{ name = "Accord", myRank = 1, members = {
 			{ name = "Officer", rank = 1, guid = OFF }, { name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
 		} }
@@ -148,7 +204,7 @@ describe("the actions switch, off", function()
 		Mock.Advance(65)
 	end
 
-	it("is off in the shipped code", function()
+	it("is off when the switch says so", function()
 		eq(A().Features.actions, false)
 		falsy(A().Features.On("actions"))
 	end)
@@ -184,12 +240,13 @@ end)
 
 describe("the switch groups (M9.6) is off", function()
 	before_boot(function(M)
+		M.features = { groups = false }
 		M.guild.Set{ name = "Accord", myRank = 1, members = {
 			{ name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
 		} }
 	end)
 
-	it("is off in the shipped code: the set takes nothing, GAPP and GASK are ignored, nothing is sent", function()
+	it("switched off: the set takes nothing, GAPP and GASK are ignored, nothing is sent", function()
 		eq(A().Features.groups, false)
 		falsy(A().Features.On("groups"))
 		falsy(A().Store.IsActive("groups"))
@@ -209,13 +266,14 @@ end)
 
 describe("the switch census (M9.9) is off", function()
 	before_boot(function(M)
+		M.features = { census = false }
 		M.guild.Set{ name = "Accord", myRank = 1, members = {
 			{ name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
 		} }
 	end)
 
 	-- the whole behaviour with the switch off and on is in Tests/test_addons_census.lua
-	it("is off in the shipped code: no view, and nothing of the addon census is sent", function()
+	it("switched off: no view, and nothing of the addon census is sent", function()
 		eq(A().Features.census, false)
 		falsy(A().Features.On("census"))
 		falsy(A().Store.IsActive("addons"))

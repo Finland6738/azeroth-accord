@@ -108,6 +108,9 @@ function Officer:CheckDemotion()
 	if not (ns.Role and ns.Role:InGuild()) or not self:HasData() then return false end
 	local C, R, A = compat(), ns.Roster, ns.Accounts
 	if not (C and R and A) then return false end
+	-- The role changes on the same GUILD_ROSTER_UPDATE that makes the roster stale, and which of the two is handled first
+	-- is not fixed: read the ranks afresh, or a list built earlier (the Action Center reads it) still shows an officer.
+	R:MarkDirty()
 	local seen = 0
 	for _, c in ipairs(A:OwnChars()) do
 		if c.inGuild then

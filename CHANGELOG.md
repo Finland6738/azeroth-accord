@@ -4,8 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- M9.10: when an officer is demoted, the officer data is now deleted at the change of role also if the roster had been read before it (the ranks are read afresh); before, it could wait for the next timeline read.
+
 ### Changed
 
+- M9.10: **the features of M9 are switched on** (`Core/Features.lua`: `actions`, `groups`, `census`): the Action Center with notices, quiet hours and the login digest, the guild group finder with its private listing in the game's Group Finder, and the Guild addons view, for the next release. `raid` stays off until M10 and M11 are complete. The entries of M9.2 to M9.9 below describe them. **Nothing of M9 has been checked in the real game.**
+- M9.10: with the census on, the average traffic per client in the 50-client simulation with continuous logins and writes is about 405 B/min (about 310 without the census), over the 400 B/min of SPEC-02 §4: the limit is now **450 B/min** (SPEC-10 R14); the other limits are unchanged.
+- M9.10: with eight tabs (nine for officers) the tab bar no longer fits: the tabs are drawn closer and those that still do not fit beside the search box are in a menu behind a last tab, **More**, which shows the sum of their counts; the open view always keeps its tab (`Widgets.Tabs`, `SetReserve`).
 - Bank requests: the **tip** of a request is now shown to the whole guild, as the rest of the request (SPEC-10 Q16, the owner's answer of 2026-11-25; one switch, `BankRequests.TIP_VISIBLE_TO`). **Looks paid** stays for officers. `v0.8.0` clients still show other members' tips only to officers and the Guild Master.
 
 ### Added
@@ -21,6 +28,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- Process (owner, 2026-11-25): until every milestone step is done, steps ship with `tools/ship_step.py --skip-tests`. The script runs `check_docs.py` only and does not wait for CI. The full suite, the long tests and a green CI come back before `v1.0.0` (ADR 0012 point 9, CLAUDE.md). M9.10 is the first step shipped this way.
+- M9.10: `docs/checklists/M9.md`, the in-game check of M9 for the owner (upgrade from `v0.8.0`, tabs, Action Center and notices, quiet hours, login digest, guild group finder, private game listing, guild addons, with the exit criterion and the unverified API questions); README and wiki describe M9 as part of the next release.
 - The owner accepted SPEC-10 Q17-Q19 as proposed (2026-11-25): the names in the addon census are hidden in the interface only, every member may post a group listing that only its leader changes or closes (30 minutes to 4 hours, 2 by default), and craft requests stay the asker's own reminders with quiet hours and notice sounds off by default. SPEC-13 and the M9 roadmap say so; nothing changes in the addon.
 - M9.1: [SPEC-13](docs/specs/SPEC-13-action-center-notices.md) "Centro azioni e avvisi", the specification of M9, and [ADR 0024](docs/adr/0024-guild-group-finder-short-lived-listings-private-game-listing.md). The **Action Center** collects rows from providers that modules register (bank requests, craft requests as the asker's own reminders until M13, the officers' manual-ops queue and absences), sorted by urgency (now, to do, reminder) and age. **Notices** have three levels (alert, normal, quiet), a history of 200 entries for 30 days with read and unread, chat, toast and sound per module (the M5 bank options keep their keys and defaults), and rules against floods at install and after a long absence. **Quiet hours** (off by default), combat and instances hold notices and release them once, in order. A **login digest** after the first login lists new and departed members, pending items, likes received (the number only) and bank changes, and says nothing when nothing changed. The **guild group finder**: listings of nine types in a short-lived data set `groups` written only by the leader and kept out of the sync summary, closing by themselves on every client (full, expired, leader offline), applications by whisper to the leader (`GAPP`), invitations through `C_PartyInfo.InviteUnit` on the leader's click, late joiners asking with `GASK`, limits checked by the simulator with 50 open listings; the game's Group Finder only as a private listing created from the leader's click, as checked against the Forever API dump. The **addon census**: loaded addons without Blizzard's, at most 120 per character, on by default with a switch, counts for everyone and names for officers and the Guild Master only; it reuses the addon reading of M10.2 (`Compat.Addon`, folder names) and replaces nothing. Three feature switches (`actions`, `groups`, `census`) stay off until M9.10. New owner questions SPEC-10 Q17-Q19 and risk R13; SPEC-02, SPEC-03 and SPEC-00 point to SPEC-13.
 

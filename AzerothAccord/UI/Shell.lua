@@ -5,7 +5,8 @@
 -- guild window: a fill of the theme over Blizzard's content area). The content has
 --   * the tab bar (ns.Widgets.Tabs, 44 pt, the 2 pt indicator under the active tab): one tab per registered view (Roster,
 --     Professions, Reputation, Bank, Settings), in order; views of later milestones register themselves, so a view that
---     is not ready never shows; a view's `badge` function puts a count on its tab (the Bank: requests waiting);
+--     is not ready never shows; a view's `badge` function puts a count on its tab (the Bank: requests waiting); the
+--     tabs that do not fit beside the search box go into the menu of a *More* tab (Widgets.Tabs);
 --   * at the right of the tabs: the search box, while the selected view can search, and Pop out in the guild window;
 --   * the body: the selected view, or a welcome text while no view exists;
 --   * in the guild window only, a line under the body with the sync state (the window has it in its title bar).
@@ -218,7 +219,7 @@ local function buildTabs(content, list)
 	if content.tabs then content.tabs:Hide() end
 	local defs = {}
 	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id } end
-	local tabs = Widgets.Tabs(content.bar, defs)
+	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"] })
 	tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
 	tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
 	for id, b in pairs(tabs.buttons) do
@@ -251,6 +252,15 @@ local function layout(content, mode)
 	content.mode = tab and "tab" or "window"
 end
 
+-- The room the tabs leave at the right of the bar: the search box (also while the selected view has none, so that the tabs
+-- do not move from one view to the next) and, in the guild window, Pop out.
+function Shell.TabReserve(content)
+	local tab = content.mode == "tab"
+	local reserve = Shell.SEARCH_WIDTH[tab and "tab" or "window"] + 8
+	if tab then reserve = reserve + (content.bar.popOut:GetWidth() or 0) + 8 end
+	return reserve
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Refresh, selection, search
 ---------------------------------------------------------------------------------------------------------------------
@@ -266,6 +276,7 @@ function Shell:Refresh()
 	else
 		local tabs = buildTabs(content, list)
 		tabs:Show()
+		tabs:SetReserve(Shell.TabReserve(content))
 		if not (self.selected and Shell.Visible(self.views[self.selected])) then
 			local last = ns.Config and ns.Config:Get("char.ui.lastView")
 			self.selected = (last and Shell.Visible(self.views[last])) and last or list[1].id

@@ -2,7 +2,7 @@
 
 *Italiano: [[Centro azioni|Action-Center-it]]*
 
-> **Not in a release yet.** The Action Center (step M9.2) is in the code, switched off until milestone M9 is complete: it arrives with `v0.9.0`. Nothing on this page has been checked in the real game.
+> **New in `v0.9.0`**, the next release. Nothing on this page has been checked in the real game.
 
 The **Action Center** is one list of the things that **wait for you**: you do not have to look through every view to find them. Open it with its tab, the first one of the Accord panel, or with `/accord inbox`.
 
@@ -28,7 +28,7 @@ A craft request is only a whisper that you send yourself (see [[Professions and 
 
 Each line has a coloured dot for its urgency:
 
-- **Now** (red): somebody is waiting for you right now, or it expires within a day. such as an applicant to your [[group|Groups]];
+- **Now** (red): somebody is waiting for you right now, or it expires within a day, such as an applicant to your [[group|Groups]];
 - **To do** (accent colour): it is your turn;
 - **Reminder** (grey): you are waiting for others, or it is just worth remembering.
 
@@ -38,7 +38,7 @@ The chips on top show **All** lines or those of one kind: *Groups*, *Bank*, *Cra
 
 ## Notices
 
-> **Not in a release yet.** The notices (step M9.3) arrive with `v0.9.0`. Until then the bank notices work as described in [[Guild Bank|Guild-Bank]]. Nothing of this has been checked in the real game; in particular, which sounds the game offers.
+> **New in `v0.9.0`**, the next release. Nothing of the notices has been checked in the real game; in particular, which sounds the game offers.
 
 The second page of the Action Center, **Notices**, is the history of what the addon told you, the newest first. The name of the page shows how many you have **not read**: *Notices (3)*.
 
@@ -76,7 +76,7 @@ The two switches for new requests and for decisions are the same as before, with
 
 ## Quiet hours
 
-> **Not in a release yet.** Quiet hours (step M9.4) arrive with `v0.9.0`. Nothing of this has been checked in the real game.
+> **New in `v0.9.0`**, the next release. Nothing of the quiet hours has been checked in the real game.
 
 A notice **waits** instead of showing in chat, on screen or with a sound:
 
@@ -90,7 +90,7 @@ When nothing holds them any more, the waiting notices come out **once, in the or
 
 ## Summary at login
 
-> **Not in a release yet.** The summary at login (step M9.5) arrives with `v0.9.0`. Nothing of this has been checked in the real game.
+> **New in `v0.9.0`**, the next release. Nothing of the summary at login has been checked in the real game.
 
 A few seconds after you **log in** (not after a `/reload`), the addon says what changed **since your last session** in this guild:
 

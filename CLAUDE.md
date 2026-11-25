@@ -14,10 +14,10 @@ For every milestone step or fix:
 
 1. Branch from an up-to-date `main`: `step/m<N>-<k>-<name>` (or `fix/…`, `docs/…`, `chore/…`). Never commit to `main`.
 2. Do the work. In the same branch update `CHANGELOG.md`, the affected specs/ADRs (and the ADR index), `README.md` + `README.it.md` when features or status change, and `docs/wiki/` for anything user-visible.
-3. Run `python -I -X utf8 tools/check_docs.py` (plus the addon tests once they exist).
-4. Write the pull request body (what and why, what was **not** verified in the real client) and ship **without asking**:
-   `python -I -X utf8 tools/ship_step.py --title "M<N>: <summary>" --body-file <file> --commit "<message>"`
-   It squashes the step into one noreply commit, pushes, opens the PR, waits for CI and fast-forwards `main` to the checked commit. If it stops, leave the PR open and report why.
+3. Run `python -I -X utf8 tools/check_docs.py` and the test files you touched (`python -X utf8 Tests/run_tests.py <filter>`). Do not run the whole suite or the long tests: the owner deferred them until all milestone steps are done (2026-11-25, ADR 0012 point 9).
+4. Write the pull request body (what and why, what was **not** verified in the real client, and that the full tests and CI were not waited for) and ship **without asking**:
+   `python -I -X utf8 tools/ship_step.py --skip-tests --title "M<N>: <summary>" --body-file <file> --commit "<message>"`
+   It squashes the step into one noreply commit, pushes, opens the PR and fast-forwards `main` without waiting for CI. If it stops, leave the PR open and report why.
 5. The wiki is published by the `Wiki sync` workflow after the merge: never edit the wiki on GitHub.
 
 Do not decide alone what belongs to the owner (licence, names, scope, deleting their data): ask, or open an issue with the options. Open questions are listed in `docs/specs/SPEC-10-risks-open-questions.md`.

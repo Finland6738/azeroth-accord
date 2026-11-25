@@ -267,7 +267,7 @@ describe("50 clients (SPEC-09 §2)", function()
 			limits.flood, limits.quarantined, floodQuarantine, maxDecoded / 1024, limits.oversized, limits.refused))
 		eq(limits.quarantined + floodQuarantine, 0, "no honest client is put in quarantine")
 		-- the traffic budget of SPEC-02 §4
-		truthy(churn.avg.bytesPerMinute <= 400, "churn average " .. churn.avg.bytesPerMinute)
+		truthy(churn.avg.bytesPerMinute <= 450, "churn average " .. churn.avg.bytesPerMinute)   -- with the census on (M9.10, SPEC-10 R14)
 		truthy(churn.max.bytesPerMinute <= 2048, "churn busiest client " .. churn.max.bytesPerMinute)   -- SPEC-10 R10
 		truthy(perLogin <= 8 * 1024, "bytes per login " .. perLogin)
 		truthy(took <= 25 * 60, "converged within a HELLO period of the last login: " .. took .. " s")

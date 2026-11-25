@@ -26,7 +26,7 @@ local function items(Mk)
 end
 
 local function on(Mk) Mk.features = { actions = true } guild() items(Mk) end
-local function off(Mk) guild() items(Mk) end
+local function off(Mk) Mk.features = { actions = false } guild() items(Mk) end
 
 local function late() Mock.Advance(Notify().LOGIN_MAX + 5) end
 local function wait() Mock.Advance(Notify().NOTICE_WAIT + 1) end

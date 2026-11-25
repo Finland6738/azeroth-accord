@@ -30,6 +30,8 @@ describe("clock and timers", function()
 
 	it("a ticker repeats, stops after its iterations and can be cancelled", function()
 		local n, m = 0, 0
+		Mock.Advance(600)   -- the addon's own one-shot timers of the login have run; its tickers stay
+		local own = Mock.PendingTimers()
 		C_Timer.NewTicker(1, function() n = n + 1 end, 3)
 		local ticker = C_Timer.NewTicker(1, function() m = m + 1 end)
 		Mock.Advance(10)
@@ -39,7 +41,7 @@ describe("clock and timers", function()
 		Mock.Advance(5)
 		eq(m, 10)
 		truthy(ticker:IsCancelled())
-		eq(Mock.PendingTimers(), 0)
+		eq(Mock.PendingTimers(), own)
 	end)
 
 	it("a timer created inside a callback waits for a later frame", function()
@@ -224,6 +226,7 @@ describe("guild", function()
 	end)
 
 	it("GuildRoster answers on a later frame; Invite is recorded", function()
+		Mock.Advance(600)   -- the addon's own roster requests of the login are answered
 		local updates = 0
 		local f = CreateFrame("Frame")
 		f:RegisterEvent("GUILD_ROSTER_UPDATE")

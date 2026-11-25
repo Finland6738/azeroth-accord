@@ -121,5 +121,6 @@ Release: `v0.9.0`.
 - Branch: `step/m9-10-check`
 - Scope: `docs/checklists/M9.md` and the README status. The owner releases `v0.9.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.9.0`.
+  - *Done in code (2026-11-25):* [the M9 checklist](../checklists/M9.md); the switches `actions`, `groups` and `census` are on in `Core/Features.lua` (`raid` stays off until M10 and M11); with eight or nine tabs the tab bar now moves the ones that do not fit into a **More** menu; README and wiki describe M9 as part of the next release. The release preparation of the changelog is a separate step. Nothing of M9 has been checked in the game.

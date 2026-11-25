@@ -44,7 +44,7 @@
 --          3) and the notices `groups.applicant`, `groups.answer` and `groups.match` (off by default; at most one per
 --          MATCH_EVERY seconds), both shown only while the switch `actions` is on too. The notice `groups.game` belongs to
 --          Data/GameFinder.lua (M9.8, the private listing in the game's own Group Finder).
--- Switch: Features.On("groups") (Core/Features.lua), off until M9.10. Off: the set takes and sends nothing (Store), GAPP and
+-- Switch: Features.On("groups") (Core/Features.lua), on since M9.10. Off: the set takes and sends nothing (Store), GAPP and
 -- GASK are ignored, nothing is sent, no event is registered. Demo mode sends nothing.
 -- Bus: GROUPS_CHANGED(id) a listing changed (nil: several); APPLICANTS_CHANGED(id) the applications of a listing changed on
 -- the leader's or the candidate's client.

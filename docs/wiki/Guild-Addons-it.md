@@ -2,7 +2,7 @@
 
 *English: [[Guild addons|Guild-Addons]]*
 
-> **Non ancora in un rilascio.** Il censimento degli addon (passo M9.9) è nel codice, spento finché la milestone M9 non è completa: arriva con la `v0.9.0`. Finché è spento, l'elenco dei tuoi addon non viene letto e non si manda nulla. Nulla di questa pagina è stato verificato nel gioco vero.
+> **Novità della `v0.9.0`**, il prossimo rilascio. La condivisione del tuo elenco è accesa di default (vedi più sotto come spegnerla). Nulla di questa pagina è stato verificato nel gioco vero.
 
 La scheda **Addon della gilda** mostra quali addon usano i membri della gilda, con il conteggio di ciascuno. Si apre con la sua scheda o con `/accord addons`.
 

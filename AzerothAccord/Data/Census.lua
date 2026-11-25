@@ -24,7 +24,7 @@
 -- Who sees names   Q11: everybody sees the counts and the versions; WHO uses an addon only the officers and the Guild
 --                  Master, and everybody their own account. Census.NAMES_VISIBLE_TO is the one place. It is a rule of the
 --                  interface (Q17): the records reach the whole guild. :Summary() never holds a name; :Who() applies it.
--- Switch: Features.On("census") (Core/Features.lua), off until M9.10. Off: the addon list is not read, the set takes and
+-- Switch: Features.On("census") (Core/Features.lua), on since M9.10. Off: the addon list is not read, the set takes and
 -- sends nothing (Store), no timer starts. Demo mode publishes nothing.
 -- Bus: CENSUS_CHANGED() when what :Summary() or :Who() give may have changed, collected for EMIT_DELAY seconds.
 local ADDON_NAME, ns = ...

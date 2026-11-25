@@ -37,7 +37,7 @@ local function on(rank)
 		installed(Mk)
 	end
 end
-local function off(Mk) guild(3) installed(Mk) end
+local function off(Mk) Mk.features = { census = false } guild(3) installed(Mk) end
 
 -- Every message handed to the transport from now on.
 local function capture()
@@ -111,7 +111,7 @@ end
 describe("the switch `census`, off", function()
 	before_boot(off)
 
-	it("is off in the shipped code: the addons are not read, the set takes and sends nothing", function()
+	it("switched off: the addons are not read, the set takes and sends nothing", function()
 		eq(A().Features.census, false)
 		falsy(A().Features.On("census"))
 		falsy(S().IsActive("addons"))
@@ -846,7 +846,7 @@ describe("the census between clients", function()
 
 	it("leaves a client that does not know the census as before: same summaries, nothing pushed, asked or refused", function()
 		-- client 4 runs with the switch off, as v0.8.0 does not know the set at all
-		local function mixed(Mk, i) if i < 4 then simulated(Mk, i) end end
+		local function mixed(Mk, i) if i < 4 then simulated(Mk, i) else Mk.features = { census = false } end end
 		local sim = Sim.new{ clients = 4, officers = { 1 }, setup = mixed, seed = 41 }
 		local seen = watchWire(sim)
 		for i = 1, 4 do
@@ -880,7 +880,7 @@ describe("the census between clients", function()
 	end)
 
 	it("sends nothing of the census with the switch off", function()
-		local sim = Sim.new{ clients = 3, setup = function(Mk, i) simulated(Mk, i) Mk.features = {} end, seed = 43 }
+		local sim = Sim.new{ clients = 3, setup = function(Mk, i) simulated(Mk, i) Mk.features = { census = false } end, seed = 43 }
 		local seen = watchWire(sim)
 		sim:advance(600)
 		eq(#seen, 0)

@@ -2,7 +2,7 @@
 
 *Italiano: [[Gruppi|Groups-it]]*
 
-> **Not in a release yet.** The guild group finder (steps M9.6 and M9.7) is in the code, switched off until milestone M9 is complete: it arrives with `v0.9.0`. Nothing on this page has been checked in the real game; in particular the invitation sent by the addon, also inside an instance.
+> **New in `v0.9.0`**, the next release. Nothing on this page has been checked in the real game; in particular the invitation sent by the addon, also inside an instance.
 
 The **Groups** tab is the game's premade groups panel, **for your guild only**: a leader posts a group, guild members apply with a role, the leader accepts them and they are invited. Open it with its tab or with `/accord groups`. Nobody outside the guild sees a group, and only members who use the addon take part.
 
@@ -59,11 +59,11 @@ If the game lets a group be listed **privately**, **My group** has a button **Al
 - removes it in the same click that closes your guild group (*Close group*, a new post that replaces it, an *Accept* that fills it). When the guild group closes by itself, a notice asks you to remove it, and the button becomes **Remove from the game's finder**;
 - if the game ever shows the group as public, asks you to remove it and does not offer the button again on that version of the game.
 
-Players who apply from the game's Group Finder are handled in the game's own window. If the game does not allow private listings, there is no button and no text: the guild group finder is the only one. Whether WoW Forever allows them is checked in the game before `v0.9.0`.
+Players who apply from the game's Group Finder are handled in the game's own window. If the game does not allow private listings, there is no button and no text: the guild group finder is the only one. Whether WoW Forever allows them has not been checked in the game yet.
 
 ## Notices and the Action Center
 
-With the [[Action Center|Action-Center]] (also from `v0.9.0`):
+With the [[Action Center|Action-Center]]:
 
 - every waiting applicant is a **Now** line of the Inbox, which opens **My group**;
 - a notice tells you about a new applicant, and about the leader's answer to your application (chat line and on-screen box by default);

@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon della gilda|Guild-Addons-it]]*
 
-> **Not in a release yet.** The addon census (step M9.9) is in the code, switched off until milestone M9 is complete: it arrives with `v0.9.0`. While it is off, your addon list is not read and nothing of it is sent. Nothing on this page has been checked in the real game.
+> **New in `v0.9.0`**, the next release. Sharing your list is on by default ([Switching sharing off](#switching-sharing-off)). Nothing on this page has been checked in the real game.
 
 The **Guild addons** tab shows which addons the members of your guild use, with a count for each. Open it with its tab or with `/accord addons`.
 

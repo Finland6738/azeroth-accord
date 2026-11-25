@@ -457,10 +457,11 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 	it("every view opens from its tab and from its command, in the order of the spec", function()
 		Mock.Slash("/accord")
 		local tabs = Shell().content.tabs
-		deepEq(tabs.order, { "roster", "professions", "reputation", "bank", "settings" })
+		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "addons", "settings" })
 		local labels = {}
 		for _, id in ipairs(tabs.order) do labels[#labels + 1] = tabs.buttons[id].label:GetText() end
-		deepEq(labels, { "Roster", "Professions", "Reputation", "Bank", "Settings" })
+		deepEq(labels, { "Action Center", "Roster", "Professions", "Reputation", "Bank", "Groups", "Guild addons",
+			"Settings" })
 		for _, id in ipairs(tabs.order) do
 			tabs.buttons[id]:Click()
 			eq(tabs:Active(), id, "tab " .. id)
@@ -591,5 +592,93 @@ describe("the diagnostics box", function()
 		box.frame.close:Click()
 		falsy(box:IsShown())
 		contains(table.concat(UISpecialFrames, ","), "AzerothAccordDiagnosticsBox")
+	end)
+end)
+
+describe("more tabs than the bar has room for (M9.10)", function()
+	before_boot(function(M) guild() end)
+
+	-- The mock measures a text at 6 points a letter and knows no anchored width: the width of the bar is given here.
+	local function open(width)
+		Mock.Slash("/accord")
+		local tabs = Shell().content.tabs
+		tabs:SetWidth(width)
+		tabs:Layout()
+		return tabs
+	end
+
+	local function onBar(tabs)
+		local list = {}
+		for _, id in ipairs(tabs.order) do if tabs.buttons[id]:IsShown() then list[#list + 1] = id end end
+		return list
+	end
+
+	local function rightEnd(tabs)
+		local right = 0
+		for _, id in ipairs(onBar(tabs)) do right = math.max(right, tabs.buttons[id].x + tabs.buttons[id].w) end
+		if tabs.more and tabs.more:IsShown() then right = math.max(right, tabs.more.x + tabs.more.w) end
+		return right
+	end
+
+	it("shows every view of the shipped switches when there is room, and no More tab", function()
+		local tabs = open(2000)
+		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "addons", "settings" })
+		deepEq(onBar(tabs), tabs.order)
+		isNil(tabs.more)
+	end)
+
+	it("puts what does not fit into the More menu, beside the search box and never over it", function()
+		local tabs = open(600)
+		truthy(tabs.more:IsShown())
+		eq(tabs.more.label:GetText(), "More")
+		eq(#onBar(tabs) + #tabs.overflow, #tabs.order)
+		truthy(#tabs.overflow > 0)
+		truthy(rightEnd(tabs) <= 600 - Shell().TabReserve(Shell().content), "ends before the search box")
+	end)
+
+	it("every view without room opens from the menu and takes its place on the bar", function()
+		local tabs = open(600)
+		local hidden = {}
+		for i, id in ipairs(tabs.overflow) do hidden[i] = id end
+		for _, id in ipairs(hidden) do
+			tabs.more:Click()
+			local menu = A().Widgets.Menu
+			truthy(menu.IsOpen())
+			local row
+			for i, item in ipairs(menu.frame.items) do if item.id == id then row = menu.frame.rows[i] end end
+			notNil(row, id .. " is in the menu")
+			row:Click()
+			falsy(menu.IsOpen())
+			eq(Shell().selected, id)
+			eq(tabs:Active(), id)
+			truthy(tabs.buttons[id]:IsShown(), id .. " is on the bar while open")
+			truthy(Shell().views[id].frame:IsVisible(), id)
+			truthy(rightEnd(tabs) <= 600 - Shell().TabReserve(Shell().content), id)
+		end
+		eq(#Mock.errors, 0)
+	end)
+
+	it("adds up the counts of the tabs behind More", function()
+		local tabs = open(600)
+		local last, before = tabs.order[#tabs.order], tabs.overflow[#tabs.overflow - 1]
+		eq(last, "settings")
+		tabs:SetBadge(last, "2")
+		tabs:SetBadge(before, "3")
+		eq(tabs.more.badge.label:GetText(), "5")
+		tabs:SetBadge(last, "99+")
+		eq(tabs.more.badge.label:GetText(), "99+")
+		tabs:SetBadge(last, nil)
+		tabs:SetBadge(before, nil)
+		falsy(tabs.more.badge:IsShown())
+	end)
+
+	it("keeps the room when the window grows or shrinks, and says Altro in Italian", function()
+		local tabs = open(600)
+		tabs:SetWidth(2000)
+		tabs:GetScript("OnSizeChanged")(tabs, 2000, 44)
+		falsy(tabs.more:IsShown())
+		eq(#onBar(tabs), #tabs.order)
+		T.boot(function(M) M.player.locale = "itIT" guild() end)
+		eq(open(600).more.label:GetText(), "Altro")
 	end)
 end)

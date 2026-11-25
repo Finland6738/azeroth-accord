@@ -27,7 +27,7 @@ local function player(level, class)
 	end
 end
 
-local function on(Mk) Mk.features = { groups = true } guild() player(20, "PALADIN")(Mk) end
+local function on(Mk) Mk.features = { groups = true, actions = false } guild() player(20, "PALADIN")(Mk) end
 local function both(Mk) on(Mk) Mk.features = { groups = true, actions = true } end
 
 local function hear(msg, sender) A().Bus:Emit("NET_MESSAGE", msg, sender, "WHISPER") end
@@ -68,7 +68,7 @@ end
 local function click(button) button:GetScript("OnClick")(button) end
 
 describe("the Groups view, the switch `groups` off", function()
-	before_boot(function(Mk) Mk.features = { actions = true } guild() end)
+	before_boot(function(Mk) Mk.features = { actions = true, groups = false } guild() end)
 
 	it("has no tab, no command, no help line, no Settings row, no Action Center row or chip", function()
 		Mock.Slash("/accord")

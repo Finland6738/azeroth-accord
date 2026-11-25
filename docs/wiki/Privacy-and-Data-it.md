@@ -42,7 +42,7 @@ Accord condivide con la tua gilda l'**elenco degli addon che questo personaggio 
 
 ## Altri addon
 
-A parte quell'elenco, che arriva con la `v0.9.0`, l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.
+A parte quell'elenco (novità della `v0.9.0`), l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.
 
 ## Cosa resta sul tuo computer
 

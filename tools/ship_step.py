@@ -14,6 +14,9 @@ Usage, from the repository root, on the step branch (never on main):
   python -I -X utf8 tools/ship_step.py --title "M1: transport and codec" --body-file pr.md [--commit "message"]
   --commit "message"   commit every pending change first (git add -A) with this message
   --no-merge           stop after the pull request is open and CI is green
+  --skip-tests         run only tools/check_docs.py locally (not Tests/run_tests.py) and do not wait for CI: main is
+                       fast-forwarded right after the pull request opens. CI still runs, for information only.
+                       Owner's decision of 2026-11-25: the full tests run once all milestone steps are done (ADR 0012).
   --dry-run            print what would happen, change nothing
 
 Steps:
@@ -56,8 +59,11 @@ def out(cmd):
     return subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
 
-def local_checks(dry):
+def local_checks(dry, skip_tests=False):
     run([sys.executable, "-I", "-X", "utf8", "tools/check_docs.py"], capture=False, dry=dry)
+    if skip_tests:
+        print("Skipping Tests/run_tests.py (--skip-tests).")
+        return
     tests = os.path.join(ROOT, "Tests", "run_tests.py")
     if os.path.isfile(tests):
         # No -I here: lupa may live in the user's site-packages, which isolated mode ignores (CI installs it system-wide
@@ -122,6 +128,7 @@ def main(argv):
     ap.add_argument("--body-file", required=True)
     ap.add_argument("--commit")
     ap.add_argument("--no-merge", action="store_true")
+    ap.add_argument("--skip-tests", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     dry = a.dry_run
@@ -135,11 +142,11 @@ def main(argv):
     if out(["git", "status", "--porcelain"]):
         if not a.commit:
             sys.exit("Stopped: there are uncommitted changes. Commit them or pass --commit \"message\".")
-        local_checks(dry)
+        local_checks(dry, a.skip_tests)
         run(["git", "add", "-A"], dry=dry)
         run(["git", *IDENTITY, "commit", "-m", a.commit + "\n\n" + CO_AUTHOR], dry=dry)
     else:
-        local_checks(dry)
+        local_checks(dry, a.skip_tests)
 
     run(["git", "fetch", "origin", "main"], dry=dry)
     if out(["git", "rev-list", "--count", "HEAD..origin/main"]) not in ("", "0"):
@@ -147,7 +154,7 @@ def main(argv):
         if merge.returncode != 0:
             run(["git", "merge", "--abort"], check=False, dry=dry)
             sys.exit("Stopped: merging origin/main gives conflicts. Resolve them by hand, run the checks, ship again.")
-        local_checks(dry)
+        local_checks(dry, a.skip_tests)
     squash(a.title, dry)
 
     run(["git", "push", "--force-with-lease", "-u", "origin", branch], dry=dry)
@@ -156,7 +163,10 @@ def main(argv):
         print("(dry run) would wait for CI and fast-forward main")
         return 0
     sha = out(["git", "rev-parse", "HEAD"])
-    wait_for_checks(number)
+    if a.skip_tests:
+        print(f"Not waiting for CI (--skip-tests): pull request #{number} is checked by CI for information only.")
+    else:
+        wait_for_checks(number)
     if a.no_merge:
         print(f"CI is green. Pull request #{number} left open (--no-merge).")
         return 0

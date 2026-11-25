@@ -27,7 +27,7 @@ local function items(Mk)
 end
 
 local function on(Mk) Mk.features = { actions = true } guild(1) items(Mk) end
-local function off(Mk) guild(1) items(Mk) end
+local function off(Mk) Mk.features = { actions = false } guild(1) items(Mk) end
 
 -- The window of the login (NTF-05) is over.
 local function late() Mock.Advance(Notify().LOGIN_MAX + 5) end
@@ -73,7 +73,7 @@ local function post(id, n, extra)
 	return Notify():Post(id, "x", def)
 end
 
-describe("with the switch off, as released", function()
+describe("with the switch off, as v0.8.0", function()
 	before_boot(off)
 
 	it("prints the bank notices of M5 itself, with the same options", function()

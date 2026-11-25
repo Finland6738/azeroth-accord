@@ -163,10 +163,14 @@ end
 -- badge (the requests waiting on the Bank tab): the caller passes its text.
 -- :Select(id), :Active(), :SetTabShown(id, bool), :SetBadge(id, text|nil, tone), :SetTabText(id, text), :Layout().
 -- onSelect(id) runs after a change.
-function Widgets.Tabs(parent, tabs, onSelect)
+-- When the tabs ask for more room than the bar has (its width less :SetReserve(points), what lies over its right end),
+-- they are first drawn closer (10 points each side) and, if they are still too many, the ones that do not fit go into a
+-- menu behind a last tab, opts.moreText, which carries the sum of their counts. The active tab always stays on the bar.
+-- A bar whose width is not known yet shows every tab.
+function Widgets.Tabs(parent, tabs, onSelect, opts)
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetHeight(44)
-	bar.buttons, bar.order, bar.hidden = {}, {}, {}
+	bar.buttons, bar.order, bar.hidden, bar.overflow = {}, {}, {}, {}
 	bar.line = bar:CreateTexture(nil, "BORDER")
 	Theme.Fill(bar.line, "border-subtle")
 	bar.line:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", 0, 0)
@@ -177,34 +181,116 @@ function Widgets.Tabs(parent, tabs, onSelect)
 	bar.indicator:SetHeight(2)
 	bar.indicator:Hide()
 
-	-- the width of a tab: its text, 16 points each side, and the badge when it shows one
-	local function wanted(b)
-		local w = b.label:GetStringWidth() + 32
+	local GAP, PAD, TIGHT = 4, 16, 10
+	-- the width of a tab: its text, `pad` points each side, and the badge when it shows one
+	local function wanted(b, pad)
+		local w = b.label:GetStringWidth() + 2 * pad
 		if b.badge and b.badge:IsShown() then w = w + b.badge:GetWidth() + 6 end
 		return max(64, w), w
 	end
 
-	local function layout()
-		local x = 0
-		for _, id in ipairs(bar.order) do
-			local b = bar.buttons[id]
-			if bar.hidden[id] then
-				b:Hide()
-			else
-				local w, content = wanted(b)
-				b:SetWidth(w)
-				b:Show()
-				b:ClearAllPoints()
-				b:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", x, 0)
-				b.x, b.w = x, w
-				b.label:ClearAllPoints()
-				b.label:SetPoint("LEFT", b, "LEFT", (w - content) / 2 + 16, 1)
-				if b.badge and b.badge:IsShown() then
-					b.badge:ClearAllPoints()
-					b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 1)
-				end
-				x = x + w + 4
+	local function put(b, x, pad)
+		local w, content = wanted(b, pad)
+		b:SetWidth(w)
+		b:Show()
+		b:ClearAllPoints()
+		b:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", x, 0)
+		b.x, b.w = x, w
+		b.label:ClearAllPoints()
+		b.label:SetPoint("LEFT", b, "LEFT", (w - content) / 2 + pad, 1)
+		if b.badge and b.badge:IsShown() then
+			b.badge:ClearAllPoints()
+			b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 1)
+		end
+		return x + w + GAP
+	end
+
+	-- The tab that opens the menu of the ones without room; made the first time it is needed.
+	local function moreButton()
+		if bar.more then return bar.more end
+		local more = CreateFrame("Button", nil, bar)
+		more:SetHeight(44)
+		more.label = Theme.NewText(more, "Tab", "text-3")
+		more.label:SetText(opts and opts.moreText or "...")
+		more:SetScript("OnClick", function(self)
+			local items = {}
+			for _, id in ipairs(bar.overflow) do
+				local b = bar.buttons[id]
+				local text = b.label:GetText() or id
+				if b.count then text = text .. " (" .. b.count .. ")" end
+				items[#items + 1] = { id = id, text = text, onClick = function() b:Click() end }
 			end
+			Widgets.Menu.Show(self, items)
+		end)
+		more:SetScript("OnEnter", function(self) Theme.Text(self.label, "text-2") end)
+		more:SetScript("OnLeave", function(self) Theme.Text(self.label, "text-3") end)
+		bar.more = more
+		return more
+	end
+
+	-- the count on the More tab: the counts of the tabs behind it, added up
+	local function moreCount(more)
+		local sum, over = 0, false
+		for _, id in ipairs(bar.overflow) do
+			local count = bar.buttons[id].count
+			if count then
+				if tonumber(count) then sum = sum + tonumber(count) else over = true end
+			end
+		end
+		local text = (over or sum > 99) and "99+" or (sum > 0 and tostring(sum)) or nil
+		if text then
+			if not more.badge then more.badge = Widgets.Badge(more, text, "accent") else more.badge:SetBadge(text, "accent") end
+			more.badge:Show()
+		elseif more.badge then
+			more.badge:Hide()
+		end
+	end
+
+	local function layout()
+		local ids = {}
+		for _, id in ipairs(bar.order) do
+			if bar.hidden[id] then bar.buttons[id]:Hide() else ids[#ids + 1] = id end
+		end
+		local width = bar:GetWidth() or 0
+		local room = width > 0 and width - (bar.reserve or 0) or nil
+		local function total(pad)
+			local sum = 0
+			for _, id in ipairs(ids) do sum = sum + wanted(bar.buttons[id], pad) + GAP end
+			return sum - GAP
+		end
+		local pad = PAD
+		if room and total(pad) > room then pad = TIGHT end
+		bar.overflow = {}
+		local shown = ids
+		if room and total(pad) > room then
+			local more = moreButton()
+			-- the More tab is measured with a count of two figures, so that a new count never pushes it over the end
+			local left = room - max(64, more.label:GetStringWidth() + 2 * pad + 30)
+			local active = bar.active and not bar.hidden[bar.active] and bar.buttons[bar.active]
+			if active then left = left - wanted(active, pad) - GAP end
+			local full = false
+			shown = {}
+			for _, id in ipairs(ids) do
+				local need = wanted(bar.buttons[id], pad) + GAP
+				if id == bar.active then
+					shown[#shown + 1] = id
+				elseif not full and need <= left then
+					shown[#shown + 1] = id
+					left = left - need
+				else
+					full = true
+					bar.overflow[#bar.overflow + 1] = id
+					bar.buttons[id]:Hide()
+				end
+			end
+		end
+		local x = 0
+		for _, id in ipairs(shown) do x = put(bar.buttons[id], x, pad) end
+		if #bar.overflow > 0 then
+			moreCount(bar.more)
+			put(bar.more, x, pad)
+		elseif bar.more then
+			bar.more:Hide()
 		end
 	end
 
@@ -263,6 +349,7 @@ function Widgets.Tabs(parent, tabs, onSelect)
 	function bar:SetBadge(id, text, tone)
 		local b = self.buttons[id]
 		if not b then return false end
+		b.count = (text ~= nil and text ~= "") and tostring(text) or nil
 		if text == nil or text == "" then
 			if b.badge then b.badge:Hide() end
 		else
@@ -280,6 +367,12 @@ function Widgets.Tabs(parent, tabs, onSelect)
 		return true
 	end
 	function bar:Layout() layout(); place(nil, nil, false) end
+	-- The points at the right end of the bar that the tabs leave free.
+	function bar:SetReserve(points)
+		self.reserve = points or 0
+		self:Layout()
+	end
+	bar:SetScript("OnSizeChanged", function(self) self:Layout() end)
 
 	for _, t in ipairs(tabs) do
 		local b = CreateFrame("Button", nil, bar)
@@ -293,6 +386,7 @@ function Widgets.Tabs(parent, tabs, onSelect)
 		bar.buttons[t.id] = b
 		bar.order[#bar.order + 1] = t.id
 		if t.badge ~= nil and t.badge ~= "" then
+			b.count = tostring(t.badge)
 			b.badge = Widgets.Badge(b, t.badge, t.tone or "accent")
 		end
 	end

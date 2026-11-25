@@ -154,6 +154,7 @@ describe("ROS-03: asking the server and rebuilding", function()
 	end
 
 	it("asks for a fresh roster at most every 15 seconds, unless forced", function()
+		Mock.Advance(120)   -- past the requests of the login (the digest asks for the roster)
 		local n = countRequests()
 		truthy(R():Request())
 		falsy(R():Request())
@@ -198,6 +199,7 @@ describe("ROS-03: asking the server and rebuilding", function()
 	end)
 
 	it("asks the server when a view starts watching, but not twice in 15 seconds", function()
+		Mock.Advance(120)   -- past the requests of the login
 		local n = countRequests()
 		R():Watch(); R():Unwatch(); R():Watch()
 		eq(n[1], 1)

@@ -86,8 +86,9 @@ describe("the options", function()
 	end)
 end)
 
+-- The M5 path (switch `actions` off); the same options through the notification centre: Tests/test_notify.lua.
 describe("the notices follow the options", function()
-	before_boot(function() guild(1) end)
+	before_boot(function(M) M.features = { actions = false } guild(1) end)
 
 	it("an officer hears a new request, unless the option is off", function()
 		request(BOB, 1)
@@ -402,7 +403,7 @@ describe("Clear guild data", function()
 		local freed = M().ClearGuildData()
 		truthy(freed > 0)
 		eq(S():Count("bankreq"), 0)
-		eq(A().GuildKey:Data().bank.seen.x, "open", "the bank notices already shown are kept")
+		eq(A().GuildKey:Data().notify.seen.bank.x, "open", "the bank notices already shown are kept")
 		notNil(A().GuildKey:Data().salts.abc)
 		eq(A().GuildKey:Data().likes.given[BOB], true)
 		eq(A().Config:Token(), token)
@@ -593,7 +594,7 @@ describe("What I share: the panel shows the records last sent", function()
 			ids[#ids + 1] = r.id
 			truthy(r.to ~= "" and r.when ~= "")
 		end
-		deepEq(ids, { "accounts", "contacts", "recipes", "coplay", "bank", "bankreq", "likes", "hello", "absence" })
+		deepEq(ids, { "accounts", "contacts", "recipes", "addons", "coplay", "bank", "bankreq", "likes", "hello", "absence" })
 		truthy(row("contacts").always)
 	end)
 
@@ -738,9 +739,10 @@ describe("What I share: the co-play switch", function()
 		eq(M().Get("shareCoplay"), false)
 	end)
 
-	it("a record of the coplay set with no switch row: the other rows have none", function()
+	it("a record of the coplay set with no switch row: the other rows have none, but the addon list has its own", function()
 		for _, r in ipairs(SM().Describe()) do
-			if r.id ~= "coplay" then isNil(r.switch) end
+			if r.id == "addons" then eq(r.switch, "shareAddons")
+			elseif r.id ~= "coplay" then isNil(r.switch) end
 		end
 	end)
 end)

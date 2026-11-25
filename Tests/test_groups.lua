@@ -18,7 +18,7 @@ local function guild(rank)
 end
 
 local function on(Mk) Mk.features = { groups = true } guild(3) end
-local function off(Mk) guild(3) end
+local function off(Mk) Mk.features = { groups = false } guild(3) end
 
 -- Every message handed to the transport from now on: { dist, msg, target }.
 local function capture()
@@ -57,7 +57,7 @@ end
 describe("the switch `groups`", function()
 	before_boot(off)
 
-	it("is off in the shipped code, and then nothing of the group finder exists or travels", function()
+	it("is off when the switch says so, and then nothing of the group finder exists or travels", function()
 		eq(A().Features.groups, false)
 		falsy(A().Features.On("groups"))
 		falsy(S().IsActive("groups"))
@@ -580,7 +580,7 @@ describe("listings and applications across the guild", function()
 	end)
 
 	it("sends no group traffic and v0.8.0 behaviour with the switch off", function()
-		local sim = Sim.new{ clients = 3, seed = 13 }
+		local sim = Sim.new{ clients = 3, setup = function(Mk) Mk.features = { groups = false } end, seed = 13 }
 		sim:advance(40)
 		sim:resetStats()
 		falsy(sim:client(1):addon().Groups:Post(spec()))

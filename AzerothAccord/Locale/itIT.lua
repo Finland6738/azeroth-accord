@@ -20,6 +20,7 @@ L["HELP_DEBUG"] = "rapporto di diagnostica da copiare in una segnalazione"
 L["HELP_HELP"] = "mostra questo elenco"
 L["UNKNOWN_COMMAND"] = "Comando sconosciuto '%s'."
 L["COMING_SOON"] = "Questa parte arriva presto."
+L["TABS_MORE"] = "Altro"
 L["VIEW_ERROR_TITLE"] = "Non è stato possibile disegnare questa vista"
 L["VIEW_ERROR_TEXT"] = "Qualcosa è andato storto aprendola. Le altre viste funzionano ancora. Apri il rapporto con /accord debug e allegalo a una segnalazione; cliccare di nuovo la sua scheda riprova."
 

@@ -49,12 +49,12 @@ Le regole di fiducia (§6) dicono **chi** può passare un record: l'account del 
 
 | Situazione | Limite | Misurato |
 |---|---|---|
-| Accessi e uscite continui, media per client | ≤ 400 B/min | circa 320 B/min |
-| Accessi e uscite continui, client più carico | ≤ 2 KB/min (era 1,5: alzato in M7.7, [SPEC-10 R10](SPEC-10-risks-open-questions.md)) | da circa 1,0 a 1,6 KB/min secondo il percorso casuale |
+| Accessi e uscite continui, media per client | ≤ 450 B/min (era 400: alzato in M9.10 con il censimento acceso, [SPEC-10 R14](SPEC-10-risks-open-questions.md)) | circa 405 B/min con il seme del test (circa 310 senza censimento) |
+| Accessi e uscite continui, client più carico | ≤ 2 KB/min (era 1,5: alzato in M7.7, [SPEC-10 R10](SPEC-10-risks-open-questions.md)) | circa 1,8 KB/min con il seme del test; da M9 un altro seme arriva a 2,1 KB/min (R14) |
 | Costo di un accesso (tutto il traffico che provoca, per tutta la gilda) | ≤ 8 KB | circa 5 KB |
 | Tempo per convergere dopo l'ultimo accesso | ≤ 5 minuti di norma; ≤ 25 minuti (un periodo di `HELLO`) se un messaggio va perso: la riparazione aspetta il `HELLO` successivo di chi ha il record | da circa 30 secondi a circa 15 minuti, secondo i messaggi persi (con 1% di perdita) |
-| Tutti online e allineati, media per client | ≤ 100 B/min | circa 35 B/min |
-| Tutti online e allineati, client più carico | ≤ 200 B/min | circa 90 B/min |
+| Tutti online e allineati, media per client | ≤ 100 B/min | circa 80 B/min |
+| Tutti online e allineati, client più carico | ≤ 200 B/min | circa 110 B/min |
 
 **Riepilogo a parte** (da M9.9, [SPEC-13 §8.7](SPEC-13-action-center-notices.md#87-come-è-fatto-m99)): i record dell'insieme `addons` non entrano nel riepilogo per autore ma in una voce propria per autore (chiave di `"+" .. GUID`), mandata in `c` del `HELLO`, in `cb` del `BHELLO` (12 blocchi) e in `c` del `DIGEST`; invio, richiesta e ritrasmissione sono gli stessi (§4.2, §4.3). Un client che non manda quei campi (la `v0.8.0`) vede riepiloghi identici a prima e non riceve nulla del censimento oltre ai `REC` su `GUILD`, che ignora. Costo: 11 byte in più nel `HELLO` per ogni autore che condivide. Misurato nel simulatore (50 client, 5 ufficiali, 60–110 addon ciascuno, 1% di messaggi persi, `Tests/test_addons_census.lua`): con accessi, uscite ed elenchi che cambiano il traffico medio è di circa 82 B/min per client (il più carico circa 540), tutti allineati circa 44 B/min (il più carico circa 60), dentro i limiti qui sopra; il primo scambio degli elenchi, a gilda nuova, costa circa 140 KB in tutto. Un `BHELLO` di 1000 autori con entrambi i riepiloghi pesa 477 B.
 

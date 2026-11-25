@@ -22,6 +22,7 @@ L["HELP_DEBUG"] = "diagnostics report to copy into a bug report"
 L["HELP_HELP"] = "show this list"
 L["UNKNOWN_COMMAND"] = "Unknown command '%s'."
 L["COMING_SOON"] = "This part is coming soon."
+L["TABS_MORE"] = "More"
 L["VIEW_ERROR_TITLE"] = "This view could not be drawn"
 L["VIEW_ERROR_TEXT"] = "Something went wrong while opening it. The other views still work. Open the report with /accord debug and include it in a bug report; clicking its tab again tries again."
 

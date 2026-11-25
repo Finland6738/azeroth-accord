@@ -113,8 +113,10 @@ describe("the counter on the tab, the panel and the compartment", function()
 	end)
 end)
 
+-- The notices of M5, which the bank prints itself while the switch `actions` is off; with it on they go through the
+-- notification centre (Tests/test_notify.lua).
 describe("the notices", function()
-	before_boot(function() guild(3) names() end)
+	before_boot(function(M) M.features = { actions = false } guild(3) names() end)
 
 	it("an install or a new guild starts silent: what is held counts as seen", function()
 		asOfficer()
@@ -296,7 +298,7 @@ end)
 describe("notices in the network simulator", function()
 	it("an online officer is told about a member's request, and the requester about the officer's decision", function()
 		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, seed = 91 }
-		sim:advance(60)
+		sim:advance(400)   -- past the login window, in which the notification centre groups notices (NTF-05)
 		local id = sim:client(3):addon().BankRequests:Create({ kind = "withdraw", itemID = LINEN, count = 20 }).id
 		sim:advance(60)
 		local function out(i) return table.concat(sim:client(i):output(), "\n") end

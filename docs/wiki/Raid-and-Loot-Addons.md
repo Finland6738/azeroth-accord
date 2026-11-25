@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> **Not in a release yet.** Nothing on this page is available in the released addon, `v0.8.0` included: no **Raid** view, no `/accord raid`, no *Loot (FDCP)* on the member card, no detection of other addons. Detection (step M10.2) and the reading of Finland Dragon Credit Points (step M11.7) are in the code, switched off until milestones M10 and M11 are complete. Nothing has been checked in the real game. What follows describes how it will work.
+> **Not in a release yet.** Nothing on this page is available in a released version, `v0.9.0` included: no **Raid** view, no `/accord raid`, no *Loot (FDCP)* on the member card, no detection of other addons. Detection (step M10.2) and the reading of Finland Dragon Credit Points (step M11.7) are in the code, switched off until milestones M10 and M11 are complete. Nothing has been checked in the real game. What follows describes how it will work.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 

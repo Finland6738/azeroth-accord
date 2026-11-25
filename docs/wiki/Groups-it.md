@@ -2,7 +2,7 @@
 
 *English: [[Groups|Groups]]*
 
-> **Non ancora in un rilascio.** Il cercagruppi della gilda (passi M9.6 e M9.7) è nel codice, spento finché la milestone M9 non è completa: arriva con la `v0.9.0`. Nulla di questa pagina è stato verificato nel gioco vero; in particolare l'invito mandato dall'addon, anche dentro un'istanza.
+> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla di questa pagina è stato verificato nel gioco vero; in particolare l'invito mandato dall'addon, anche dentro un'istanza.
 
 La scheda **Gruppi** è il pannello dei gruppi predefiniti del gioco, **solo per la tua gilda**: un capo pubblica un gruppo, i membri si candidano con un ruolo, il capo li accetta e vengono invitati. Si apre con la sua scheda o con `/accord groups`. Nessuno fuori dalla gilda vede un gruppo, e partecipano solo i membri che usano l'addon.
 
@@ -59,11 +59,11 @@ Se il gioco permette di mettere un gruppo **in privato**, **Il mio gruppo** ha u
 - lo toglie nello stesso clic che chiude il gruppo della gilda (*Chiudi il gruppo*, un nuovo annuncio che lo sostituisce, un *Accetta* che lo riempie). Quando il gruppo della gilda si chiude da solo, un avviso ti chiede di toglierlo e il pulsante diventa **Togli dal cercagruppi del gioco**;
 - se il gioco mostra il gruppo come pubblico, ti chiede di toglierlo e non offre più il pulsante su quella versione del gioco.
 
-Chi si candida dal Group Finder del gioco si gestisce nella finestra del gioco. Se il gioco non permette gli annunci privati non compare né il pulsante né alcun testo: il cercagruppi della gilda resta l'unico. Se WoW Forever li permetta si controlla nel gioco prima della `v0.9.0`.
+Chi si candida dal Group Finder del gioco si gestisce nella finestra del gioco. Se il gioco non permette gli annunci privati non compare né il pulsante né alcun testo: il cercagruppi della gilda resta l'unico. Se WoW Forever li permetta non è ancora stato controllato nel gioco.
 
 ## Avvisi e Centro azioni
 
-Con il [[Centro azioni|Action-Center-it]] (anche questo dalla `v0.9.0`):
+Con il [[Centro azioni|Action-Center-it]]:
 
 - ogni candidatura in attesa è una riga **Adesso** della pagina In arrivo, che apre **Il mio gruppo**;
 - un avviso ti dice di una nuova candidatura, e della risposta del capo alla tua (di base una riga in chat e un riquadro a schermo);

@@ -207,7 +207,9 @@ describe("the Professions view", function()
 		notNil(Shell().views.professions)
 		eq(Shell().views.professions.label, "Professions"); eq(Shell().views.professions.order, 20)
 		truthy(Shell().views.professions.search)
-		truthy(Shell():ViewList()[2].id == "professions")
+		local order = {}
+		for i, v in ipairs(Shell():ViewList()) do order[v.id] = i end
+		eq(order.professions, order.roster + 1)
 	end)
 
 	it("with nothing picked it opens on the who-can-craft search and says what to type", function()
@@ -341,6 +343,7 @@ describe("the Professions view", function()
 	end)
 
 	it("names that load later redraw the list once", function()
+		Mock.Advance(120)   -- the login's own work (the digest asks for the roster) is done: only the names redraw below
 		Mock.spells.loadable[2330] = { name = "Minor Healing Potion", icon = 1 }
 		Mock.spells.loadable[2332] = { name = "Minor Rejuvenation Potion", icon = 2 }
 		put(BOB, ALCHEMY, { 2330, 2332 })

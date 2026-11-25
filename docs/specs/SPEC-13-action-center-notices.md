@@ -8,7 +8,7 @@ Nomi di codice, campi e testi dell'interfaccia in inglese (con la traduzione ita
 
 ### 1.1 Interruttori
 
-Una release non porta funzioni a metà (decisione del proprietario, 2026-11-25, [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua)). M9 aggiunge tre interruttori, **spenti** dal passo che aggiunge il codice fino al passo M9.10, che li accende prima di `v0.9.0`:
+Una release non porta funzioni a metà (decisione del proprietario, 2026-11-25, [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua)). M9 aggiunge tre interruttori, **spenti** dal passo che aggiunge il codice fino al passo M9.10, che li ha **accesi** prima di `v0.9.0` (la tabella dice che cosa succede da spenti):
 
 | Interruttore | Passi | Spento vuol dire |
 |---|---|---|

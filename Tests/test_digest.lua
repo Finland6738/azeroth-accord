@@ -28,7 +28,7 @@ end
 
 local function on(Mk) Mk.features = { actions = true } guild(1) items(Mk) end
 local function asMember(Mk) Mk.features = { actions = true } guild(3) items(Mk) end
-local function off(Mk) guild(1) items(Mk) end
+local function off(Mk) Mk.features = { actions = false } guild(1) items(Mk) end
 
 -- A whole first session: the picture is taken, the catch-up and the login window are over.
 local function session() Mock.Advance(400) end

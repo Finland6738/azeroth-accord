@@ -29,7 +29,7 @@ local function absent(Mk) base(Mk) end
 local function finderOff(Mk) base(Mk) Mk.lfg.Set{ enabled = false } end
 local function ignored(Mk) base(Mk) Mk.lfg.Set{ private = "ignore" } end
 local function noField(Mk) base(Mk) Mk.lfg.Set{ private = "absent" } end
-local function switchOff(Mk) base(Mk, {}) Mk.lfg.Set{} end
+local function switchOff(Mk) base(Mk, { groups = false }) Mk.lfg.Set{} end
 
 local function post(spec)
 	local s = { kind = "dungeon", act = DEADMINES, need = { t = 1, h = 1, d = 2 } }

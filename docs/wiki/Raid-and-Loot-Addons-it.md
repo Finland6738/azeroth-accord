@@ -2,7 +2,7 @@
 
 *English: [[Raid and loot addons|Raid-and-Loot-Addons]]*
 
-> **Non ancora in un rilascio.** Niente di questa pagina è disponibile nell'addon rilasciato, `v0.8.0` compresa: nessuna vista **Raid**, nessun `/accord raid`, nessun *Loot (FDCP)* nella scheda del membro, nessun riconoscimento di altri addon. Il riconoscimento (passo M10.2) e la lettura di Finland Dragon Credit Points (passo M11.7) sono nel codice, spenti finché le milestone M10 e M11 non sono complete. Niente è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
+> **Non ancora in un rilascio.** Niente di questa pagina è disponibile in una versione rilasciata, `v0.9.0` compresa: nessuna vista **Raid**, nessun `/accord raid`, nessun *Loot (FDCP)* nella scheda del membro, nessun riconoscimento di altri addon. Il riconoscimento (passo M10.2) e la lettura di Finland Dragon Credit Points (passo M11.7) sono nel codice, spenti finché le milestone M10 e M11 non sono complete. Niente è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
 
 Accord **non ha un motore del loot né le presenze**. Quei dati li tengono gli addon di raid e di loot della tua gilda, e Accord lavora **con** loro, mai contro:
 
