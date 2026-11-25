@@ -37,6 +37,10 @@
 -- Short-lived sets (`volatile`, SPEC-13 GRP-03): the group finder's listings travel only first hand (`firstHandOnly`: no
 --                    relay, not even by an officer) and are left out of every summary.
 --
+-- The season roster (`season`, SPEC-14 §4) mixes both: its seasons need officers (NET-12, `authorAny`), its declarations
+-- are first hand (an officer may relay them); a declaration cannot change its specs after its lock (`transition` "locked")
+-- and one that arrives before its season waits for it (`wait`, Data/Season.lua).
+--
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
@@ -235,7 +239,7 @@ Store.SETS = {
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
 	guildcfg = {   -- guild settings chosen by officers (Data/Integrations.lua, M10.2): id = "sources", { raid, loot }
-		feature = "raid",                         -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		feature = "season",                       -- Core/Features.lua (M10; also on with "raid"): off, neither written, accepted nor sent
 		maxBytes = 256,
 		authority = function() return true end,   -- written and passed on only by officers (NET-12)
 		authorAny = true,                         -- the choice stays valid after its officer left or was demoted
@@ -288,6 +292,16 @@ Store.SETS = {
 		owner = function(rec, s) return ns.Census ~= nil and ns.Census.ValidRecord(rec, s) end,
 		expires = function(rec, t) return ns.Census ~= nil and ns.Census.Expired(rec, t) end,
 	},
+	season = {     -- the season roster (Data/Season.lua, M10.3, SPEC-14 §4): "S:<n>" a season (officers), "E:<n>:<GUID>" a declaration
+		feature = "season",                       -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 512,
+		authority = function(rec) return ns.Season ~= nil and ns.Season.KindOf(rec) == "S" end,   -- seasons: officers (Q21)
+		authorAny = true,                         -- a season stays valid after its officer was demoted
+		owner = function(rec, s) if not ns.Season then return false end return ns.Season.ValidRecord(rec, s) end,   -- SEA-01/03/04
+		transition = function(held, rec) return ns.Season.Transition(held, rec) end,   -- SEA-02: "locked"
+		expires = function(rec, t) return ns.Season ~= nil and ns.Season.Expired(rec, t) end,     -- current + 3 previous (Q20)
+		wait = function(rec, ctx) if ns.Season then ns.Season.Wait(rec, ctx) end end,             -- an entry before its season
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -298,7 +312,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
@@ -432,7 +446,10 @@ function Store:Check(set, rec, ctx)
 			local author = self:MemberByGUID(rec.author)
 			if not (author and author.officer) then return false, "authority" end
 		end
-		if def.owner and not def.owner(rec, self) then return false, "owner" end
+		if def.owner then
+			local ok, why = def.owner(rec, self)
+			if not ok then return false, why or "owner" end
+		end
 		return true
 	end
 
@@ -453,7 +470,10 @@ function Store:Check(set, rec, ctx)
 		end
 		if not present then return false, "observer" end
 	end
-	if def.owner and not def.owner(rec, self) then return false, "owner" end
+	if def.owner then
+		local ok, why = def.owner(rec, self)
+		if not ok then return false, why or "owner" end
+	end
 	return true
 end
 
@@ -461,7 +481,12 @@ end
 -- changed the store, or false plus a reason ("older" and "same" are not errors: nothing to do).
 function Store:Accept(set, rec, ctx)
 	local ok, why = self:Check(set, rec, ctx)
-	if not ok then return reject(why) end
+	if not ok then
+		-- a record that waits for another one (a season entry before its season, SPEC-14 SEA-03) is kept aside by its module
+		local def = Store.SETS[set]
+		if why == "wait" and def and def.wait then def.wait(rec, ctx) end
+		return reject(why)
+	end
 	local records = root(true) and self:Records(set)
 	if not records then return reject("guild") end
 	local held = records[rec.id]
@@ -474,7 +499,10 @@ function Store:Accept(set, rec, ctx)
 		return reject("immutable")
 	end
 	local def = Store.SETS[set]
-	if held and def.transition and not def.transition(held, rec) then return reject("transition") end
+	if held and def.transition then
+		local okT, whyT = def.transition(held, rec)
+		if not okT then return reject(whyT or "transition") end
+	end
 	local cmp = def.compare and held and def.compare(rec, held) or Store.Compare(rec, held)
 	if cmp <= 0 then
 		stats.unchanged = stats.unchanged + 1

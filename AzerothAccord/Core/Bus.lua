@@ -21,6 +21,8 @@
 --                                                     another status, version or level (M10.2).
 --   SOURCES_CHANGED()                                 Data/Integrations.lua; the officers' choice of a source per datum changed
 --                                                     (locally, from an officer, or a change of guild).
+--   SEASON_CHANGED()                                  Data/Season.lua; a season or a declaration changed (written here or
+--                                                     received), or the source of the season roster changed (M10.3).
 --   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).

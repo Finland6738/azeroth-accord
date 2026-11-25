@@ -10,7 +10,7 @@
 
 Release: `v0.10.0`.
 
-**Switched off until complete (2026-11-25).** M10.2 landed ahead of the milestone. It ships hidden behind the switch `raid` of `AzerothAccord/Core/Features.lua` (no detection, no choice of a source, the data set `guildcfg` neither accepted nor sent). The switch is turned on when M10 and M11 are complete.
+**Switched off until complete (2026-11-25).** M10 has its own switch, `season`, in `AzerothAccord/Core/Features.lua` (split from `raid` in M10.3, so that M10 can ship as `v0.10.0` before M11 is done). It covers M10.2 (detection, the choice of the season roster's source, the data set `guildcfg`), M10.3 (the data set `season`, the **Season** view, `/accord season`) and the steps that follow. Off, nothing of it is detected, shown, written, accepted or sent, as in `v0.9.0`. M10.10 turns it on. The M11 features read from FDCP (the **Raid** view, `/accord raid`, the *Loot* source, *Loot (FDCP)* on the member card) stay behind `raid` until M11 is complete; `raid` on turns `season` on too.
 
 **Exit criterion:** in game:
 - three members declare MS1, MS2 and OS for the season, and an officer sees the role counts and the gaps;
@@ -84,8 +84,9 @@ So M10 and M11 follow these rules:
   - officers open a season (name, start date); the **source** of the season roster (Accord, or FDCP when it is detected) is the guild setting of M10.2;
   - with Accord as source, each raider writes their own entry (MS1 with its role, MS2, OS and a note, or "not sure yet"). The entry is locked until the next season. The data set is synced on `GUILD`, and only the author can write their entry;
   - with FDCP as source, Accord asks for no declaration. It shows FDCP's (level 1) or a button to open FDCP (level 0). *Done ahead in M11.7: the Raid view shows FDCP's pool and has the Open FDCP button.*
+  - *Done (2026-11-25):* `Data/Specs.lua` (the trees and allowed roles of each base class), `Data/Season.lua` (the data set `season`: seasons `S:<n>` written by `Raid.WRITERS` = officers and the Guild Master, declarations `E:<n>:<GUID>` written only by the character's account; SEA-01…SEA-06 each from one constant: `Season.LOCK` 30 minutes, note always editable, "not sure yet" turned into a declaration once, `Season.KEEP` 3 previous seasons, one character per account; an entry that arrives before its season waits 10 minutes; it fills `Integrations.OWN`), the **Season** view (`UI/Season.lua`, `/accord season`: the source of the season roster, the season picker, an officer's *Open season* and *Close season*, the own declaration with a confirming second click, the list; with FDCP as source FDCP's pool or *Open FDCP*, reusing M11.7's lines; the section *Raid and loot addons in the guild*), the own declarations in *What I share*. The switch `raid` was split: the new `season` covers M10 (see above). `Tests/test_season.lua`.
 - Done when:
-  - [ ] An entry cannot change inside a season; a new season starts with empty entries and keeps the old season readable; a forged entry from another author is refused; with FDCP as source, no Accord entry can be written.
+  - [x] An entry cannot change inside a season; a new season starts with empty entries and keeps the old season readable; a forged entry from another author is refused; with FDCP as source, no Accord entry can be written.
 
 ### M10.4 — Season roster for officers
 - Branch: `step/m10-4-season-view`
@@ -154,7 +155,7 @@ So M10 and M11 follow these rules:
 
 ### M10.10 — In-game check and release
 - Branch: `step/m10-10-check`
-- Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without, and a Raid-Helper event imported) and the README status. The owner releases `v0.10.0`.
+- Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without, and a Raid-Helper event imported) and the README status. Turn the switch `season` on (`raid` stays off until M11). The owner releases `v0.10.0`.
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.10.0`.

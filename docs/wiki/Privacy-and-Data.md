@@ -41,6 +41,12 @@ A [[group|Groups]] you post (type, activity, levels, size, roles still needed, y
 
 Accord shares with your guild the **list of the addons this character has loaded** (folder name, version and title; never Blizzard's own addons, their settings or any file), so that the [[Guild addons|Guild-Addons]] tab can count them. Everybody sees the counts and the versions; **who** uses an addon Accord shows only to officers and the Guild Master, and to you your own entry. That is a rule of the interface: the lists reach the whole guild. A list is kept for 60 days. **Share my addon list** is on by default; switch it off (on *What I share* or in the Contacts card of Settings) and your lists are withdrawn and no new one is sent.
 
+## Season roster
+
+> Arrives with `v0.10.0`.
+
+When you declare for a raid season (MS1, MS2, OS, a note, or *Not sure yet*), the declaration reaches the whole guild, and it is listed in *What I share*. Only your own account can write it. The current season and the 3 before it are kept; older ones are removed. See [[Season roster|Season-Roster]].
+
 ## Other addons
 
 Apart from that list (new in `v0.9.0`), the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.

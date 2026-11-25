@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> **Not in a release yet.** Nothing on this page is available in a released version, `v0.9.0` included: no **Raid** view, no `/accord raid`, no *Loot (FDCP)* on the member card, no detection of other addons. Detection (step M10.2) and the reading of Finland Dragon Credit Points (step M11.7) are in the code, switched off until milestones M10 and M11 are complete. Nothing has been checked in the real game. What follows describes how it will work.
+> **Not in a release yet.** Nothing on this page is available in a released version, `v0.9.0` included. The detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2) **arrive with `v0.10.0`**, in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) arrive when milestone M11 is complete. All of it is in the code, switched off until then. Nothing has been checked in the real game. What follows describes how it will work.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 
@@ -38,7 +38,7 @@ Open it with its tab or `/accord raid`.
 
 - **Raid and loot addons in the guild**, at the bottom: for each addon of the table above, what Accord found on your computer (loaded, switched off, installed or not installed, its version, level 0 or 1, and whether its folder name is confirmed yet) and, from the [[Guild addons|Guild-Addons]] list, how many members who share their addon list have it loaded, out of how many, with the versions. **Officers and the Guild Master** also see who has it, with the version and the characters; everybody else sees the counts and their own entry. If the addon list is switched off, nobody shares a list yet, or you do not share yours, a line says so.
 
-With **Accord** as the source of the season roster, the view says that Accord's own declarations arrive with a later version (M10).
+With **Accord** as the source of the season roster, the view points to the [[Season|Season-Roster]] view, where each raider declares.
 
 ## On the member card
 

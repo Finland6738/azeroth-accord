@@ -54,6 +54,8 @@ Data\BankRequests.lua
 Data\BankInbox.lua
 Data\FDCP.lua
 Data\Integrations.lua
+Data\Specs.lua
+Data\Season.lua
 Data\Officer.lua
 Data\Timeline.lua
 Data\Absence.lua
@@ -100,6 +102,7 @@ UI\Bank.lua
 UI\BankLog.lua
 UI\BankRequests.lua
 UI\Raid.lua
+UI\Season.lua
 UI\TimelineCard.lua
 UI\Officers.lua
 UI\OfficersOps.lua

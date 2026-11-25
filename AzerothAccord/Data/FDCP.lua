@@ -35,8 +35,9 @@
 -- reload). It runs on INTEGRATIONS_CHANGED and SOURCES_CHANGED. Each FDCP event becomes Bus FDCP_CHANGED(event); a
 -- READY that happened before Accord registered is passed on once at registration.
 --
--- Switch: while Core/Features.lua "raid" is off, no callback is ever registered, nothing asks FDCP for anything and
--- /accord debug has no FDCP section.
+-- Switch: while Core/Features.lua "season" is off (M10; it is on with "raid" too), no callback is ever registered,
+-- nothing asks FDCP for anything and /accord debug has no FDCP section. With "season" on and "raid" off only the season
+-- roster counts: the callbacks are registered when the guild chose FDCP for "raid" (the loot source is an M11 choice).
 --
 -- Opening FDCP (level 0 and 1): FDCP.Open() runs FDCP's own /fdcp command, as typing it would; false when there is none.
 local ADDON_NAME, ns = ...
@@ -262,9 +263,11 @@ FDCP.OnEvent = onEvent
 
 -- True when the callbacks should be registered: the feature's switch on, level 1 and FDCP chosen as a source by the guild.
 function FDCP.Wanted()
-	if not (ns.Features and ns.Features.On("raid")) then return false end
+	if not (ns.Features and ns.Features.On("season")) then return false end
 	local I = ns.Integrations
-	return I ~= nil and I:Level(FDCP.ID) == 1 and I:Uses(FDCP.ID)
+	if not (I ~= nil and I:Level(FDCP.ID) == 1) then return false end
+	if ns.Features.On("raid") then return I:Uses(FDCP.ID) end
+	return I:Source("raid") == FDCP.ID
 end
 
 function FDCP:Unwatch()
@@ -325,7 +328,7 @@ if ns.addon then
 	end
 	if ns.OnEnable then
 		ns.OnEnable(function()
-			if ns.Features.On("raid") and ns.addon.AddDebugSection then ns.addon:AddDebugSection("FDCP", FDCP.DebugLines) end
+			if ns.Features.On("season") and ns.addon.AddDebugSection then ns.addon:AddDebugSection("FDCP", FDCP.DebugLines) end
 		end)
 	end
 end

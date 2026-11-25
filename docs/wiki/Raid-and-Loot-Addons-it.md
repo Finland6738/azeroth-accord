@@ -2,7 +2,7 @@
 
 *English: [[Raid and loot addons|Raid-and-Loot-Addons]]*
 
-> **Non ancora in un rilascio.** Niente di questa pagina è disponibile in una versione rilasciata, `v0.9.0` compresa: nessuna vista **Raid**, nessun `/accord raid`, nessun *Loot (FDCP)* nella scheda del membro, nessun riconoscimento di altri addon. Il riconoscimento (passo M10.2) e la lettura di Finland Dragon Credit Points (passo M11.7) sono nel codice, spenti finché le milestone M10 e M11 non sono complete. Niente è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
+> **Non ancora in un rilascio.** Niente di questa pagina è disponibile in una versione rilasciata, `v0.9.0` compresa. Il riconoscimento degli altri addon, la scelta della fonte del roster della season e la sezione *Addon di raid e di loot nella gilda* (passo M10.2) **arrivano con la `v0.10.0`**, nella vista [[Season|Season-Roster-it]]. La vista **Raid**, `/accord raid`, la fonte *Loot* e *Loot (FDCP)* nella scheda del membro (passo M11.7) arrivano quando la milestone M11 è completa. Tutto è nel codice, spento fino ad allora. Niente è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
 
 Accord **non ha un motore del loot né le presenze**. Quei dati li tengono gli addon di raid e di loot della tua gilda, e Accord lavora **con** loro, mai contro:
 
@@ -38,7 +38,7 @@ Si apre con la sua scheda o con `/accord raid`.
 
 - **Addon di raid e di loot in gilda**, in fondo: per ogni addon della tabella qui sopra, che cosa Accord ha trovato sul tuo computer (caricato, spento, installato o non installato, la versione, livello 0 o 1, e se il nome della sua cartella è già confermato) e, dall'elenco [[Addon della gilda|Guild-Addons-it]], quanti membri che condividono l'elenco dei propri addon lo hanno caricato, su quanti, con le versioni. **Gli ufficiali e il Maestro di gilda** vedono anche chi lo ha, con la versione e i personaggi; tutti gli altri vedono i conteggi e la propria voce. Se l'elenco degli addon è spento, nessuno condivide ancora un elenco, o tu non condividi il tuo, una riga lo dice.
 
-Con **Accord** come fonte del roster della season, la vista dice che le dichiarazioni di Accord arrivano con una versione successiva (M10).
+Con **Accord** come fonte del roster della season, la vista rimanda alla vista [[Season|Season-Roster-it]], dove ogni raider dichiara.
 
 ## Sulla scheda del membro
 

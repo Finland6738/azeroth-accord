@@ -320,6 +320,23 @@ function Model.SetSwitch(key, on)
 	return M.Set(key, on)
 end
 
+-- the own season declarations (M10.3, SPEC-14 §4); an officer's seasons are under the officer's row of guild settings
+builders.season = function(guid)
+	local lines, recs = {}, {}
+	for _, rec in ipairs(own("season", guid)) do
+		if ns.Season and ns.Season.KindOf(rec) == "E" then
+			recs[#recs + 1] = rec
+			local s = ns.Season:Get(rec.n)
+			local what = rec.unsure and L["SEASON_UNSURE"] or (ns.SeasonView and ns.SeasonView.PickText(rec.ms1)) or "?"
+			lines[#lines + 1] = L["SHARE_SEASON_LINE"]:format(s and s.name or tostring(rec.n), what)
+		end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("season", { set = "season", feature = "season", build = builders.season, title = "SHARE_SEASON",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_SEASON" })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

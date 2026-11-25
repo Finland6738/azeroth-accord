@@ -3,9 +3,13 @@
 -- stays in the addon, tested, with its switch off. While a switch is off, nothing of the feature is visible, it
 -- registers no callback and it sends nothing. The modules ask Features.On(name) when they act, never once at load.
 --
---   raid   the raid and loot addons (M10.2: detection, the guild's choice of a source per datum, the data set
---          `guildcfg`) and the reading of FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)").
---          Switched on when M10 and M11 are complete (docs/roadmap/M10-calendar-raids.md, M11-loot-handbook.md).
+--   season the M10 features (docs/roadmap/M10-calendar-raids.md, SPEC-14): the detection of the raid and loot addons and
+--          the guild's choice of the source of the season roster (M10.2, the data set `guildcfg`), the seasons and the
+--          declarations (M10.3, the data set `season`, the Season view and `/accord season`), and the steps of M10 that
+--          follow. Off: nothing of it is detected, shown, written, accepted or sent. Turned on by M10.10 for v0.10.0.
+--   raid   the M11 features read from FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)", the
+--          choice of the loot source). It builds on M10, so while it is on `season` is on too (Features.IMPLIES).
+--          Switched on when M11 is complete (docs/roadmap/M11-loot-handbook.md).
 --   actions  the Action Center, the notices, quiet hours and the login digest (M9.2-M9.5, SPEC-13): the view,
 --          `/accord inbox`, the line in the Compartment tooltip and the craft reminders. On since M9.10.
 --   groups   the guild group finder (M9.6-M9.8, SPEC-13 §6): the data set `groups`, the applications (GAPP), the
@@ -16,14 +20,23 @@
 --          in "What I share". Off: the list is not read, and nothing of it is written, accepted, sent or shown.
 --          On since M9.10.
 local ADDON_NAME, ns = ...
+local ipairs = ipairs
 ns = ns or {}
-local Features = { raid = false, actions = true, groups = true, census = true }
+local Features = { season = false, raid = false, actions = true, groups = true, census = true }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 
--- True while the switch `name` is on; false for a name without a switch.
+-- A switch that is also on while another one is: the M11 features need those of M10 under them.
+local IMPLIES = { season = { "raid" } }
+Features.IMPLIES = IMPLIES
+
+-- True while the switch `name` is on (or a switch that implies it); false for a name without a switch.
 function Features.On(name)
-	return Features[name] == true
+	if Features[name] == true then return true end
+	for _, other in ipairs(IMPLIES[name] or {}) do
+		if Features[other] == true then return true end
+	end
+	return false
 end
 
 if ns.addon then ns.addon.Features = Features end

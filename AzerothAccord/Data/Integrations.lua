@@ -22,11 +22,12 @@
 --                Without a record: raid "accord", loot "none" (Integrations.DEFAULTS). Bus: SOURCES_CHANGED() when the record
 --                changed, locally or from an officer, or the guild changed.
 -- Providers      Integrations:Provider(datum) gives the module that answers for the chosen source: Data/FDCP.lua for
---                "fdcp", Integrations.OWN for Accord's own season roster (it reads nothing yet: it comes with M10.3), nil
+--                "fdcp", Integrations.OWN for Accord's own season roster (Data/Season.lua fills it, M10.3), nil
 --                for loot "none" (Accord has no loot engine, SPEC-10 Q6). Every provider has `id` and Level().
--- Switch         Core/Features.lua "raid": while it is off, nothing is detected at login or on ADDON_LOADED, no officer
---                can choose a source (SetSource: false, "off"), the data set `guildcfg` is neither accepted nor sent
---                (Net/Store.lua) and /accord debug has no Integrations section.
+-- Switch         Core/Features.lua "season" (M10; also on with "raid"): while it is off, nothing is detected at login or
+--                on ADDON_LOADED, no officer can choose a source (SetSource: false, "off"), the data set `guildcfg` is
+--                neither accepted nor sent (Net/Store.lua) and /accord debug has no Integrations section. The loot source
+--                is an M11 choice: it also needs "raid" (SetSource("loot", ...): false, "off").
 -- Census         Which known addons the OTHER members have loaded comes from the addon census of M9.9 (Data/Census.lua,
 --                with the same folder name as in KNOWN): Integrations:Holders(id) reads it, and the Raid view
 --                (UI/Raid.lua) shows it per addon. This module keeps no field of its own and sends nothing.
@@ -185,7 +186,8 @@ end
 -- "officer" (not an officer), "choice"
 -- (an unknown datum or value), or a reason of Store:Put. Choosing the source already set changes nothing.
 function Integrations:SetSource(datum, value)
-	if not (ns.Features and ns.Features.On("raid")) then return false, "off" end
+	if not (ns.Features and ns.Features.On("season")) then return false, "off" end
+	if datum == "loot" and not ns.Features.On("raid") then return false, "off" end
 	if not self:CanChoose() then return false, "officer" end
 	if not valid(datum, value) then return false, "choice" end
 	local fields = {}
@@ -200,8 +202,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Providers
 ---------------------------------------------------------------------------------------------------------------------
--- Accord's own provider of the season roster: it reads nothing yet (M10.3 adds the declarations).
-Integrations.OWN = { id = "accord", Level = function() return nil end }
+-- Accord's own provider of the season roster: Data/Season.lua (M10.3) puts its own here when it loads.
+Integrations.OWN = Integrations.OWN or { id = "accord", Level = function() return nil end }
 
 -- The module that answers for the source chosen for `datum`, or nil (loot "none").
 function Integrations:Provider(datum)
@@ -241,11 +243,11 @@ if ns.addon then
 	ns.addon.Integrations = Integrations
 	LibStub("AceEvent-3.0"):Embed(Integrations)
 	Integrations:RegisterEvent("ADDON_LOADED", function(_, name)
-		if byFolder[name] and ns.Features.On("raid") then Integrations:Refresh() end
+		if byFolder[name] and ns.Features.On("season") then Integrations:Refresh() end
 	end)
 	if ns.OnEnable then
 		ns.OnEnable(function()
-			if not ns.Features.On("raid") then return end
+			if not ns.Features.On("season") then return end
 			Integrations:Refresh()
 			if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Integrations", function() return Integrations:DebugLines() end) end
 		end)

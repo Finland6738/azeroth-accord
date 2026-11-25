@@ -28,7 +28,8 @@
 -- The view redraws on SOURCES_CHANGED, INTEGRATIONS_CHANGED, FDCP_CHANGED, ROLE_CHANGED and CENSUS_CHANGED, only while it
 -- is visible.
 -- While Core/Features.lua "raid" is off there is no tab (the view says it is not visible), no card section and nothing is
--- redrawn.
+-- redrawn. Its functions stay available to the Season view (UI/Season.lua, switch "season"), which shows the season part of
+-- FDCP and the addons in the guild from the M10 switch alone.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
@@ -292,6 +293,7 @@ local function addonsLines(out, m, add)
 		for _, w in ipairs(a.who or {}) do out[#out + 1] = holderLine(w) end
 	end
 end
+View.AddonsLines = addonsLines   -- the Season view (M10.3) ends with the same section
 
 -- { { text, heading?, sub?, muted?, indent? } } for a model.
 function View.Lines(m)
