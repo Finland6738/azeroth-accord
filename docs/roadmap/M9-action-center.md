@@ -69,7 +69,8 @@ Release: `v0.9.0`.
   - The "help" type replaces the help requests that were planned as M15.2: "need a hand" for a quest, a dungeon or an elite, with the zone name only.
 - Tests: `Tests/test_groups.lua`: a listing from outside the guild or forged by another author is refused; applications reach only the leader; full, expired and abandoned listings close on every client; the simulator keeps the traffic inside the budget with 50 open listings.
 - Done when:
-  - [ ] The tests pass.
+  - [x] The tests pass.
+  - *Done (2026-11-25):* `Data/Groups.lua` (listings in the short-lived set `groups`, first hand only and outside every summary; open or closed decided by every client; applications `GAPP` by whisper to the leader only; accept and invite through `Compat.Group.Invite`; `GASK` for who comes later) and `Data/GroupActivities.lua` (the dungeons and raids, corrected by `C_LFGList` when the client has it); `Tests/test_groups.lua`, with 50 open listings in the simulator inside the budget of SPEC-02 §4 (SPEC-13 §6.9). Behind the switch `groups`, off until M9.10; nothing visible before M9.7. Not checked in the game.
 - Real client: `InviteUnit` from an addon on Forever, and the chat lockdown inside instances.
 
 ### M9.7 — Guild group finder: the view

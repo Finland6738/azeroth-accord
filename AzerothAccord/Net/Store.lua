@@ -30,6 +30,9 @@
 --                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09). The one
 --                    exception (`firstHand`): a member's own declared absence reaches an officer by WHISPER from its account.
 --
+-- Short-lived sets (`volatile`, SPEC-13 GRP-03): the group finder's listings travel only first hand (`firstHandOnly`: no
+--                    relay, not even by an officer) and are left out of every summary.
+--
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
@@ -154,6 +157,13 @@ end
 
 -- true when `set` is one of the officer tools' sets (SPEC-12 §1.2): its records are never sent on GUILD and are summarised
 -- by group, not by author.
+-- true when `set` is short-lived (SPEC-13 GRP-03): its records are written and sent like the others, but never counted in a
+-- summary, pushed, asked for, backed up or exported (Net/Sync.lua leaves them out of its groups).
+function Store.IsVolatile(set)
+	local def = Store.SETS[set]
+	return def ~= nil and def.volatile == true
+end
+
 function Store.IsOfficerTool(set)
 	local def = Store.SETS[set]
 	return def ~= nil and def.officerTool == true
@@ -253,6 +263,14 @@ Store.SETS = {
 		group = function(rec) return ns.OfficerNotes.Group(rec) end,   -- 32 groups by a hash of the GUID (SPEC-12 §1.5)
 		expires = function(rec, t) return ns.OfficerNotes ~= nil and ns.OfficerNotes.Expired(rec, t) end,   -- deletions only
 	},
+	groups = {     -- the guild group finder (Data/Groups.lua, M9.6): id = "<leader GUID>:<n>", one listing of a leader
+		feature = "groups",                        -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 384,
+		volatile = true,                           -- short-lived: never in a summary, never pushed or asked for (SPEC-13 GRP-03)
+		firstHandOnly = true,                      -- only its leader's account sends it; an officer cannot relay it (GRP-02)
+		owner = function(rec) return ns.Groups ~= nil and ns.Groups.ValidRecord(rec) end,
+		expires = function(rec, t) return ns.Groups ~= nil and ns.Groups.Expired(rec, t) end,
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -263,7 +281,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
@@ -404,8 +422,9 @@ function Store:Check(set, rec, ctx)
 	-- the alts of an account may pass on each other's records; "same account" is read from the records already held,
 	-- never from the record being checked
 	local firstHand = self:SameAccount(senderGUID, rec.author)
-	if not firstHand and not senderOfficer then
-		-- somebody else's record from a member who is not an officer: a relay (NET-11) or a forged author (NET-10)
+	if not firstHand and (not senderOfficer or def.firstHandOnly) then
+		-- somebody else's record from a member who is not an officer: a relay (NET-11) or a forged author (NET-10); a set
+		-- that only travels first hand (the group finder, GRP-02) takes no relay, not even from an officer
 		return false, "relay"
 	end
 

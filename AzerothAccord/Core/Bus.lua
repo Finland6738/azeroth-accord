@@ -35,6 +35,10 @@
 --                                                     another guild).
 --   DIGEST_CHANGED()                                  Data/Digest.lua; the card of the login digest changed (new lines,
 --                                                     closed, or another guild), M9.5.
+--   GROUPS_CHANGED(id)                                Data/Groups.lua; a listing of the guild group finder changed (written,
+--                                                     received, closed by itself or removed; nil: several), M9.6.
+--   APPLICANTS_CHANGED(id)                            Data/Groups.lua; the applications of a listing changed on the
+--                                                     leader's client or the candidate's, M9.6.
 --   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
 --                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.

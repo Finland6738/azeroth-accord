@@ -48,9 +48,9 @@ Come per `raid`, i moduli chiedono `Features.On(nome)` quando agiscono, mai una 
 | `account.settings.notify` | tabella `{ [modulo] = { chat, toast, sound, off = { [tipo] = true } } }`, predefiniti di §3.2 | §3.2 |
 | `account.settings.quiet` | `{ on = false, from = 23, to = 8, instances = true }`, ore intere 0–23, `from ≠ to` | §4 |
 | `account.settings.shareAddons` | booleano, `true` | §8.3 |
-| `account.settings.groupFilter` | `{ kinds = {}, fits = true, roles = {} }` (i filtri salvati della vista Groups) | §6.9 |
+| `account.settings.groupFilter` | `{ kinds = {}, fits = true, roles = {} }` (i filtri salvati della vista Groups) | §6.10 |
 
-`account.settings.notifyOfficer` e `notifyDecision` (M5) **restano** con lo stesso nome e lo stesso predefinito: sono i due interruttori dei tipi della banca (§3.2). La migrazione del personaggio crea `char.groups = { next = 0, apps = {}, mine = {}, game = nil }` (§6.5, §7).
+`account.settings.notifyOfficer` e `notifyDecision` (M5) **restano** con lo stesso nome e lo stesso predefinito: sono i due interruttori dei tipi della banca (§3.2). La migrazione del personaggio crea `char.groups = { next = 0, apps = {}, mine = {} }` (§6.5; `game` si aggiunge con M9.8, §7; `guild` con la prima gilda: un'altra gilda svuota `apps` e `mine`).
 
 ## 2. Centro azioni (M9.2)
 
@@ -104,7 +104,7 @@ Ordine: urgenza decrescente, poi `time` crescente (chi aspetta da più tempo pri
 | `officer` | il membro stesso | la **propria** assenza che finisce entro 3 giorni: `Your absence ends on <data>` | 1 | la scheda *Absence* di Settings | dopo il rientro |
 
 - Le richieste di crafting di M3 sono solo un sussurro scritto dal giocatore ([SPEC-06 §2.3](SPEC-06-professions-recipes.md#23-richiesta-di-creazione-m36-pro-05)): nessuno le salva e l'artigiano non è avvisato dall'addon. Il fornitore `craft` tiene **solo un promemoria locale di chi chiede**: `GuildKey:Data().craftAsks`, al massimo 20 (le più vecchie escono), `{ guid, recipeId, at }`, mai inviato, mai nel backup. M13.2 lo sostituisce con gli ordini e migra i promemoria aperti ([M13](../roadmap/M13-economy.md)). Decisa dal proprietario come proposto ([SPEC-10 Q19](SPEC-10-risks-open-questions.md#2-domande-aperte-per-il-proprietario), 2026-11-25).
-- Fornitori dei passi successivi: `groups` (M9.7, §6.9: i candidati in attesa al proprio annuncio, urgenza 3); poi le iscrizioni (M10), le prove dei nuovi membri (M12), i sondaggi (M14). Ognuno si registra con `Actions:Register` nel proprio modulo, senza toccare `Data/Actions.lua`.
+- Fornitori dei passi successivi: `groups` (M9.7, §6.10: i candidati in attesa al proprio annuncio, urgenza 3); poi le iscrizioni (M10), le prove dei nuovi membri (M12), i sondaggi (M14). Ognuno si registra con `Actions:Register` nel proprio modulo, senza toccare `Data/Actions.lua`.
 - **Come è fatto (M9.2).** `Data/Actions.lua` non conosce nessun modulo. `bank` è registrato da `Data/BankInbox.lua`, `craft` da `Data/Recipes.lua`; `officer` è **un solo** fornitore registrato da `Data/OfficerOps.lua`, che unisce le righe della coda a quelle di `Absence:ActionRows` (le assenze servono anche al membro, quindi non ha `visible()`: filtra le righe), con l'etichetta *Officers and absences* / *Ufficiali e assenze*. Un ufficiale che ha una propria richiesta in banca ha le due righe della tabella (decidere e promemoria). La riga `and N more` apre la vista della prima riga rimasta fuori. Un promemoria `craft` si rinnova se si richiede la stessa ricetta allo stesso membro, e non si salva con l'interruttore spento. Il clic su una riga della banca porta la lista fino alla richiesta e la evidenzia.
 - **Demo** ([SPEC-11 §3](SPEC-11-data-trust.md#3-modalità-demo-m74)): i fornitori leggono i dati della gilda inventata; la demo aggiunge due richieste di crafting e un candidato.
 
@@ -135,7 +135,7 @@ Un modulo pubblica con `Notify:Post(module, kind, n)`, `n = { key, level, text, 
 | `bank.decision` | `normal` | richiedente: la propria richiesta approvata, rifiutata o consegnata | chat | `account.settings.notifyDecision` (M5) |
 | `groups.applicant` (M9.7) | `alert` | capo: una candidatura nuova | chat, toast | `notify.groups.off.applicant` |
 | `groups.answer` (M9.7) | `alert` | candidato: accettato o rifiutato | chat, toast | `notify.groups.off.answer` |
-| `groups.match` (M9.7) | `normal` | chiunque: un annuncio nuovo che va bene per lui (§6.9) | **spento** | `notify.groups.off.match` (predefinito `true`) |
+| `groups.match` (M9.7) | `normal` | chiunque: un annuncio nuovo che va bene per lui (§6.10) | **spento** | `notify.groups.off.match` (predefinito `true`) |
 | `groups.game` (M9.8) | `alert` | capo: c'è da togliere l'annuncio nel gioco (§7.2) | chat, toast | nessuno |
 | `officer.back` | `quiet` | ufficiali: un'assenza finita | — | — |
 | `likes.received` | `quiet` | chi riceve un like (solo il numero) | — | — |
@@ -259,26 +259,27 @@ Un record per annuncio, `id = "<GUID del capo>:<n>"` (`n` intero crescente del p
 | `kind` | stringa | `dungeon`, `raid`, `quest`, `elite`, `pvp`, `farm`, `prof`, `help`, `other` (testi: *Dungeon*, *Raid*, *Quest*, *Elite*, *PvP*, *Farming*, *Professions*, *Help*, *Other*) |
 | `act` | numero o stringa | `dungeon`/`raid`: il `mapID` dell'istanza (intero 1–1 000 000, §6.4); gli altri tipi: testo di 1–40 caratteri (missione, zona, campo di battaglia, professione…); `help`: **solo il nome della zona** |
 | `min`, `max` | interi | livelli 1–livello massimo del gioco (`GetMaxPlayerLevel`, **[verificare]**), `min ≤ max` |
-| `size` | intero | `dungeon`/`raid`: quella della tabella (§6.4); gli altri 2–40 |
+| `size` | intero | 2–40; il modulo del capo offre per `dungeon`/`raid` quella della tabella (§6.4) e non ne accetta una più grande (la Blackrock Spire ha 10 per la parte alta, 5 bastano per la bassa) |
 | `need` | tabella `{ t, h, d }` | tank, guaritori, danno ancora cercati: interi ≥ 0, somma ≤ `size − have` |
 | `have` | intero | quanti sono già nel gruppo, capo compreso: 1–`size` |
 | `note` | stringa | 0–80 caratteri |
 | `meet` | stringa | 0–40 caratteri: il punto d'incontro **in parole**, mai una posizione |
-| `until` | ora del server | fine dell'annuncio: da `time` + 30 minuti a `time` + 4 ore (predefinito 2 ore) |
+| `created` | ora del server | quando il capo l'ha pubblicato; `created ≤ time` |
+| `ends` | ora del server | fine dell'annuncio: da `created` + 30 minuti a `created` + 4 ore (predefinito 2 ore). Il nome `until` della prima stesura è una parola riservata di Lua; la durata si misura da `created` perché `time` cambia a ogni riscrittura |
 | `status` | stringa | `open`, `full`, `closed` |
 | `why` | stringa | per `closed`: `leader` (chiuso dal capo), `logout` (il capo era uscito), `replaced` (il capo ne ha aperto un altro) |
 
 - **Testi**: niente `|` (sequenze di escape del gioco), niente caratteri di controllo, niente spazi agli estremi; altrimenti la regola del proprietario rifiuta il record (`owner`). La stessa funzione pulisce i campi del modulo prima di scrivere.
 - **Regola del proprietario** (`Groups.ValidRecord`): l'id comincia con il GUID dell'`author`; ogni campo come sopra; `rev ≤ 100`.
 - **Definizione in `Store.SETS`**: `groups = { feature = "groups", volatile = true, firstHandOnly = true, maxBytes = 384, owner = Groups.ValidRecord, expires = … }`, in coda a `Store.SET_ORDER`.
-- **Conservazione** (`expires`): un record si toglie 10 minuti dopo `until`, o 10 minuti dopo `time` se `status ≠ open`; un record che arriva già oltre si rifiuta (`expired`, come oggi). La pulizia gira all'accesso e ogni 60 s mentre la vista è aperta.
+- **Conservazione** (`expires`): un record si toglie 10 minuti dopo `ends`, o 10 minuti dopo `time` se `status ≠ open`; un record che arriva già oltre si rifiuta (`expired`, come oggi). La pulizia gira all'accesso e ogni 60 s mentre la vista è aperta.
 
 ### 6.3 Aperto o chiuso: la regola di ogni client
 
 Un annuncio si mostra **aperto** solo se valgono tutte:
 
 1. `status == "open"`;
-2. `until` > ora del server;
+2. `ends` > ora del server;
 3. il capo è **online** nell'ultima lettura del roster (offline = *abbandonato*);
 4. `need.t + need.h + need.d > 0` e `have < size`;
 5. è l'annuncio aperto **più recente** del suo capo (un capo ha un solo annuncio aperto: uno più vecchio si mostra chiuso, `replaced`).
@@ -317,7 +318,7 @@ Regole del **candidato** (il pulsante *Apply* le controlla prima di mandare):
 Regole del **capo** (`Groups:OnApply`):
 
 - **GRP-06** Accetta un `GAPP` solo se: il mittente è nel roster e non è del proprio account; l'annuncio è suo e aperto (§6.3); `k` e `r` sono validi. Al massimo **10 `GAPP` al minuto per mittente** (gli altri si ignorano) e **40 candidature in attesa per annuncio** (oltre, risponde `full`).
-- Le candidature in attesa stanno in `char.groups.apps[id] = { [nome] = { r, c, l, at } }` (salvate, così un `/reload` non le perde) e si cancellano quando l'annuncio si chiude; quelle del candidato in `char.groups.mine`. **Mai** in `Store`, mai sincronizzate.
+- Le candidature in attesa stanno in `char.groups.apps[id] = { [nome] = { r, c, l, at, guid } }` (salvate, così un `/reload` non le perde) e si cancellano quando l'annuncio si chiude; quelle del candidato in `char.groups.mine`. **Mai** in `Store`, mai sincronizzate.
 - Quando il capo chiude l'annuncio (pulsante o `full`), manda `full` a ogni candidato in attesa. Un annuncio scaduto o abbandonato non manda nulla: ogni candidato lo vede chiuso da sé (§6.3) e toglie la propria candidatura.
 
 ### 6.6 Accettare e invitare
@@ -334,7 +335,7 @@ Regole del **capo** (`Groups:OnApply`):
 
 Gli annunci pubblicati mentre un client era offline non sono nei riepiloghi (GRP-03). Un client li chiede con `GASK` (tipo nuovo su `GUILD`, `Codec:RegisterType("GASK", {})`, priorità `NORMAL`):
 
-- **quando**: all'apertura della vista Groups se in questa sessione non ha mandato un `GASK` negli ultimi 10 minuti; oppure 60–90 s dopo il primo `HELLO` di un primo accesso, solo se `groups.match` è acceso (§6.9);
+- **quando**: all'apertura della vista Groups se in questa sessione non ha mandato un `GASK` negli ultimi 10 minuti; oppure 60–90 s dopo il primo `HELLO` di un primo accesso, solo se `groups.match` è acceso (§6.10);
 - **campo `h`**: stringa di impronte da 4 byte (`Hash.Fast(id .. ":" .. rev)`) degli annunci aperti che ha già, al massimo 60 (240 B);
 - **risposta**: ogni client con un **proprio** annuncio aperto la cui impronta non è in `h` lo manda al richiedente come `REC` (`s = "groups"`) in `WHISPER`, dopo 0,5–3 s casuali, chiave di coda `GROUPS|<richiedente>`. Solo il capo (o il suo account) risponde: è di prima mano.
 - **limiti**: si manda al massimo un `GASK` ogni 10 minuti (`Transport.RATE.GASK = { 1, 600 }`); chi riceve ne gestisce uno ogni 5 minuti per mittente e risponde a ogni richiedente al massimo una volta al minuto.
@@ -356,7 +357,19 @@ All'accesso **non** parte nessun annuncio: il costo di un accesso (SPEC-02 §4) 
 - I limiti per mittente di [SPEC-11 §6.3](SPEC-11-data-trust.md#63-inondazioni) valgono così come sono: un record `groups` rifiutato conta tra i rifiutati (quarantena dopo 50 in 10 minuti); il testo decodificato conta nei 256 KB al minuto.
 - **Simulatore** (`Tests/test_groups.lua`, sopra `Tests/sim`): 50 client, 5 ufficiali, **50 annunci aperti** (uno per client), ognuno riscritto 3 volte, 20 candidature al minuto in tutta la gilda, un `GASK` di ogni client alla prima apertura della vista, 45 minuti di accessi e uscite come in [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione). Devono valere **i limiti di SPEC-02 §4 senza cambiarli** (media ≤ 400 B/min, client più carico ≤ 2 KB/min, costo di un accesso ≤ 8 KB, allineati ≤ 100 e 200 B/min) e in più: costo di un `GASK` con 50 annunci aperti ≤ 16 KB per tutta la gilda; coda di `Transport` mai oltre 100. Se non stanno nei limiti, M9.6 cambia i valori di questa sezione e lo scrive qui; un limite di SPEC-02 si alza solo con una nota in SPEC-10.
 
-### 6.9 La vista Groups (M9.7)
+### 6.9 Come è fatto (M9.6)
+
+- `Data/Groups.lua` e `Data/GroupActivities.lua` (dopo `Data/Digest.lua` nel TOC); niente di visibile fino a M9.7. Con l'interruttore `groups` spento il modulo non registra eventi, non ha timer, non manda nulla e ignora `GAPP` e `GASK`; l'insieme non prende record (`Store.IsActive`). La versione del protocollo resta 1: un client `v0.8.0` scarta `GAPP` e `GASK` come tipi sconosciuti (NET-01) e un `REC` di un insieme che non conosce.
+- **Store e Sync**: `Store.IsVolatile(set)`; `Sync` non mette i record volatili nei gruppi del riepilogo, quindi non entrano in `HELLO`, `BHELLO`, `OHELLO`, `REQ` e spinte; `Store:Check` con `firstHandOnly` rifiuta il record di un altro autore anche da un ufficiale (motivo `relay`). Backup ed esportazioni hanno già un elenco chiuso di insiemi, senza `groups`.
+- **Tabella delle attività**: 19 spedizioni e 7 incursioni del gioco base; `C_LFGList` le aggiunge o le corregge alla prima lettura (categorie con `isRaid` o con "raid"/"dungeon" nel nome, **[verificare]**). `Groups:Post` accetta per `dungeon`/`raid` solo un `mapID` della tabella e del suo tipo.
+- **Livello massimo**: `Compat.Player.MaxLevel()` (`GetMaxPlayerLevel`, 60 se non risponde). **Invito**: `Compat.Group.CanInvite()` (solo, oppure `UnitIsGroupLeader("player")`, oppure `C_PartyInfo.CanInvite()`, tutti nel dump) e `Compat.Group.Invite`.
+- **Scritture del capo**: `Post` chiude prima il proprio annuncio aperto (`replaced`); l'id è il più grande tra `char.groups.next` e gli id propri già noti, più uno. `Update` e `Accept` riscrivono al massimo ogni 10 s (le modifiche in mezzo si uniscono); `Close` e `full` scrivono subito. La revisione 100 resta per chiudere: `Update` si ferma a 99. Al primo `PLAYER_ENTERING_WORLD` di un accesso (non dopo un `/reload`) gli annunci propri aperti si chiudono con `logout`, appena la gilda è nota, senza `GAPP full` (i candidati vedono il capo offline da soli).
+- **Candidature**: il capo risponde `full` anche a una candidatura per un proprio annuncio non più aperto o per un ruolo che non cerca più (prima di contarla); dieci `GAPP` al minuto per mittente contano `apply` e `cancel` insieme. Il candidato smette di aspettare (`closed`) appena l'annuncio non è più aperto sul suo client, anche se un annuncio più nuovo dello stesso capo lo sostituisce; le risposte vengono dimenticate un'ora dopo che l'annuncio è sparito.
+- **Pulizia** (`Groups:Tick`, ogni 60 s, e all'avvio): toglie i record scaduti, dimentica le candidature di annunci non più aperti, e annuncia `GROUPS_CHANGED(id)` quando lo stato di un annuncio cambia senza messaggi (scaduto, capo offline).
+- **`GASK`**: `Groups:Ask()` (la vista lo chiamerà all'apertura); dopo il primo `HELLO` di un accesso parte da sé solo se l'avviso `groups.match` è acceso (`settings.notify.groups.off.match = false`). L'impronta è `Hash.Fast(id .. ":" .. rev)` su 4 byte.
+- **Simulatore** (`Tests/test_groups.lua`, 50 client, 5 ufficiali, perdita 1%): un `GASK` con 49 annunci aperti costa 12,6 KB a tutta la gilda (misurato senza perdita); 45 minuti con riscritture, 20 candidature al minuto, un `GASK` di ognuno e accessi e uscite: media 62 B/min, client più carico 124 B/min; regime 4 B/min di media, 7 il più carico; coda di `Transport` al massimo 2. I limiti di §6.8 restano come sono.
+
+### 6.10 La vista Groups (M9.7)
 
 Vista `groups` (*Groups* / *Gruppi*, ordine 40), nello stile del pannello dei gruppi predefiniti, con [`ui-style.md`](ui-style.md):
 
@@ -451,7 +464,7 @@ Vista `addons` (*Guild addons* / *Addon della gilda*, ordine 70): una tabella co
 | M9.3 | `Tests/test_notify.lua` | le opzioni di M5 funzionano come prima; un tipo spento non esce ma entra nella cronologia; 200 voci e 30 giorni; NTF-04–NTF-08 |
 | M9.4 | `Tests/test_quiet.lua` | trattenuti in combattimento, in istanza e nelle ore di quiete (anche oltre la mezzanotte), escono una volta sola e in ordine |
 | M9.5 | `Tests/test_digest.lua` | vuoto e muto se nulla è cambiato; mai il nome di chi ha dato un like; niente dopo un `/reload`; la prima volta solo la fotografia |
-| M9.6 | `Tests/test_groups.lua` | un annuncio da fuori gilda o con un autore falso si rifiuta (anche da un ufficiale); le candidature arrivano solo al capo; pieno, scaduto e abbandonato si chiudono su ogni client; `GASK`; il simulatore con 50 annunci aperti nei limiti di §6.8 |
+| M9.6 | `Tests/test_groups.lua`, `Tests/test_features.lua` | un annuncio da fuori gilda o con un autore falso si rifiuta (anche da un ufficiale); le candidature arrivano solo al capo; pieno, scaduto e abbandonato si chiudono su ogni client; `GASK`; il simulatore con 50 annunci aperti nei limiti di §6.8; con l'interruttore spento niente si accetta né si manda |
 | M9.8 | `Tests/test_game_finder.lua` (mock di `C_LFGList`) | senza capacità nulla; con la capacità la creazione solo dal clic, sempre privata, chiusa con l'annuncio della gilda; un annuncio diventato pubblico spegne la capacità |
 | M9.9 | `Tests/test_addons_census.lua` | conteggi su molti autori; chi spegne sparisce dai conteggi; un elenco cambiato sostituisce il vecchio; un elenco troppo lungo si taglia; i vecchi scadono; niente addon di Blizzard; `Integrations:Holders` |
 
@@ -459,6 +472,6 @@ Vista `addons` (*Guild addons* / *Addon della gilda*, ordine 70): una tabella co
 
 - Gli id di `SOUNDKIT` per i suoni degli avvisi (§3.4).
 - `C_PartyInfo.InviteUnit` da un addon, con nomi con lo spazio e dentro un'istanza durante il lockdown della chat (§6.6).
-- `GetMaxPlayerLevel`, `GetRealZoneText(mapID)` e quali spedizioni e incursioni ha Forever (§6.4); `C_LFGListRoles.GetSavedRoles` (§6.9).
+- `GetMaxPlayerLevel`, `GetRealZoneText(mapID)` e quali spedizioni e incursioni ha Forever (§6.4); `C_LFGListRoles.GetSavedRoles` (§6.10).
 - Se gli annunci privati esistono su Forever, chi li vede, se `CreateListing`/`RemoveListing` chiedono un evento dell'hardware e se il gioco toglie l'annuncio quando il capo esce (§7).
 - `C_AddOns.GetAddOnInfo` per indice e il valore di `security` degli addon di Blizzard su Forever (§8.1).

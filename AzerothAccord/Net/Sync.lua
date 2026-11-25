@@ -40,6 +40,10 @@
 --             up to two officers heard recently); the answer is a WHISPER REC with only those records, not a GUILD one.
 --             Asked at most once per ASK_COOLDOWN seconds per author and set.
 --
+-- Short-lived sets (Store.IsVolatile: the group finder's listings, SPEC-13 GRP-03) are never summarised, so never pushed or
+-- asked for: a local change goes out on GUILD after the batch like any other, and a client that comes later asks for them
+-- with GASK (Data/Groups.lua).
+--
 -- Received records always go through Store:Receive, so a client that is not allowed to pass something on is simply
 -- refused by the others. Every timer is cancelled on a change of guild. Bus: SYNC_HELLO(sent), SYNC_RECEIVED(set, n).
 --
@@ -187,7 +191,7 @@ end
 -- group name of an officer tool) and its class, or nil.
 local function place(groups, set, id, rec)
 	local author = type(rec) == "table" and rec.author
-	if type(author) ~= "string" or not store().IsActive(set) then return nil end
+	if type(author) ~= "string" or not store().IsActive(set) or store().IsVolatile(set) then return nil end   -- GRP-03
 	local class, key = classOf(set, rec)
 	local into = groups[class]
 	local g = into[key]

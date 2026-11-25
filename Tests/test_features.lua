@@ -181,3 +181,28 @@ describe("the actions switch, off", function()
 		isNil(A().GuildKey:Data().craftAsks)
 	end)
 end)
+
+describe("the switch groups (M9.6) is off", function()
+	before_boot(function(M)
+		M.guild.Set{ name = "Accord", myRank = 1, members = {
+			{ name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
+		} }
+	end)
+
+	it("is off in the shipped code: the set takes nothing, GAPP and GASK are ignored, nothing is sent", function()
+		eq(A().Features.groups, false)
+		falsy(A().Features.On("groups"))
+		falsy(A().Store.IsActive("groups"))
+		local t = GetServerTime()
+		local rec = { id = BOB .. ":1", author = BOB, rev = 1, time = t, kind = "quest", act = "x", min = 1, max = 60, size = 5,
+			have = 1, need = { d = 1 }, created = t, ends = t + 3600, status = "open" }
+		eq(A().Store:Receive("groups", { rec }, "Bob", "GUILD"), 0)
+		local before = #Mock.chat.sent
+		A().Bus:Emit("NET_MESSAGE", { t = "GASK", h = "" }, "Bob", "GUILD")
+		A().Bus:Emit("NET_MESSAGE", { t = "GAPP", g = "x", k = "apply", r = "t" }, "Bob", "WHISPER")
+		falsy(A().Groups:Post({ kind = "quest", act = "x", need = { d = 1 } }))
+		Mock.Advance(120)
+		eq(#Mock.chat.sent, before)
+		eq(A().Store:Count("groups"), 0)
+	end)
+end)

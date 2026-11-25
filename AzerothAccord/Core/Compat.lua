@@ -489,6 +489,13 @@ function Player.Level()
 	return num((first("UnitLevel", "player")))
 end
 
+-- The highest level of the game (GetMaxPlayerLevel [verify on Forever]); 60 when the client does not say.
+function Player.MaxLevel()
+	local v = num((first("GetMaxPlayerLevel")))
+	if v and v >= 1 and v <= 1000 and v == math.floor(v) then return v end
+	return 60
+end
+
 function Player.ClassID()
 	local values = all("UnitClass", "player")
 	return values and num(values[3]) or nil
@@ -606,6 +613,17 @@ function Group.Invite(name)
 	if state == AVAILABLE then return true end
 	_, state = first("InviteUnit", name)
 	return state == AVAILABLE
+end
+
+-- true when the player may invite: alone, or the leader of the party or raid (UnitIsGroupLeader, else
+-- C_PartyInfo.CanInvite [verify on Forever]). SPEC-13 GRP-07.
+function Group.CanInvite()
+	if Group.Size() <= 1 then return true end
+	local leader, state = first("UnitIsGroupLeader", "player")
+	if state == AVAILABLE then return leader and true or false end
+	local can
+	can, state = first("C_PartyInfo.CanInvite")
+	return state == AVAILABLE and can and true or false
 end
 
 function Compat.InInstance()

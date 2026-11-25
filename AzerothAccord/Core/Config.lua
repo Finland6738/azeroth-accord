@@ -2,7 +2,7 @@
 -- Adapted from Azeroth Guild Finder (Core/Config.lua), same owner, GPL-3.0 (ADR 0018).
 --
 --   AzerothAccordDB      (account)   = { schemaVersion, token, chars[realm][guid], mains[realm], guilds[guildKey], settings }
---   AzerothAccordCharDB  (character) = { schemaVersion, ui, outbox }
+--   AzerothAccordCharDB  (character) = { schemaVersion, ui, outbox, groups }
 --
 -- Load() runs on ADDON_LOADED (from Init's OnInitialize): defaults are merged without overwriting anything, old data
 -- is migrated step by step, bad values are reset and listed in Config.issues. Data from a NEWER schema is never
@@ -68,6 +68,7 @@ Config.defaults = {
 		schemaVersion = Config.SCHEMA_VERSION,
 		ui = { lastView = "roster", columns = {}, sort = {}, grouped = false },   -- windowPos, windowSize: nil until the user moves it
 		outbox = {},         -- messages waiting at logout, sent again at the next login (Net/Transport.lua, SPEC-02 §5)
+		groups = { next = 0, apps = {}, mine = {} },   -- the group finder (SPEC-13 §6.5): ids, applications; Data/Groups.lua
 	},
 }
 
@@ -101,6 +102,7 @@ Config.rules = {
 	["char.ui.windowPos"] = posRule(),
 	["char.ui.windowSize"] = sizeRule(),
 	["char.outbox"] = { type = "table" },
+	["char.groups"] = { type = "table" },
 }
 
 -- The switches of account.settings.notify.<module>: three outputs and `off`, the kinds switched off.
@@ -136,7 +138,8 @@ end
 -- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
 -- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
 -- Version 3 (M7.6) adds `shareCoplay` (default true) to the account's settings, when it is not there yet.
--- Version 4 (M9) adds `notify` and `quiet` to the account's settings, each only when it is not there yet.
+-- Version 4 (M9) adds `notify` and `quiet` to the account's settings, each only when it is not there yet, and `groups`
+-- (the group finder's ids and applications, M9.6) to the character's data.
 local function deep(v)
 	if type(v) ~= "table" then return v end
 	local out = {}
@@ -164,7 +167,10 @@ Config.migrations = {
 			if db.settings.quiet == nil then db.settings.quiet = defaultSetting("quiet") end
 		end,
 	},
-	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end, [4] = function(db) end },
+	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end,
+		[4] = function(db)
+			if type(db.groups) ~= "table" then db.groups = { next = 0, apps = {}, mine = {} } end
+		end },
 }
 
 Config.issues = {}          -- problems found and fixed by the last Load (text only, no names)

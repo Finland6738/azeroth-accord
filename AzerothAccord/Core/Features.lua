@@ -10,7 +10,9 @@
 --          `/accord inbox`, the line in the Compartment tooltip and the craft reminders. Switched on by M9.10.
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Features = { raid = false, actions = false }
+--   groups the guild group finder (M9.6-M9.8, SPEC-13 §6): the data set `groups`, the applications (GAPP) and the
+--          question of who comes later (GASK). Off: nothing of it is written, accepted, sent or answered. Switched on by M9.10.
+local Features = { raid = false, actions = false, groups = false }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

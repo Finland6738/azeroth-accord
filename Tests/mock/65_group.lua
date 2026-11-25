@@ -11,6 +11,7 @@
 --                   level = 60, subgroup = 1 }, ... } }   -- the OTHER members; fires GROUP_ROSTER_UPDATE
 --   Mock.group.Leave()
 --   Mock.group.invites     names given to C_PartyInfo.InviteUnit
+--   Mock.group.notLeader   true: UnitIsGroupLeader("player") answers false
 local Mock, H = ...
 local W = Mock.world
 
@@ -100,6 +101,12 @@ function GetRaidRosterInfo(index)
 	if not m then return nil end
 	if group.secretGUIDs then return Mock.SECRET end
 	return m.name, 0, m.subgroup, m.level, m.class, m.class, "Orgrimmar", true, false, "NONE", false
+end
+
+-- The player leads the group unless Mock.group.notLeader is true.
+function UnitIsGroupLeader(unit)
+	if unit ~= "player" then return false end
+	return inGroup() and group.notLeader ~= true
 end
 
 function IsInInstance() return W.inInstance == true, W.inInstance and (W.instanceType or "party") or "none" end
