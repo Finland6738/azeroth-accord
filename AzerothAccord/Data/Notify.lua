@@ -27,6 +27,12 @@
 -- Floods: NTF-05 from the login until HELLO_WAIT seconds after the first HELLO (LOGIN_MAX at most) the notices are
 -- grouped per kind and come out at the end of that window; NTF-06 more than BURST of a kind in BURST_SECONDS become one
 -- entry; NTF-08 at most SESSION_MAX notices come out per session.
+-- Quiet hours (SPEC-13 §4, M9.4): nothing comes out while the player fights, is in an instance (account.settings.quiet
+-- .instances) or inside their quiet hours (local time, .on, .from, .to). A held notice is in the history at once and
+-- stays in the queue; when nothing holds any more (RELEASE_COMBAT / RELEASE_INSTANCE seconds after the event, the TICK
+-- check for the end of the hours) the held ones come out once, in order of arrival, as one burst with one toast; one that
+-- was read, is gone (`still`) or waited more than HELD_MAX seconds stays in the history only. The queue is of the
+-- session: after a /reload or a logout the held notices are only in the history.
 -- While the switch `actions` is off (Core/Features.lua) nothing here writes, prints or listens: the bank notices of M5
 -- are printed by Data/BankInbox.lua as before.
 -- Bus: NOTICE_POSTED(entry) a new entry; NOTICES_CHANGED() the history changed.
@@ -54,6 +60,10 @@ Notify.BURST_SECONDS = 60
 Notify.SESSION_MAX = 30       -- NTF-08
 Notify.SOUND_GAP = 10
 Notify.TICK = 60
+Notify.RELEASE_COMBAT = 3     -- QUI-03: seconds from the end of combat to the release
+Notify.RELEASE_INSTANCE = 5   -- the same after leaving an instance
+Notify.HELD_MAX = 12 * 3600
+Notify.INSTANCES = { party = true, raid = true, pvp = true, arena = true, scenario = true }
 Notify.PREFIX = "|cffd4af37Accord:|r "
 
 Notify.modules_ = {}          -- id -> def
@@ -62,7 +72,9 @@ Notify.errorCount = 0
 local state
 local function fresh(old)
 	return {
-		pending = {}, timer = false,
+		pending = {}, timer = nil,                 -- pending: { entry, still, held = server time or nil }, in order
+		serial = old and old.serial or 0,          -- of the flush timers: only the last one armed flushes
+		fighting = old and old.fighting or false,  -- between PLAYER_REGEN_DISABLED and PLAYER_REGEN_ENABLED
 		window = nil,                              -- { limit, ends, hello, groups = { [m.k] = group }, order = {} }
 		bursts = {},                               -- [m.k] = { times, entries, group }
 		sent = old and old.sent or 0,              -- outputs of the session
@@ -292,15 +304,48 @@ end
 
 local function say(text) compat().ChatLine(Notify.PREFIX .. text) end
 
+---------------------------------------------------------------------------------------------------------------------
+-- Quiet hours (SPEC-13 §4)
+---------------------------------------------------------------------------------------------------------------------
+-- Whether `hour` is in [from, to), also across midnight.
+function Notify.InHours(hour, from, to)
+	if from < to then return hour >= from and hour < to end
+	return hour >= from or hour < to
+end
+
+-- QUI-01: why notices are held now ("combat", "instance" or "hours"), or nil.
+function Notify:Holding()
+	if not Notify.Enabled() then return nil end
+	if state.fighting or compat().InCombat() then return "combat" end
+	local q = ns.Config and ns.Config:Get("account.settings.quiet")
+	if type(q) ~= "table" then return nil end
+	if q.instances == true then
+		local inside, kind = compat().InInstance()
+		if inside and Notify.INSTANCES[kind] then return "instance" end
+	end
+	if q.on == true then
+		local hour = compat().LocalHour()
+		if hour and Notify.InHours(hour, q.from, q.to) then return "hours" end
+	end
+	return nil
+end
+
 local function flush()
-	state.timer = false
+	state.timer = nil
+	if #state.pending == 0 or not Notify.Enabled() then return end
+	if Notify:Holding() then   -- they stay in the queue, in order
+		local t = serverTime()
+		for _, item in ipairs(state.pending) do item.held = item.held or t end
+		return
+	end
 	local items = state.pending
 	state.pending = {}
-	if #items == 0 or not Notify.Enabled() then return end
-	local lines, toasts, sound, over = {}, {}, nil, false
+	local lines, toasts, sound, over, released = {}, {}, nil, false, false
 	for _, item in ipairs(items) do
 		local e = item.entry
-		if not e.muted and not e.read and anyOutput(e.module) and stillThere(item) then
+		local late = item.held ~= nil and serverTime() - item.held > Notify.HELD_MAX
+		released = released or item.held ~= nil
+		if not late and not e.muted and not e.read and anyOutput(e.module) and stillThere(item) then
 			if state.sent >= Notify.SESSION_MAX then
 				over = true
 			else
@@ -319,7 +364,15 @@ local function flush()
 		state.saidMore = true
 		say(ns.L["NOTICE_SESSION_MORE"])
 	end
+	if released and #toasts > 1 then   -- QUI-03: one toast, the last alert (without one, the last)
+		local one = toasts[#toasts]
+		for i = #toasts, 1, -1 do
+			if toasts[i].level == "alert" then one = toasts[i] break end
+		end
+		toasts = { one }
+	end
 	if ns.Toast then
+		ns.Toast:Resume()
 		for _, e in ipairs(toasts) do ns.Toast:Push(e) end
 	end
 	if sound and (not state.lastSound or clock() - state.lastSound >= Notify.SOUND_GAP) then
@@ -332,10 +385,42 @@ local function queue(entry, still)
 	if entry.muted or entry.level == "quiet" then return end
 	state.pending[#state.pending + 1] = { entry = entry, still = still }
 	if state.timer then return end
-	state.timer = true
-	local epoch = state.epoch
-	local scheduled = compat().After(Notify.NOTICE_WAIT, function() if epoch == state.epoch then flush() end end)
+	state.serial = state.serial + 1
+	local epoch, id = state.epoch, state.serial
+	state.timer = id
+	local scheduled = compat().After(Notify.NOTICE_WAIT, function()
+		if epoch == state.epoch and state.timer == id then flush() end
+	end)
 	if not scheduled then flush() end
+end
+
+-- QUI-03: lets the held notices out when nothing holds any more. True when it did.
+function Notify:Release()
+	if not Notify.Enabled() or self:Holding() then return false end
+	if ns.Toast then ns.Toast:Resume() end
+	for _, item in ipairs(state.pending) do
+		if item.held then
+			flush()
+			return true
+		end
+	end
+	return false
+end
+
+local function releaseIn(seconds)
+	local epoch = state.epoch
+	compat().After(seconds, function() if epoch == state.epoch then Notify:Release() end end)
+end
+
+function Notify:OnCombat(fighting)
+	if not Notify.Enabled() then return end
+	state.fighting = fighting and true or false
+	if not state.fighting then releaseIn(Notify.RELEASE_COMBAT) end
+end
+
+-- A loading screen or another area: the player may have left an instance.
+function Notify:OnZone()
+	if Notify.Enabled() then releaseIn(Notify.RELEASE_INSTANCE) end
 end
 
 local function unqueue(entry)
@@ -516,6 +601,7 @@ end
 
 function Notify:Check()
 	if not (Notify.Enabled() and ns.GuildKey and ns.GuildKey:Current()) then return end
+	self:Release()   -- the quiet hours end with no event
 	for _, def in ipairs(self:Modules()) do
 		if def.check then
 			local ok = pcall(def.check)
@@ -544,14 +630,18 @@ end
 
 -- Counts only: never a name or a text.
 function Notify:DebugLines()
-	return { ("Notify: %d entr(ies), %d unread, %d waiting, %d sent this session, login window %s, %d error(s)"):format(
-		#self:Entries(), self:Unread(), #state.pending, state.sent, state.window and "open" or "closed", self.errorCount) }
+	return { ("Notify: %d entr(ies), %d unread, %d waiting, %d sent this session, login window %s, held by %s, %d error(s)"):format(
+		#self:Entries(), self:Unread(), #state.pending, state.sent, state.window and "open" or "closed",
+		self:Holding() or "nothing", self.errorCount) }
 end
 
 if ns.addon then
 	ns.addon.Notify = Notify
 	if ns.Bus then
 		ns.Bus:On("SYNC_HELLO", function(sent) if sent then Notify:OnHello() end end)
+		ns.Bus:On("CONFIG_CHANGED", function(path)
+			if type(path) == "string" and path:find("account.settings.quiet.", 1, true) == 1 then Notify:Release() end
+		end)
 		ns.Bus:On("GUILD_CHANGED", function(key)
 			Notify:Reset()
 			if Notify.Enabled() then
@@ -565,7 +655,14 @@ if ns.addon then
 		ns.OnEnable(function()
 			if not Notify.Enabled() then return end
 			-- NTF-05 is about a login (PLAYER_ENTERING_WORLD follows PLAYER_LOGIN): a /reload opens no window
-			Notify:RegisterEvent("PLAYER_ENTERING_WORLD", function(_, isLogin) if isLogin then Notify:OnLogin() end end)
+			Notify:RegisterEvent("PLAYER_ENTERING_WORLD", function(_, isLogin)
+				if isLogin then Notify:OnLogin() end
+				state.fighting = compat().InCombat()
+				Notify:OnZone()
+			end)
+			Notify:RegisterEvent("ZONE_CHANGED_NEW_AREA", function() Notify:OnZone() end)
+			Notify:RegisterEvent("PLAYER_REGEN_DISABLED", function() Notify:OnCombat(true) end)
+			Notify:RegisterEvent("PLAYER_REGEN_ENABLED", function() Notify:OnCombat(false) end)
 			if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Notify", function() return Notify:DebugLines() end) end
 			Notify:Start()
 		end)

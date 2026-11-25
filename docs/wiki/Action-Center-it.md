@@ -70,6 +70,20 @@ I due interruttori per le richieste nuove e per le decisioni sono quelli di prim
 - Più di 20 avvisi dello stesso tipo in un minuto diventano uno solo.
 - Dopo 30 avvisi in una sessione gli altri vanno solo nella cronologia, e una riga dice *Altri avvisi in /accord inbox*.
 
+## Ore di quiete
+
+> **Non ancora in un rilascio.** Le ore di quiete (passo M9.4) arrivano con la `v0.9.0`. Nulla di questo è stato verificato nel gioco vero.
+
+Un avviso **aspetta** invece di comparire in chat, sullo schermo o con un suono:
+
+- mentre sei **in combattimento**, sempre;
+- mentre sei in una **spedizione, incursione, campo di battaglia, arena o scenario**: l'interruttore *Anche in spedizioni, incursioni e campi di battaglia*, acceso di predefinito, che vale anche con le ore di quiete spente;
+- nelle tue **ore di quiete**: l'interruttore *Ore di quiete*, **spento di predefinito**, con *Dalle* e *Alle* (23:00 e 8:00 se non li cambi), secondo l'ora del tuo computer. *Dalle* 23:00 *Alle* 8:00 vuol dire dalle 23:00 alle 7:59.
+
+Si impostano nelle [[Impostazioni|Settings-it]], card **Notifiche**. La cronologia della pagina **Avvisi** ha subito ogni avviso, anche mentre aspetta.
+
+Quando nulla li trattiene più, gli avvisi in attesa escono **una volta sola, nell'ordine di arrivo**: 3 secondi dopo il combattimento, 5 secondi dopo l'uscita dall'istanza, entro un minuto dalla fine delle ore di quiete. Escono insieme: al massimo tre righe in chat e *e altri N*, un solo riquadro sullo schermo e un solo suono. Un avviso che hai letto nel frattempo, che non è più vero o che ha aspettato più di 12 ore resta solo nella cronologia. Lo stesso gli avvisi in attesa se ricarichi l'interfaccia o esci dal gioco.
+
 ## Non ancora qui
 
-Le ore di quiete (e il trattenere gli avvisi in combattimento) e il riepilogo all'accesso sono i prossimi passi di M9.
+Il riepilogo all'accesso è il prossimo passo di M9.

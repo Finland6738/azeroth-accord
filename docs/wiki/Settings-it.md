@@ -47,7 +47,7 @@ Dì agli ufficiali quando torni: scrivi la **data di rientro** (AAAA-MM-GG, al m
 | Avvisami in chat delle nuove richieste alla banca | solo gli ufficiali | sì |
 | Avvisami in chat quando le mie richieste alla banca sono decise | tutti | sì |
 
-Ogni opzione è un interruttore. Dalla `v0.9.0` la stessa card fa anche scegliere se gli avvisi della banca arrivano come riga in chat, riquadro sullo schermo o suono, e ogni avviso resta nella cronologia ([[Centro azioni|Action-Center-it]]). Sono singole righe in chat (mai un diluvio all'accesso). Spegnerle non nasconde nulla: il contatore sulla scheda Accord e la vista Banca mostrano sempre cosa è in attesa ([[Banca di gilda|Guild-Bank-it]]).
+Ogni opzione è un interruttore. Dalla `v0.9.0` la stessa card fa anche scegliere se gli avvisi della banca arrivano come riga in chat, riquadro sullo schermo o suono, e ogni avviso resta nella cronologia ([[Centro azioni|Action-Center-it]]). Avrà anche le **ore di quiete**: quando gli avvisi aspettano ([[Centro azioni|Action-Center-it]]). Sono singole righe in chat (mai un diluvio all'accesso). Spegnerle non nasconde nulla: il contatore sulla scheda Accord e la vista Banca mostrano sempre cosa è in attesa ([[Banca di gilda|Guild-Bank-it]]).
 
 ## Colonne del roster
 

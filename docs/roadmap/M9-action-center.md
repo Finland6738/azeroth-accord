@@ -43,7 +43,8 @@ Release: `v0.9.0`.
 - Spec: SPEC-13
 - Scope: quiet hours set by the player; notices are held during combat and in instances, and released after.
 - Done when:
-  - [ ] Held notices come out once, in order, after combat or the quiet hours.
+  - [x] Held notices come out once, in order, after combat or the quiet hours.
+  - *Done (2026-11-25):* notices are held in combat, in instances (a switch, on by default) and in the quiet hours (off by default, 23 to 8, local time, also across midnight), and come out once, in order, as one burst (QUI-01 to QUI-03); the history has them at once; the rows in the Notifications card of Settings, `account.settings.quiet` in schema 4; `Tests/test_quiet.lua`. Behind the switch `actions`. Not checked in the game.
 
 ### M9.5 — Login digest
 - Branch: `step/m9-5-digest`

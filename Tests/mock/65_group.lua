@@ -102,4 +102,4 @@ function GetRaidRosterInfo(index)
 	return m.name, 0, m.subgroup, m.level, m.class, m.class, "Orgrimmar", true, false, "NONE", false
 end
 
-function IsInInstance() return W.inInstance == true, W.inInstance and "party" or "none" end
+function IsInInstance() return W.inInstance == true, W.inInstance and (W.instanceType or "party") or "none" end

@@ -189,6 +189,15 @@ Un modulo pubblica con `Notify:Post(module, kind, n)`, `n = { key, level, text, 
 - **QUI-03 Rilascio**: quando nessuna condizione vale più (3 s dopo `PLAYER_REGEN_ENABLED`, 5 s dopo l'uscita dall'istanza, al controllo di ogni minuto per la fine delle ore di quiete), gli avvisi trattenuti escono **una volta sola, nell'ordine di arrivo**, come una sola raffica (§3.4: 3 righe e `and N more`), con un solo toast (l'ultimo `alert`) e al massimo un suono. Un avviso con `still()` falso o trattenuto da più di 12 ore non esce (resta nella cronologia).
 - Anche il riepilogo (§5) aspetta.
 
+### 4.1 Come è fatto (M9.4)
+
+- Tutto in `Data/Notify.lua`: `Notify:Holding()` dice perché si trattiene (`combat`, `instance`, `hours` o niente, anche in `/accord debug`). Gli avvisi trattenuti restano nella coda delle uscite, nell'ordine di arrivo, segnati con l'ora in cui sono stati trattenuti (le 12 ore contano da lì). Un avviso nuovo che arriva dopo la fine di ogni condizione, prima del rilascio, esce insieme ai trattenuti, in coda a loro.
+- `instances` vale **anche con le ore di quiete spente** (QUI-01); `on` governa solo le ore. L'ora locale è `Compat.LocalHour()` (`date("*t")`).
+- Il rilascio parte dopo `PLAYER_REGEN_ENABLED` (3 s), dopo `PLAYER_ENTERING_WORLD` e `ZONE_CHANGED_NEW_AREA` (5 s), al controllo di ogni minuto e subito quando si cambia un'impostazione delle ore di quiete.
+- Il toast del rilascio è l'ultimo `alert`; se tra i rilasciati non c'è un `alert`, l'ultimo che ha il toast. I toast già in coda dietro quello sullo schermo si fermano finché una condizione vale e riprendono al rilascio; quello già visibile resta fino alla sua scadenza.
+- La coda è della sessione: dopo un `/reload`, un logout o un cambio di gilda gli avvisi trattenuti restano solo nella cronologia (non letti).
+- Nella carta, *From* e *To* sono due elenchi delle 24 ore, e ognuno non offre l'ora dell'altro; un valore salvato con `from = to` rimette tutta la tabella `quiet` al predefinito.
+
 ## 5. Riepilogo all'accesso (M9.5)
 
 ### 5.1 Quando

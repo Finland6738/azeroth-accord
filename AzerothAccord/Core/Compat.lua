@@ -978,6 +978,12 @@ function Compat.ServerDay()
 	return tonumber(date("!%Y%m%d", Compat.ServerTime()))
 end
 
+-- The hour (0-23) of the player's computer, for the quiet hours (SPEC-13 §4); nil when date() gives no table.
+function Compat.LocalHour()
+	local t = date("*t")
+	return type(t) == "table" and num(t.hour) or nil
+end
+
 -- Monotonic seconds with sub-second precision (GetTime); the wall clock when the client function is missing.
 function Compat.Now()
 	local v = first("GetTime")

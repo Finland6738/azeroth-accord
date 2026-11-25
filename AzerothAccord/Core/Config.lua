@@ -22,7 +22,8 @@ local floor, huge = math.floor, math.huge
 local byte, char, concat = string.byte, string.char, table.concat
 
 -- 2 (M6.10): the look settings of the account (theme, effects, animations, font); 3 (M7.6): shareCoplay;
--- 4 (M9, SPEC-13 §1.4): notify, the outputs of the notices (M9.3; the later steps of M9 add their keys to this step)
+-- 4 (M9, SPEC-13 §1.4): notify, the outputs of the notices (M9.3), and quiet, the quiet hours (M9.4); the later steps
+-- of M9 add their keys to this step
 Config.SCHEMA_VERSION = 4
 
 -- Development build. A checkout of the repository is one; the BigWigs packager comments out the block between the
@@ -59,6 +60,7 @@ Config.defaults = {
 				groups = { chat = true, toast = true, sound = false, off = { match = true } },
 				digest = { chat = true, toast = false, sound = false, off = {} },
 			},
+			quiet = { on = false, from = 23, to = 8, instances = true },   -- quiet hours, local time (SPEC-13 §4)
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
 			shareCoplay = true },   -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
 	},
@@ -114,13 +116,27 @@ for _, module in ipairs({ "bank", "groups", "digest" }) do
 	end }
 end
 
+-- The quiet hours (SPEC-13 §4): whole local hours, and a window that starts when it ends is none.
+local function hourOr(v, default)
+	if type(v) == "number" and v >= 0 and v <= 23 and v == floor(v) then return v end
+	return default
+end
+Config.rules["account.settings.quiet"] = { type = "table", validate = function(v)
+	local d = Config.defaults.account.settings.quiet
+	return hourOr(v.from, d.from) ~= hourOr(v.to, d.to)
+end }
+for _, key in ipairs({ "on", "instances" }) do Config.rules["account.settings.quiet." .. key] = { type = "boolean" } end
+for _, key in ipairs({ "from", "to" }) do
+	Config.rules["account.settings.quiet." .. key] = { type = "number", min = 0, max = 23, integer = true }
+end
+
 -- Migrations: Config.migrations[scope][n] brings data from version n-1 to n. Each step must be idempotent (running it
 -- on data that already has the new shape changes nothing). Version 1 is the first schema: data without a version is
 -- treated as 0 and only needs the defaults and the rules, so step 1 has nothing to do.
 -- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
 -- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
 -- Version 3 (M7.6) adds `shareCoplay` (default true) to the account's settings, when it is not there yet.
--- Version 4 (M9) adds `notify` to the account's settings, when it is not there yet.
+-- Version 4 (M9) adds `notify` and `quiet` to the account's settings, each only when it is not there yet.
 local function deep(v)
 	if type(v) ~= "table" then return v end
 	local out = {}
@@ -145,6 +161,7 @@ Config.migrations = {
 		[4] = function(db)
 			if type(db.settings) ~= "table" then db.settings = {} end
 			if db.settings.notify == nil then db.settings.notify = defaultSetting("notify") end
+			if db.settings.quiet == nil then db.settings.quiet = defaultSetting("quiet") end
 		end,
 	},
 	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end, [4] = function(db) end },

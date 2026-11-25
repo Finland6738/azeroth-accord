@@ -126,6 +126,24 @@ function Model.SetKind(module, kind, on)
 	return true
 end
 
+-- The quiet hours (SPEC-13 §4, M9.4): account.settings.quiet = { on, from, to, instances }.
+function Model.GetQuiet(key)
+	local v = ns.Config and ns.Config:Get("account.settings.quiet." .. key)
+	if v == nil then return defaultAt("account.settings.quiet." .. key) end
+	return v
+end
+
+-- Saves one of them. Returns true, or false and the reason ("same": the window would start when it ends).
+function Model.SetQuiet(key, value)
+	if (key == "from" and value == Model.GetQuiet("to")) or (key == "to" and value == Model.GetQuiet("from")) then
+		return false, "same"
+	end
+	local ok, why = ns.Config:Set("account.settings.quiet." .. key, value)
+	if not ok then return false, why end
+	emit("SETTINGS_CHANGED", "quiet")
+	return true
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Appearance (M6.14, docs/specs/ui-style.md §2): the look, saved per account; UI/Theme.lua repaints on CONFIG_CHANGED
 ---------------------------------------------------------------------------------------------------------------------

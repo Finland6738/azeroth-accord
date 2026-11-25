@@ -120,6 +120,19 @@ local function segmentRow(parent, label, items, onSelect)
 	return row
 end
 
+-- A line with a label at the left and a Widgets.Select of the 24 hours at the right.
+local function hourRow(parent, label, onSelect)
+	local row = CreateFrame("Frame", nil, parent)
+	row:SetSize(INNER, 32)
+	row.select = Widgets.Select(row, { width = 110, onSelect = onSelect })
+	row.select:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+	row.label = Widgets.Text(row, "Body", "text-1", "LEFT")
+	row.label:SetPoint("LEFT", row, "LEFT", 0, 0)
+	row.label:SetPoint("RIGHT", row.select, "LEFT", -12, 0)
+	row.label:SetText(label)
+	return row
+end
+
 local function say(fs, msg, token)
 	fs:SetText(msg or "")
 	Theme.Text(fs, token or "text-2")
@@ -193,6 +206,22 @@ local function refreshNotices(f)
 	for _, k in pairs(f.noticeKinds) do
 		k.row:SetChecked(M.GetKind(k.module, k.kind))
 		k.row:SetShown(on)
+	end
+	-- the quiet hours (M9.4): each end offers every hour but the other one
+	local q = f.quiet
+	q.head:SetShown(on)
+	for _, key in ipairs({ "on", "instances" }) do
+		q[key]:SetChecked(M.GetQuiet(key))
+		q[key]:SetShown(on)
+	end
+	for key, other in pairs({ from = "to", to = "from" }) do
+		local choices = {}
+		for hour = 0, 23 do
+			if hour ~= M.GetQuiet(other) then choices[#choices + 1] = { id = hour, text = ("%02d:00"):format(hour) } end
+		end
+		q[key].select:SetChoices(choices)
+		q[key].select:Select(M.GetQuiet(key), true)
+		q[key]:SetShown(on)
 	end
 	f.noticeNote:SetText(on and L["SET_NOTIFY_NOTE_CENTRE"] or L["SET_NOTIFY_NOTE"])
 end
@@ -515,7 +544,7 @@ local function buildAbsence(f, page)
 end
 
 -- The notices card: per module a heading, its three outputs and its switches (M9.3); the two bank options of M5 are the
--- switches of the module `bank`.
+-- switches of the module `bank`. Under them the quiet hours (M9.4).
 local function buildNotices(f, page)
 	local card = stackCard(page)
 	local M = Model()
@@ -548,6 +577,21 @@ local function buildNotices(f, page)
 	for _, o in ipairs(M.OPTIONS) do
 		if o.group == "notifications" then option(o) end
 	end
+	local q = {}
+	f.quiet = q
+	q.head = card:Add(text(card, "Eyebrow", "text-3"), 14)
+	q.head:SetText(L["SET_QUIET"])
+	local function toggle(key, label)
+		q[key] = card:Add(switchRow(card, L[label], { L[label], L[label .. "_TIP"] },
+			function(on) M.SetQuiet(key, on) end), 6)
+	end
+	local function hour(key, label)
+		q[key] = card:Add(hourRow(card, L[label], function(value) M.SetQuiet(key, value) end), 6)
+	end
+	toggle("on", "SET_QUIET")
+	hour("from", "SET_QUIET_FROM")
+	hour("to", "SET_QUIET_TO")
+	toggle("instances", "SET_QUIET_INSTANCES")
 	f.noticeNote = card:Add(text(card, "Small", "text-3"), 8)
 	f.noticeNote:SetText(L["SET_NOTIFY_NOTE"])
 	return card

@@ -4,7 +4,9 @@
 -- the ones beyond are summed up in one "N more notices" box, which opens the Notices page. The game's own alert frames
 -- and warning systems are never used (no taint). The frame is unprotected and is made when the first notice comes out.
 --   Toast:Push(entry)   shows an entry of Data/Notify.lua, or queues it
---   Toast:Close()       closes the box on screen and shows the next one
+--   Toast:Close()       closes the box on screen and shows the next one; while notices are held (SPEC-13 §4) the
+--                       ones waiting stay until Toast:Resume()
+--   Toast:Resume()      shows the next waiting one when nothing is on screen
 --   Toast:Reset()       drops everything
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -72,7 +74,7 @@ end
 
 function Toast:Push(entry)
 	if type(entry) ~= "table" then return false end
-	if not self.current then
+	if not self.current and #self.queue == 0 then
 		show(entry)
 	elseif #self.queue < Toast.QUEUE then
 		self.queue[#self.queue + 1] = entry
@@ -91,9 +93,17 @@ function Toast:Open()
 	return false
 end
 
+function Toast:Resume()
+	if not self.current and (#self.queue > 0 or self.over > 0) then self:Close() end
+end
+
 function Toast:Close()
 	self.current = nil
 	serial = serial + 1
+	if ns.Notify:Holding() then   -- nothing pops up now
+		if self.frame then self.frame:Hide() end
+		return
+	end
 	local nextOne = remove(self.queue, 1)
 	if not nextOne and self.over > 0 then
 		nextOne, self.over = { more = self.over }, 0

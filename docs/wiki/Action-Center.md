@@ -70,6 +70,20 @@ The two switches for new requests and for decisions are the same as before, with
 - More than 20 notices of one kind in a minute become one.
 - After 30 notices in one session the others only go to the history, and one line says *More notices in /accord inbox*.
 
+## Quiet hours
+
+> **Not in a release yet.** Quiet hours (step M9.4) arrive with `v0.9.0`. Nothing of this has been checked in the real game.
+
+A notice **waits** instead of showing in chat, on screen or with a sound:
+
+- while you are **in combat**, always;
+- while you are in a **dungeon, raid, battleground, arena or scenario**: the switch *Also in dungeons, raids and battlegrounds*, on by default, which works also with the quiet hours off;
+- during your **quiet hours**: the switch *Quiet hours*, **off by default**, with *From* and *To* (23:00 and 8:00 if you do not change them), in the time of your computer. *From* 23:00 *To* 8:00 means from 23:00 to 7:59.
+
+Set them in [[Settings|Settings]], card **Notifications**. The history of the **Notices** page has every notice at once, also while it waits.
+
+When nothing holds them any more, the waiting notices come out **once, in the order they arrived**: 3 seconds after combat, 5 seconds after leaving the instance, within a minute of the end of the quiet hours. They come together: three chat lines at most and *and N more*, one on-screen box and one sound at most. A notice you have read meanwhile, one that is no longer true, or one that waited more than 12 hours stays in the history only. So do the waiting notices if you reload the interface or log out.
+
 ## Not yet here
 
-Quiet hours (and holding notices in combat) and the summary at login are the next steps of M9.
+The summary at login is the next step of M9.
