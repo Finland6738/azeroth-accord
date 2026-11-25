@@ -137,8 +137,9 @@ So M10 and M11 follow these rules:
 - Scope:
   - with Accord as source: officers place signed-up players in the raid or on the bench, and see the composition against the target. MS2 is offered when a role is short;
   - with FDCP as source: the night's lineup and bench are FDCP's. Accord shows them read-only (level 1) or points to FDCP (level 0), and offers no bench of its own. *Done ahead in M11.7 (the Raid view).*
+  - *Done (2026-11-25):* the record `C:<event>` of `raidev` (officers and the Guild Master only; `Data/Composition.lua`), in the **Events** view the own place, the raid and the bench for everybody and, for officers, who signed up and is not placed (game calendar and matched Raid-Helper sign-ups), the roles against the target, the MS2 offers and **To raid** / **To bench** / **Remove**; **Write to calendar** after a confirmation writes confirmed and standby with M10.6's write, so never over an answer given in the game (SPEC-10 Q25), at most 40 per confirmation; the line-up in the Discord export. With FDCP as the source nothing is written, accepted or shown, and the view shows FDCP's night where it gives one. `Tests/test_composition.lua`.
 - Done when:
-  - [ ] Only officers can change the composition; the members see where they are placed; with FDCP as source, no composition can be written in Accord.
+  - [x] Only officers can change the composition; the members see where they are placed; with FDCP as source, no composition can be written in Accord.
 
 ### M10.8 — Availability map
 - Branch: `step/m10-8-availability`

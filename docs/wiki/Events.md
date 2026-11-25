@@ -39,6 +39,28 @@ If the game does not let an addon answer for you, Accord opens the game's calend
 
 Officers can paste the export of a Raid-Helper event: it shows here with the calendar event of the same date and time, or on its own, and can be written into the game calendar after a confirmation. See [[Raid-Helper events|Raid-Helper]].
 
+## Raid and bench
+
+Officers and the Guild Master make the **line-up** of an event of the game calendar (or of one kept only in Accord) in the same view. Everybody who has Accord sees it when they choose the event: **your place** (in the raid, on the bench, or not placed), the raid and the bench with each role, and the raid's roles against the target composition (see [[Season roster|Season-Roster]]).
+
+Officers also see:
+
+- **Signed up, not placed**: who signed up or is tentative in the game calendar, and the matched sign-ups of a [[Raid-Helper event|Raid-Helper]]. A *Declined* given in the game wins over Discord.
+- **MS2 for a short role**: when the raid is under the target in a role, the players whose declared MS2 is that role.
+- a row to **choose a player** and press **To raid**, **To bench** or **Remove**. Choose the line that says *as ... (MS2)* to place a player as their MS2. One player counts once, whichever character: placing another character replaces the first. Who changes their answer afterwards is marked *no longer signed up*.
+
+An event that is only on Discord has no line-up: put it into the game calendar first.
+
+### Into the game calendar
+
+Placing a player writes **nothing** into the calendar. **Write to calendar**, then **Confirm**, writes the raid as *confirmed* and the bench as *standby*, **only for the members who have not answered in the game** (for example those who signed up on Discord only): an answer a member gave in the game is **never changed**, so who signed up in the game stays *signed up*. The other limits are those of [[Raid-Helper events|Raid-Helper]]: one write at a time, at most 40 members per confirmation, stopping at the first error. Whether the game allows these writes has not been checked on WoW Forever.
+
+**Export** gives the line-up back to Discord with the event's sign-ups.
+
+### With FDCP as the source
+
+When the officers chose **FDCP** for the season roster and the line-up, Accord has no line-up of its own and nobody can write one in Accord. The view says so and, where your FDCP gives the open raid night (officers' clients), shows its raid and bench, read-only. Line-ups made in Accord before are hidden, not deleted.
+
 ## Without the game calendar
 
 Only when your client has **no usable calendar** (the game gives no event list within a minute), officers and the Guild Master can create an event in Accord: a title, the date and time (`YYYY-MM-DD HH:MM`) and the raid size. Members answer it in Accord. These events are always marked **Not in the game calendar**, also for members whose game has a calendar, and the game, FDCP and the other addons do not see them. When FDCP is the guild's source, the event says that **answers given there do not count for FDCP**, which reads sign-ups from the game calendar only.
@@ -47,5 +69,6 @@ Only when your client has **no usable calendar** (the game gives no event list w
 
 - Your answer to a calendar event is **in the game calendar**, as if you had answered in the game.
 - Your **role** for an event, and your answers to events kept only in Accord, reach the whole guild like the other guild data, and are listed in *What I share* (see [[Privacy and Data|Privacy-and-Data]]). They are removed 2 days after the event.
+- A **line-up** (who is in the raid and who is on the bench) is written by officers, reaches the guild and is removed 2 days after the event. It is a plan, not a record of who came.
 - Accord never answers for somebody else, and it records **no attendance**: nothing says who was at a raid.
 - During a boss fight Accord sends nothing but its short urgent messages, as FDCP does.

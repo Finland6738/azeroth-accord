@@ -21,7 +21,9 @@
 --             creates a guild sign-up event) and, for the matched members who gave no answer in the game, invites them and
 --             writes their state where the client lets this officer (never over an answer given in the game, SPEC-10 Q25),
 --             one call at a time, at most INVITE_MAX members per confirmation; an error stops and says who was left out.
---             Where Accord cannot write the state, the member finds a row in the Action Center.
+--             Where Accord cannot write the state, the member finds a row in the Action Center. The same write puts a
+--             line-up into the calendar (RaidHelper:Write, from Data/Composition.lua, M10.7): confirmed and standby, under
+--             the same rules. An answer given with another character of the account counts as the member's answer.
 -- Only Raid.WRITERS (officers and the Guild Master) import and write into the calendar.
 --
 -- Switch: Core/Features.lua "season" (M10). Off: nothing is imported, written, accepted, sent or shown.
@@ -568,7 +570,8 @@ end
 
 -- The rows of an event for the export back to Discord (Data/Export.lua kind "event"): the answers of the game calendar
 -- (with the role chosen in Accord) and the sign-ups of Discord, one per account. `e` the calendar event or nil, `rec` the
--- import or nil. { { guid?, name, class?, role?, answer?, discord? } }
+-- import or nil; the line-up of the event (Data/Composition.lua) adds whoever it places.
+-- { { guid?, name, class?, role?, answer?, discord?, lineup? = "raid" | "bench" } }
 function RH:ExportRows(e, rec)
 	local rows, byKey = {}, {}
 	local function row(key, guid, name)
@@ -582,7 +585,9 @@ function RH:ExportRows(e, rec)
 		return r
 	end
 	local inv = e and ns.Calendar.invites[e.key]
-	for _, i in ipairs(inv and inv.list or {}) do
+	local list = inv and inv.list
+	if e and e.addonOnly then list = ns.Calendar:LocalAnswers(e.key) end
+	for _, i in ipairs(list or {}) do
 		if i.answer then
 			local guid = i.guid
 			if not guid and i.name then
@@ -598,6 +603,16 @@ function RH:ExportRows(e, rec)
 		local r = row(RH.AccountKey(s.g), s.g)
 		r.discord, r.role = s.st, r.role or s.role
 		r.class = r.class or s.class
+	end
+	local lineup = e and ns.Composition:Model(e)
+	for _, where in ipairs(lineup and ns.Composition.PLACES or {}) do
+		for _, p in ipairs(lineup[where]) do
+			local r = row(RH.AccountKey(p.guid), p.guid, p.name)
+			-- the line-up says which character plays, and as what
+			local m = ns.Roster:ByGUID(p.guid)
+			if m then r.guid, r.name, r.class = p.guid, m.name, m.classFile end
+			r.lineup, r.role = where, p.role or r.role
+		end
 	end
 	return rows
 end
@@ -633,30 +648,72 @@ local function findInvite(list, guid, name)
 	return nil
 end
 
+-- The invite of the target in the list: its character's, unless another character of the same account has answered (an
+-- answer of the member, whichever character gave it).
+local function inviteFor(list, guid, name)
+	local i, row = findInvite(list, guid, name)
+	if row and row.status and not unanswered(row.status) then return i, row end
+	local key = RH.AccountKey(guid)
+	for j, other in ipairs(list) do
+		if other.guid and other.status and not unanswered(other.status)
+			and (RH.AccountKey(other.guid) == key or S():SameAccount(guid, other.guid)) then return j, other end
+	end
+	return i, row
+end
+
+-- The members of the queue who gave no answer in the calendar event `e` (nil: not created yet), as far as its answers
+-- were read.
+local function waiting(e, queue)
+	local inv = e and ns.Calendar.invites[e.key]
+	local total = 0
+	for _, target in ipairs(queue) do
+		local row
+		if inv then row = select(2, inviteFor(inv.list, target.guid, target.name)) end
+		if not (row and row.status and not unanswered(row.status)) then total = total + 1 end
+	end
+	return total
+end
+
+-- Why nothing may be written now, or nil: "off", "officer", "busy".
+local function notWriting()
+	if not RH.Enabled() then return "off" end
+	if not RH.CanImport() then return "officer" end
+	if RH.job then return "busy" end
+	return nil
+end
+
+local function past(start) return start <= (RH.RealmStart(now()) or now()) end
+
+-- What a write of `queue` into the existing calendar event `e` would do: { create = false, event, total = members without
+-- an answer, members = n (at most INVITE_MAX) }, or nil and a reason ("off", "officer", "busy", "past", or why the
+-- calendar cannot be opened now).
+function RH:PlanWrite(e, queue)
+	local why = notWriting() or ns.Calendar:Blocked()
+	if why then return nil, why end
+	if past(e.start) then return nil, "past" end
+	local total = waiting(e, queue)
+	return { create = false, event = e, total = total, members = math.min(total, RH.INVITE_MAX) }
+end
+
 -- What a confirmation would do: { create = boolean, event?, members = n (at most INVITE_MAX), total = n, other? = title of
 -- another raid event of the day }, or nil and a reason ("off", "officer", "busy", "missing", "past", "nocreate", or why
 -- the calendar cannot be opened now, Calendar:Blocked()).
 function RH:Plan(id)
-	if not RH.Enabled() then return nil, "off" end
-	if not RH.CanImport() then return nil, "officer" end
-	if self.job then return nil, "busy" end
+	local blocked = notWriting()
+	if blocked then return nil, blocked end
 	local rec = self:Get(id)
 	if not rec then return nil, "missing" end
 	local why = ns.Calendar:Blocked()
 	if why then return nil, why end
-	if rec.start <= (RH.RealmStart(now()) or now()) then return nil, "past" end
+	if past(rec.start) then return nil, "past" end
 	local e = self:EventAt(rec)
 	if not e and not Cal().CanCreate() then return nil, "nocreate" end
-	local inv = e and ns.Calendar.invites[e.key]
-	local total = 0
+	local queue = {}
 	for _, s in ipairs(rec.s) do
 		local m = ns.Roster:ByGUID(s.g)
-		if m then
-			local _, row
-			if inv then _, row = findInvite(inv.list, s.g, m.name) end
-			if not (row and row.status and not unanswered(row.status)) then total = total + 1 end
-		end
+		if m then queue[#queue + 1] = { guid = s.g, name = m.name } end
 	end
+	local total = waiting(e, queue)
 	local other = otherRaid(rec, e)
 	return { create = e == nil, event = e, total = total, members = math.min(total, RH.INVITE_MAX),
 		other = other and other.title or nil }
@@ -682,7 +739,7 @@ local function finish(job, why)
 		ns.Calendar:ReadHeld(why == nil)
 		ns.Calendar:Finish(why)
 	end
-	changed(job.id)
+	job.changed()
 end
 
 local step, poke
@@ -716,6 +773,7 @@ local function interrupted(job)
 	elseif compat().InCombat() then why = "combat"
 	elseif compat().EncounterInProgress() then why = "encounter"
 	elseif Cal().FrameShown() then why = "shown" end
+	if not why and job.check then why = job.check() end
 	if why then finish(job, why) return true end
 	return false
 end
@@ -790,7 +848,7 @@ step = function(job)
 	while job.index <= #job.queue do
 		local target = job.queue[job.index]
 		local list = Cal().Invites()
-		local i, row = findInvite(list, target.guid, target.name)
+		local i, row = inviteFor(list, target.guid, target.name)
 		local function done(kind)
 			target.settled = true
 			if kind then res[kind][#res[kind] + 1] = target.name end
@@ -822,7 +880,7 @@ step = function(job)
 				end)
 			end
 		else
-			local status = Cal().Status()[RH.CALENDAR_STATUS[target.answer]]
+			local status = Cal().Status()[target.status]
 			if not Cal().CanSetStatus(i, status) then
 				-- invited, the member answers in the game: a row of the Action Center says so
 				done("member")
@@ -840,6 +898,38 @@ step = function(job)
 	finish(job, nil)
 end
 
+-- Writes a queue { { guid, name, status = a name of Compat.Calendar.Status() } } into the game calendar, from an
+-- officer's confirming click (the caller made the plan first). spec = { id = the key of RaidHelper.result, queue,
+-- changed = function() after a change, event? = the calendar event written; without one: rec = the import and create =
+-- the fields of Compat.Calendar.Create; check? = function() -> why the write must stop }. Returns true while it runs, or
+-- false and a reason.
+function RH:Write(spec)
+	if self.job then return false, "busy" end
+	local job = { id = spec.id, rec = spec.rec, queue = spec.queue, index = 1, count = 0, seq = 0, changed = spec.changed,
+		check = spec.check, result = { pending = true, invited = 0, written = {}, answered = {}, member = {}, left = {} } }
+	self.job, self.result[spec.id] = job, job.result
+	if spec.event then
+		job.phase = "open"
+		job.created = spec.event
+		if not openFor(job, spec.event) then poke(job) end
+	else
+		job.phase, job.before = "create", {}
+		for _, e in ipairs(ns.Calendar:AllEvents()) do job.before[e.eventID] = true end
+		hold(job, "new", nil)
+		if call(job, Cal().Create, spec.create) then
+			wait(job, function()
+				for _, e in ipairs(ns.Calendar:AllEvents()) do
+					if e.start == job.rec.start and not job.before[e.eventID] then return true end
+				end
+				return false
+			end)
+		end
+	end
+	job.changed()
+	if job.done and not job.result.ok then return false, job.result.why end
+	return true
+end
+
 -- The officer's confirmation (from a click): writes the imported event `id` into the game calendar. Returns true while it
 -- runs (RaidHelper.result[id] says what happened), or false and a reason (as Plan).
 function RH:Push(id)
@@ -849,33 +939,16 @@ function RH:Push(id)
 	local queue = {}
 	for _, s in ipairs(rec.s) do
 		local m = ns.Roster:ByGUID(s.g)
-		if m then queue[#queue + 1] = { guid = s.g, name = m.name, answer = RH.ANSWER[s.st] } end
+		if m then queue[#queue + 1] = { guid = s.g, name = m.name, status = RH.CALENDAR_STATUS[RH.ANSWER[s.st]] } end
 	end
-	local job = { id = id, rec = rec, queue = queue, index = 1, count = 0, seq = 0,
-		result = { pending = true, invited = 0, written = {}, answered = {}, member = {}, left = {} } }
-	self.job, self.result[id] = job, job.result
-	if plan.event then
-		job.phase = "open"
-		job.created = plan.event
-		if not openFor(job, plan.event) then poke(job) end
-	else
-		job.phase, job.before = "create", {}
-		for _, e in ipairs(ns.Calendar:AllEvents()) do job.before[e.eventID] = true end
+	local create
+	if not plan.event then
 		local d = date("!*t", rec.start)
-		hold(job, "new", nil)
-		if call(job, Cal().Create, { title = RH.CalendarTitle(rec.title), description = ns.L["RH_CALENDAR_DESCRIPTION"],
-			year = d.year, month = d.month, day = d.day, hour = d.hour, minute = d.min }) then
-			wait(job, function()
-				for _, e in ipairs(ns.Calendar:AllEvents()) do
-					if e.start == rec.start and not job.before[e.eventID] then return true end
-				end
-				return false
-			end)
-		end
+		create = { title = RH.CalendarTitle(rec.title), description = ns.L["RH_CALENDAR_DESCRIPTION"], year = d.year,
+			month = d.month, day = d.day, hour = d.hour, minute = d.min }
 	end
-	changed(id)
-	if job.done and not job.result.ok then return false, job.result.why end
-	return true
+	return self:Write({ id = id, rec = rec, queue = queue, event = plan.event, create = create,
+		changed = function() changed(id) end })
 end
 
 -- A calendar event of the game arrived.

@@ -338,7 +338,7 @@ Model.Add("season", { set = "season", feature = "season", build = builders.seaso
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_SEASON" })
 
 -- the own roles and answers for events (M10.5, SPEC-14 §5.5) and, of an officer, the Raid-Helper events imported (M10.6,
--- §6.4); the answer to a calendar event is in the game calendar
+-- §6.4) and the line-ups written (M10.7, §7.2); the answer to a calendar event is in the game calendar
 builders.raidev = function(guid)
 	local lines, recs = {}, {}
 	for _, rec in ipairs(own("raidev", guid)) do
@@ -356,6 +356,11 @@ builders.raidev = function(guid)
 		elseif kind == "H" and type(rec.s) == "table" then
 			recs[#recs + 1] = rec
 			lines[#lines + 1] = L["SHARE_EVENTS_LINE"]:format(rec.title or "?", L["SHARE_RH_LINE"]:format(#rec.s))
+		elseif kind == "C" and type(rec.raid) == "table" and type(rec.bench) == "table" then
+			recs[#recs + 1] = rec
+			local e = C:Event(rec.id:sub(3))
+			local title = (e and e.title) or (ns.EventsView and ns.EventsView.WhenText(rec.at)) or "?"
+			lines[#lines + 1] = L["SHARE_EVENTS_LINE"]:format(title, L["SHARE_LINEUP_LINE"]:format(#rec.raid, #rec.bench))
 		end
 	end
 	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end

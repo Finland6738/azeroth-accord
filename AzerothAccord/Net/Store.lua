@@ -305,8 +305,8 @@ Store.SETS = {
 	},
 	raidev = {     -- events and sign-ups (Data/Calendar.lua, M10.5, SPEC-14 §5.5): "R:<key>:<GUID>" a role, "F:<GUID>:<n>" an
 		feature = "season",                       -- event only of the addon (officers), "A:<key>:<GUID>" an answer to one, "H:<id>" a
-		maxBytes = 12288,                         -- Raid-Helper import (officers); off: nothing. Only H: is that big (Calendar.MAX_BYTES)
-		authority = function(rec) return ns.Calendar ~= nil and ns.Calendar.Authority(rec) end,   -- F:, H: officers (NET-12)
+		maxBytes = 12288,                         -- Raid-Helper import, "C:<key>" a line-up (officers). Each kind has its own size
+		authority = function(rec) return ns.Calendar ~= nil and ns.Calendar.Authority(rec) end,   -- F:, H:, C: officers (NET-12)
 		authorAny = true,                         -- an event stays valid after its officer was demoted
 		owner = function(rec, s) if not ns.Calendar then return false end return ns.Calendar.ValidRecord(rec, s) end,
 		expires = function(rec, t) return ns.Calendar ~= nil and ns.Calendar.Expired(rec, t) end,   -- 2 days after the event

@@ -40,7 +40,7 @@ Export.CSV = {
 		"last_seen_character", "last_seen_source", "grouped_by_note", "away_until" },
 	timeline = { "date_utc", "since_utc", "event", "name", "realm", "from", "to", "observers" },
 	season = { "name", "realm", "class", "role", "ms1", "ms2", "os", "unsure", "note", "declared_date" },
-	event = { "name", "realm", "class", "role", "game_answer", "discord" },
+	event = { "name", "realm", "class", "role", "game_answer", "discord", "lineup" },
 }
 local SOURCES = { native = "game", shared = "shared", own = "you" }
 
@@ -185,7 +185,9 @@ function RECORDS.season(rows)
 	return out
 end
 
--- An event's sign-ups (back to Discord): by answer in the game (yes, maybe, no, none), then role, then name.
+-- An event's sign-ups (back to Discord): the raid first, then the bench (the line-up, M10.7), then the others; within
+-- each by answer in the game (yes, maybe, no, none), then role, then name.
+local LINEUP_ORDER = { raid = 1, bench = 2 }
 local ANSWER_ORDER = { yes = 1, maybe = 2, no = 3 }
 local ROLE_ORDER = { tank = 1, healer = 2, melee = 3, ranged = 4 }
 
@@ -194,10 +196,12 @@ function RECORDS.event(rows)
 	for _, r in ipairs(rows) do
 		local name, realm = nameRealm(r.guid, nil, r.name)
 		out[#out + 1] = { name = name, realm = realm, class = r.class or "", role = r.role or "", game_answer = r.answer or "",
-			discord = r.discord or "" }
+			discord = r.discord or "", lineup = r.lineup or "" }
 	end
 	table.sort(out, function(a, b)
-		local x, y = ANSWER_ORDER[a.game_answer] or 4, ANSWER_ORDER[b.game_answer] or 4
+		local x, y = LINEUP_ORDER[a.lineup] or 3, LINEUP_ORDER[b.lineup] or 3
+		if x ~= y then return x < y end
+		x, y = ANSWER_ORDER[a.game_answer] or 4, ANSWER_ORDER[b.game_answer] or 4
 		if x ~= y then return x < y end
 		x, y = ROLE_ORDER[a.role] or 5, ROLE_ORDER[b.role] or 5
 		if x ~= y then return x < y end
@@ -318,6 +322,7 @@ local DISCORD = {
 		{ "COL_NAME", function(r) return name(r.name) end },
 		{ "COL_CLASS", function(r) return r.class ~= "" and ns.Roster.ClassName(r.class) or "" end },
 		{ "EXPORT_COL_ROLE", function(r) return r.role ~= "" and ns.L["SEASON_ROLE_" .. r.role:upper()] or "" end },
+		{ "EXPORT_COL_LINEUP", function(r) return r.lineup ~= "" and ns.L["LINEUP_PLACE_" .. r.lineup:upper()] or "" end },
 		{ "EXPORT_COL_GAME", function(r) return r.game_answer ~= "" and ns.L["EVENTS_ANSWER_" .. r.game_answer:upper()] or "" end },
 		{ "EXPORT_COL_DISCORD", function(r) return r.discord ~= "" and ns.L["RH_STATE_" .. r.discord:upper()] or "" end },
 	},

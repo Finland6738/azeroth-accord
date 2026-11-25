@@ -27,7 +27,7 @@
 -- go Season.DROP_AFTER seconds after the season Season.KEEP + 1 places later was opened.
 --
 -- Provider: Integrations.OWN (Data/Integrations.lua) answers for Accord's season roster from here: Level, Season,
--- Entries, Entry, Lineup (nil until M10.7), CanDeclare, Gaps.
+-- Entries, Entry, Lineup (Data/Composition.lua, M10.7), CanDeclare, Gaps.
 -- Switch: Core/Features.lua "season" (M10). Off: the set takes nothing and sends nothing (Store `feature`), nothing here
 -- writes, and the Season view has no tab.
 -- Bus: SEASON_CHANGED() when a season or an entry changed, locally or received, or the source changed.
@@ -475,7 +475,7 @@ Season.Provider = {
 		end
 		return nil
 	end,
-	Lineup = function() return nil end,
+	Lineup = function(eventKey) return ns.Composition and ns.Composition:Names(eventKey) or nil end,
 	CanDeclare = function() return (Season:CanDeclare()) end,
 	Gaps = function() return {} end,
 }

@@ -55,6 +55,8 @@ When you sign up to a guild event from Accord, your answer goes into the **game 
 
 When an officer imports a **Raid-Helper** event from Discord, the guild receives its title, its date and the **matched members only** (character, state, role, class and spec), until 2 days after the event. The names that matched nobody and the officer's hand matches stay on that officer's computer and are never sent; the unmatched names are removed 2 days after the event. Accord never contacts Discord or Raid-Helper. See [[Raid-Helper events|Raid-Helper]].
 
+A raid **line-up** written by an officer (who is in the raid, who is on the bench, who plays their MS2) reaches the guild until 2 days after the event. It is a plan, not a record of who came. See [[Events|Events]].
+
 ## Other addons
 
 Apart from that list (new in `v0.9.0`), the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.

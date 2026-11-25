@@ -205,11 +205,11 @@ Gli eventi del calendario non si copiano: `raidev` tiene solo ciò che il calend
 | Evento solo dell'addon (§5.4) | `F:<GUID>:<n>` | `title` (1–48), `start` (ora del server), `size` (5–40), `note` (0–120) | solo ufficiali | 2 giorni dopo l'inizio |
 | Risposta a un evento solo dell'addon | `A:<chiave>:<GUID>` | `answer` = `yes` \| `maybe` \| `no`, `role`, `at` (l'inizio dell'evento, da M10.5) | l'account del personaggio | come l'evento |
 | Importazione di Raid-Helper (§6) | `H:<id dell'evento Discord>` (`H:t<start>` senza id) | `title`, `start`, `at` (ora dell'importazione), `s` = `{ { g = GUID, st, role?, class?, spec? } }` (al massimo 80; `st` = `signed`, `late`, `bench`, `tentative`, `absence`) | solo ufficiali | 2 giorni dopo `start` |
-| Composizione (§7) | `C:<chiave>` | `raid = { GUID }`, `bench = { GUID }` (al massimo 40 + 40) | solo ufficiali | 2 giorni dopo l'evento |
+| Composizione (§7) | `C:<chiave>` | `at` (l'inizio dell'evento), `raid = { GUID }`, `bench = { GUID }` (al massimo 40 + 40, nessun personaggio due volte), `as?` = `{ [GUID] = ruolo }` (chi gioca la MS2 in quel ruolo) | solo ufficiali | 2 giorni dopo l'evento |
 
-La chiave di un evento è `c<eventID>` (calendario) o `f<GUID>:<n>` (solo addon). Fiducia: `R:` e `A:` come SEA-01 (prima mano o ritrasmissione di un ufficiale, mai la voce di un altro); `F:`, `H:` e `C:` NET-12 con `authorAny`. Dimensione massima di un record 512 byte; di un `H:` 12 KB stimati (80 iscritti; circa 2 KB sul filo, compresso), deciso in M10.6. Nessuno di questi record dice chi c'era a un raid (RAID-05): una composizione è un piano, non una presenza, e scade con l'evento.
+La chiave di un evento è `c<eventID>` (calendario) o `f<GUID>:<n>` (solo addon). Fiducia: `R:` e `A:` come SEA-01 (prima mano o ritrasmissione di un ufficiale, mai la voce di un altro); `F:`, `H:` e `C:` NET-12 con `authorAny`. Dimensione massima di un record 512 byte; di un `H:` 12 KB stimati (80 iscritti; circa 2 KB sul filo, compresso), deciso in M10.6; di un `C:` 6 KB stimati (`Composition.LINEUP_BYTES`, M10.7). Nessuno di questi record dice chi c'era a un raid (RAID-05): una composizione è un piano, non una presenza, e scade con l'evento.
 
-*Fatto in M10.5:* l'insieme `raidev` (`Net/Store.lua`, dietro `season`) accetta `R:`, `F:` e `A:`; *in M10.6* anche `H:` (il limite dell'insieme sale a 12 KB, gli altri record restano a 512 byte: `Calendar.MAX_BYTES`); `C:` si rifiuta finché M10.7 non lo aggiunge. I ruoli e le risposte propri sono in *What I share*, come le importazioni scritte da un ufficiale.
+*Fatto in M10.5:* l'insieme `raidev` (`Net/Store.lua`, dietro `season`) accetta `R:`, `F:` e `A:`; *in M10.6* anche `H:` (il limite dell'insieme sale a 12 KB, gli altri record restano a 512 byte: `Calendar.MAX_BYTES`); *in M10.7* anche `C:`. I ruoli e le risposte propri sono in *What I share*, come le importazioni e le composizioni scritte da un ufficiale.
 
 ## 6. Gli eventi di Raid-Helper da Discord (M10.6)
 
@@ -273,7 +273,7 @@ Se il client non permette di scrivere lo stato degli altri, Accord crea l'evento
 
 La composizione decisa nel gioco (§7) si esporta come testo da incollare su Discord, con l'esportazione di §4.6.
 
-*Fatto in M10.6:* il tipo `event` di `Data/Export.lua`, solo ufficiali: un evento del calendario o importato, una riga per account con `name`, `realm`, `class`, `role`, `game_answer`, `discord` (CSV e testo per Discord, con il titolo e la data dell'evento). Raid e panchina si aggiungono con M10.7.
+*Fatto in M10.6:* il tipo `event` di `Data/Export.lua`, solo ufficiali: un evento del calendario o importato, una riga per account con `name`, `realm`, `class`, `role`, `game_answer`, `discord` (CSV e testo per Discord, con il titolo e la data dell'evento). *In M10.7* la colonna `lineup` (`raid` | `bench` | vuota; in Discord *Line-up*): prima il raid, poi la panchina, poi gli altri; chi è nella composizione compare anche senza una risposta, con il personaggio e il ruolo della composizione; si esporta anche un evento solo dell'addon che ha una composizione.
 
 ## 7. Panchina e composizione (M10.7)
 
@@ -285,9 +285,18 @@ Un secondo record di `guildcfg`, id `target`: `size` (10, 20, 25 o 40), `tank`, 
 
 Per un evento, un ufficiale mette gli iscritti (**sì** e **forse** del calendario, più gli abbinati di un'importazione) nel **raid** o in **panchina**. Accanto, la composizione per ruolo (dai ruoli del record `R:`, altrimenti MS1) contro l'obiettivo; quando un ruolo manca, la vista propone chi ha **MS2** in quel ruolo. Solo gli ufficiali cambiano la composizione (record `C:`, NET-12); ogni membro vede dove è stato messo. Facoltativo, con una conferma come §6.5: scrivere nel calendario **confermato** (3) per il raid e **riserva** (5) per la panchina, così FDCP vede la stessa formazione (FDCP conta la riserva come "forse").
 
+*Fatto in M10.7 (`Data/Composition.lua`, `UI/Events.lua`):*
+
+- **Chi si può mettere**: un account per volta, tra chi ha risposto sì o forse nel calendario (o in un evento solo dell'addon) e gli abbinati di un'importazione che su Discord non sono assenti; il **"no" dato nel gioco vince** su Discord. Chi è già nella composizione si può spostare o togliere anche se poi ha cambiato risposta, ed è segnato *no longer signed up*. Mettere un altro personaggio dello stesso account sostituisce il primo. Un evento solo su Discord non ha composizione: prima si porta nel calendario (§6.5), perché la chiave è quella del calendario o dell'addon.
+- **Ruolo**: la MS2 con cui è stato messo (`as`), altrimenti il record `R:` (o `A:`), altrimenti la MS1 della season, altrimenti il ruolo di Discord; senza nessuno conta tra i "senza ruolo". La MS2 viene solo dalla dichiarazione di Accord: la vista propone, tra panchina, non assegnati e raid, chi ha MS2 in un ruolo di cui il raid è sotto l'obiettivo, e l'ufficiale lo mette **come MS2**.
+- **Chi vede**: tutti vedono, scegliendo l'evento, il proprio posto, il raid e la panchina con i ruoli e i conteggi contro l'obiettivo; non assegnati, proposte e pulsanti li vedono gli ufficiali e il Guild Master (`Raid.WRITERS`). Due ufficiali che cambiano insieme: vince la versione più recente del record.
+- **Nel calendario** (*Write to calendar*, secondo clic **Confirm**; se la composizione cambia tra i due clic si conferma di nuovo): solo in un evento di gilda del calendario, con la stessa scrittura di §6.5 (`RaidHelper:Write`): al massimo 40 membri per conferma, una chiamata alla volta, **mai sopra una risposta già data** (SPEC-10 Q25), anche se data con un altro personaggio dell'account (regola che da M10.7 vale anche per §6.5). Quindi lo stato confermato o riserva arriva **solo a chi nel gioco non ha ancora risposto** (per esempio chi si è iscritto su Discord); chi si è iscritto nel gioco resta "iscritto", e per FDCP la sua risposta è quella che ha dato.
+
 ### 7.3 Con FDCP come fonte
 
 La formazione e la panchina della serata sono di FDCP (`GetNight()`, sola lettura, già fatto in M11.7); Accord non offre una panchina sua e non accetta record `C:` scritti in quel periodo (`source`). Sul client di un membro FDCP non dà la serata: la vista lo dice e rimanda a FDCP.
+
+*Fatto in M10.7:* nella vista *Events* una riga dice che la composizione è di FDCP e, dove FDCP dà la serata aperta, ne mostra raid e panchina (non è legata all'evento scelto: la vista dice istanza e data). "In quel periodo" vuol dire un `C:` con `time` pari o successivo a quello del record `sources` che sceglie FDCP; quelli precedenti si accettano e restano, nascosti, e tornano visibili con la fonte `accord` (§3.1).
 
 ## 8. Mappa della disponibilità (M10.8)
 
@@ -348,4 +357,5 @@ Nella prova di M10.10 (`docs/checklists/M10.md`), con una gilda che ha FDCP e un
 - se `EventInvite` funziona su un evento di iscrizione di gilda, se `AddEvent` e le scritture funzionano fuori da un clic, la lunghezza massima di un titolo, e `C_DateAndTime.GetCurrentCalendarTime`;
 - se un testo incollato di molti KB entra intero nella casella del gioco e se la casella raddoppia `|`;
 - i nomi dei rami di talento di ogni classe su Forever;
-- che FDCP veda come iscrizione la risposta data da Accord, e la formazione confermata o in riserva.
+- che FDCP veda come iscrizione la risposta data da Accord, e la formazione confermata o in riserva;
+- la riga dell'ufficiale per la composizione nella vista *Events* (larghezza, menu dei giocatori).

@@ -54,6 +54,8 @@ Quando ti iscrivi a un evento della gilda da Accord, la tua risposta va nel **ca
 
 Quando un ufficiale importa da Discord un evento di **Raid-Helper**, la gilda ne riceve il titolo, la data e **solo i membri abbinati** (personaggio, stato, ruolo, classe e specializzazione), fino a 2 giorni dopo l'evento. I nomi che non corrispondono a nessuno e gli abbinamenti a mano dell'ufficiale restano sul suo computer e non vengono mai mandati; i nomi non abbinati si cancellano 2 giorni dopo l'evento. Accord non contatta mai Discord né Raid-Helper. Vedi [[Eventi di Raid-Helper|Raid-Helper-it]].
 
+La **composizione** di un raid scritta da un ufficiale (chi è nel raid, chi in panchina, chi gioca la MS2) arriva alla gilda fino a 2 giorni dopo l'evento. È un piano, non un registro di chi c'era. Vedi [[Eventi|Events-it]].
+
 ## Altri addon
 
 A parte quell'elenco (novità della `v0.9.0`), l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.

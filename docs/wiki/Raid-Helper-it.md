@@ -62,7 +62,7 @@ Tieni chiusa la finestra del calendario del gioco mentre Accord scrive. Se quel 
 
 ## 6. Ritorno su Discord
 
-**Esporta** dà agli ufficiali le iscrizioni dell'evento (nome, classe, ruolo, risposta nel gioco, stato su Discord) come testo per Discord o come CSV, da copiare e incollare.
+**Esporta** dà agli ufficiali le iscrizioni dell'evento (nome, classe, ruolo, risposta nel gioco, stato su Discord, e *Raid* o *Panchina* quando l'evento ha una composizione: vedi [[Eventi|Events-it]]) come testo per Discord o come CSV, da copiare e incollare.
 
 ## Che cosa viene condiviso
 

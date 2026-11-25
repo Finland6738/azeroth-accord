@@ -62,7 +62,7 @@ Keep the game's calendar window closed while Accord writes. If the day already h
 
 ## 6. Back to Discord
 
-**Export** gives the officers the event's sign-ups (name, class, role, answer in the game, state on Discord) as text for Discord or as CSV, to copy and paste.
+**Export** gives the officers the event's sign-ups (name, class, role, answer in the game, state on Discord, and *Raid* or *Bench* once the event has a line-up: see [[Events|Events]]) as text for Discord or as CSV, to copy and paste.
 
 ## What is shared
 

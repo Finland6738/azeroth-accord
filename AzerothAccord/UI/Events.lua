@@ -16,6 +16,10 @@
 -- Discord and not in the game calendar and the reverse, the names that matched nobody (with a hand match), "Put into the
 -- game calendar" (a confirming second click) and the export back to Discord.
 --
+-- Line-up (M10.7, Data/Composition.lua): every member sees the own place, the raid and the bench; officers also the roles
+-- against the target, who signed up and is not placed, who could fill a short role with MS2, and a row to place them in
+-- the raid or on the bench, take them out and "Write to calendar" (a confirming second click). With FDCP as the source
+-- of the raid there is nothing to write: a line says the line-up is FDCP's, with FDCP's night where it gives one.
 -- View.Model(key) reads everything now; View.Lines(model) is a plain function of it (tested offline); the frames only draw.
 -- While Core/Features.lua "season" is off there is no tab, no command and nothing is redrawn.
 local ADDON_NAME, ns = ...
@@ -58,6 +62,8 @@ function View.ParseWhen(text)
 	if h > 23 or mi > 59 then return nil end
 	return ns.Calendar.Stamp(tonumber(y), tonumber(m), tonumber(d), h, mi)
 end
+
+local function raidSource() return ns.Integrations and ns.Integrations:Source("raid") or "accord" end
 
 local function roleText(role) return role and (L["SEASON_ROLE_" .. tostring(role):upper()] or tostring(role)) or "?" end
 local function answerText(answer) return answer and L["EVENTS_ANSWER_" .. answer:upper()] or L["EVENTS_ANSWER_NONE"] end
@@ -112,6 +118,7 @@ function View.Model(key)
 	end
 	m.event = chosen
 	if chosen and chosen.importId then m.rh = View.ImportModel(chosen, m.officer) end
+	if chosen then View.LineupModel(m, chosen) end
 	if chosen and not chosen.discordOnly then
 		local me = ns.Compat.Player.GUID()
 		m.role, m.roleFrom = C:SuggestRole(chosen.key)
@@ -169,6 +176,29 @@ function View.ImportModel(event, officer)
 	return out
 end
 
+-- m.lineupFDCP = { night? } with FDCP as the source; else m.lineup (Composition:Model), m.myPlace (the own person) and,
+-- for officers, m.editor (they may place) and m.write (the outcome of the last write into the calendar).
+function View.LineupModel(m, event)
+	local C = ns.Composition
+	if not C then return end
+	if raidSource() == "fdcp" then
+		local F = ns.FDCP
+		local state = F and ns.Integrations:State("fdcp")
+		local ready = state and state.level == 1 and F.Ready()
+		m.lineupFDCP = { night = ready and F.Night() or nil }
+		return
+	end
+	local lineup = C:Model(event)
+	if not lineup then return end
+	m.lineup = lineup
+	local where, guid = C.PlaceOf(lineup.rec, ns.Compat.Player.GUID())
+	for _, p in ipairs(where and lineup[where] or {}) do
+		if p.guid == guid then m.myPlace = p end
+	end
+	m.editor = C:CanEdit() == true and not event.discordOnly
+	if m.officer then m.write = ns.RaidHelper.result[C.WriteId(event.key)] end
+end
+
 local function nameLines(out, head, names)
 	if #names == 0 then return end
 	out[#out + 1] = { text = head:format(#names), sub = true }
@@ -197,6 +227,79 @@ local function resultLines(out, res)
 	nameLines(out, L["RH_RESULT_ANSWERED"], shorten(res.answered))
 	nameLines(out, L["RH_RESULT_MEMBER"], shorten(res.member))
 	nameLines(out, L["RH_RESULT_LEFT"], shorten(res.left))
+end
+
+local function personText(p)
+	local name = short(p.name)
+	if p.role then name = L["EVENTS_NAME_ROLE"]:format(name, roleText(p.role)) end
+	if p.roleFrom == "ms2" then name = name .. " " .. L["LINEUP_MARK_MS2"] end
+	if p.gone then name = name .. " " .. L["LINEUP_MARK_GONE"] end
+	return name
+end
+
+local function people(list)
+	local out = {}
+	for i, p in ipairs(list) do out[i] = personText(p) end
+	return out
+end
+
+local function placeText(place) return L["LINEUP_PLACE_" .. (place and place:upper() or "NONE")] end
+
+-- The line-up of the chosen event: the own place, the raid and the bench for everybody; the rest for officers.
+local function lineupLines(out, m)
+	local function add(text, kind) local l = { text = text } if kind then l[kind] = true end out[#out + 1] = l end
+	if m.lineupFDCP then
+		add(L["LINEUP_TITLE"], "sub")
+		add(L["LINEUP_FDCP"], "muted")
+		local n = m.lineupFDCP.night
+		if n then
+			add(L["RAID_NIGHT"]:format(n.instance or "?", n.size and tostring(n.size) or "?", tostring(n.date or "?")), "muted")
+			nameLines(out, L["LINEUP_RAID"], shorten(n.raid))
+			nameLines(out, L["LINEUP_BENCH"], shorten(n.bench))
+		end
+		return
+	end
+	local l = m.lineup
+	if not l then return end
+	if m.event.discordOnly then
+		if m.officer then add(L["LINEUP_NEEDS_GAME"], "muted") end
+		return
+	end
+	-- a member sees the section once there is a line-up
+	if not l.rec and not m.editor then return end
+	add(L["LINEUP_TITLE"], "sub")
+	local mine = m.myPlace
+	if mine then
+		local text = L["LINEUP_YOURS_" .. mine.place:upper()]
+		if mine.role then text = L["LINEUP_YOURS_AS"]:format(text, short(mine.name), roleText(mine.role)) end
+		add(text)
+	elseif l.rec then
+		add(L["LINEUP_YOURS_NONE"], "muted")
+	else
+		add(L["LINEUP_NONE"], "muted")
+	end
+	if l.size then add(L["LINEUP_COUNT"]:format(#l.raid, l.size, #l.bench), "muted")
+	else add(L["LINEUP_COUNT_NOSIZE"]:format(#l.raid, #l.bench), "muted") end
+	local parts = {}
+	for _, role in ipairs(ns.Specs.ROLES) do
+		local text = L["SEASON_COUNT"]:format(L["SEASON_FIELD_" .. role:upper()], l.roles.raid[role])
+		if l.target then text = text .. " " .. L["LINEUP_OF"]:format(l.target[role]) end
+		parts[#parts + 1] = text
+	end
+	out[#out + 1] = { text = concat(parts, View.SEP), indent = true }
+	if l.unknown > 0 then add(L["RH_ROLE_UNKNOWN"]:format(l.unknown), "muted") end
+	nameLines(out, L["LINEUP_RAID"], people(l.raid))
+	nameLines(out, L["LINEUP_BENCH"], people(l.bench))
+	if not m.editor then return end
+	if m.write then resultLines(out, m.write) end
+	nameLines(out, L["LINEUP_FREE"], people(l.free))
+	local offers = {}
+	for i, o in ipairs(l.offers) do
+		offers[i] = L["LINEUP_OFFER"]:format(short(o.person.name), roleText(o.role), placeText(o.person.place))
+	end
+	nameLines(out, L["LINEUP_OFFERS"], offers)
+	if not l.read then add(L["EVENTS_ANSWERS_LATER"], "muted")
+	elseif #l.raid + #l.bench + #l.free == 0 then add(L["LINEUP_NOBODY"], "muted") end
 end
 
 -- The Raid-Helper part of the chosen event.
@@ -293,6 +396,7 @@ function View.Lines(m)
 	add(L["EVENTS_EVENT"]:format(e.title or "?", whenText(e.start)), "sub")
 	if e.discordOnly then
 		if not e.game then add(L["RH_NOT_IN_GAME"], "warn") end
+		lineupLines(out, m)
 		importLines(out, m)
 		return out
 	end
@@ -338,7 +442,24 @@ function View.Lines(m)
 	elseif not e.addonOnly then
 		add(m.blocked and View.ReasonText(m.blocked) or L["EVENTS_ANSWERS_LATER"], "muted")
 	end
+	lineupLines(out, m)
 	importLines(out, m)
+	return out
+end
+
+-- The choices of the officer's row: everybody signed up or placed, then the MS2 offers. id = GUID, or GUID .. ":ms2".
+function View.PlaceChoices(m)
+	local out, l = {}, m.lineup
+	if not l then return out end
+	for _, list in ipairs({ l.free, l.raid, l.bench }) do
+		for _, p in ipairs(list) do
+			out[#out + 1] = { id = p.guid, text = L["LINEUP_CHOICE"]:format(personText(p), placeText(p.place)) }
+		end
+	end
+	for _, o in ipairs(l.offers) do
+		out[#out + 1] = { id = o.person.guid .. ":ms2",
+			text = L["LINEUP_OFFER"]:format(short(o.person.name), roleText(o.role), placeText(o.person.place)) }
+	end
 	return out
 end
 
@@ -379,6 +500,62 @@ function View:Create(title, when, size, note)
 	end
 	self:Redraw()
 	return rec, why
+end
+
+function View.LineupReason(why)
+	return rawget(L, "LINEUP_ERR_" .. tostring(why):upper()) or ns.RaidHelperBox.Reason(why)
+end
+
+-- An officer places the chosen person (from a click): where = "raid" | "bench" | nil (taken out). `choice` is an id of
+-- View.PlaceChoices.
+function View:Place(choice, where)
+	local m = View.Model(self.chosen)
+	if not m.event then return false, "missing" end
+	if type(choice) ~= "string" then
+		self:Say(L["LINEUP_ERR_CHOOSE"])
+		return false, "choose"
+	end
+	local guid = choice:match("^(.-):ms2$")
+	self.confirm = nil
+	local ok, why = ns.Composition:Place(m.event, guid or choice, where, guid ~= nil)
+	self:Say(ok and "" or View.LineupReason(why))
+	self:Redraw()
+	return ok, why
+end
+
+-- What the officer confirms before the line-up goes into the game calendar.
+function View.LineupConfirmText(plan)
+	local parts = { L["LINEUP_CONFIRM"]:format(plan.members) }
+	if plan.total > plan.members then parts[#parts + 1] = L["RH_CONFIRM_MORE"]:format(plan.total - plan.members) end
+	parts[#parts + 1] = L["RH_CONFIRM_PRESS"]
+	return concat(parts, " ")
+end
+
+-- What the second click confirms: this version of this event's line-up (a changed one is confirmed again).
+local function lineupToken(m) return "C:" .. m.event.key .. ":" .. m.lineup.rec.rev end
+
+-- "Write to calendar": the first click says what will happen, the second does it.
+function View:PushLineup()
+	local m = View.Model(self.chosen)
+	if not (m.event and m.lineup and m.lineup.rec) then return false, "empty" end
+	local token = lineupToken(m)
+	if self.confirm ~= token then
+		local plan, why = ns.Composition:Plan(m.event)
+		if not plan then
+			self:Say(View.LineupReason(why))
+			self:Redraw()
+			return false, why
+		end
+		self.confirm = token
+		self:Say(View.LineupConfirmText(plan))
+		self:Redraw()
+		return false, "confirm"
+	end
+	self.confirm = nil
+	local ok, why = ns.Composition:Push(m.event)
+	self:Say(ok and "" or View.LineupReason(why))
+	self:Redraw()
+	return ok, why
 end
 
 function View:Choose(key)
@@ -462,7 +639,8 @@ end
 function View:Export()
 	local m = View.Model(self.chosen)
 	local e = m.event
-	if not e or e.addonOnly then return nil, "missing" end
+	-- an event only of the addon is exported once it has a line-up
+	if not e or (e.addonOnly and not (m.lineup and m.lineup.rec)) then return nil, "missing" end
 	local rec = e.importId and ns.RaidHelper:Get(e.importId) or nil
 	local rows = ns.RaidHelper:ExportRows(not e.discordOnly and e or nil, rec)
 	if #rows == 0 then
@@ -544,6 +722,27 @@ function View:Build(f)
 		View:Match(f.unmatched:Selected(), f.member:GetText())
 	end })
 	f.match:SetPoint("LEFT", f.member, "RIGHT", 8, 0)
+	-- officers: the line-up and the bench (M10.7)
+	f.placeRow = CreateFrame("Frame", nil, f)
+	f.placeRow:SetHeight(32)
+	f.person = Widgets.Select(f.placeRow, { width = 240, rows = 10, placeholder = L["LINEUP_CHOOSE"] })
+	f.person:SetPoint("TOPLEFT", f.placeRow, "TOPLEFT", 0, 0)
+	f.toRaid = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_RAID"], style = "primary", height = 28, onClick = function()
+		View:Place(f.person:Selected(), "raid")
+	end })
+	f.toRaid:SetPoint("LEFT", f.person, "RIGHT", 8, 0)
+	f.toBench = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_BENCH"], style = "secondary", height = 28, onClick = function()
+		View:Place(f.person:Selected(), "bench")
+	end })
+	f.toBench:SetPoint("LEFT", f.toRaid, "RIGHT", 8, 0)
+	f.takeOut = Widgets.Button(f.placeRow, { text = L["LINEUP_REMOVE"], style = "secondary", height = 28, onClick = function()
+		View:Place(f.person:Selected(), nil)
+	end })
+	f.takeOut:SetPoint("LEFT", f.toBench, "RIGHT", 8, 0)
+	f.write = Widgets.Button(f.placeRow, { text = L["LINEUP_WRITE"], style = "secondary", height = 28, onClick = function()
+		View:PushLineup()
+	end })
+	f.write:SetPoint("LEFT", f.takeOut, "RIGHT", 8, 0)
 	f.message = Widgets.Text(f, "Small", "text-3", "LEFT")
 
 	f.list = CreateFrame("Frame", nil, f)
@@ -606,7 +805,7 @@ function View:Redraw()
 		f.rhRow:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 		local shown = { f.import }
 		local push = m.rh ~= nil and m.state == "available"
-		local export = m.event ~= nil and not m.event.addonOnly
+		local export = m.event ~= nil and (not m.event.addonOnly or (m.lineup ~= nil and m.lineup.rec ~= nil))
 		f.push:SetShown(push)
 		f.export:SetShown(export)
 		if push then
@@ -630,6 +829,17 @@ function View:Redraw()
 		local names = {}
 		for i, name in ipairs(unmatched) do names[i] = { id = name, text = name } end
 		f.unmatched:SetChoices(names)
+		y = y - 40
+	end
+	f.placeRow:SetShown(m.editor == true)
+	if m.editor then
+		f.placeRow:ClearAllPoints()
+		f.placeRow:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
+		f.placeRow:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+		f.person:SetChoices(View.PlaceChoices(m))
+		local write = m.lineup.rec ~= nil and not m.event.addonOnly and m.state == "available"
+		f.write:SetShown(write)
+		if write then f.write:SetLabel(self.confirm == lineupToken(m) and L["RH_CONFIRM"] or L["LINEUP_WRITE"]) end
 		y = y - 40
 	end
 	self.painting = false
@@ -699,7 +909,7 @@ if ns.addon then
 	if ns.Bus then
 		local function changed() if on() then View:Changed() end end
 		for _, event in ipairs({ "CALENDAR_CHANGED", "EVENT_CHANGED", "SEASON_CHANGED", "SOURCES_CHANGED", "ROLE_CHANGED",
-			"ROSTER_UPDATED", "ACCOUNTS_UPDATED", "FEATURE_CHANGED" }) do
+			"ROSTER_UPDATED", "ACCOUNTS_UPDATED", "FEATURE_CHANGED", "FDCP_CHANGED" }) do
 			ns.Bus:On(event, changed)
 		end
 	end

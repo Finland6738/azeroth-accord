@@ -24,17 +24,18 @@
 --             (Raid.WRITERS) create events in the addon (F:<GUID>:<n>) and members answer there (A:<key>:<GUID>). Those
 --             are always marked "Not in the game calendar", also on a client that has a calendar.
 --
--- The data set `raidev` (Net/Store.lua, SPEC-14 §5.5), synced on GUILD; four kinds of record (C: comes with M10.7 and
--- is refused until then):
+-- The data set `raidev` (Net/Store.lua, SPEC-14 §5.5), synced on GUILD; five kinds of record:
 --   R:<key>:<GUID>   { role, spec = "ms1" | "ms2" | "class", at }  the role of a character for an event; its account only
 --   F:<GUID>:<n>     { title, start, size, note? }                 an event only of the addon; officers only (authorAny)
 --   A:<key>:<GUID>   { answer = "yes" | "maybe" | "no", role, at } an answer to an event only of the addon; its account
 --   H:<id>           { title, start, at, s }                       a Raid-Helper event pasted by an officer (M10.6,
 --                    Data/RaidHelper.lua checks it); officers only (authorAny)
+--   C:<key>          { at, raid, bench, as? }                      the line-up and bench of an event (M10.7,
+--                    Data/Composition.lua checks it); officers only (authorAny)
 -- The key of an event is "c<eventID>" (calendar) or "f<GUID>:<n>" (addon only). `at` and `start` are server times (of
 -- H:, `start` is the realm's date and time as a calendar event's and `at` the time of the import); a record expires
 -- Calendar.KEEP seconds after its event. No record says who was at a raid (RAID-05). Calendar.MAX_BYTES is the size of a
--- record, but of H: (the set takes RaidHelper.MAX_BYTES for it).
+-- record, but of H: (the set takes RaidHelper.MAX_BYTES for it) and of C: (Composition.LINEUP_BYTES).
 --
 -- Switch: Core/Features.lua "season" (M10). Off: no call to C_Calendar, nothing written, accepted or sent.
 -- Bus: CALENDAR_CHANGED() when the events or the calendar's state were read again; EVENT_CHANGED(key) when the answers,
@@ -148,13 +149,17 @@ local function validRole(r)
 	return false
 end
 
--- The owner rule of the set: true, or false and a reason ("owner", "step").
+-- The owner rule of the set: true, or false and a reason ("owner", "size", "source").
 function Calendar.ValidRecord(rec, store)
 	store = store or S()
 	local kind = Calendar.KindOf(rec)
 	if kind == "H" then
 		if not ns.RaidHelper then return false end
 		return ns.RaidHelper.ValidRecord(rec)
+	end
+	if kind == "C" then
+		if not ns.Composition then return false end
+		return ns.Composition.ValidLineup(rec)
 	end
 	if ns.Config and ns.Config.EstimateSize(rec) > Calendar.MAX_BYTES then return false, "size" end
 	if kind == "R" or kind == "A" then
@@ -177,13 +182,13 @@ function Calendar.ValidRecord(rec, store)
 		if rec.note ~= nil and not cleanText(rec.note, Calendar.NOTE_MAX) then return false end
 		return true
 	end
-	return false, "step"                                        -- C: comes with M10.7
+	return false
 end
 
--- Officers only (NET-12): the events of the addon and the imports of Raid-Helper.
+-- Officers only (NET-12): the events of the addon, the imports of Raid-Helper and the line-ups.
 function Calendar.Authority(rec)
 	local kind = Calendar.KindOf(rec)
-	return kind == "F" or kind == "H"
+	return kind == "F" or kind == "H" or kind == "C"
 end
 
 -- Retention: Calendar.KEEP after the event.
@@ -700,6 +705,8 @@ if ns.addon then
 			if kind == "R" or kind == "A" then
 				local key = splitCharId(id)
 				emit("EVENT_CHANGED", key)
+			elseif kind == "C" then
+				emit("EVENT_CHANGED", id:sub(3))
 			else
 				emit("CALENDAR_CHANGED")
 			end
