@@ -1,7 +1,8 @@
 -- Groups: the "Groups" tab, the guild's premade groups panel (SPEC-13 §6.10, M9.7). Lua 5.1.
 --
 -- Three pages: Groups (the list with its filters and, under it, the chosen listing with Apply or Withdraw), Post a group
--- (the form: Post, Update, Close) and My group (the leader's listing and its applicants, Accept and Decline). The frames
+-- (the form: Post, Update, Close) and My group (the leader's listing and its applicants, Accept and Decline; and, M9.8,
+-- the button that also lists the group privately in the game's own Group Finder or removes it). The frames
 -- only draw: what they show and do is UI/GroupsModel.lua, over Data/Groups.lua. Opening the view asks the guild for the
 -- open listings (GASK, at most once every 10 minutes). The tab is there only while the switch `groups` is on.
 --   View:ShowPage(id)      "list" | "form" | "mine"
@@ -23,6 +24,7 @@ View.ROW = 34                 -- a line of the form
 View.DETAIL_HEIGHT = 118
 View.TICK = 30                -- the ages and the time left move on while the view shows
 View.CONFIRM_SECONDS = 8
+View.GAME_WIDTH = 240         -- the button of the game's Group Finder on My group (M9.8)
 
 View.pageId = "list"
 View.selected = nil           -- the listing chosen in the list
@@ -448,6 +450,15 @@ local function buildMine(f, self)
 		self:Redraw()
 	end })
 	f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -6)
+	-- M9.8: the game's Group Finder. Its OnClick is the only place that lists or removes there (SPEC-13 LFG-02).
+	f.game = Widgets.Button(f, { text = L["GRP_GAME_LIST"], style = "ghost", height = 28, width = View.GAME_WIDTH, onClick = function()
+		local b = model().GameButton()
+		if not b then return end
+		say(self, "mine", model()[b.action]())
+		self:Redraw()
+	end })
+	f.game:SetPoint("RIGHT", f.close, "LEFT", -8, 0)
+	Widgets.Tooltip.Attach(f.game, function() local b = model().GameButton() return b and b.tip or nil end, "LEFT")
 	f.table = Widgets.DataTable(f, applicantColumns(), { emptyText = L["GRP_NO_APPLICANTS"],
 		rowSetup = function(row)
 			applicantRow(self, row)
@@ -476,6 +487,15 @@ local function refreshMine(f, self)
 		f.table.empty:SetText("")
 	end
 	f.close:SetShown(own ~= nil)
+	local game = model().GameButton()
+	f.game:SetShown(game ~= nil)
+	if game then
+		f.game:SetLabel(game.text)
+		f.game:SetEnabled(game.enabled)
+	end
+	local inset = game and -(150 + View.GAME_WIDTH + 8) or -150
+	f.title:SetPoint("RIGHT", f, "RIGHT", inset, 0)
+	f.info:SetPoint("RIGHT", f, "RIGHT", inset, 0)
 	self.shownApplicants = model().ApplicantRows()
 	f.table:SetData(self.shownApplicants, true)
 	showStatus(f.status, self.status.mine)

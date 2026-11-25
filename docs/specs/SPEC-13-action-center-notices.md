@@ -50,7 +50,7 @@ Come per `raid`, i moduli chiedono `Features.On(nome)` quando agiscono, mai una 
 | `account.settings.shareAddons` | booleano, `true` | §8.3 |
 | `account.settings.groupFilter` | `{ kinds = {}, fits = true, roles = {} }` (i filtri salvati della vista Groups) | §6.10 |
 
-`account.settings.notifyOfficer` e `notifyDecision` (M5) **restano** con lo stesso nome e lo stesso predefinito: sono i due interruttori dei tipi della banca (§3.2). La migrazione del personaggio crea `char.groups = { next = 0, apps = {}, mine = {} }` (§6.5; `game` si aggiunge con M9.8, §7; `guild` con la prima gilda: un'altra gilda svuota `apps` e `mine`).
+`account.settings.notifyOfficer` e `notifyDecision` (M5) **restano** con lo stesso nome e lo stesso predefinito: sono i due interruttori dei tipi della banca (§3.2). La migrazione del personaggio crea `char.groups = { next = 0, apps = {}, mine = {} }` (§6.5; `game`, l'id dell'annuncio della gilda messo anche nel Group Finder del gioco, si aggiunge con M9.8, §7.3, senza migrazione; con M9.8 anche `account.gameFinder = { build, state }`; `guild` con la prima gilda: un'altra gilda svuota `apps` e `mine`).
 
 ## 2. Centro azioni (M9.2)
 
@@ -406,6 +406,18 @@ Che cosa **non** dice: i dati di creazione non hanno nome né commento (il titol
 - **LFG-06 Chi lo vede**: un gruppo privato si vede dagli **amici e dai membri della gilda** del capo **[verificare]**: anche amici fuori dalla gilda. Il tooltip della casella lo dice: `Your friends outside the guild can see it too.` / `Lo vedono anche i tuoi amici fuori dalla gilda.` È una scelta del capo, con il suo clic.
 - **LFG-07 Senza la capacità** non si offre nulla e non compare nessun testo: il cercagruppi di M9.6–M9.7 resta l'unico. M9.8 scrive l'esito della prova qui e nella checklist di M9.
 - I candidati che arrivano dal Group Finder del gioco si gestiscono nella finestra del gioco; Accord vede solo la dimensione del gruppo (`have`).
+
+### 7.3 Esito e come è fatto (M9.8)
+
+- **Esito del dump (2026-11-25)**: la capacità **c'è**. Il dump di Forever 1.60.1 (build 70170) ha in `C_LFGList` `CreateListing` e `UpdateListing` (con `LfgListingCreateData.isPrivateGroup`), `RemoveListing` (tra i globali), `GetActiveEntryInfo` (con `LfgEntryData.privateGroup`), `HasActiveEntryInfo`, `IsPremadeGroupFinderEnabled`; gli eventi di §7.1 e `ADDON_ACTION_BLOCKED`/`_FORBIDDEN` (sistema `RestrictedActions`). Il dump **non** dice se queste funzioni sono protette né se il server rispetta il campo: l'interfaccia del gioco in stile Classic (`LFGListing*`) non ha una casella "privato". M9.8 quindi realizza la funzione con le regole di §7.2 e la prova nel client resta nella checklist di M9.10 (§10).
+- **File**: `Data/GameFinder.lua` (dopo `Data/Groups.lua` nel TOC); in `Core/Compat.lua` il gruppo `Compat.LFG` (`Has`, `Enabled`, `ActivityFor(mapID)`, `CreatePrivate(activityID)`, `Remove`, `HasEntry`, `EntryPrivate`) e la capacità `gameFinderPrivate` in `Compat.FEATURES`, con le cinque API `lfg.*` nella prova di `/accord debug`. `Has` chiede che `CreateListing`, `RemoveListing`, `GetActiveEntryInfo`, `HasActiveEntryInfo` e `GetActivityInfoTable` siano funzioni; altrimenti la capacità è `missing` e non si offre nulla.
+- **Creazione** (`Compat.LFG.CreatePrivate`): `{ activityIDs = { id }, isPrivateGroup = true, isAutoAccept = false, isCrossFactionListing = false, newPlayerFriendly = false }` e nient'altro; `UpdateListing` non si chiama mai. L'attività è la prima del client con lo stesso `mapID` (categorie di `GetAvailableCategories`, attività di `GetAvailableActivities`).
+- **Solo dal clic**: le chiamate che scrivono sono in `GameFinder:List`, `:Remove` e `:CloseWith`, chiamate solo da `Model.GameList`, `GameRemove`, `Close`, `Submit`, `Update` e `Accept` di `UI/GroupsModel.lua`, cioè dai gestori `OnClick` della vista. Il pulsante sta in *My group*, accanto a *Close group*: *Also list in the game's finder* (con il tooltip di LFG-06) oppure *Remove from the game's finder* quando c'è un annuncio fatto da Accord; spento in combattimento.
+- **Dopo la creazione**: il client aspetta `LFG_LIST_ACTIVE_ENTRY_UPDATE`; se `privateGroup` non è `true` (anche quando il campo **manca**) l'annuncio conta come pubblico: `account.gameFinder = { build, state = "missing" }`, capacità `missing`, avviso `groups.game` *The game listed your group publicly. Remove it?*. `LFG_LIST_ENTRY_CREATION_FAILED` e un annuncio tolto dal gioco (scaduto, pieno) fanno dimenticare `char.groups.game`.
+- **Avviso `groups.game`** (livello `alert`, nuovo tipo del modulo `groups`, interruttore *My group in the game's Group Finder*): pubblico, oppure *Your group is closed but still in the game's Group Finder. Remove it?* quando l'annuncio della gilda si chiude senza un clic (pieno dopo un'unione, scaduto, uscita). Gli avvisi non hanno pulsanti: il clic sull'avviso apre *My group*, dove *Remove* è il pulsante. Uno per annuncio per sessione.
+- **Bloccato** (LFG-03): `ADDON_ACTION_BLOCKED`/`_FORBIDDEN` con il nome di Accord e una funzione `LFGList`/`Listing` (o senza funzione) rendono la capacità `restricted` fino al prossimo caricamento.
+- **Interruttore**: con `groups` spento il modulo non registra eventi, non offre nulla e `List`/`Remove` rispondono `off`.
+- **Test**: `Tests/test_game_finder.lua` con il mock `Tests/mock/68_lfglist.lua`, dove `CreateListing` e `RemoveListing` funzionano solo dentro un clic (`Widget:Click` del mock è un evento dell'hardware) e altrimenti mandano `ADDON_ACTION_BLOCKED`.
 
 ## 8. Censimento degli addon (M9.9)
 

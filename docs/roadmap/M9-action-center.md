@@ -96,7 +96,8 @@ Release: `v0.9.0`.
   - Accord never lists a group publicly, and never lists one without the leader's click;
   - if the client does not allow it, this step records that, and the guild finder of M9.6–M9.7 stays the only one.
 - Done when:
-  - [ ] With the capability present, a private listing is created from the leader's click and closed with the guild listing; without it, nothing is offered.
+  - [x] With the capability present, a private listing is created from the leader's click and closed with the guild listing; without it, nothing is offered.
+  - *Done (2026-11-25):* **capability present per the dump** (Forever 1.60.1, build 70170: `C_LFGList.CreateListing` with `isPrivateGroup`, `RemoveListing`, `GetActiveEntryInfo().privateGroup`; protection not stated, so treated as protected). `Data/GameFinder.lua` and `Compat.LFG` with feature detection (capability `gameFinderPrivate`): on *My group* the leader's own click lists the dungeon or raid group privately, without text; the click that closes the guild listing removes it; a listing closed by itself or found public raises the notice `groups.game`, and a public one switches the capability off for that client build; nothing is offered without the capability. `Tests/test_game_finder.lua` with a mock where the writes are protected; wiki [Groups](../wiki/Groups.md) and [Gruppi](../wiki/Groups-it.md) (SPEC-13 §7.3). Behind the switch `groups`, off until M9.10. Not checked in the game: whether private listings exist on Forever, who sees them, whether a hardware event is needed.
 - Real client: whether private listings exist on Forever, who sees them, and whether creating one needs a hardware event.
 
 ### M9.9 — Guild addons

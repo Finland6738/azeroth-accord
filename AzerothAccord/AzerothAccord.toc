@@ -63,6 +63,7 @@ Data\OfficerOps.lua
 Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
+Data\GameFinder.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua

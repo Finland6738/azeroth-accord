@@ -50,6 +50,17 @@ The **My group** page lists who applied, with class, level, role, comment and ho
 - Only the leader of the party or raid can invite.
 - With 5 players in a party and a larger group size, *Convert your party to a raid first*: the addon never converts it for you.
 
+## Also in the game's Group Finder
+
+If the game lets a group be listed **privately**, **My group** has a button **Also list in the game's finder** next to *Close group*. One click of yours puts the same dungeon or raid group in the game's own Group Finder as a **private group**: your guild sees it there, and so do **your friends outside the guild** (the button's tooltip says so). The addon:
+
+- never lists a group **publicly**, never writes a title or a comment there, and never lists anything without your click;
+- offers the button only to the leader (or a player alone), outside combat, for a dungeon or raid the game's finder knows;
+- removes it in the same click that closes your guild group (*Close group*, a new post that replaces it, an *Accept* that fills it). When the guild group closes by itself, a notice asks you to remove it, and the button becomes **Remove from the game's finder**;
+- if the game ever shows the group as public, asks you to remove it and does not offer the button again on that version of the game.
+
+Players who apply from the game's Group Finder are handled in the game's own window. If the game does not allow private listings, there is no button and no text: the guild group finder is the only one. Whether WoW Forever allows them is checked in the game before `v0.9.0`.
+
 ## Notices and the Action Center
 
 With the [[Action Center|Action-Center]] (also from `v0.9.0`):

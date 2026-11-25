@@ -495,11 +495,12 @@ describe("the notice of a new listing", function()
 		contains(text(), "New group")
 	end)
 
-	it("has its three switches in the Notifications card of Settings", function()
+	it("has its four switches in the Notifications card of Settings (the fourth, `game`, from M9.8)", function()
 		local found
 		for _, def in ipairs(A().SettingsModel.NoticeModules()) do if def.id == "groups" then found = def end end
 		notNil(found)
-		eq(#found.kinds, 3)
+		eq(#found.kinds, 4)
+		eq(found.kinds[4].id, "game")
 		truthy(Shell():OpenView("settings"))
 		eq(#Mock.errors, 0)
 	end)

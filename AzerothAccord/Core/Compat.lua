@@ -646,6 +646,76 @@ function Group.CanInvite()
 	return state == AVAILABLE and can and true or false
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- The game's Group Finder (SPEC-13 §7, M9.8): C_LFGList, in the Forever dump; the writes are treated as protected
+---------------------------------------------------------------------------------------------------------------------
+-- Every write here must run inside the OnClick of a button the player pressed (LFG-02): Compat never calls them by
+-- itself. CreateListing always carries isPrivateGroup = true and no text (LFG-01); UpdateListing is never called.
+local LFG = {}
+Compat.LFG = LFG
+
+-- true when the client has the calls Accord needs (feature detection: C_LFGList may be missing at runtime).
+function LFG.Has()
+	for _, path in ipairs({ "C_LFGList.CreateListing", "C_LFGList.RemoveListing", "C_LFGList.GetActiveEntryInfo",
+		"C_LFGList.HasActiveEntryInfo", "C_LFGList.GetActivityInfoTable" }) do
+		if type(Resolve(path)) ~= "function" then return false end
+	end
+	return true
+end
+
+-- true when the client says its premade groups finder is on (IsPremadeGroupFinderEnabled is true).
+function LFG.Enabled()
+	return LFG.Has() and first("C_LFGList.IsPremadeGroupFinderEnabled") == true
+end
+
+-- The game's activity for an instance: the first activity of the client's categories whose mapID is `mapID`, or nil.
+local activityCache = {}
+function LFG.ActivityFor(mapID)
+	if type(mapID) ~= "number" or not LFG.Has() then return nil end
+	if activityCache[mapID] ~= nil then return activityCache[mapID] or nil end
+	local found = false
+	local categories = first("C_LFGList.GetAvailableCategories")
+	for _, category in ipairs(type(categories) == "table" and categories or {}) do
+		local activities = first("C_LFGList.GetAvailableActivities", category)
+		for _, activityID in ipairs(type(activities) == "table" and activities or {}) do
+			local a = first("C_LFGList.GetActivityInfoTable", activityID)
+			if type(a) == "table" and a.mapID == mapID and type(activityID) == "number" then found = activityID break end
+		end
+		if found then break end
+	end
+	activityCache[mapID] = found
+	return found or nil
+end
+function LFG.ForgetActivities() activityCache = {} end
+
+-- Lists the player's group in the game's finder, always private, without any text. Returns state, success.
+function LFG.CreatePrivate(activityID)
+	if type(activityID) ~= "number" then return MISSING, false end
+	local state, ok = Compat.Call("C_LFGList.CreateListing", { activityIDs = { activityID }, isPrivateGroup = true,
+		isAutoAccept = false, isCrossFactionListing = false, newPlayerFriendly = false })
+	return state, state == AVAILABLE and ok ~= false
+end
+
+-- Removes the player's listing from the game's finder. Returns the state of the call.
+function LFG.Remove()
+	return (Compat.Call("C_LFGList.RemoveListing"))
+end
+
+-- true when the player has a listing in the game's finder.
+function LFG.HasEntry()
+	return first("C_LFGList.HasActiveEntryInfo") == true
+end
+
+-- Whether the player's listing is private: true, false, or nil (no listing, or no readable privateGroup field).
+function LFG.EntryPrivate()
+	if not LFG.HasEntry() then return nil end
+	local info = first("C_LFGList.GetActiveEntryInfo")
+	if type(info) ~= "table" or IsSecret(info) then return nil end
+	local private = Readable(info.privateGroup)
+	if type(private) ~= "boolean" then return nil end
+	return private
+end
+
 function Compat.InInstance()
 	local values = all("IsInInstance")
 	if not values then return false, nil end
@@ -1196,6 +1266,11 @@ local CAPS = {
 	{ "group.UnitIsInMyGuild", "group", "UnitIsInMyGuild" },
 	{ "group.GetRaidRosterInfo", "group", "GetRaidRosterInfo", note = "[verify S7] secret values in instances" },
 	{ "group.InviteUnit", "group", "C_PartyInfo.InviteUnit", note = "Play with someone new (SOC-20)" },
+	{ "lfg.IsPremadeGroupFinderEnabled", "lfg", "C_LFGList.IsPremadeGroupFinderEnabled", call = true },
+	{ "lfg.CreateListing", "lfg", "C_LFGList.CreateListing", note = "[verify] protected? only from a click (SPEC-13 §7)" },
+	{ "lfg.RemoveListing", "lfg", "C_LFGList.RemoveListing", note = "[verify] protected? only from a click" },
+	{ "lfg.GetActiveEntryInfo", "lfg", "C_LFGList.GetActiveEntryInfo" },
+	{ "lfg.HasActiveEntryInfo", "lfg", "C_LFGList.HasActiveEntryInfo", call = true },
 	{ "tradeskill.IsGuildTradeSkillsEnabled", "tradeskill", "C_TradeSkillUI.IsGuildTradeSkillsEnabled", call = true, note = "[verify S3]" },
 	{ "tradeskill.QueryGuildMemberRecipes", "tradeskill", "C_GuildInfo.QueryGuildMemberRecipes", note = "[verify S3]" },
 	{ "tradeskill.GetGuildMemberRecipes", "tradeskill", "GetGuildMemberRecipes", note = "[verify S3]" },
@@ -1263,7 +1338,7 @@ end
 -- can tell at login; modules refine them later with Compat:SetFeature (the Accord tab when it attaches, the roster when
 -- members come in, the transport when an OFFICER message comes back, the bank when the vault opens).
 Compat.FEATURES = { "guildTab", "clubProfessions", "clubDiscord", "guildRecipesNative", "ownRecipes", "officerAddonChannel",
-	"groupGUIDs", "battleTag", "bankLogs", "bankTabs" }
+	"groupGUIDs", "battleTag", "bankLogs", "bankTabs", "gameFinderPrivate" }
 
 local function hasAll(...)
 	for i = 1, select("#", ...) do
@@ -1323,6 +1398,15 @@ local function probeFeatures()
 		set("bankTabs", UNKNOWN, "vault not opened yet")
 	else
 		set("bankTabs", MISSING, "bank tab API missing")
+	end
+	-- SPEC-13 LFG-04: the calls are there and the client's finder is on; whether the server keeps the listing private
+	-- is learned after the first one (Data/GameFinder.lua refines it to missing or restricted).
+	if not LFG.Has() then
+		set("gameFinderPrivate", MISSING, "C_LFGList calls missing")
+	elseif not LFG.Enabled() then
+		set("gameFinderPrivate", MISSING, "premade group finder off")
+	else
+		set("gameFinderPrivate", AVAILABLE, "isPrivateGroup not confirmed yet")
 	end
 	if hasAll("GetNumGuildBankTransactions", "GetGuildBankTransaction") then
 		set("bankLogs", UNKNOWN, "vault not opened yet")

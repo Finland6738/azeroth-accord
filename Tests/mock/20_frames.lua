@@ -188,8 +188,13 @@ function Widget:IsMouseWheelEnabled() return self._wheel == true end
 function Widget:SetThumbTexture(t) self._thumbTexture = self._thumbTexture or newWidget("Texture", nil, self); self._thumbTexture._texture = t end
 function Widget:GetThumbTexture() self._thumbTexture = self._thumbTexture or newWidget("Texture", nil, self); return self._thumbTexture end
 function Widget:IsMouseEnabled() return self._mouse == true end
+-- A click is a hardware event: while its OnClick runs, Mock.hardware > 0 (protected calls, Tests/mock/68_lfglist.lua).
 function Widget:Click(button)
-	if self._enabled then runScript(self, "OnClick", button or "LeftButton", false) end
+	if not self._enabled then return end
+	Mock.hardware = (Mock.hardware or 0) + 1
+	local ok, err = pcall(runScript, self, "OnClick", button or "LeftButton", false)
+	Mock.hardware = Mock.hardware - 1
+	if not ok then error(err, 0) end
 end
 function Widget:Enable() self._enabled = true end
 function Widget:Disable() self._enabled = false end

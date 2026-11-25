@@ -5,6 +5,7 @@
 --   Post        Model.ActivityList(kind), Defaults(kind, act), Values(rec), ReadForm(values), Submit(values, confirmed),
 --               Update(values), Close()
 --   My group    Model.Own(), ApplicantRows(), ApplicantText, ApplicantCount(), Accept(name), Decline(name)
+--   Game finder Model.GameButton(), GameList(), GameRemove() (M9.8, Data/GameFinder.lua): only from the leader's click
 -- Every action answers `true, text` or `false, text`: the text is what the view says under its buttons. Nothing here
 -- sends or writes by itself: Data/Groups.lua does, and checks everything again.
 local ADDON_NAME, ns = ...
@@ -32,6 +33,8 @@ local function now() return compat().ServerTime() end
 local function lower(s) return type(s) == "string" and s:lower() or "" end
 local function escape(s) return ns.Contacts and ns.Contacts.Escape(s) or (tostring(s):gsub("|", "||")) end
 local function instance(kind) return kind == "dungeon" or kind == "raid" end
+-- The click that may have closed the guild listing also removes its private listing in the game's finder (LFG-05).
+local function gameClose() if ns.GameFinder then ns.GameFinder:CloseWith() end end
 
 function Model.KindText(kind) return L["GRP_KIND_" .. tostring(kind):upper()] end
 function Model.RoleText(role) return L["GRP_ROLE_" .. tostring(role):upper()] end
@@ -377,6 +380,7 @@ function Model.Submit(values, confirmed)
 	if not spec then return false, Model.ErrorText(bad) end
 	if Model.Own() and not confirmed then return false, L["GRP_CONFIRM_REPLACE"], true end
 	local rec, why = G():Post(spec)
+	gameClose()
 	if not rec then return false, Model.ErrorText(why) end
 	return true, L["GRP_POSTED"]
 end
@@ -396,6 +400,7 @@ function Model.Update(values, original)
 		if touched(key) then changes[key] = spec[key] end
 	end
 	local ok, why = G():Update(own.id, changes)
+	gameClose()
 	if not ok then return false, Model.ErrorText(why) end
 	return true, L["GRP_UPDATED"]
 end
@@ -404,8 +409,50 @@ function Model.Close()
 	local own = Model.Own()
 	if not own then return false, Model.ErrorText("missing") end
 	local rec, why = G():Close(own.id)
+	gameClose()
 	if not rec then return false, Model.ErrorText(why) end
 	return true, L["GRP_CLOSED_DONE"]
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The game's Group Finder, privately (SPEC-13 §7, M9.8)
+---------------------------------------------------------------------------------------------------------------------
+-- The button of My group: { action = "GameList" | "GameRemove", text, tip = { lines } }, or nil when nothing is offered
+-- (LFG-07: without the capability no button and no text).
+function Model.GameButton()
+	local GF = ns.GameFinder
+	if not (GF and GF.Enabled()) then return nil end
+	if GF:CanRemove() then
+		return { action = "GameRemove", text = L["GRP_GAME_REMOVE"], enabled = not compat().InCombat(),
+			tip = { L["GRP_GAME_REMOVE"], L["GRP_GAME_REMOVE_TIP"] } }
+	end
+	local own = Model.Own()
+	if own and GF:Offer(own) then
+		return { action = "GameList", text = L["GRP_GAME_LIST"], enabled = true,
+			tip = { L["GRP_GAME_LIST"], L["GRP_GAME_TIP_PRIVATE"], L["GRP_GAME_TIP_FRIENDS"] } }
+	end
+	return nil
+end
+
+local function gameError(why)
+	if why == "combat" then return L["GRP_GAME_ERR_COMBAT"] end
+	return L["GRP_GAME_ERR"]:format(tostring(why))
+end
+
+-- The leader's click on "Also list in the game's finder" (LFG-02).
+function Model.GameList()
+	local own = Model.Own()
+	if not own then return false, Model.ErrorText("missing") end
+	local ok, why = ns.GameFinder:List(own.id)
+	if not ok then return false, gameError(why) end
+	return true, L["GRP_GAME_LISTED"]
+end
+
+-- The leader's click on "Remove from the game's finder".
+function Model.GameRemove()
+	local ok, why = ns.GameFinder:Remove()
+	if not ok then return false, gameError(why) end
+	return true, L["GRP_GAME_REMOVED"]
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -451,6 +498,7 @@ function Model.Accept(name)
 	local own = Model.Own()
 	if not own then return false, Model.ErrorText("missing") end
 	local ok, why = G():Accept(own.id, name)
+	gameClose()
 	if ok then return true, L["GRP_ACCEPTED_DONE"] end
 	return false, Model.ErrorText(why)
 end

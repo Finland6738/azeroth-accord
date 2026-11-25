@@ -50,6 +50,17 @@ La pagina **Il mio gruppo** elenca chi si è candidato, con classe, livello, ruo
 - Può invitare solo il capo del gruppo o dell'incursione.
 - Con 5 giocatori in un gruppo e più posti nell'annuncio compare *Trasforma prima il gruppo in incursione*: l'addon non lo trasforma mai al posto tuo.
 
+## Anche nel Group Finder del gioco
+
+Se il gioco permette di mettere un gruppo **in privato**, **Il mio gruppo** ha un pulsante **Anche nel cercagruppi del gioco** accanto a *Chiudi il gruppo*. Un tuo clic mette lo stesso gruppo per una spedizione o un'incursione nel Group Finder del gioco come **gruppo privato**: lì lo vede la tua gilda, e anche **i tuoi amici fuori dalla gilda** (lo dice il suggerimento del pulsante). L'addon:
+
+- non mette mai un gruppo **in pubblico**, non scrive né titolo né commento e non mette niente senza il tuo clic;
+- offre il pulsante solo al capo (o a chi è da solo), fuori dal combattimento, per una spedizione o un'incursione che il Group Finder del gioco conosce;
+- lo toglie nello stesso clic che chiude il gruppo della gilda (*Chiudi il gruppo*, un nuovo annuncio che lo sostituisce, un *Accetta* che lo riempie). Quando il gruppo della gilda si chiude da solo, un avviso ti chiede di toglierlo e il pulsante diventa **Togli dal cercagruppi del gioco**;
+- se il gioco mostra il gruppo come pubblico, ti chiede di toglierlo e non offre più il pulsante su quella versione del gioco.
+
+Chi si candida dal Group Finder del gioco si gestisce nella finestra del gioco. Se il gioco non permette gli annunci privati non compare né il pulsante né alcun testo: il cercagruppi della gilda resta l'unico. Se WoW Forever li permetta si controlla nel gioco prima della `v0.9.0`.
+
 ## Avvisi e Centro azioni
 
 Con il [[Centro azioni|Action-Center-it]] (anche questo dalla `v0.9.0`):
