@@ -230,6 +230,16 @@ def s_bank_money():
     return bank_frame(4, body, badge_n=3)
 
 
+# the tips of the requests, in copper, by requester (a withdrawal of an item only)
+GIFTS = {"Fenwick": 20000, "Cora": 50000}
+# when each waiting request was made, as the officers' list writes it
+DATES = {"Fenwick": "2026-11-25 18:12", "Cora": "2026-11-25 15:40", "Lyra": "2026-11-25 11:05"}
+
+
+def money(copper):
+    return T("BANK_GOLD", copper // 10000)
+
+
 REQS = [("Fenwick", "ROGUE", "withdraw", "Thorium Bar x20", "open", "Engineering skill-up", "2 h"), ("Cora", "PRIEST", "withdraw", "Major Mana Potion x10", "approved", "Raid night", "5 h"),
         ("Lyra", "MAGE", "donation", "Runecloth x200", "open", "", "9 h"), ("Hollis", "SHAMAN", "deposit", "Heavy Leather x60", "fulfilled", "", "1 d"),
         ("Wren", "HUNTER", "withdraw", "500 gold", "rejected", "Not this week", "1 d"), ("Zephyr", "DRUID", "withdraw", "Sungrass x30", "fulfilled", "", "2 d"),
@@ -254,19 +264,26 @@ def req_rows(officer, me="Fenwick"):
         if officer and st == "approved":
             acts = btn(T("BANKREQ_FULFILL"), small=True)
         nt = f'<span class="muted small"> - {esc(T("BANKREQ_NOTE", note))}</span>' if note else ""
+        if n in GIFTS and (officer or n == me):
+            nt = f'<span class="muted small"> - {esc(T("BANKREQ_GIFT_SHORT", money(GIFTS[n])))}</span>' + nt
         rows += (f'<tr><td style="width:150px">{badge(c)}{name(n, c)}</td><td style="width:100px" class="muted">{esc(T("BANKREQ_KIND_" + kind.upper()))}</td>'
                  f'<td style="width:300px">{esc(what)}{nt}</td><td style="width:100px" class="{STATUS_COLOR[st]}">{esc(T("BANKREQ_STATUS_" + st.upper()))}</td>'
                  f'<td class="muted small" style="width:56px">{esc(when)}</td><td style="text-align:right">{acts}</td></tr>')
     return rows
 
 
-def requests_body(officer=False, fields=(("Thorium Bar", 150), ("20", 56), ("Engineering skill-up", 190))):
+def requests_body(officer=False, fields=(("Thorium Bar", 168), ("20", 56), ("2", 52), ("Engineering skill-up", 168))):
     kinds = "".join(chip(T("BANKREQ_KIND_" + k), "sel" if k == "WITHDRAW" else "", small=True) + " " for k in ("WITHDRAW", "DEPOSIT", "DONATION"))
+    def field(label, value):
+        return (f'<div style="display:flex;flex-direction:column;gap:4px"><span class="small muted">{esc(label)}</span>'
+                f'{edit(value[0], value[1])}</div>')
+
     form = card(f'<div style="display:flex;gap:8px;align-items:center">{kinds}<span class="muted small" style="margin-left:8px">{esc(T("BANKREQ_TIP_WITHDRAW"))}</span></div>'
-                f'<div style="display:flex;gap:10px;margin-top:12px;align-items:center"><span class="small muted">{esc(T("BANKREQ_ITEM"))}</span>{edit(fields[0][0], fields[0][1])}'
-                f'<span class="small muted">{esc(T("BANKREQ_AMOUNT_ITEM"))}</span>{edit(fields[1][0], fields[1][1])}'
-                f'<span class="small muted">{esc(T("BANKREQ_REASON"))}</span>{edit(fields[2][0], fields[2][1])}{btn(T("BANKREQ_SEND"), "primary", small=True, extra="style=height:28px")}</div>',
-                "padding:14px 18px;margin-bottom:10px;border-radius:12px")
+                f'<div style="display:flex;gap:10px;margin-top:10px;align-items:flex-end">{field(T("BANKREQ_ITEM_BANK"), fields[0])}'
+                f'{field(T("BANKREQ_AMOUNT_ITEM"), fields[1])}{field(T("BANKREQ_GIFT"), fields[2])}{field(T("BANKREQ_REASON"), fields[3])}'
+                f'{btn(T("BANKREQ_SEND"), "primary", small=True, extra="style=height:28px")}</div>'
+                f'<div class="small muted" style="margin-top:6px">{esc(T("BANKREQ_STOCK", 34))}<span class="mono" style="margin-left:12px">{esc(T("AGO_HOURS", 3))}</span></div>',
+                "padding:12px 18px;margin-bottom:10px;border-radius:12px")
     return (f'{form}<div style="display:flex;gap:8px;margin-bottom:8px">{chk(T("BANKREQ_ONLY_MINE"))}{chk(T("BANKREQ_SHOW_CLOSED"), True)}</div>'
             f'<table class="tbl"><tbody>{req_rows(officer)}</tbody></table>')
 
@@ -283,19 +300,30 @@ def s_bank_requests_aurora():
 
 @scene("bank-inbox", "Bank, Inbox (officers): what waits for a decision, the counters, and a chat line per new request")
 def s_bank_inbox():
+    head = "".join(f'<th style="{style}">{esc(T(key))}</th>' for key, style in (
+        ("BANKREQ_COL_DATE", "width:150px;text-align:left"), ("BANKREQ_COL_WHO", "width:130px;text-align:left"), ("BANKREQ_COL_ITEM", "text-align:left"),
+        ("BANKREQ_COL_COUNT", "width:60px;text-align:right"), ("BANKREQ_COL_GIFT", "width:80px;text-align:right")))
     rows = ""
     waiting = [r for r in REQS if r[4] in ("open", "approved")]
     for n, c, kind, what, st, note, when in reversed(waiting):
-        looks = ""
+        item, qty = what.rsplit(" x", 1)
+        looks = esc(T("BANKREQ_KIND_" + kind.upper()) + (" - " + note if note else ""))
+        cls = "muted"
         if st == "approved":
-            looks = f'<div class="green small" style="margin-top:2px">{esc(T("BANKREQ_LOOKS_DONE", "Cora", "Major Mana Potion x10", T("AGO_MINUTES", 35)))}</div>'
+            cls = "green"
+            looks = esc(T("BANKREQ_LOOKS_DONE", "Cora", what, T("AGO_MINUTES", 35))) + "&nbsp;&nbsp; " + esc(T("BANKREQ_LOOKS_PAID", "Cora", money(GIFTS["Cora"]), T("AGO_MINUTES", 20)))
         acts = (btn(T("BANKREQ_APPROVE"), "primary", small=True) + " " + btn(T("BANKREQ_REJECT"), small=True)) if st == "open" else btn(T("BANKREQ_FULFILL"), small=True)
-        rows += card(f'<div style="display:flex;align-items:center;gap:12px"><div style="flex:1">{badge(c)}{name(n, c)} <span class="muted small">- {esc(T("BANKREQ_KIND_" + kind.upper()))} - {esc(T("BANKREQ_STATUS_" + st.upper()))} - {esc(when)}</span>'
-                     f'<div style="margin-top:3px">{esc(what)}</div>{looks}</div><div>{acts}</div></div>', "margin-bottom:10px;border-radius:12px;padding:12px 16px")
+        gift = money(GIFTS[n]) if n in GIFTS else "-"
+        rows += (f'<tr><td class="muted mono small">{esc(DATES[n])}</td><td>{badge(c)}{name(n, c)}</td><td>{esc(item)}</td>'
+                 f'<td class="mono" style="text-align:right">{esc(qty)}</td><td class="mono gold" style="text-align:right">{esc(gift)}</td>'
+                 f'<td rowspan="2" style="width:230px;text-align:right">{acts}</td></tr>'
+                 f'<tr><td class="{STATUS_COLOR[st]} small">{esc(T("BANKREQ_STATUS_" + st.upper()))}</td><td colspan="4" class="{cls} small">{looks}</td></tr>')
+    sorts = tools(chip(T("BANKREQ_SORT_OLDEST"), "sel", True), chip(T("BANKREQ_SORT_NEWEST"), "", True), chip(T("BANKREQ_SORT_GIFT"), "", True))
     chat = ('<div style="position:absolute;left:46px;bottom:74px;width:520px;padding:8px 10px;background:rgba(0,0,0,.62);border-radius:4px;font:13px/1.5 \'Segoe UI\',Arial,sans-serif;color:#fff;z-index:40">'
             f'<div><span style="color:#d4af37">{esc(T("ADDON_TITLE"))}</span> {esc(T("BANKNOTE_NEW", "Fenwick", "Thorium Bar x20"))}</div>'
             f'<div><span style="color:#d4af37">{esc(T("ADDON_TITLE"))}</span> {esc(T("BANKNOTE_NEW", "Lyra", "Runecloth x200"))}</div></div>')
-    body = f'<div class="muted small" style="margin:0 0 8px 2px">{esc(T("BANKREQ_INBOX_EXPLAIN"))}</div>{rows}'
+    body = (f'<div class="muted small" style="margin:0 0 8px 2px">{esc(T("BANKREQ_INBOX_EXPLAIN"))}</div>{sorts}'
+            f'<table class="tbl"><thead><tr class="small muted">{head}<th></th></tr></thead><tbody>{rows}</tbody></table>')
     return bank_frame(6, body, badge_n=3) + chat
 
 
@@ -443,7 +471,7 @@ def s_it_roster():
 @scene("it-bank-requests", "Interfaccia italiana: le richieste alla banca, con i pulsanti degli ufficiali", lang="itIT")
 def s_it_bank():
     with it_guild():
-        return bank_frame(5, requests_body(True, (("Barra di torio", 130), ("20", 44), ("Per salire in Ingegneria", 170))), badge_n=3)
+        return bank_frame(5, requests_body(True, (("Barra di torio", 160), ("20", 56), ("2", 52), ("Per salire in Ingegneria", 172))), badge_n=3)
 
 
 @scene("it-settings", "Interfaccia italiana: la pagina Impostazioni con la scheda Aspetto", lang="itIT")

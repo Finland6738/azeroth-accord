@@ -357,10 +357,12 @@ function items.build(f)
 	f.message:SetWidth(380)
 end
 
+-- How many rows an area shows: `area.rowHeight` for a mode whose rows are taller than ROW_HEIGHT.
 local function visibleRows(area)
 	local h = area and area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
+	local row = area and area.rowHeight or View.ROW_HEIGHT
+	if not h or h < row then return View.DEFAULT_ROWS end
+	return max(1, floor(h / row))
 end
 
 function items.refresh(f)

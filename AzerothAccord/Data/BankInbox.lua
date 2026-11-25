@@ -1,9 +1,12 @@
--- BankInbox: what the officers and the requesters are told about bank requests (SPEC-08 BANK-23, BANK-24). Lua 5.1.
+-- BankInbox: what the officers and the requesters are told about bank requests (SPEC-08 BANK-23, BANK-24, BANK-26,
+-- BANK-27). Lua 5.1.
 --
 -- Counter     an officer's tab in the guild window, the Bank button of the panel and the compartment tooltip show how many
 --             requests are open (waiting for a decision): BankInbox.PendingCount(). Members see no counter.
--- Inbox       the requests that need an officer, oldest first: open ones (to approve or reject) and approved ones (to mark as
---             fulfilled), each with the movement of the bank that looks like its delivery (BankInbox:Suggest).
+-- Inbox       the officers' list of the requests that need an officer: open ones (to approve or reject) and approved ones
+--             (to mark as fulfilled), oldest first, or newest first or highest tip first (BankInbox.Sort), each with the
+--             movement of the bank that looks like its delivery (BankInbox:Suggest) and the deposit that looks like the
+--             payment of its tip (BankInbox:Payments).
 -- Notices     one chat line when a request arrives that an officer has not seen ("New bank request from Bob: Linen Cloth
 --             x20"), and one to the requester when an officer moves one of their requests ("Your bank request ... was
 --             approved by Boss"). What a character has been told is kept per guild in GuildKey:Data().bank.seen
@@ -13,6 +16,9 @@
 -- Proposal    BANK-24: delivery stays manual; when the bank log shows the movement that matches a request (an item taken out
 --             by the requester's account for a withdrawal, deposited for a deposit or a donation, the gold in the money log),
 --             the inbox says so next to the request and the officer marks it fulfilled with one click.
+-- Tips        BANK-26: a tip is a promise the member pays by depositing gold in the bank. A deposit of gold of the
+--             requester's account, after the request, of at least the tip, makes the "looks paid" hint; one deposit pays one
+--             tip (the oldest request first). Nothing is recorded: the officer checks it by hand.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Inbox = {}
@@ -25,6 +31,7 @@ local sort = table.sort
 Inbox.NOTICE_WAIT = 3         -- seconds a notice waits for the rest of its burst
 Inbox.MAX_LINES = 3
 Inbox.MATCH_SLACK = 3600      -- an entry up to this long before the request still counts (its time is rounded down)
+Inbox.SORTS = { "oldest", "newest", "tip" }
 
 local L = ns.L
 local state = { pending = {}, timer = false }
@@ -42,16 +49,30 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- The inbox
 ---------------------------------------------------------------------------------------------------------------------
--- The requests that need an officer, oldest first: { request row..., suggestion = entry | nil }.
-function Inbox:Rows()
+local function older(a, b)
+	if (a.created or 0) ~= (b.created or 0) then return (a.created or 0) < (b.created or 0) end
+	return a.id < b.id
+end
+
+-- Sorts request rows in place: how = "oldest" (date and time, the default), "newest", or "tip" (highest first; no tip
+-- last; the oldest first among equals).
+function Inbox.Sort(rows, how)
+	sort(rows, function(a, b)
+		if how == "newest" then return older(b, a) end
+		if how == "tip" and (a.tip or 0) ~= (b.tip or 0) then return (a.tip or 0) > (b.tip or 0) end
+		return older(a, b)
+	end)
+	return rows
+end
+
+-- The requests that need an officer, sorted by opts.sort (Inbox.Sort): { request row..., suggestion = entry | nil,
+-- paid = entry | nil }.
+function Inbox:Rows(opts)
 	local Req = ns.BankRequests
 	if not (Req and isOfficer()) then return {} end
-	local rows = Req:List({ status = { open = true, approved = true } })
-	sort(rows, function(a, b)
-		if (a.created or 0) ~= (b.created or 0) then return (a.created or 0) < (b.created or 0) end
-		return a.id < b.id
-	end)
-	for _, r in ipairs(rows) do r.suggestion = self:Suggest(r) end
+	local rows = Inbox.Sort(Req:List({ status = { open = true, approved = true } }), opts and opts.sort)
+	local paid = self:Payments()
+	for _, r in ipairs(rows) do r.suggestion, r.paid = self:Suggest(r), paid[r.id] end
 	return rows
 end
 
@@ -89,6 +110,38 @@ function Inbox:Suggest(r)
 		end
 	end
 	return nil
+end
+
+-- The deposits that look like the payment of a tip (BANK-26): { [request id] = entry of the money log }, for officers
+-- only. A deposit of gold of the requester's account, after the request, of at least the tip. Every request with a tip that
+-- was not rejected or cancelled takes the oldest deposit still free, the oldest request first: one deposit pays one tip.
+function Inbox:Payments()
+	local Req, Log = ns.BankRequests, ns.BankLog
+	local out = {}
+	if not (Req and Log and isOfficer()) then return out end
+	local waiting = {}
+	for _, r in ipairs(Req:List({ status = { open = true, approved = true, fulfilled = true } })) do
+		if r.tip then waiting[#waiting + 1] = r end
+	end
+	if #waiting == 0 then return out end
+	Inbox.Sort(waiting, "oldest")
+	local deposits = {}
+	for _, e in ipairs(Log:Entries({ tab = Log.MONEY_TAB })) do   -- newest first: kept oldest first
+		if e.kind == "deposit" then table.insert(deposits, 1, e) end
+	end
+	local used = {}
+	for _, r in ipairs(waiting) do
+		local names = accountNames(r.requester)
+		local since = (r.created or 0) - Inbox.MATCH_SLACK
+		for i, e in ipairs(deposits) do
+			if not used[i] and e.t >= since and e.count >= r.tip and names[lower((ns.Compat.SplitName(e.name)))] then
+				used[i] = true
+				out[r.id] = e
+				break
+			end
+		end
+	end
+	return out
 end
 
 ---------------------------------------------------------------------------------------------------------------------

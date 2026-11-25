@@ -1,6 +1,6 @@
 # M8 — Officer tools and roster history
 
-**Goal:** officers see what happened in the roster over time, which accounts are inactive (alts counted), and get a list of manual actions to do. Nothing is ever kicked or changed automatically. Release: `v0.8.0`.
+**Goal:** officers see what happened in the roster over time, which accounts are inactive (alts counted), and get a list of manual actions to do; members ask for items by picking them from the bank contents, with an optional tip in gold, and officers see those requests by date, time and tip. Nothing is ever kicked, moved or changed automatically. Release: `v0.8.0`.
 
 **Exit criterion:** in game, an officer sees a member's joins, rank changes and level-ups on a timeline, and an inactive-accounts list that does not include a player who only plays an alt.
 
@@ -53,8 +53,19 @@
   - [x] Each export round-trips through a CSV parser in the tests; no account token or GUID is in it.
 - Note: the length the export box holds, the doubled `|` copied back as one, and pasting into Discord and into a spreadsheet are [verify] in the client.
 
-### M8.7 — In-game check and release
-- Branch: `step/m8-7-check`
+### M8.7 — Bank requests from the bank, with a tip
+- Branch: `step/m8-7-bank-requests`
+- Spec: SPEC-08
+- Scope (added by the owner, 2026-11-25):
+  - a withdrawal request picks its item from the bank tab snapshots the member can see (search by name, the available quantity shown and capping the request, the age of the snapshot); a link or an item number stays as a fallback;
+  - an optional tip in whole gold, a promise only: the member deposits it in the bank, the money log gives a "looks paid" hint and an officer checks it by hand;
+  - the officers' list shows date and time, requester, item, quantity and tip, sortable by date (oldest first by default) and by tip. Whether members see others' tips is SPEC-10 Q16.
+- Done when:
+  - [x] An item is picked from the snapshot and the quantity is capped; the officers' list sorts by date and by tip; an older client ignores the tip; the addon never moves gold or items.
+- Note: the popup list under the item box, its height in the guild window, the two-line rows of the officers' list and the local date and time are [verify] in the client.
+
+### M8.8 — In-game check and release
+- Branch: `step/m8-8-check`
 - Scope: `docs/checklists/M8.md` and the README status. The owner releases `v0.8.0`.
 - Done when:
   - [ ] The checklist exists.

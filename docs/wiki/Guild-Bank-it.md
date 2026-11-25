@@ -7,7 +7,7 @@
 - Il gioco mostra la banca solo alla cassaforte. Ogni volta che un compagno con l'addon la apre, l'addon salva cosa contiene ogni scheda e lo condivide, quindi la vista **Banca** funziona ovunque. Ogni scheda mostra quanto è vecchio il suo contenuto.
 - Le schede che il tuo grado non può vedere nel gioco restano nascoste anche nell'addon.
 - **Registri e donazioni**: depositi e prelievi si raccolgono nel tempo; l'elenco delle donazioni mostra chi ha aiutato la gilda negli ultimi 30 giorni, nell'ultimo anno e in totale.
-- **Richieste**: chiedi un oggetto o dell'oro (*Prelievo*), offri un oggetto (*Deposito*) o prometti una *Donazione*. Gli ufficiali approvano o rifiutano e la segnano come consegnata; la consegna avviene nel gioco (posta, scambio o cassaforte).
+- **Richieste**: scegli un oggetto dal contenuto della banca e di' quanti, con una mancia facoltativa in oro, chiedi dell'oro (*Prelievo*), offri un oggetto (*Deposito*) o prometti una *Donazione*. Gli ufficiali approvano o rifiutano e la segnano come consegnata; la consegna avviene nel gioco (posta, scambio o cassaforte).
 
 ## Chi vede cosa
 
@@ -46,10 +46,25 @@ Aprila con la scheda **Banca** del pannello o con `/accord bank`. Le modalità (
 
 Nella modalità **Richieste** della vista Banca puoi:
 
-- **Prelievo**: chiedere un oggetto dalla banca, o dell'oro; **Deposito**: offrire un oggetto; **Donazione**: promettere oggetti o oro. Incolla il link di un oggetto (o scrivi il suo numero) nella casella dell'oggetto, o lasciala vuota per l'oro; aggiungi quanti (o quante monete d'oro) e un motivo, poi premi *Invia richiesta*. Puoi avere cinque richieste aperte alla volta. I chip *Solo le mie* e *Mostra anche le chiuse* sotto il modulo filtrano l'elenco.
+- **Prelievo**: chiedere un oggetto dalla banca, o dell'oro; **Deposito**: offrire un oggetto; **Donazione**: promettere oggetti o oro. Aggiungi quanti (o quante monete d'oro) e un motivo, poi premi *Invia richiesta*. Puoi avere cinque richieste aperte alla volta. I chip *Solo le mie* e *Mostra anche le chiuse* sotto il modulo filtrano l'elenco.
 - Ogni compagno vede ogni richiesta. Puoi **annullare** la tua finché è ancora aperta.
 - Gli **ufficiali** rispondono con *Approva*, *Rifiuta* (la casella del motivo diventa il motivo del rifiuto) e *Consegnata*. Passa il mouse su una riga per leggere la sua storia. Solo gli ufficiali possono cambiare lo stato di una richiesta: gli altri addon ignorano qualsiasi altra cosa.
 - L'addon non sposta mai oggetti o oro: dopo un'approvazione l'oggetto ti arriva per posta, scambio o alla cassaforte, come decidono gli ufficiali.
+
+### Scegliere un oggetto dalla banca
+
+- In un **Prelievo**, clicca la casella dell'oggetto: un elenco mostra gli oggetti delle schede della banca che puoi vedere, ognuno con la quantità disponibile. Scrivi parte del nome (o il numero dell'oggetto) per restringerlo, e clicca una riga.
+- La riga sotto la casella dice quanti ce ne sono in banca e quanto è vecchia quella foto (l'etichetta dell'età: passaci sopra per vedere chi ha letto la banca; dopo sette giorni si attenua). La quantità si ferma al disponibile, e non supera mai 9999.
+- Un oggetto che nell'elenco non c'è (foto vecchia, scheda che non vedi, nessuna foto ancora): incolla il suo link o scrivi il numero. Allora vale solo il limite 1–9999. Lascia la casella vuota per chiedere oro.
+- *Deposito* e *Donazione* offrono qualcosa che hai: incolla un link o scrivi il numero.
+
+### La mancia
+
+- Quando chiedi un oggetto puoi promettere una **mancia** in monete d'oro intere, fino a 10000 (vuota o 0 per nessuna). È una semplice donazione alla banca di gilda, non una scommessa né un prezzo: gli ufficiali decidono la tua richiesta come ritengono.
+- La mancia è una **promessa**. L'addon non sposta mai oro: la paghi tu depositando l'oro nella banca di gilda.
+- Chi la vede: tu (e i tuoi altri personaggi), gli ufficiali e il Guild Master. Gli altri membri nell'addon non la vedono. Viaggia però con la richiesta, che arriva a tutta la gilda: consideratela nascosta alla vista, non segreta.
+- Una volta inviata la mancia non si cambia: annulla la richiesta e mandane una nuova.
+- Un compagno con una versione più vecchia dell'addon vede la richiesta senza la mancia.
 
 ## Per gli ufficiali: la casella e gli avvisi
 
@@ -58,5 +73,7 @@ Nella modalità **Richieste** della vista Banca puoi:
 *Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
 
 - Un segno rotondo con un numero, nel colore d'accento del tema, compare sulla scheda Accord della finestra della gilda (e come distintivo sulla scheda Banca del pannello) quando ci sono richieste che aspettano te. I membri non lo vedono mai.
-- La modalità **In arrivo** elenca ciò che aspetta un ufficiale, dalla più vecchia: le richieste aperte da approvare o rifiutare, quelle approvate da segnare come *Consegnata*. Quando il registro della banca mostra il movimento corrispondente (chi ha chiesto ha tolto l'oggetto, o l'ha depositato, o l'oro), la riga dice *Sembra consegnata*; la segni comunque tu, perché la consegna resta manuale.
+- La modalità **In arrivo** elenca ciò che aspetta un ufficiale: le richieste aperte da approvare o rifiutare, quelle approvate da segnare come *Consegnata*. Ogni riga mostra **data e ora**, chi ha chiesto, l'oggetto, la quantità e la mancia. I chip la ordinano *Dalla più vecchia* (di base), *Dalla più recente* o per *Mancia più alta*.
+- Quando il registro della banca mostra il movimento corrispondente (chi ha chiesto ha tolto l'oggetto, o l'ha depositato, o l'oro), la riga dice *Sembra consegnata*; la segni comunque tu, perché la consegna resta manuale.
+- Quando il registro del denaro mostra un deposito d'oro di chi ha chiesto (un suo personaggio qualsiasi), dopo la richiesta, di almeno la mancia, la riga dice *Sembra pagata*. Un deposito vale per una sola mancia, dalla richiesta più vecchia; più depositi piccoli non si sommano. È solo un indizio: controlla tu. L'addon non registra nulla sul pagamento; dopo che segni la richiesta come consegnata, l'indizio è nel suo suggerimento in *Richieste* (*Mostra anche le chiuse*). Il registro della banca dà orari arrotondati, quindi un deposito vecchio letto tardi può non essere riconosciuto.
 - Ricevi una riga in chat quando arriva una nuova richiesta; chi ha chiesto ne riceve una quando approvi, rifiuti o consegni. Gli avvisi non si ripetono mai dopo un ricaricamento, e la prima volta che l'addon gira non annuncia le richieste che esistono già.

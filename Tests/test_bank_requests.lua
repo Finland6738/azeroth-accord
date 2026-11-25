@@ -383,3 +383,330 @@ describe("the Requests mode", function()
 		eq(lines[2], "gear"); eq(lines[3], "Open by Bob, 2 h ago")
 	end)
 end)
+
+-- M8.7: the item picked from the bank contents, and the tip (SPEC-08 BANK-25..BANK-27) -------------------------------------
+local COPPER, SILK, GOLD = 2840, 4306, 10000
+
+-- A snapshot of a tab as `author` read it, `age` seconds ago; items = { { itemID, count }, ... }.
+local function snapshot(author, tab, items, age, extra)
+	local slots = {}
+	for i, it in ipairs(items) do slots[i] = { slot = i, itemID = it[1], count = it[2] } end
+	local rec = { id = author .. ":t" .. tab, author = author, rev = 1, time = GetServerTime() - (age or 60), kind = "tab", tab = tab,
+		name = "Tab " .. tab, rank = 3, it = A().Bank.EncodeItems(slots), n = #slots }
+	for k, v in pairs(extra or {}) do rec[k] = v end
+	S():Records("bank")[rec.id] = rec
+end
+
+local function itemNames()
+	for id, name in pairs({ [LINEN] = "Linen Cloth", [COPPER] = "Copper Bar", [SILK] = "Silk Cloth" }) do
+		Mock.items.info[id] = { name = name, quality = 1, icon = 132889 }
+		Mock.items.cached[id] = true
+	end
+end
+
+-- Linen in two tabs (20 + 15), 7 copper bars, and silk in an officers' tab.
+local function stocked()
+	snapshot(BOB, 1, { { LINEN, 20 }, { COPPER, 7 } }, 3 * 3600)
+	snapshot(BOB, 2, { { LINEN, 15 } }, 2 * 86400)
+	snapshot(OFF, 3, { { SILK, 50 } }, 60, { restricted = true, rank = 1 })
+end
+
+local function theirs(n, extra)
+	local rec = { id = BOB .. ":" .. n, author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw", status = "open",
+		itemID = LINEN, count = 3, created = GetServerTime(), history = { { s = "open", by = BOB, t = GetServerTime() } } }
+	for k, v in pairs(extra or {}) do rec[k] = v end
+	S():Records("bankreq")[rec.id] = rec
+	return rec
+end
+
+describe("picking from the bank contents", function()
+	before_boot(function() guild(3) itemNames() end)
+
+	it("sums each item over the tabs this member sees, with the age of the oldest snapshot that holds it", function()
+		stocked()
+		local items = R():BankItems()
+		eq(items[LINEN].available, 35); eq(items[LINEN].time, GetServerTime() - 2 * 86400); eq(items[LINEN].author, BOB)
+		eq(items[COPPER].available, 7)
+		isNil(items[SILK], "the officers' tab is not shown to a member")
+	end)
+
+	it("an officer picks from the officers' tab too", function()
+		asOfficer(); stocked()
+		eq(R():BankItems()[SILK].available, 50)
+	end)
+
+	it("lists the items by name, searches by name or number and shows how many are available", function()
+		stocked()
+		local all = RV().Choices("")
+		eq(#all, 2); eq(all[1].name, "Copper Bar"); eq(all[2].name, "Linen Cloth")
+		eq(all[2].available, 35); contains(all[2].text, "Linen Cloth - 35")
+		eq(#RV().Choices("linen"), 1); eq(RV().Choices("  CLOTH ")[1].id, LINEN); eq(RV().Choices("2840")[1].id, COPPER)
+		eq(#RV().Choices("mithril"), 0)
+	end)
+
+	it("caps a withdrawal at what the bank holds, and says the most it may ask", function()
+		stocked()
+		local rec, why, most = R():Create({ kind = "withdraw", itemID = LINEN, count = 36 })
+		falsy(rec); eq(why, "stock"); eq(most, 35)
+		eq(R():OpenCount(), 0)
+		truthy(R():Create({ kind = "withdraw", itemID = LINEN, count = 35 }))
+	end)
+
+	it("keeps 1-9999 and does not cap a deposit, a donation or an item the snapshots do not show (the fallback)", function()
+		stocked()
+		snapshot(BOB, 4, { { 159, 20000 } })
+		eq(R():MaxCount("withdraw", 159), 9999)
+		eq(select(2, R():Create({ kind = "withdraw", itemID = 159, count = 10000 })), "count")
+		eq(select(2, R():Create({ kind = "withdraw", itemID = LINEN, count = 0 })), "count")
+		truthy(R():Create({ kind = "deposit", itemID = LINEN, count = 500 }))
+		truthy(R():Create({ kind = "donation", itemID = LINEN, count = 500 }))
+		truthy(R():Create({ kind = "withdraw", itemID = 118, count = 500 }), "not in the bank as seen")
+		truthy(R():Create({ kind = "withdraw", itemID = SILK, count = 500 }), "in a tab this member cannot see")
+	end)
+
+	it("reads the box: the picked item, a link or a number, or the exact name of one bank item", function()
+		stocked()
+		eq(RV().Resolve("withdraw", "linen cloth"), LINEN)
+		eq(RV().Resolve("withdraw", "|cffffffff|Hitem:118::::::::60:::::|h[Potion]|h|r"), 118)
+		eq(RV().Resolve("withdraw", "2840"), COPPER)
+		eq(RV().Resolve("withdraw", "Anything", { id = SILK, text = "Anything" }), SILK)
+		isNil(RV().Resolve("withdraw", ""))
+		eq(select(2, RV().Resolve("withdraw", "linen")), "item", "a part of a name is a search, not a choice")
+		eq(select(2, RV().Resolve("deposit", "linen cloth")), "item", "only a withdrawal picks by name")
+		Mock.items.info[2592] = { name = "Linen Cloth", quality = 1, icon = 132889 }
+		Mock.items.cached[2592] = true
+		snapshot(BOB, 5, { { 2592, 1 } })
+		eq(select(2, RV().Resolve("withdraw", "Linen Cloth")), "pick", "two items share the name")
+		eq(RV().Resolve("withdraw", "Linen Cloth", { id = 2592, text = "Linen Cloth" }), 2592)
+	end)
+
+	it("the line under the box gives the quantity and the age of the snapshot (the provenance label)", function()
+		contains(RV().BankLine("").text, "No bank contents seen yet")
+		stocked()
+		local none = RV().BankLine("")
+		contains(none.text, "choose from 2 bank items"); eq(none.info.observedAt, GetServerTime() - 2 * 86400)
+		local linen = RV().BankLine("Copper Bar")
+		eq(linen.text, "7 in the bank"); eq(linen.max, 7)
+		eq(linen.info.source, "shared"); eq(linen.info.set, "bank"); eq(linen.info.author, BOB); eq(linen.info.observedAt, GetServerTime() - 3 * 3600)
+		contains(RV().BankLine("118").text, "Not in the bank")
+		eq(RV().CappedAmount("Copper Bar", "50"), "7")
+		isNil(RV().CappedAmount("Copper Bar", "7")); isNil(RV().CappedAmount("118", "50")); isNil(RV().CappedAmount("", "50"))
+	end)
+
+	it("the form refuses more than the bank holds and says how much it holds", function()
+		stocked()
+		local ok, text = RV().Submit({ kind = "withdraw", item = "Copper Bar", amount = "8" })
+		falsy(ok); contains(text, "only 7")
+		truthy(RV().Submit({ kind = "withdraw", item = "Copper Bar", amount = "7" }))
+		eq(S():Get("bankreq", ME .. ":1").itemID, COPPER); eq(S():Get("bankreq", ME .. ":1").count, 7)
+	end)
+end)
+
+describe("the tip", function()
+	before_boot(function() guild(3) itemNames() end)
+
+	local function ask(tip, extra)
+		local spec = { kind = "withdraw", itemID = LINEN, count = 2, tip = tip }
+		for k, v in pairs(extra or {}) do spec[k] = v end
+		return R():Create(spec)
+	end
+
+	it("is optional whole gold up to 10,000 on a withdrawal of an item; 0 is none", function()
+		eq(R().MAX_TIP, 10000 * GOLD)
+		eq(ask(5 * GOLD).tip, 5 * GOLD)
+		isNil(ask(0).tip); isNil(ask(nil).tip)
+		eq(ask(R().MAX_TIP).tip, R().MAX_TIP)
+		for _, bad in ipairs({ -GOLD, 1, GOLD + 1, 1.5 * GOLD, R().MAX_TIP + GOLD, "5" }) do
+			eq(select(2, ask(bad)), "tip", "tip " .. tostring(bad))
+		end
+	end)
+
+	it("goes with a withdrawal of an item only", function()
+		eq(select(2, R():Create({ kind = "deposit", itemID = LINEN, count = 1, tip = GOLD })), "tip")
+		eq(select(2, R():Create({ kind = "donation", itemID = LINEN, count = 1, tip = GOLD })), "tip")
+		eq(select(2, R():Create({ kind = "withdraw", amount = 5 * GOLD, tip = GOLD })), "tip")
+		eq(R():OpenCount(), 0)
+	end)
+
+	it("is read from the box in whole gold pieces", function()
+		isNil(RV().ParseTip("")); isNil(RV().ParseTip(nil)); isNil(RV().ParseTip(" 0 "))
+		eq(RV().ParseTip("5"), 5 * GOLD); eq(RV().ParseTip("10 000"), 10000 * GOLD)
+		for _, bad in ipairs({ "-1", "1.5", "five", "10001", "1g" }) do eq(RV().ParseTip(bad), false, bad) end
+		local ok, text = RV().Submit({ kind = "withdraw", item = "2589", amount = "1", tip = "1.5" })
+		falsy(ok); contains(text, "Tip")
+		ok, text = RV().Submit({ kind = "withdraw", item = "2589", amount = "1", tip = "3" })
+		truthy(ok); contains(text, "3g"); contains(text, "deposit it in the bank")
+		eq(S():Get("bankreq", ME .. ":1").tip, 3 * GOLD)
+		ok, text = RV().Submit({ kind = "withdraw", item = "", amount = "10", tip = "3" })
+		falsy(ok); contains(text, "only when you ask for an item")
+		truthy(RV().Submit({ kind = "deposit", item = "2589", amount = "1", tip = "3" }), "a hidden tip box is ignored")
+		isNil(S():Get("bankreq", ME .. ":2").tip)
+	end)
+
+	it("a record with a badly shaped tip is refused, and a tip never changes after the opening", function()
+		local good = ask(2 * GOLD)
+		truthy(R().ValidRecord(good, S()))
+		local function with(k, v) local r = S().Copy(good) r[k] = v return r end
+		falsy(R().ValidRecord(with("tip", 5), S())); falsy(R().ValidRecord(with("tip", "20000"), S()))
+		falsy(R().ValidRecord(with("tip", R().MAX_TIP + GOLD), S())); falsy(R().ValidRecord(with("kind", "donation"), S()))
+		truthy(R().Transition(good, with("status", "approved")))
+		falsy(R().Transition(good, with("tip", 3 * GOLD)))
+		local gone = S().Copy(good); gone.tip = nil
+		falsy(R().Transition(good, gone))
+		eq(R():Cancel(good.id).tip, 2 * GOLD, "a new revision keeps it")
+	end)
+
+	it("a record with every field at its largest stays inside the size limit of a request", function()
+		local rec = { id = ME .. ":999999999", author = ME, rev = 2147483647, time = GetServerTime(), requester = ME, kind = "withdraw",
+			status = "rejected", itemID = 2147483647, count = 9999, tip = R().MAX_TIP, reason = ("x"):rep(120), note = ("y"):rep(120),
+			created = GetServerTime(), history = {} }
+		for i = 1, R().MAX_HISTORY do rec.history[i] = { s = "cancelled", by = ME, t = GetServerTime() } end
+		truthy(R().ValidRecord(rec, S()))
+		truthy(A().Config.EstimateSize(rec) <= S().SETS.bankreq.maxBytes, tostring(A().Config.EstimateSize(rec)))
+	end)
+
+	it("a member sees the tip of their own requests only; an officer and the Guild Master see all", function()
+		ask(2 * GOLD)
+		theirs(1, { tip = 7 * GOLD })
+		local function tips()
+			local out = {}
+			for _, r in ipairs(R():List()) do out[r.requester] = r.tip or 0 end
+			return out
+		end
+		eq(tips()[ME], 2 * GOLD); eq(tips()[BOB], 0, "somebody else's tip is not shown")
+		for _, r in ipairs(RV().Rows({})) do
+			if r.requester == BOB then
+				isNil(r.tipText)
+				for _, line in ipairs(RV().TooltipLines(r)) do falsy(type(line) == "table" and line.text:find("Tip:")) end
+			end
+		end
+		R().TIP_VISIBLE_TO = "everyone"
+		eq(tips()[BOB], 7 * GOLD, "the one switch of SPEC-10 Q16")
+		R().TIP_VISIBLE_TO = "officers"
+		asOfficer()
+		eq(tips()[BOB], 7 * GOLD)
+	end)
+
+	it("the requester's alt sees the tip too", function()
+		theirs(1, { tip = 7 * GOLD })
+		for _, pair in ipairs({ { ME, BOB }, { BOB, ME } }) do
+			S():Records("accounts")[pair[1]] = { id = pair[1], author = pair[1], rev = 1, time = GetServerTime(), token = "T",
+				chars = { { guid = pair[1] }, { guid = pair[2] } } }
+		end
+		eq(R():List()[1].tip, 7 * GOLD)
+	end)
+
+	it("What I share says the tip of the player's own requests", function()
+		ask(4 * GOLD)
+		local lines
+		for _, r in ipairs(A().ShareModel.Describe()) do if r.id == "bankreq" then lines = table.concat(r.lines, "\n") end end
+		contains(lines, "tip 4 gold")
+	end)
+end)
+
+describe("an older client and the tip", function()
+	-- The rules of a client from before M8.7: it does not know `tip`, so it neither checks nor compares it.
+	local function older(c)
+		local Req = c:addon().BankRequests
+		local valid = Req.ValidRecord
+		Req.ValidRecord = function(rec, s)
+			local plain = {}
+			for k, v in pairs(rec) do plain[k] = v end
+			plain.tip = nil
+			return valid(plain, s)
+		end
+		Req.Transition = function(held, rec)
+			return held.requester == rec.requester and held.kind == rec.kind and held.itemID == rec.itemID and held.count == rec.count
+				and held.amount == rec.amount and held.created == rec.created
+		end
+	end
+
+	it("accepts the request, and an older officer's decision keeps the tip on every client", function()
+		local sim = Sim.new{ clients = 4, officers = { 1, 2 }, seed = 93 }
+		sim:advance(40)
+		older(sim:client(1))
+		local id = sim:client(3):addon().BankRequests:Create({ kind = "withdraw", itemID = LINEN, count = 2, tip = 6 * GOLD }).id
+		sim:advance(60)
+		eq(sim:client(1):addon().Store:Get("bankreq", id).tip, 6 * GOLD, "held as it came")
+		truthy(sim:client(1):addon().BankRequests:Decide(id, "approved"))
+		sim:advance(60)
+		for i = 1, 4 do
+			local r = sim:client(i):addon().Store:Get("bankreq", id)
+			eq(r.status, "approved", "client " .. i); eq(r.tip, 6 * GOLD, "client " .. i)
+			eq(sim:client(i):addon().Store.stats.rejected, 0, "client " .. i .. " refused nothing")
+		end
+	end)
+end)
+
+describe("the form picks from the bank", function()
+	before_boot(function() guild(3) itemNames() end)
+
+	local function open()
+		stocked()
+		Mock.Slash("/accord bank")
+		V():SetMode("requests")
+		return V().modes.requests.frame
+	end
+
+	local function shownRows(list)
+		local out = {}
+		for _, b in ipairs(list.rows) do if b:IsShown() then out[#out + 1] = b end end
+		return out
+	end
+
+	it("opens the list on the box, filters it while typing, and a click picks the item", function()
+		local f = open()
+		falsy(f.picker:IsShown())
+		f.item.edit:SetFocus()
+		truthy(f.picker:IsShown()); eq(#shownRows(f.list), 2)
+		contains(f.stock:GetText(), "choose from 2 bank items")
+		truthy(f.prov:IsShown()); eq(f.prov.text:GetText(), "2 d ago")
+		Mock.TypeInto(f.item.edit, "lin")
+		eq(#shownRows(f.list), 1); contains(shownRows(f.list)[1].label:GetText(), "Linen Cloth - 35")
+		shownRows(f.list)[1]:Click()
+		falsy(f.picker:IsShown()); eq(f.item:GetText(), "Linen Cloth"); eq(f.stock:GetText(), "35 in the bank")
+		Mock.TypeInto(f.amount.edit, "100")
+		eq(f.amount:GetText(), "35", "the quantity stops at what the bank holds")
+		Mock.TypeInto(f.gift.edit, "5")
+		f.send:Click()
+		local rec = S():Get("bankreq", ME .. ":1")
+		eq(rec.itemID, LINEN); eq(rec.count, 35); eq(rec.tip, 5 * GOLD)
+		eq(f.item:GetText(), ""); eq(f.gift:GetText(), "")
+		local row = f.area.rows[1]
+		contains(row.reason:GetText(), "tip 5g")
+		contains(A().BankRequestsView.TooltipLines(row.data)[2].text, "Tip: 5g")
+	end)
+
+	it("a quantity typed first is capped when the item is chosen", function()
+		local f = open()
+		Mock.TypeInto(f.amount.edit, "100")
+		eq(f.amount:GetText(), "100", "no item yet")
+		f.item.edit:SetFocus()
+		shownRows(f.list)[1]:Click()
+		eq(f.item:GetText(), "Copper Bar"); eq(f.amount:GetText(), "7")
+	end)
+
+	it("a pasted link closes the list and still works", function()
+		local f = open()
+		f.item.edit:SetFocus()
+		Mock.TypeInto(f.item.edit, "|cffffffff|Hitem:118::::::::60:::::|h[Potion]|h|r")
+		falsy(f.picker:IsShown()); contains(f.stock:GetText(), "Not in the bank")
+		f.amount:SetText("3"); f.send:Click()
+		eq(S():Get("bankreq", ME .. ":1").itemID, 118)
+	end)
+
+	it("a deposit has no list, no bank line and no tip box; a click elsewhere closes the list", function()
+		local f = open()
+		f.item.edit:SetFocus()
+		f.catcher:Click()
+		falsy(f.picker:IsShown())
+		f.item.edit:ClearFocus(); f.item.edit:SetFocus()
+		truthy(f.picker:IsShown())
+		f.kindButtons[2]:Click()
+		falsy(f.picker:IsShown()); falsy(f.gift:IsShown()); falsy(f.stock:IsShown()); falsy(f.prov:IsShown())
+		f.item.edit:ClearFocus(); f.item.edit:SetFocus()
+		falsy(f.picker:IsShown())
+		f.kindButtons[1]:Click()
+		truthy(f.gift:IsShown()); truthy(f.stock:IsShown())
+	end)
+end)

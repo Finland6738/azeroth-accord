@@ -12,7 +12,7 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M5** | [M5-guild-bank.md](M5-guild-bank.md) | Bank snapshots, logs, donations, requests | 7 | final check |
 | **M6** | [M6-release.md](M6-release.md) | Settings, Italian, polish, diagnostics, packaging, images, the ecosystem look of FDCP, About and credits, Italian wiki, v0.6.0 | 17 | release checklist |
 | **M7** | [M7-data-trust.md](M7-data-trust.md) | Provenance, guild of alts outside the guild, demo, backup, "what I share", hardening | 8 | final check |
-| **M8** | [M8-officer-tools.md](M8-officer-tools.md) | Roster timeline, inactivity, cleanup wizard, manual-ops queue, notes, export | 7 | final check |
+| **M8** | [M8-officer-tools.md](M8-officer-tools.md) | Roster timeline, inactivity, cleanup wizard, manual-ops queue, notes, export, bank requests from the bank with a tip | 8 | final check |
 | **M9** | [M9-action-center.md](M9-action-center.md) | Action Center, notifications, quiet hours, login digest; guild-only group finder; Guild addons table | 10 | final check |
 | **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, sign-ups on the game calendar, Raid-Helper events from Discord, composition, availability, rallies; raid and loot addons detected, one source per datum | 10 | final check |
 | **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented, detected in the guild, FDCP read through its API | 8 | final check |

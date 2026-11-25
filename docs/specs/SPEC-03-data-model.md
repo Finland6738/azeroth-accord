@@ -83,12 +83,15 @@ Id `<GUID del richiedente>:<n>` (n conta le richieste di quel personaggio); l'au
 | `requester` | GUID | chi ha aperto la richiesta |
 | `itemID`, `count` **oppure** `amount` | numeri | oggetto e quantità (1-9999), o oro in rame (fino a 100 000 oro); un deposito vuole un oggetto |
 | `reason` | testo, massimo 120 caratteri | senza caratteri di controllo né `|` |
+| `tip` | numero, facoltativo | da M8.7: mancia promessa alla banca, in rame, monete d'oro intere (multiplo di 10000) da 1 a 10 000 oro; solo su un `withdraw` di un oggetto; assente = nessuna ([SPEC-08 §9](SPEC-08-guild-bank.md#9-richieste-databankrequestslua-uibankrequestslua-m55)) |
 | `status` | `open` → `approved` / `rejected` → `fulfilled`; `cancelled` dall'autore | solo `open` e `cancelled` dal richiedente (o da un suo alt, stesso account); `approved`, `rejected`, `fulfilled` solo da ufficiali |
 | `note` | testo, massimo 120 caratteri | il motivo di un rifiuto |
 | `history` | lista di `{s = stato, by = GUID, t = ora}`, al massimo 8 | dalla più vecchia; la prima voce (l'apertura) resta |
 | `created` | ora del server | |
 
-Passaggi ammessi: `open` → `approved`, `rejected`, `fulfilled`, `cancelled`; `approved` → `fulfilled`, `rejected`; gli stati chiusi non si muovono. **Versione da tenere**: vince lo stato più alto (`open` < `cancelled` < `approved` < `rejected` < `fulfilled`), poi la `rev`, il `time` e l'autore: una decisione scritta nello stesso momento di un annullamento vince su tutti i client, così convergono. Il **contenuto** (richiedente, tipo, oggetto, quantità, importo, creazione) non può cambiare dopo l'apertura. Un richiedente può avere al massimo 5 richieste aperte. Le richieste chiuse si cancellano dopo 60 giorni. Tutta la gilda vede tutte le richieste.
+Passaggi ammessi: `open` → `approved`, `rejected`, `fulfilled`, `cancelled`; `approved` → `fulfilled`, `rejected`; gli stati chiusi non si muovono. **Versione da tenere**: vince lo stato più alto (`open` < `cancelled` < `approved` < `rejected` < `fulfilled`), poi la `rev`, il `time` e l'autore: una decisione scritta nello stesso momento di un annullamento vince su tutti i client, così convergono. Il **contenuto** (richiedente, tipo, oggetto, quantità, importo, mancia, creazione) non può cambiare dopo l'apertura. Un richiedente può avere al massimo 5 richieste aperte. Le richieste chiuse si cancellano dopo 60 giorni. Tutta la gilda vede tutte le richieste; la mancia l'interfaccia la mostra solo a ufficiali, Guild Master e richiedente (domanda Q16).
+
+**Compatibilità** (M8.7): `tip` è un campo in più. Un client precedente non lo controlla e non lo mostra, accetta il record e, quando un suo ufficiale decide, ne copia tutti i campi, quindi la mancia resta; un client da M8.7 rifiuta una versione che la cambia o la toglie, e un record con una mancia di forma sbagliata. Il record con tutti i campi al massimo resta nel limite di 1536 byte.
 
 ## 8. Impostazioni della gilda (`guildcfg`)
 

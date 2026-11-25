@@ -64,7 +64,7 @@ def pages():
     out["02-member-card"] = _page(s1.s_member_card() + "".join([callout(1, 764, 148), callout(2, 764, 238), callout(3, 764, 366), callout(4, 764, 474), callout(5, 764, 582), callout(6, 764, 650)]) +
                                   legend(["The member: class square, name, level, class and badges (online, main, addon)", "Details", "Professions and the source of each (the game or the member's addon)",
                                           "Every character of the same account", "Contacts: a click copies; Add BattleTag friend", "A long card scrolls with the mouse wheel: likes (one per player, irreversible) and the social index come after"], left=True))
-    out["03-bank-requests"] = _page(s2.s_bank_requests() + "".join([callout(1, 24, 128), callout(2, 1066, 150), callout(3, 316, 272), callout(4, 900, 309), callout(5, 587, 309), callout(6, 362, 44)]) +
-                                    legend(["Bank modes as pills: Tabs, Items, Log, Donations, Money, Requests, Inbox", "The form in a card: kind, item, how many, reason, Send", "Filters: only mine, closed ones too",
+    out["03-bank-requests"] = _page(s2.s_bank_requests() + "".join([callout(1, 24, 128), callout(2, 1066, 150), callout(3, 316, 322), callout(4, 900, 359), callout(5, 668, 359), callout(6, 362, 44)]) +
+                                    legend(["Bank modes as pills: Tabs, Items, Log, Donations, Money, Requests, Inbox", "The form in a card: kind, item from the bank, how many, tip, reason, Send", "Filters: only mine, closed ones too",
                                             "Every request of the guild, newest first", "Status: Open, Approved, Rejected, Fulfilled, Cancelled", "The count of requests waiting, on the tab"]))
     return out

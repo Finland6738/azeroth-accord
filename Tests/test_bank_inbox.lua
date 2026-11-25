@@ -314,3 +314,130 @@ describe("notices in the network simulator", function()
 		eq(sim:client(2):addon().BankInbox.PendingCount(), 0, "the other officer's counter went down")
 	end)
 end)
+
+-- M8.7: the officers' list and the "looks paid" hint (SPEC-08 BANK-26, BANK-27) --------------------------------------------
+local GOLD = 10000
+
+local function money(entries) log(OFF, 0, entries) end
+local function deposit(name, copper, age) return entry("deposit", name, 0, copper, GetServerTime() - age) end
+
+-- Three waiting requests: Bob's oldest with no tip, then 2 gold, then 9 gold (the newest).
+local function three()
+	arrive(BOB, 1, "open", nil, 5 * HOUR)
+	arrive(BOB, 2, "approved", { tip = 2 * GOLD }, 4 * HOUR)
+	arrive(BOB, 3, "open", { tip = 9 * GOLD }, 3 * HOUR)
+end
+
+local function ids(rows)
+	local out = {}
+	for i, r in ipairs(rows) do out[i] = tonumber(r.id:match(":(%d+)$")) end
+	return out
+end
+
+describe("the sort orders of the officers' list", function()
+	before_boot(function() guild(1) names() end)
+
+	it("oldest first by default, newest first, or the highest tip first", function()
+		A().Role:Refresh(); three()
+		deepEq(ids(Inbox():Rows()), { 1, 2, 3 })
+		deepEq(ids(Inbox():Rows({ sort = "oldest" })), { 1, 2, 3 })
+		deepEq(ids(Inbox():Rows({ sort = "newest" })), { 3, 2, 1 })
+		deepEq(ids(Inbox():Rows({ sort = "tip" })), { 3, 2, 1 })
+		arrive(BOB, 4, "open", { tip = 2 * GOLD }, 9 * HOUR)
+		arrive(BOB, 5, "open", nil, 8 * HOUR)
+		deepEq(ids(Inbox():Rows({ sort = "tip" })), { 3, 4, 2, 5, 1 }, "equal tips and no tip: the oldest first")
+		deepEq(ids(Inbox():Rows({ sort = "oldest" })), { 4, 5, 1, 2, 3 })
+	end)
+
+	it("shows date and time, requester, item, quantity and tip, and the chips change the order", function()
+		A().Role:Refresh(); three()
+		arrive(BOB, 4, "open", { itemID = false, count = false, amount = 50000 }, HOUR)
+		Mock.Slash("/accord bank")
+		V():SetMode("inbox")
+		local f = V().modes.inbox.frame
+		local row = f.area.rows[1]
+		eq(row.date:GetText(), date("%Y-%m-%d %H:%M", GetServerTime() - 5 * HOUR))
+		eq(row.name:GetText(), "Bob"); eq(row.what:GetText(), "Linen Cloth"); eq(row.count:GetText(), "20"); eq(row.gift:GetText(), "-")
+		eq(f.area.rows[2].gift:GetText(), "2g")
+		eq(f.area.rows[4].what:GetText(), "5g", "a request for gold"); eq(f.area.rows[4].count:GetText(), "")
+		eq(f.columns.gift:GetText(), "Tip"); eq(f.columns.date:GetText(), "Date and time")
+		eq(f.sorts.active, "oldest")
+		f.sorts.buttons[3]:Click()
+		eq(A().BankRequestsView.inboxSort, "tip")
+		eq(f.area.rows[1].gift:GetText(), "9g"); eq(f.area.rows[2].gift:GetText(), "2g")
+		f.sorts.buttons[2]:Click()
+		eq(f.area.rows[1].what:GetText(), "5g", "newest first")
+	end)
+end)
+
+describe("the proposal: a deposit of gold that looks like the payment of a tip", function()
+	before_boot(function() guild(1) names() end)
+
+	local function tipped(n, status, tip, age) return arrive(BOB, n, status, { tip = tip }, age).id end
+
+	it("matches a deposit of at least the tip by a character of the account, after the request", function()
+		A().Role:Refresh()
+		account(BOB, { BOB, BOBALT }, "T"); account(BOBALT, { BOBALT, BOB }, "T")
+		local id = tipped(1, "open", 5 * GOLD, 5 * HOUR)
+		money({ deposit("Bobalt", 6 * GOLD, 2 * HOUR) })
+		local e = Inbox():Payments()[id]
+		notNil(e); eq(e.name, "Bobalt"); eq(e.count, 6 * GOLD)
+		eq(Inbox():Rows()[1].paid.count, 6 * GOLD)
+	end)
+
+	it("does not match less gold, a withdrawal, an item, an earlier time or another account", function()
+		A().Role:Refresh()
+		local id = tipped(1, "open", 5 * GOLD, 5 * HOUR)
+		local function none(why) isNil(Inbox():Payments()[id], why) end
+		money({ deposit("Bob", 5 * GOLD - 1, 2 * HOUR) }); none("less than the tip")
+		money({ deposit("Bob", 3 * GOLD, 2 * HOUR), deposit("Bob", 2 * GOLD, HOUR) }); none("small deposits are not added up")
+		money({ entry("withdraw", "Bob", 0, 5 * GOLD, GetServerTime() - HOUR) }); none("a withdrawal")
+		money({ deposit("Bob", 5 * GOLD, 9 * HOUR) }); none("before the request")
+		money({ deposit("Ann", 5 * GOLD, HOUR) }); none("somebody else")
+		money({})
+		log(OFF, 1, { entry("deposit", "Bob", LINEN, 5 * GOLD, GetServerTime() - HOUR) }); none("an item log")
+		money({ deposit("Bob-Realm", 5 * GOLD, HOUR) })
+		notNil(Inbox():Payments()[id])
+	end)
+
+	it("one deposit pays one tip, the oldest request first; rejected and cancelled ones take none", function()
+		A().Role:Refresh()
+		local rejected = tipped(1, "rejected", GOLD, 9 * HOUR)
+		local cancelled = tipped(2, "cancelled", GOLD, 8 * HOUR)
+		local first = tipped(3, "fulfilled", GOLD, 7 * HOUR)
+		local second = tipped(4, "open", GOLD, 6 * HOUR)
+		money({ deposit("Bob", GOLD, HOUR) })
+		local paid = Inbox():Payments()
+		isNil(paid[rejected]); isNil(paid[cancelled]); notNil(paid[first]); isNil(paid[second])
+		money({ deposit("Bob", GOLD, HOUR), deposit("Bob", 2 * GOLD, 2 * HOUR) })
+		paid = Inbox():Payments()
+		eq(paid[first].count, 2 * GOLD, "the oldest deposit first"); eq(paid[second].count, GOLD)
+	end)
+
+	it("is for officers only, and says nothing about a request without a tip", function()
+		A().Role:Refresh()
+		local id = tipped(1, "open", GOLD, 5 * HOUR)
+		arrive(BOB, 2, "open", nil, 4 * HOUR)
+		money({ deposit("Bob", 2 * GOLD, HOUR) })
+		notNil(Inbox():Payments()[id]); isNil(Inbox():Payments()[BOB .. ":2"])
+		guild(3)
+		A().Role:Refresh()
+		deepEq(Inbox():Payments(), {})
+	end)
+
+	it("the officers' list and the tooltip say Looks paid; the officer still marks the request", function()
+		A().Role:Refresh()
+		local id = tipped(1, "approved", GOLD, 5 * HOUR)
+		money({ deposit("Bob", GOLD, HOUR) })
+		Mock.Slash("/accord bank")
+		V():SetMode("inbox")
+		local row = V().modes.inbox.frame.area.rows[1]
+		contains(row.reason:GetText(), "Looks paid: Bob deposited 1g, 1 h ago")
+		eq(S():Get("bankreq", id).status, "approved", "nothing is marked by itself")
+		V():SetMode("requests")
+		local lines = A().BankRequestsView.TooltipLines(V().modes.requests.frame.area.rows[1].data)
+		local found = false
+		for _, line in ipairs(lines) do if type(line) == "table" and line.text:find("Looks paid", 1, true) then found = true end end
+		truthy(found)
+	end)
+end)

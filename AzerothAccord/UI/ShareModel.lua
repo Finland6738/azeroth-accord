@@ -146,7 +146,9 @@ builders.bankreq = function(guid)
 	for i = 1, math.min(#mine, Model.REQUESTS) do
 		local r = mine[i]
 		recs[#recs + 1] = r
-		lines[#lines + 1] = L["SHARE_REQUEST_LINE"]:format(tostring(tostring(r.id):match(":(%d+)$") or "?"), tostring(r.status or "?"))
+		local n, status = tostring(tostring(r.id):match(":(%d+)$") or "?"), tostring(r.status or "?")
+		lines[#lines + 1] = type(r.tip) == "number" and L["SHARE_REQUEST_GIFT"]:format(n, status, math.floor(r.tip / 10000))
+			or L["SHARE_REQUEST_LINE"]:format(n, status)
 	end
 	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
 	return lines, recs

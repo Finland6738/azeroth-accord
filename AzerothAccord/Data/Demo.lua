@@ -344,7 +344,7 @@ function DemoData.Build(now)
 	local function request(requester, n, fields, history, status, decider)
 		local id = requester.guid .. ":" .. n
 		local rec = { id = id, requester = requester.guid, created = fields.created, kind = fields.kind, itemID = fields.itemID, count = fields.count,
-			amount = fields.amount, reason = fields.reason, note = fields.note, status = status, history = history }
+			amount = fields.amount, tip = fields.tip, reason = fields.reason, note = fields.note, status = status, history = history }
 		rec.author = decider and decider.guid or requester.guid
 		rec.rev = decider and 2 or 1
 		rec.time = history[#history].t
@@ -356,13 +356,15 @@ function DemoData.Build(now)
 		return out
 	end
 	local a, b, c = members[7], members[PLAYER_INDEX], members[12]
-	request(a, 1, { kind = "withdraw", itemID = 2840, count = 40, reason = "Copper bars for the new smiths", created = now - 30 * HOUR },
+	request(a, 1, { kind = "withdraw", itemID = 2840, count = 40, reason = "Copper bars for the new smiths", tip = 2 * GOLD,
+		created = now - 30 * HOUR },
 		hist({ "open", a, 30 }), "open")
 	request(c, 1, { kind = "withdraw", amount = 150 * GOLD, reason = "Repair bill after the raid", created = now - 80 * HOUR },
 		hist({ "open", c, 80 }), "open")
 	request(b, 1, { kind = "deposit", itemID = 4306, count = 30, reason = "Silk from the weekend farming", created = now - 50 * HOUR },
 		hist({ "open", b, 50 }), "open")
-	request(members[9], 1, { kind = "withdraw", itemID = 929, count = 5, reason = "Potions for the new tank", created = now - 120 * HOUR },
+	request(members[9], 1, { kind = "withdraw", itemID = 929, count = 5, reason = "Potions for the new tank", tip = 5 * GOLD,
+		created = now - 120 * HOUR },
 		hist({ "open", members[9], 120 }, { "approved", members[1], 100 }), "approved", members[1])
 	request(members[15], 1, { kind = "donation", amount = 80 * GOLD, reason = "A gift for the guild", created = now - 200 * HOUR },
 		hist({ "open", members[15], 200 }, { "approved", members[3], 190 }, { "fulfilled", members[4], 150 }), "fulfilled", members[4])

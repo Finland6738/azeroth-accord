@@ -7,6 +7,9 @@
 --             items or gold)
 --   itemID, count   the item and how many, or
 --   amount          gold in copper (not for a deposit)
+--   tip             optional, only on a withdrawal of an item: whole gold pieces in copper, 1 to 10,000 gold (BANK-26). A
+--                   promise: the member deposits it in the bank; the addon never moves gold. Older clients ignore it and
+--                   keep it (a decision copies every field)
 --   reason    up to 120 characters
 --   status    open -> approved | rejected | fulfilled, cancelled (by the requester); see STATUS_RANK
 --   note      the officer's reason for a rejection (up to 120 characters)
@@ -21,7 +24,12 @@
 -- Order: two clients that hold different versions of one request keep the same one, the one with the highest status (open <
 -- cancelled < approved < rejected < fulfilled), then the highest revision, time and author. So a decision of an officer
 -- beats a cancel written at the same moment, and every client ends with the same status. The content of a request (kind,
--- item, count, amount, requester) can never change after it was opened.
+-- item, count, amount, tip, requester) can never change after it was opened.
+--
+-- A withdrawal of an item can be picked from the bank as this character sees it (BANK-25): Req:BankItems sums the newest
+-- snapshot of every visible tab, and what it shows caps the quantity of a new request (a received record is never checked
+-- against the snapshots: every client holds different ones). Who sees a tip is a display rule (BANK-27, SPEC-10 Q16:
+-- Req.TIP_VISIBLE_TO); the record itself reaches the whole guild.
 --
 -- Delivering the item stays manual (mail, trade or the vault): the addon only keeps the record (BANK-24).
 local ADDON_NAME, ns = ...
@@ -44,6 +52,9 @@ Req.MAX_OPEN = 5              -- open requests one character may have at once
 Req.MAX_COUNT = 9999
 Req.MAX_AMOUNT = 1000000000   -- copper: 100,000 gold
 Req.MAX_HISTORY = 8
+Req.COPPER_PER_GOLD = 10000
+Req.MAX_TIP = 100000000       -- copper: 10,000 gold
+Req.TIP_VISIBLE_TO = "officers"   -- SPEC-10 Q16: "officers" (officers, the GM and the requester) or "everyone"
 
 local KIND = { withdraw = true, deposit = true, donation = true }
 
@@ -72,6 +83,11 @@ function Req.ParseItem(value)
 	return id and int(id, 1, 2147483647) and id or nil
 end
 
+-- A tip: whole gold pieces, from 1 gold to MAX_TIP, in copper.
+function Req.ValidTip(copper)
+	return int(copper, Req.COPPER_PER_GOLD, Req.MAX_TIP) and copper % Req.COPPER_PER_GOLD == 0
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- The rules the Store applies (Net/Store.lua)
 ---------------------------------------------------------------------------------------------------------------------
@@ -94,6 +110,7 @@ function Req.ValidRecord(rec, store)
 	else
 		if not (int(rec.amount, 1, Req.MAX_AMOUNT) and rec.count == nil) or rec.kind == "deposit" then return false end
 	end
+	if rec.tip ~= nil and not (item and rec.kind == "withdraw" and Req.ValidTip(rec.tip)) then return false end
 	if type(rec.history) ~= "table" or #rec.history > Req.MAX_HISTORY then return false end
 	for _, h in ipairs(rec.history) do
 		if type(h) ~= "table" or not Req.STATUS_RANK[h.s] or type(h.by) ~= "string" or #h.by > 40 or type(h.t) ~= "number" then return false end
@@ -113,7 +130,38 @@ end
 -- A new version must keep the content of the request it replaces.
 function Req.Transition(held, rec)
 	return held.requester == rec.requester and held.kind == rec.kind and held.itemID == rec.itemID and held.count == rec.count
-		and held.amount == rec.amount and held.created == rec.created
+		and held.amount == rec.amount and held.tip == rec.tip and held.created == rec.created
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The bank this character sees (BANK-25)
+---------------------------------------------------------------------------------------------------------------------
+-- What the newest snapshot of every tab this rank may see holds (Bank:Tabs): [itemID] = { itemID, available (the total over
+-- the tabs), time and author of the OLDEST of the snapshots that hold it (the age to show) }.
+function Req:BankItems()
+	local out = {}
+	for _, tab in ipairs(ns.Bank and ns.Bank:Tabs() or {}) do
+		for _, it in ipairs(tab.items) do
+			local e = out[it.itemID]
+			if not e then
+				e = { itemID = it.itemID, available = 0, time = tab.time, author = tab.author }
+				out[it.itemID] = e
+			elseif (tab.time or 0) < (e.time or 0) then
+				e.time, e.author = tab.time, tab.author
+			end
+			e.available = e.available + it.count
+		end
+	end
+	return out
+end
+
+-- The most a new request for this item may ask: what the visible snapshots hold, for a withdrawal of an item they show;
+-- MAX_COUNT for anything else (a deposit, a donation, an item the snapshots do not show: the fallback of a pasted link).
+function Req:MaxCount(kind, itemID, items)
+	if kind ~= "withdraw" or not itemID then return Req.MAX_COUNT end
+	local held = (items or self:BankItems())[itemID]
+	if not held or held.available < 1 then return Req.MAX_COUNT end
+	return math.min(held.available, Req.MAX_COUNT)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -129,10 +177,15 @@ local function sameAccount(guid)
 	return me ~= nil and ns.Store ~= nil and ns.Store:SameAccount(me, guid)
 end
 
+-- Whether this player is shown the tip of a request of `requester` (BANK-27, SPEC-10 Q16).
+function Req:CanSeeTip(requester)
+	return Req.TIP_VISIBLE_TO == "everyone" or isOfficer() or sameAccount(requester)
+end
+
 -- The requests as rows for a view: newest first. opts.status = a set { open = true, ... } (nil = all), opts.own = only the
 -- requests of this player's account, opts.search filters by requester name, item name or reason.
---   { id, kind, status, requester, name, itemID, count, amount, reason, note, history, created, time, own, canCancel,
---     moves = { "approved", ... } (what this officer may do next) }
+--   { id, kind, status, requester, name, itemID, count, amount, tip (nil when this player may not see it), reason, note,
+--     history, created, time, own, canCancel, moves = { "approved", ... } (what this officer may do next) }
 function Req:List(opts)
 	opts = opts or {}
 	local S = ns.Store
@@ -152,6 +205,7 @@ function Req:List(opts)
 				out[#out + 1] = {
 					id = rec.id, kind = rec.kind, status = rec.status, requester = rec.requester, name = nameOf(rec.requester),
 					itemID = rec.itemID, count = rec.count, amount = rec.amount, reason = rec.reason, note = rec.note,
+					tip = self:CanSeeTip(rec.requester) and rec.tip or nil,
 					history = rec.history or {}, created = rec.created, time = rec.time, own = own,
 					canCancel = own and rec.status == "open", moves = moves,
 				}
@@ -182,8 +236,10 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Writing
 ---------------------------------------------------------------------------------------------------------------------
--- Opens a request: spec = { kind, itemID | amount, count, reason }. Returns the record, or false and a reason: "guild",
--- "kind", "item" (a deposit needs one), "count", "amount", "limit" (too many open requests), or the Store's reason.
+-- Opens a request: spec = { kind, itemID | amount, count, tip (copper; nil or 0 = none), reason }. Returns the record, or
+-- false and a reason: "guild", "kind", "item" (a deposit needs one), "count", "stock" (more than the bank shows; a third
+-- value gives the most it may ask), "amount", "tip" (not whole gold within MAX_TIP, or not on a withdrawal of an item),
+-- "limit" (too many open requests), or the Store's reason.
 function Req:Create(spec)
 	local S, me = ns.Store, ownGUID()
 	if not (S and me and ns.GuildKey and ns.GuildKey:Current()) then return false, "guild" end
@@ -193,11 +249,17 @@ function Req:Create(spec)
 		local id = Req.ParseItem(spec.itemID)
 		if not id then return false, "item" end
 		if not int(spec.count, 1, Req.MAX_COUNT) then return false, "count" end
+		local most = self:MaxCount(spec.kind, id)
+		if spec.count > most then return false, "stock", most end
 		fields.itemID, fields.count = id, spec.count
 	else
 		if spec.kind == "deposit" then return false, "item" end
 		if not int(spec.amount, 1, Req.MAX_AMOUNT) then return false, "amount" end
 		fields.amount = spec.amount
+	end
+	if spec.tip ~= nil and spec.tip ~= 0 then
+		if not (spec.kind == "withdraw" and fields.itemID and Req.ValidTip(spec.tip)) then return false, "tip" end
+		fields.tip = spec.tip
 	end
 	if fields.reason == "" then fields.reason = nil end
 	local open, highest = 0, 0

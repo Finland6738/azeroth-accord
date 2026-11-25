@@ -238,7 +238,7 @@ Una sotto-pagina di Settings (`SettingsView.AddPage("share", ...)`, selettore *S
 | Ricette (`recipes`) | tutta la gilda | per professione: nome, grado, numero di ricette | no: sono la funzione stessa (Q12) |
 | Gioco di gruppo (`coplay`) | tutta la gilda | gli ultimi 7 giorni: per giorno quante coppie e quanti minuti; la riga dice che le coppie nominano i compagni (per GUID) | sì: `Record time played together` / `Registra il tempo giocato insieme` (Q12) |
 | Foto della banca (`bank`) | tutta la gilda; le schede che solo gli ufficiali vedono solo agli ufficiali | le schede lette (nome, numero di oggetti), il denaro, i registri, con l'età | no: si scrivono solo aprendo la banca |
-| Richieste alla banca (`bankreq`) | tutta la gilda | le proprie richieste aperte e chiuse (numero, le ultime 5) | no |
+| Richieste alla banca (`bankreq`) | tutta la gilda | le proprie richieste aperte e chiuse (numero, le ultime 5, con la mancia) | no |
 | Like | solo al notaio, in whisper | quanti like ha dato questo account (tenuto solo su questo computer); la gilda vede solo totali anonimi | no |
 | Riepilogo della sincronizzazione (`HELLO`) | tutta la gilda | la versione dell'addon e un'impronta di quali record si hanno, mai il contenuto | no |
 | Solo per ufficiali: voci del libro dei like scritte come notaio, impostazioni della gilda (`guildcfg`), il salt dei like | ufficiali (le voci del libro, che sono pseudonime, a tutta la gilda) | conteggi e la scelta delle fonti | no |
