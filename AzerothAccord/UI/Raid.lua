@@ -13,13 +13,20 @@
 --   * Loot: the player's own credits and place, and FDCP's rules as a read-only summary. On a member's client they are the
 --     Patto preset's defaults (FDCP keeps the guild's rules on officers' clients), and the view says so. The guild's
 --     loot page of the handbook (M11.6) will show the same summary beside it.
+--   * Raid and loot addons in the guild (M10.2): per known addon of Data/Integrations.lua, its detection on this client
+--     (status, version, level, folder name confirmed or not) and, from the addon census (Data/Census.lua, through
+--     Integrations:Holders), how many members who share their list have it loaded, out of how many, with the versions.
+--     Who has it, by name, only as Census:Who allows (SPEC-10 Q11, Q17): officers and the Guild Master everybody, anybody
+--     else only the own entry. With the census switched off, nobody sharing yet, or the player not sharing, one line
+--     says so instead of an empty list.
 -- Nothing about attendance is shown: FDCP does not expose it and Accord keeps none.
 -- With Accord as the source of the season roster, the view says that Accord's own season roster comes later (M10.3).
 --
 -- View.Model() reads the sources and FDCP now; View.Lines(model) is a plain function of it (tested offline); the frames
 -- only draw the lines. View.CardSection(entry) adds "Loot (FDCP)" to the member card: the member's credits and place in
 -- the loot queue as FDCP shows them, when the guild chose FDCP for the loot and this client has them.
--- The view redraws on SOURCES_CHANGED, INTEGRATIONS_CHANGED, FDCP_CHANGED and ROLE_CHANGED, only while it is visible.
+-- The view redraws on SOURCES_CHANGED, INTEGRATIONS_CHANGED, FDCP_CHANGED, ROLE_CHANGED and CENSUS_CHANGED, only while it
+-- is visible.
 -- While Core/Features.lua "raid" is off there is no tab (the view says it is not visible), no card section and nothing is
 -- redrawn.
 local ADDON_NAME, ns = ...
@@ -36,6 +43,7 @@ View.HEADER = 84            -- the two source selectors
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.NAMES = 40             -- names written in a raid or bench line before "and N more"
+View.VERSIONS = 3           -- versions written in an addon's guild line before "and N more"
 View.SEP = " · "
 
 -- FDCP's codes that have a text; an unknown code is shown as it is.
@@ -47,6 +55,8 @@ View.CODES = {
 	AWARD = { confirm = "FDCP_AWARD_CONFIRM", auto = "FDCP_AWARD_AUTO", council = "FDCP_AWARD_COUNCIL" },
 	LATE = { average = "FDCP_LATE_AVERAGE", min = "FDCP_LATE_MIN", zero = "FDCP_LATE_ZERO", fixed = "FDCP_LATE_FIXED" },
 	BENCH = { none = "FDCP_BENCH_NONE", bonus = "FDCP_BENCH_BONUS", malus = "FDCP_BENCH_MALUS" },
+	KIND = { loot = "INTEG_KIND_LOOT", raid = "INTEG_KIND_RAID", both = "INTEG_KIND_BOTH" },
+	STATUS = { loaded = "INTEG_LOADED", disabled = "INTEG_DISABLED", installed = "INTEG_INSTALLED", missing = "INTEG_MISSING" },
 	CATEGORY = { weapon = "FDCP_CAT_WEAPON", offhand = "FDCP_CAT_OFFHAND", trinket = "FDCP_CAT_TRINKET", quest = "FDCP_CAT_QUEST",
 		jewelry = "FDCP_CAT_JEWELRY", armor = "FDCP_CAT_ARMOR", cosmetic = "FDCP_CAT_COSMETIC", other = "FDCP_CAT_OTHER" },
 }
@@ -113,6 +123,32 @@ function View.Model()
 				m.mine = me and F.Credits(me) or nil
 			end
 		end
+	end
+	View.AddonsModel(m)
+	return m
+end
+
+-- The raid and loot addons: this client's detection and, while the census is on, who in the guild has each one.
+function View.AddonsModel(m)
+	local I, C = ns.Integrations, ns.Census
+	if not I then return m end
+	m.census = C ~= nil and C.Enabled()
+	local versions = {}
+	if m.census then
+		m.sharing = C.Sharing()
+		m.names = C.CanSeeNames()
+		m.namesNote = m.names and C.NAMES_VISIBLE_TO == "officers"
+		for _, r in ipairs(C:Summary().rows) do versions[r.folder] = r.versions end
+	end
+	m.addons = {}
+	for _, def in ipairs(I.KNOWN) do
+		local a = { id = def.id, name = def.name or def.folder, kind = def.kind, state = I:State(def.id) }
+		if m.census then
+			a.who, a.users, a.total = I:Holders(def.id)
+			a.versions = versions[def.folder] or {}
+			m.total = a.total
+		end
+		m.addons[#m.addons + 1] = a
 	end
 	return m
 end
@@ -191,6 +227,72 @@ local function rulesLines(out, r)
 	out[#out + 1] = { text = L["RULES_READONLY"], muted = true }
 end
 
+-- "This client: loaded 7.1 · detection only (level 0) · folder name not confirmed in game yet"
+local function hereText(st)
+	local status = code("STATUS", st.status)
+	if st.version and st.status ~= "missing" then status = status .. " " .. st.version end
+	local parts = { status }
+	if st.level == 1 then parts[#parts + 1] = L["INTEG_LEVEL_1"]
+	elseif st.level == 0 then parts[#parts + 1] = L["INTEG_LEVEL_0"] end
+	if not st.confirmed then parts[#parts + 1] = L["INTEG_UNCONFIRMED"] end
+	return L["INTEG_HERE"]:format(concat(parts, View.SEP))
+end
+View.HereText = hereText
+
+-- "7.1 (2), 7.0 (1) and 1 more"
+local function versionsText(list)
+	local out = {}
+	for i, v in ipairs(list) do
+		if i > View.VERSIONS then break end
+		out[#out + 1] = L["INTEG_VERSION_N"]:format(v.version or L["ADDONS_NO_VERSION"], v.n)
+	end
+	local text = concat(out, ", ")
+	if #list > #out then text = text .. L["RAID_MORE"]:format(#list - #out) end
+	return text
+end
+
+-- One member who has the addon: "Bob (you) · 7.1 · characters: Bob, Ann"
+local function holderLine(w)
+	local name = short(w.name)
+	if w.own then name = (w.shared and L["ADDONS_YOU"] or L["ADDONS_YOU_NOT_SHARED"]):format(name) end
+	local parts = { name, w.version or L["ADDONS_NO_VERSION"] }
+	local chars = w.chars or {}
+	if #chars > 1 or (chars[1] and chars[1] ~= w.name) then
+		local list = {}
+		for i, c in ipairs(chars) do list[i] = short(c) end
+		parts[#parts + 1] = L["INTEG_CHARS"]:format(concat(list, ", "))
+	end
+	return { text = concat(parts, View.SEP), indent = true }
+end
+View.HolderLine = holderLine
+
+local function addonsLines(out, m, add)
+	add(L["INTEG_HEAD"], "heading")
+	if not m.census then
+		add(L["INTEG_CENSUS_OFF"], "muted")
+	else
+		if (m.total or 0) == 0 then add(L["ADDONS_NOBODY"], "muted") end
+		if not m.sharing then add(L["ADDONS_NOT_SHARING"], "muted") end
+		if not m.names then add(L["INTEG_NAMES_OFFICERS"], "muted")
+		elseif m.namesNote then add(L["ADDONS_WHO_NOTE"], "muted") end
+	end
+	for _, a in ipairs(m.addons) do
+		add(L["INTEG_ADDON"]:format(a.name, code("KIND", a.kind)), "sub")
+		out[#out + 1] = { text = hereText(a.state), indent = true, muted = a.state.level == nil }
+		if m.census and (a.total or 0) > 0 then
+			local text
+			if a.users > 0 then
+				text = L["INTEG_GUILD"]:format(a.users, a.total, floor(a.users * 100 / a.total + 0.5))
+				if #a.versions > 0 then text = text .. View.SEP .. L["INTEG_VERSIONS"]:format(versionsText(a.versions)) end
+			else
+				text = L["INTEG_GUILD_NONE"]:format(a.total)
+			end
+			out[#out + 1] = { text = text, indent = true, muted = a.users == 0 }
+		end
+		for _, w in ipairs(a.who or {}) do out[#out + 1] = holderLine(w) end
+	end
+end
+
 -- { { text, heading?, sub?, muted?, indent? } } for a model.
 function View.Lines(m)
 	local out = {}
@@ -257,6 +359,9 @@ function View.Lines(m)
 		end
 		if m.rules then rulesLines(out, m.rules) else add(L["RULES_NONE"], "muted") end
 	end
+
+	-- the raid and loot addons in the guild
+	if m.addons then addonsLines(out, m, add) end
 	return out
 end
 
@@ -405,7 +510,7 @@ if ns.addon then
 			View:Changed()
 			if ns.MemberCard and ns.MemberCard.Refresh then ns.MemberCard:Refresh() end
 		end
-		for _, event in ipairs({ "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED" }) do
+		for _, event in ipairs({ "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED", "CENSUS_CHANGED" }) do
 			ns.Bus:On(event, changed)
 		end
 	end

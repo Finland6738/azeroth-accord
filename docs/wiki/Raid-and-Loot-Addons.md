@@ -24,7 +24,7 @@ The folder names of the addons other than FDCP come from their public pages and 
 - **Level 1, reading.** Accord reads what the addon publishes for other addons. Only FDCP publishes such an interface (`FinlandDragonCreditPointsAPI`), and Accord reads it only when its version is one Accord knows (version 1). With another version Accord goes back to level 0 and nothing breaks: update Accord.
 - There is no level 2: Accord never sends anything to another addon.
 
-`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`); the raid and loot features will use it when they are released.
+`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which of these addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`): the Raid view shows it (below).
 
 ## The Raid view
 
@@ -35,6 +35,8 @@ Open it with its tab or `/accord raid`.
 - **Season roster**: the season and its pool, one line per main with class, role, MS1, MS2 and OS, and *trial* or *inactive*.
 - **Lineup and bench**: the raid night open in FDCP, with who is in the raid and who is on the bench.
 - **Loot**: your own credits and place in the loot queue, and a **read-only summary of FDCP's loot rules** (preset, priority, credits at the start, how items are awarded, the cost by item quality, the response multipliers, late joiners, the bench). The rules are changed in FDCP, never in Accord. The guild's loot page of the handbook will show the same summary beside its text (M11).
+
+- **Raid and loot addons in the guild**, at the bottom: for each addon of the table above, what Accord found on your computer (loaded, switched off, installed or not installed, its version, level 0 or 1, and whether its folder name is confirmed yet) and, from the [[Guild addons|Guild-Addons]] list, how many members who share their addon list have it loaded, out of how many, with the versions. **Officers and the Guild Master** also see who has it, with the version and the characters; everybody else sees the counts and their own entry. If the addon list is switched off, nobody shares a list yet, or you do not share yours, a line says so.
 
 With **Accord** as the source of the season roster, the view says that Accord's own declarations arrive with a later version (M10).
 

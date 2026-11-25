@@ -28,8 +28,8 @@
 --                can choose a source (SetSource: false, "off"), the data set `guildcfg` is neither accepted nor sent
 --                (Net/Store.lua) and /accord debug has no Integrations section.
 -- Census         Which known addons the OTHER members have loaded comes from the addon census of M9.9 (Data/Census.lua,
---                with the same folder name as in KNOWN): Integrations:Holders(id) reads it. This module keeps no field
---                of its own and sends nothing.
+--                with the same folder name as in KNOWN): Integrations:Holders(id) reads it, and the Raid view
+--                (UI/Raid.lua) shows it per addon. This module keeps no field of its own and sends nothing.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Integrations = {}
@@ -38,15 +38,16 @@ ns.modules.Integrations = Integrations
 
 local type, ipairs, pairs, tostring, concat = type, ipairs, pairs, tostring, table.concat
 
--- kind: "loot", "raid" (the raid roster) or "both". confirmed: the folder name is known for sure (see above).
+-- kind: "loot", "raid" (the raid roster) or "both". confirmed: the folder name is known for sure (see above). name: the
+-- addon's own name, as the Raid view shows it (a proper name: not translated).
 Integrations.KNOWN = {
-	{ id = "fdcp", folder = "FinlandDragonCreditPoints", kind = "both", confirmed = true },
-	{ id = "gargul", folder = "Gargul", kind = "loot" },
-	{ id = "raidcore", folder = "RaidCore", kind = "loot" },
-	{ id = "wlc", folder = "WLC", kind = "loot" },
-	{ id = "foreverlootmanager", folder = "ForeverLootManager", kind = "loot" },
-	{ id = "nostalgiaforeverlc", folder = "NostalgiaForeverLC", kind = "loot" },
-	{ id = "rollforme", folder = "RollForMe", kind = "loot" },
+	{ id = "fdcp", folder = "FinlandDragonCreditPoints", kind = "both", confirmed = true, name = "Finland Dragon Credit Points (FDCP)" },
+	{ id = "gargul", folder = "Gargul", kind = "loot", name = "Gargul" },
+	{ id = "raidcore", folder = "RaidCore", kind = "loot", name = "RaidCore" },
+	{ id = "wlc", folder = "WLC", kind = "loot", name = "WLC" },
+	{ id = "foreverlootmanager", folder = "ForeverLootManager", kind = "loot", name = "Forever Loot Manager" },
+	{ id = "nostalgiaforeverlc", folder = "NostalgiaForeverLC", kind = "loot", name = "NostalgiaForeverLC" },
+	{ id = "rollforme", folder = "RollForMe", kind = "loot", name = "RollForMe" },
 }
 local byId, byFolder = {}, {}
 for _, def in ipairs(Integrations.KNOWN) do

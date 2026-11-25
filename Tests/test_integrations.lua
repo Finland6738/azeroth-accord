@@ -1,6 +1,7 @@
 -- Integrations with raid and loot addons (M10.2; ADR 0022): the known addons, their detection (loaded, missing,
 -- disabled), the levels (FDCP's public API: absent, another version, the known version), nothing of another addon ever
--- written or switched on, and the guild's choice of a source per datum (officers only, synced as `guildcfg`).
+-- written or switched on, the guild's choice of a source per datum (officers only, synced as `guildcfg`), and the Raid
+-- view's section "Raid and loot addons in the guild" (detection here, and who has each addon from the M9.9 census).
 local function A() return AzerothAccord end
 local function I() return AzerothAccord.Integrations end
 local function S() return AzerothAccord.Store end
@@ -240,5 +241,115 @@ describe("an officer choosing", function()
 		A().Role:Refresh()
 		eq(I():Source("raid"), "accord")
 		truthy(changed.value >= 1)
+	end)
+end)
+
+---------------------------------------------------------------------------------------------------------------------
+-- Who has each addon in the guild (the Raid view, from the census of M9.9; SPEC-10 Q11, Q17)
+---------------------------------------------------------------------------------------------------------------------
+local function V() return AzerothAccord.RaidView end
+
+local function lines()
+	local out = {}
+	for _, l in ipairs(V().Lines(V().Model())) do out[#out + 1] = l.text end
+	return table.concat(out, "\n")
+end
+
+local function hasLine(text, line)
+	return ("\n" .. text .. "\n"):find("\n" .. line .. "\n", 1, true) ~= nil
+end
+
+local function census(rank, opts)
+	return function(M)
+		M.features = { raid = true, census = opts == nil or opts.census ~= false }
+		guild(rank)
+		M.addons.Gargul = { loaded = true, version = "7.1" }
+	end
+end
+
+-- Bob and the officer share their lists; this client publishes its own after the first HELLO.
+local function shared(refused)
+	for _, r in ipairs({ { BOB, "Bob", { { "Gargul", "7.0" } } }, { OFF, "Officer", { { "Gargul", "7.0" }, { "Questie", "9.1" } } } }) do
+		local rec = { id = r[1], author = r[1], rev = 1, time = GetServerTime(), l = r[3] }
+		eq(S():Receive("addons", { rec }, r[2], "GUILD"), refused and 0 or 1)
+	end
+	A().Bus:Emit("SYNC_HELLO", true)
+	Mock.Advance(130)
+end
+
+local GARGUL_HERE = "This client: loaded 7.1 · detection only (level 0) · folder name not confirmed in game yet"
+local GARGUL_GUILD = "In the guild: 3 of 3 members who share their list (100%) · versions 7.0 (2), 7.1 (1)"
+
+describe("who has each addon: a member", function()
+	before_boot(census(3))
+
+	it("sees the detection here, the counts and the versions, and only its own entry", function()
+		shared()
+		local t = lines()
+		contains(t, "Raid and loot addons in the guild")
+		truthy(hasLine(t, "Only officers and the Guild Master see who has each addon: you see the counts and your own entry."))
+		truthy(hasLine(t, "Gargul · loot"))
+		truthy(hasLine(t, GARGUL_HERE))
+		truthy(hasLine(t, GARGUL_GUILD))
+		truthy(hasLine(t, "Testchar (you) · 7.1"))
+		falsy(t:find("Bob", 1, true), "no other member's name")
+		falsy(t:find("Officer ·", 1, true))
+		truthy(hasLine(t, "This client: not installed · folder name not confirmed in game yet"))
+		truthy(hasLine(t, "In the guild: none of the 3 members who share their list"))
+		falsy(t:find("Questie", 1, true), "only the known raid and loot addons")
+	end)
+
+	it("says when nobody shares yet and the player does not share, without an empty list", function()
+		A().Config:Set("account.settings.shareAddons", false)
+		A().Bus:Emit("SYNC_HELLO", true)
+		Mock.Advance(130)
+		local t = lines()
+		truthy(hasLine(t, "Nobody in the guild shares an addon list yet."))
+		contains(t, "Your list is not shared, so you are not counted")
+		truthy(hasLine(t, "Testchar (you, not counted) · 7.1"))
+		falsy(t:find("In the guild:", 1, true))
+		eq(S():Count("addons"), 0)
+	end)
+end)
+
+describe("who has each addon: an officer", function()
+	before_boot(census(1))
+
+	it("sees every member who has it, with the version", function()
+		shared()
+		local t = lines()
+		truthy(hasLine(t, "In Accord only officers and the Guild Master see these names."))
+		truthy(hasLine(t, GARGUL_GUILD))
+		truthy(hasLine(t, "Bob · 7.0"))
+		truthy(hasLine(t, "Officer · 7.0"))
+		truthy(hasLine(t, "Testchar (you) · 7.1"))
+		local bob = t:find("Bob · 7.0", 1, true)
+		truthy(bob < t:find("Officer · 7.0", 1, true) and bob > t:find(GARGUL_GUILD, 1, true), "by name, under the addon")
+	end)
+
+	it("shows FDCP read at level 1, and writes nothing into it", function()
+		local api, _, writes = fakeAPI(1)
+		Mock.addons[FOLDER] = { loaded = true, version = "1.0.2" }
+		_G[GLOBAL] = api
+		I():Refresh()
+		local t = lines()
+		truthy(hasLine(t, "Finland Dragon Credit Points (FDCP) · loot and raid roster"))
+		truthy(hasLine(t, "This client: loaded 1.0.2 · Accord reads its public interface (level 1)"))
+		deepEq(writes, {})
+		_G[GLOBAL] = nil
+	end)
+end)
+
+describe("who has each addon: the census switched off", function()
+	before_boot(census(1, { census = false }))
+
+	it("says so in one line and still shows the detection here", function()
+		shared(true)
+		local t = lines()
+		truthy(hasLine(t, "The addon census is switched off: Accord does not know who in the guild has these addons."))
+		truthy(hasLine(t, GARGUL_HERE))
+		falsy(t:find("In the guild:", 1, true))
+		falsy(t:find("Bob", 1, true)); falsy(t:find("(you)", 1, true))
+		isNil(I():Holders("gargul"))
 	end)
 end)

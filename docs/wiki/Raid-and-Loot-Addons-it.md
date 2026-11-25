@@ -24,7 +24,7 @@ I nomi delle cartelle degli addon diversi da FDCP vengono dalle loro pagine pubb
 - **Livello 1, lettura.** Accord legge ciò che l'addon pubblica per gli altri addon. Solo FDCP pubblica un'interfaccia del genere (`FinlandDragonCreditPointsAPI`), e Accord la legge solo quando la sua versione è una che Accord conosce (la versione 1). Con un'altra versione Accord torna al livello 0 e niente si rompe: aggiorna Accord.
 - Non c'è un livello 2: Accord non manda mai niente a un altro addon.
 
-`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer e una sezione **FDCP** con lo stato delle notifiche (senza nomi). Quali addon hanno gli *altri* membri viene dall'elenco [[Addon della gilda|Guild-Addons-it]] (`v0.9.0`); le funzioni di raid e loot lo useranno quando saranno rilasciate.
+`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer e una sezione **FDCP** con lo stato delle notifiche (senza nomi). Quali di questi addon hanno gli *altri* membri viene dall'elenco [[Addon della gilda|Guild-Addons-it]] (`v0.9.0`): la vista Raid lo mostra (sotto).
 
 ## La vista Raid
 
@@ -35,6 +35,8 @@ Si apre con la sua scheda o con `/accord raid`.
 - **Roster della season**: la season e il suo pool, una riga per main con classe, ruolo, MS1, MS2 e OS, e *in prova* o *inattivo*.
 - **Formazione e panchina**: la serata di raid aperta in FDCP, con chi è nel raid e chi è in panchina.
 - **Loot**: i tuoi crediti e il tuo posto nella coda del loot, e un **riassunto in sola lettura delle regole del loot di FDCP** (preset, priorità, crediti all'inizio, come si assegnano gli oggetti, il costo per qualità dell'oggetto, i moltiplicatori delle risposte, chi entra tardi, la panchina). Le regole si cambiano in FDCP, mai in Accord. La pagina del loot del manuale di gilda mostrerà lo stesso riassunto accanto al suo testo (M11).
+
+- **Addon di raid e di loot in gilda**, in fondo: per ogni addon della tabella qui sopra, che cosa Accord ha trovato sul tuo computer (caricato, spento, installato o non installato, la versione, livello 0 o 1, e se il nome della sua cartella è già confermato) e, dall'elenco [[Addon della gilda|Guild-Addons-it]], quanti membri che condividono l'elenco dei propri addon lo hanno caricato, su quanti, con le versioni. **Gli ufficiali e il Maestro di gilda** vedono anche chi lo ha, con la versione e i personaggi; tutti gli altri vedono i conteggi e la propria voce. Se l'elenco degli addon è spento, nessuno condivide ancora un elenco, o tu non condividi il tuo, una riga lo dice.
 
 Con **Accord** come fonte del roster della season, la vista dice che le dichiarazioni di Accord arrivano con una versione successiva (M10).
 
