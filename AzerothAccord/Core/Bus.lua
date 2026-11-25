@@ -29,6 +29,7 @@
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.
 --   TIMELINE_CHANGED()                                Data/Timeline.lua; the observed roster changes of the guild changed (an
 --                                                     event was written, or a record arrived from another officer), M8.2.
+--   ACTIONS_CHANGED()                                 Data/Actions.lua; the list of the Action Center changed (M9.2).
 --   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
 --                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.

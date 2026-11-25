@@ -317,6 +317,29 @@ function Ops:Cancel(n)
 	return true
 end
 
+-- The rows of the Action Center for the queue (SPEC-13 §2.3): one per kind of action still to do, with how many, waiting
+-- since the oldest of them. Only for who may see the queue; it only reads (an entry past EXPIRE is left out, not swept).
+function Ops:ActionRows(t)
+	local rows = {}
+	if not (ns.Officer and ns.Officer.CanSee("inactivity")) then return rows end
+	t = t or now()
+	local count, oldest = {}, {}
+	for _, e in ipairs(queueOf(peek()) or {}) do
+		if e.status == "open" and t - e.created < Ops.EXPIRE then
+			count[e.op] = (count[e.op] or 0) + 1
+			if not oldest[e.op] or e.created < oldest[e.op] then oldest[e.op] = e.created end
+		end
+	end
+	for _, op in ipairs(Ops.ACTIONS) do
+		if count[op] then
+			local key = "ACT_OPS_" .. op:upper() .. (count[op] == 1 and "_ONE" or "")
+			rows[#rows + 1] = { key = "queue:" .. op, urgency = 2, time = oldest[op], title = ns.L[key]:format(count[op]),
+				open = function() if ns.OfficersView then ns.OfficersView:OpenPage("queue") end end }
+		end
+	end
+	return rows
+end
+
 -- Only a change of the officers' note, for an officer who may not read it, cannot be ticked from the roster (OPS-02).
 function Ops:CanMarkDone(entry)
 	return entry ~= nil and entry.status == "open" and entry.op == "note" and entry.noteKind == "officer"
@@ -394,6 +417,17 @@ function Ops:DebugLine()
 	end
 	return ("  queue: open %d, done %d, gone %d, expired %d, cancelled %d"):format(counts.open, counts.done, counts.gone,
 		counts.expired, counts.cancelled)
+end
+
+-- The provider `officer`: the queue (officers) and the absences (officers, and the member's own one).
+if ns.Actions then
+	ns.Actions:Register("officer", { label = "ACT_PROVIDER_OFFICER", order = 30,
+		events = { "OPS_CHANGED", "STORE_CHANGED", "ROSTER_UPDATED", "ACCOUNTS_UPDATED", "OFFICER_PURGED" },
+		items = function(t)
+			local rows = Ops:ActionRows(t)
+			for _, row in ipairs(ns.Absence and ns.Absence:ActionRows(t) or {}) do rows[#rows + 1] = row end
+			return rows
+		end })
 end
 
 if ns.addon then ns.addon.OfficerOps = Ops end

@@ -14,7 +14,7 @@
 --                                AzerothAccordDB.chars keeps) and the main
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
 --                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
---   guildData                    what GuildKey:Data() holds besides the store: { likes = { given, queue }, bank = { history } }
+--   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -477,6 +477,12 @@ function DemoData.Build(now)
 		entry(done, 12, "promote", { fromRank = done.rankIndex + 1, toRank = done.rankIndex, status = "done", closed = now - 2 * DAY })
 		D.guildData.officer = { queue = queue, queueSeq = #queue }
 	end
+
+	-- Two craft requests the player wrote to crafters of the lists above: the reminders of the Action Center (SPEC-13)
+	D.guildData.craftAsks = {
+		{ guid = members[7].guid, recipeId = 2660, at = now - 2 * DAY },
+		{ guid = members[3].guid, recipeId = 7418, at = now - 3 * HOUR },
+	}
 
 	-- 32 bytes for the notary's salt
 	local salt = {}

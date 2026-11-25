@@ -539,8 +539,90 @@ function Recipes:OpenCraftRequest(guid, recipeId)
 	if not request then return false, why end
 	local C = compat()
 	if not (C and C.Chat.OpenWhisper(request.name, request.text)) then return false, "chat" end
+	self:RememberAsk(guid, recipeId)
 	emit("CRAFT_REQUESTED", guid, recipeId)
 	return true, request
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The reminders of the craft requests (SPEC-13 §2.3, SPEC-10 Q19)
+---------------------------------------------------------------------------------------------------------------------
+-- A craft request is only a whisper, so the Action Center keeps a reminder for the one who asked, on this computer only:
+-- GuildKey:Data().craftAsks = { { guid, recipeId, at }, ... }, the oldest first. Never sent, never in the backup.
+-- M13.2 replaces it with the orders.
+Recipes.MAX_ASKS = 20
+Recipes.ASK_DAYS = 7
+
+local function askValid(a, t)
+	return type(a) == "table" and type(a.guid) == "string" and type(a.recipeId) == "number" and type(a.at) == "number"
+		and t - a.at < Recipes.ASK_DAYS * 86400
+end
+
+-- Writes the list again without the reminder of `guid` and `recipeId`, without the old ones and with `add` at its end.
+local function writeAsks(guid, recipeId, add)
+	local data = ns.GuildKey and ns.GuildKey:Current() and ns.GuildKey:Data()
+	if not data then return false end
+	local t, list, found = compat().ServerTime(), {}, false
+	for _, a in ipairs(type(data.craftAsks) == "table" and data.craftAsks or {}) do
+		if askValid(a, t) then
+			if a.guid == guid and a.recipeId == recipeId then found = true else list[#list + 1] = a end
+		end
+	end
+	if add then list[#list + 1] = { guid = guid, recipeId = recipeId, at = t } end
+	while #list > Recipes.MAX_ASKS do table.remove(list, 1) end
+	data.craftAsks = #list > 0 and list or nil
+	return found
+end
+
+-- A request was written in the chat box: asking the same member for the same recipe again renews the reminder. Nothing is
+-- kept while the switch `actions` is off.
+function Recipes:RememberAsk(guid, recipeId)
+	if not (ns.Features and ns.Features.On("actions")) then return false end
+	if type(guid) ~= "string" or type(recipeId) ~= "number" then return false end
+	writeAsks(guid, recipeId, true)
+	return true
+end
+
+-- The player closes a reminder ("Done"). Returns true when there was one.
+function Recipes:ForgetAsk(guid, recipeId)
+	return writeAsks(guid, recipeId, false)
+end
+
+-- The profession of a member that has the recipe in a list we know, else the first one the member shared; nil for none.
+function Recipes:SkillLineWith(guid, recipeId)
+	for _, list in ipairs(self:AllLists()) do
+		if list.guid == guid then
+			for _, id in ipairs(list.ids) do
+				if id == recipeId then return list.skillLine end
+			end
+		end
+	end
+	local first = self:ProfessionsOf(guid)[1]
+	return first and first.skillLine or nil
+end
+
+-- The rows of the provider `craft`: the reminders of the last ASK_DAYS days. It only reads.
+function Recipes:ActionRows(t)
+	local rows = {}
+	local data = ns.GuildKey and ns.GuildKey:Current() and ns.GuildKey:Data()
+	if not data or type(data.craftAsks) ~= "table" then return rows end
+	t = t or compat().ServerTime()
+	local L = ns.L
+	for _, a in ipairs(data.craftAsks) do
+		if askValid(a, t) then
+			local guid, recipeId = a.guid, a.recipeId
+			local e = ns.Roster and ns.Roster:ByGUID(guid)
+			local name = e and (e.short or e.name) or "?"
+			local recipe = Recipes.NameOf(recipeId) or L["RV_RECIPE_ID"]:format(recipeId)
+			rows[#rows + 1] = { key = guid .. ":" .. recipeId, urgency = 1, time = a.at, who = name,
+				title = L["ACT_CRAFT"]:format(name, recipe),
+				open = function()
+					if ns.RecipeView then ns.RecipeView:Open(guid, Recipes:SkillLineWith(guid, recipeId), "craft") end
+				end,
+				dismiss = function() Recipes:ForgetAsk(guid, recipeId) end }
+		end
+	end
+	return rows
 end
 
 -- A shared record arrived or changed: views that show it learn about it through the same event as a native answer.
@@ -569,6 +651,12 @@ function Recipes:DebugLines()
 		("  native queries %d, answers %d, timeouts %d, unreadable %d, stale %d, failed %d, served from cache %d, dropped %d"):format(
 			s.queries, s.answers, s.timeouts, s.unusable, s.stale, s.failed, s.cached, s.dropped),
 	}
+end
+
+if ns.Actions then
+	ns.Actions:Register("craft", { label = "ACT_PROVIDER_CRAFT", order = 20,
+		events = { "CRAFT_REQUESTED", "ROSTER_UPDATED", "RECIPE_NAMES_UPDATED" },
+		items = function(t) return Recipes:ActionRows(t) end })
 end
 
 if ns.addon then

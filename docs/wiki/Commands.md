@@ -7,6 +7,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | Command | What it does |
 |---|---|
 | `/accord` | Opens or closes the Accord window (you must be in a guild) |
+| `/accord inbox` | Opens the **Action Center**, the list of what waits for you (see [[Action Center|Action-Center]]) *(M9.2, from `v0.9.0`)* |
 | `/accord roster` | Opens the Roster view |
 | `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view: likes of every player and the Like button, your social index, the group map (officers), *Someone new* to play with *(M4)* |

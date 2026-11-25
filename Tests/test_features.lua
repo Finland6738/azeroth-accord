@@ -133,3 +133,51 @@ describe("the raid switch, off, in demo mode", function()
 		eq(#Mock.errors, 0)
 	end)
 end)
+
+describe("the actions switch, off", function()
+	before_boot(function(M)
+		M.guild.Set{ name = "Accord", myRank = 1, members = {
+			{ name = "Officer", rank = 1, guid = OFF }, { name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
+		} }
+	end)
+
+	local function request()
+		A().Store:Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB,
+			kind = "withdraw", status = "open", amount = 10000, created = GetServerTime(), history = {} }
+		A().Bus:Emit("STORE_CHANGED", "bankreq", BOB .. ":1", "remote")
+		Mock.Advance(65)
+	end
+
+	it("is off in the shipped code", function()
+		eq(A().Features.actions, false)
+		falsy(A().Features.On("actions"))
+	end)
+
+	it("has no Action Center view, command, help line or tooltip line, and lists nothing", function()
+		request()
+		Mock.Slash("/accord")
+		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "actions") end
+		isNil(A().Shell.content.tabs.buttons.actions)
+		falsy(A().Shell:Select("actions"))
+		Mock.Slash("/accord help")
+		falsy(table.concat(Mock.PlainOutput(), "\n"):find("/accord inbox", 1, true))
+		Mock.Slash("/accord inbox")
+		contains(table.concat(Mock.PlainOutput(), "\n"), "Unknown command 'inbox'")
+		eq(#A().Actions:Rows(), 0)
+		eq(A().Actions:Count(), 0)
+		local tip = { lines = {} }
+		function tip:AddLine(t) self.lines[#self.lines + 1] = t end
+		A().Shell.FillTooltip(tip)
+		falsy(table.concat(tip.lines, "\n"):find("Action Center", 1, true))
+		isNil(A().ActionsView.frame)
+		falsy(A().Diagnostics.Report():find("Actions:", 1, true))
+	end)
+
+	it("keeps no craft reminder", function()
+		ChatFrame_OpenChat = function() end
+		C_Spell.GetSpellLink = nil
+		Mock.spells.known[2330] = { name = "Minor Healing Potion", icon = 1 }
+		truthy((A().Recipes:OpenCraftRequest(BOB, 2330)))
+		isNil(A().GuildKey:Data().craftAsks)
+	end)
+end)

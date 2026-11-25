@@ -7,6 +7,7 @@
 --   View.InactiveTip(account)           the lines of the row's tooltip
 --   View.TimelineRows(filter, t)        the events of the Timeline page: filter = { kind, days (7|30|90|365), search, guids }
 --   View:OpenTimeline(guid, name)       the Timeline page on one account ("Show all" of the member card)
+--   View:OpenPage(id)                   the tab on one of its pages (a row of the Action Center)
 --   View:OpenAbsence(guid, name)        the dialog an officer sets a return date in
 --   View:OpenTiers()                    the dialog of the four tiers
 --   View:OpenExport(kind)               the export box of the Inactive or the Timeline page ("inactive" | "timeline")
@@ -534,6 +535,14 @@ end
 function View:OnSearch(text)
 	self.search = text or ""
 	self:Redraw()
+end
+
+-- Opens the tab on one of its pages (the Action Center: "queue", "inactive").
+function View:OpenPage(id)
+	if not (View.Allowed() and pageOf(id)) then return false end
+	self.pageId = id
+	if not (ns.Shell and ns.Shell:OpenView("officers")) then return false end
+	return self:ShowPage(id)
 end
 
 -- The Timeline page on the account of `guid` ("Show all" of the member card).

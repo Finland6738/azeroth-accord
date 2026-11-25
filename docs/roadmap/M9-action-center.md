@@ -27,7 +27,8 @@ Release: `v0.9.0`.
 - Spec: SPEC-13
 - Scope: an inbox of pending items. Modules register a provider: craft requests, bank requests and the officers' inbox now; sign-ups, trials and polls later. Each item opens its own view.
 - Done when:
-  - [ ] Items from three providers show in one list, sorted by urgency and date; resolving one in its view removes it.
+  - [x] Items from three providers show in one list, sorted by urgency and date; resolving one in its view removes it.
+  - *Done (2026-11-25):* `Data/Actions.lua`, the registry of providers, with `bank`, `craft` and `officer` registered by their own modules; the view *Action Center* (page *Inbox*), `/accord inbox`, the badge and the Compartment line; `Tests/test_actions.lua`. Behind the switch `actions`, off until M9.10. Not checked in the game.
 
 ### M9.3 — Notification centre
 - Branch: `step/m9-3-notifications`

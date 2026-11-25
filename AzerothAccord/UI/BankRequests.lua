@@ -13,6 +13,8 @@
 -- wait, sorted by date (oldest or newest first) or by tip, with the "looks delivered" and "looks paid" proposals. Handing
 -- the item over stays manual (BANK-24), and so does paying a tip (BANK-26): the addon never moves items or gold.
 --
+-- Mode.ShowRequest(id, "inbox" | "requests") opens the view on one request (the Action Center, SPEC-13 §2.3).
+--
 -- Mode.Choices, Mode.Resolve, Mode.BankLine, Mode.Submit, Mode.Rows, Mode.InboxRows and Mode.Act are plain functions
 -- (tested offline); the frames only draw and call them.
 local ADDON_NAME, ns = ...
@@ -235,6 +237,28 @@ function Mode.Act(id, action, note)
 	return rec and true or false, why
 end
 
+-- Opens the Bank view on one request (a row of the Action Center): `where` is "inbox" (the officers' list, only for
+-- officers) or "requests" (the player's own requests). The search is cleared, the list scrolls to the request and its row
+-- is marked until the list is left.
+function Mode.ShowRequest(id, where)
+	local officer = ns.Role ~= nil and ns.Role:IsOfficer()
+	if where ~= "inbox" or not officer then where = "requests" end
+	View.search = ""
+	local bar = ns.Shell and ns.Shell.content and ns.Shell.content.bar
+	if bar then bar.search:SetText("") end
+	if where == "requests" then Mode.onlyMine, Mode.showClosed = true, false end
+	View.mode = where
+	View.offset = 0
+	local rows = where == "inbox" and Mode.InboxRows({ sort = Mode.inboxSort }) or Mode.Rows({ onlyMine = true })
+	for i, r in ipairs(rows) do
+		if r.id == id then View.offset = i - 1 break end
+	end
+	if not (ns.Shell and ns.Shell:OpenView("bank")) then return false end
+	Mode.focus = id
+	View:Redraw()
+	return true
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames
 ---------------------------------------------------------------------------------------------------------------------
@@ -291,6 +315,10 @@ local function baseRow(area, i)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * height)
 	Widgets.Tooltip.Attach(row, function(self) return Mode.TooltipLines(self.data) end, "RIGHT")
 	Widgets.RowHover(row)
+	row.focus = row:CreateTexture(nil, "BACKGROUND")   -- the request the Action Center opened
+	Theme.Fill(row.focus, "accent", 0.16)
+	row.focus:SetAllPoints(row)
+	row.focus:Hide()
 	area.rows[i] = row
 	return row
 end
@@ -349,6 +377,7 @@ local function fillRow(row, d)
 	end
 	row.reason:SetText(reason)
 	fillButtons(row, d)
+	row.focus:SetShown(Mode.focus == d.id)
 	row:Show()
 end
 
@@ -361,6 +390,7 @@ local function buildArea(f, top)
 	area:EnableMouseWheel(true)
 	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
 	area:SetScript("OnSizeChanged", function() View:Redraw() end)
+	area:SetScript("OnHide", function() Mode.focus = nil end)
 	area.rows = {}
 	f.area = area
 	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
@@ -681,6 +711,7 @@ local function fillInboxRow(row, d)
 		Theme.Text(row.reason, "text-3")
 	end
 	fillButtons(row, d)
+	row.focus:SetShown(Mode.focus == d.id)
 	row:Show()
 end
 
@@ -734,6 +765,6 @@ if ns.addon then
 	if ns.Bus then
 		ns.Bus:On("STORE_CHANGED", function(set) if set == "bankreq" then View:Changed() end end)
 		ns.Bus:On("BANKREQ_CHANGED", function() View:Changed() end)
-		ns.Bus:On("GUILD_CHANGED", function() Mode.picked = nil end)
+		ns.Bus:On("GUILD_CHANGED", function() Mode.picked, Mode.focus = nil, nil end)
 	end
 end

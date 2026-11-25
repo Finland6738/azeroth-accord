@@ -7,6 +7,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | Comando | Cosa fa |
 |---|---|
 | `/accord` | Apre o chiude la finestra di Accord (devi essere in una gilda) |
+| `/accord inbox` | Apre il **Centro azioni**, l'elenco di ciò che ti aspetta (vedi [[Centro azioni|Action-Center-it]]) *(M9.2, dalla `v0.9.0`)* |
 | `/accord roster` | Apre la vista Roster |
 | `/accord professions` | Apre la vista Professioni su **chi può creare** (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) |
 | `/accord reputation` | Apre la vista Reputazione: i like di ogni giocatore e il pulsante Like, il tuo indice sociale, la mappa dei gruppi (ufficiali), *Qualcuno di nuovo* con cui giocare *(M4)* |

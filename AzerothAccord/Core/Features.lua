@@ -6,9 +6,11 @@
 --   raid   the raid and loot addons (M10.2: detection, the guild's choice of a source per datum, the data set
 --          `guildcfg`) and the reading of FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)").
 --          Switched on when M10 and M11 are complete (docs/roadmap/M10-calendar-raids.md, M11-loot-handbook.md).
+--   actions  the Action Center, the notices, quiet hours and the login digest (M9.2-M9.5, SPEC-13): the view,
+--          `/accord inbox`, the line in the Compartment tooltip and the craft reminders. Switched on by M9.10.
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Features = { raid = false }
+local Features = { raid = false, actions = false }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

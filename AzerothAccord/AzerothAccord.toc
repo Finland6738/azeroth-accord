@@ -35,6 +35,7 @@ Net\Codec.lua
 Net\Transport.lua
 Net\Store.lua
 Net\Sync.lua
+Data\Actions.lua
 Data\Roster.lua
 Data\Accounts.lua
 Data\Contacts.lua
@@ -97,6 +98,7 @@ UI\TimelineCard.lua
 UI\Officers.lua
 UI\OfficersOps.lua
 UI\OfficerNotes.lua
+UI\Actions.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

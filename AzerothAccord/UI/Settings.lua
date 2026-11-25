@@ -291,6 +291,23 @@ local function refresh(f)
 	layout(f)
 end
 
+-- The Settings view of the panel, scrolled to the Absence card (a row of the Action Center).
+function View:ShowAbsence()
+	if not (ns.Shell and ns.Shell:OpenView("settings")) then return false end
+	local f = self.frame
+	if not f then return true end
+	self:ShowPage(f, "settings")
+	refresh(f)
+	local y = 0
+	for _, card in ipairs(f.cards) do
+		if card == f.absenceCard then break end
+		y = y + card:GetHeight() + View.CARD_GAP
+	end
+	local range = max(0, f.pageHeight - (f.scroll:GetHeight() or 0))
+	f.scroll:SetVerticalScroll(min(range, y))
+	return true
+end
+
 -- Refreshes every page that is on screen (a change in one is visible in the other). A hidden page refreshes when it is
 -- shown: the sizes of a big guild take a moment to count, and nobody sees them while the page is hidden.
 function View:Refresh()
@@ -467,6 +484,7 @@ end
 
 local function buildAbsence(f, page)
 	local card = stackCard(page)
+	f.absenceCard = card
 	f.absenceTitle = title(card, L["ABS_TITLE"])
 	f.absenceText = card:Add(text(card, "Body", "text-2"), 8)
 	f.absenceText:SetText(L["SET_ABSENCE_TEXT"])

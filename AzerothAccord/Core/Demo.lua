@@ -131,7 +131,8 @@ local function fill(data, account, char)
 	account.mains = { [data.realm] = data.main }
 	account.settings.discord = nil   -- the player's own contact name is not shown
 	local guild = { firstSeen = state.enteredAt, lastSeen = state.enteredAt, store = { sets = data.sets },
-		likes = data.guildData.likes, bank = data.guildData.bank, officer = data.guildData.officer }
+		likes = data.guildData.likes, bank = data.guildData.bank, officer = data.guildData.officer,
+		craftAsks = data.guildData.craftAsks }
 	account.guilds = { [data.key] = guild }
 	char.outbox = {}
 end

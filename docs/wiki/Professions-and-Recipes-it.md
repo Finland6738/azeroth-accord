@@ -36,7 +36,7 @@ La ricerca copre i membri **di cui l'elenco delle ricette è noto**: gli elenchi
 
 ## Chiedi di crearlo
 
-Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto la ricetta in *Chi può creare*) c'è un pulsante **Chiedi di crearlo**. Apre la casella della chat con un sussurro a quel membro già scritto, con il link della ricetta: *"Ciao! Potresti creare [ricetta] per me? Grazie!"*. **Azeroth Accord non lo invia mai**: lo leggi, lo cambi se vuoi e premi Invio. Il pulsante non si vede per i membri offline (un sussurro non li raggiungerebbe), per le tue ricette e sulla riga di intestazione di una ricetta.
+Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto la ricetta in *Chi può creare*) c'è un pulsante **Chiedi di crearlo**. Apre la casella della chat con un sussurro a quel membro già scritto, con il link della ricetta: *"Ciao! Potresti creare [ricetta] per me? Grazie!"*. **Azeroth Accord non lo invia mai**: lo leggi, lo cambi se vuoi e premi Invio. Il pulsante non si vede per i membri offline (un sussurro non li raggiungerebbe), per le tue ricette e sulla riga di intestazione di una ricetta. Dalla `v0.9.0` il [[Centro azioni|Action-Center-it]] tiene un promemoria della richiesta per 7 giorni, solo sul tuo computer.
 
 ## Se manca qualcosa
 

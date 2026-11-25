@@ -451,6 +451,11 @@ function Shell.FillTooltip(tooltip)
 		r, g, b = Theme.GameColor("gold")
 		tooltip:AddLine(L["BANKNOTE_WAITING"]:format(waiting), r, g, b, true)
 	end
+	local todo = ns.Actions and ns.Actions:Count() or 0   -- 0 while the switch `actions` is off
+	if todo > 0 then
+		r, g, b = Theme.GameColor("gold")
+		tooltip:AddLine(L["ACT_TOOLTIP"]:format(todo), r, g, b, true)
+	end
 end
 
 if ns.addon then

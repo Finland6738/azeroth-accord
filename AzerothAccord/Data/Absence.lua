@@ -28,6 +28,8 @@ Absence.SET = "absence"
 Absence.MAX_DAYS = 180               -- `until` is at most this far from `from` (INA-05)
 Absence.KEEP_DAYS = 30               -- a record is deleted this long after `until` (after its time when cleared)
 Absence.BACK_DAYS = 14               -- "away until <date>" is still said this long after the return
+Absence.BACK_ROWS = 3                -- the Action Center says "is back" to officers up to this many days after the return
+Absence.ENDING_ROWS = 3              -- and reminds the member this many days before the own absence ends
 Absence.LOGIN_DELAY = { 60, 120 }    -- seconds after the first HELLO of a login
 
 local DAY = 86400
@@ -254,6 +256,49 @@ function Absence:OnHello()
 		if Absence:NeedsSending() then Absence:Send() end
 	end)
 	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The Action Center (SPEC-13 §2.3): part of the provider `officer` (Data/OfficerOps.lua registers it)
+---------------------------------------------------------------------------------------------------------------------
+-- For officers: every account whose declared return date is today or at most BACK_ROWS days ago (the newest record of the
+-- account counts, INA-06; an account with nobody left in the guild is not listed). For everybody: the own declaration that
+-- ends within ENDING_ROWS days. It only reads.
+function Absence:ActionRows(t)
+	local L, rows = ns.L, {}
+	t = t or now()
+	local today = Absence.Today(t)
+	if ns.Officer.CanSee("absences") then
+		local newest, shown = {}, {}   -- account key -> its newest record, a character of it that is in the guild
+		for guid, rec in pairs(Absence.ByChar()) do
+			local key = ns.Accounts and ns.Accounts:AccountKey(guid) or guid
+			if newer(rec, newest[key]) then newest[key] = rec end
+			if ns.Roster and ns.Roster:ByGUID(guid) and (not shown[key] or guid < shown[key]) then shown[key] = guid end
+		end
+		for key, rec in pairs(newest) do
+			local a = Absence.Read(rec, t)
+			local n = a and timeline().DayNumber(a.day)
+			if n and n <= today and today - n <= Absence.BACK_ROWS then
+				local main = ns.Accounts and ns.Accounts:MainOf(rec.char)
+				local e = ns.Roster and (main and ns.Roster:ByGUID(main.guid) or ns.Roster:ByGUID(rec.char)
+					or shown[key] and ns.Roster:ByGUID(shown[key]))
+				if e then
+					local name = e.short or e.name or "?"
+					rows[#rows + 1] = { key = "back:" .. rec.char, urgency = 1, time = n * DAY, who = name,
+						title = L["ACT_ABSENCE_BACK"]:format(name, Absence.DayText(a.day)),
+						open = function() if ns.OfficersView then ns.OfficersView:OpenPage("inactive") end end }
+				end
+			end
+		end
+	end
+	local own = self:Own(t)
+	local n = own and own.away and timeline().DayNumber(own.day)
+	if n and n - today <= Absence.ENDING_ROWS then
+		rows[#rows + 1] = { key = "own", urgency = 1, time = math.max(own.rec.time or 0, (n - Absence.ENDING_ROWS) * DAY),
+			title = L["ACT_ABSENCE_ENDS"]:format(Absence.DayText(own.day)),
+			open = function() if ns.SettingsView then ns.SettingsView:ShowAbsence() end end }
+	end
+	return rows
 end
 
 ---------------------------------------------------------------------------------------------------------------------

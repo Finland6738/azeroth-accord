@@ -233,6 +233,41 @@ function Inbox:Baseline()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The Action Center (SPEC-13 §2.3)
+---------------------------------------------------------------------------------------------------------------------
+local function openRequest(id, mode)
+	return function()
+		if ns.BankRequestsView then ns.BankRequestsView.ShowRequest(id, mode) end
+	end
+end
+
+-- The rows of the provider `bank`: for officers every request that waits for a decision or a delivery; for everybody the
+-- own requests still open or approved. A closed request is not returned.
+function Inbox:ActionRows()
+	local Req, View = ns.BankRequests, ns.BankRequestsView
+	local rows = {}
+	if not Req then return rows end
+	local officer = isOfficer()
+	for _, r in ipairs(Req:List({ status = { open = true, approved = true } })) do
+		if officer or r.own then
+			local what = View and View.WhatText(r) or whatOf(r)
+			local detail = View and View.KindText(r.kind) or nil
+			if detail and r.reason then detail = detail .. " - " .. r.reason end
+			local open = r.status == "open"
+			if officer then
+				rows[#rows + 1] = { key = "do:" .. r.id, urgency = 2, time = r.created or 0, detail = detail, who = r.name or "?",
+					title = L[open and "ACT_BANK_NEW" or "ACT_BANK_DELIVER"]:format(what), open = openRequest(r.id, "inbox") }
+			end
+			if r.own then
+				rows[#rows + 1] = { key = "my:" .. r.id, urgency = 1, time = r.created or 0, detail = detail,
+					title = L[open and "ACT_BANK_WAITING" or "ACT_BANK_APPROVED"]:format(what), open = openRequest(r.id, "requests") }
+			end
+		end
+	end
+	return rows
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- The counter on the tab and the panel
 ---------------------------------------------------------------------------------------------------------------------
 function Inbox:UpdateCounter()
@@ -243,6 +278,12 @@ end
 
 function Inbox:DebugLines()
 	return { ("BankInbox: %d open request(s) waiting, %d notice(s) queued"):format(Inbox.PendingCount(), #state.pending) }
+end
+
+if ns.Actions then
+	ns.Actions:Register("bank", { label = "ACT_PROVIDER_BANK", order = 10,
+		events = { "STORE_CHANGED", "BANKREQ_CHANGED", "ROSTER_UPDATED", "ACCOUNTS_UPDATED" },
+		items = function() return Inbox:ActionRows() end })
 end
 
 if ns.addon then

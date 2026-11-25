@@ -35,6 +35,7 @@ end
 
 -- The commands in help order. A command without a handler answers "coming soon".
 ACC.commands = {
+	{ name = "inbox", feature = "actions", help = L["HELP_INBOX"], handler = viewCommand("actions") },
 	{ name = "roster", help = L["HELP_ROSTER"], handler = viewCommand("roster") },
 	{ name = "professions", help = L["HELP_PROFESSIONS"], handler = viewCommand("professions") },
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
