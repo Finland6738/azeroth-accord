@@ -35,6 +35,10 @@ Il gioco ha **un solo evento aperto alla volta**, condiviso dalla sua finestra d
 
 Se il gioco non lascia rispondere un addon al posto tuo, Accord apre invece la finestra del calendario del gioco: rispondi lì.
 
+## Eventi di Raid-Helper da Discord
+
+Gli ufficiali possono incollare l'esportazione di un evento di Raid-Helper: compare qui con l'evento del calendario alla stessa data e ora, oppure da solo, e dopo una conferma si può scrivere nel calendario del gioco. Vedi [[Eventi di Raid-Helper|Raid-Helper-it]].
+
 ## Senza il calendario del gioco
 
 Solo quando il tuo client **non ha un calendario usabile** (il gioco non manda l'elenco degli eventi entro un minuto), gli ufficiali e il Guild Master possono creare un evento in Accord: un titolo, la data e l'ora (`AAAA-MM-GG HH:MM`) e la dimensione del raid. I membri rispondono in Accord. Questi eventi sono sempre segnati **Non nel calendario del gioco**, anche per i membri il cui gioco ha il calendario, e il gioco, FDCP e gli altri addon non li vedono. Quando FDCP è la fonte della gilda, l'evento dice che **le risposte date lì non contano per FDCP**, che legge le iscrizioni solo dal calendario del gioco.

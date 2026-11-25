@@ -1391,6 +1391,68 @@ function Cal.ShowGame()
 	return (Compat.Call("ToggleCalendar")) == AVAILABLE
 end
 
+-- Writing into the game calendar (M10.6, SPEC-14 §6.5): only an officer's confirmed import of a Raid-Helper event.
+-- Every name is in the Forever dump; whether the client lets an addon create an event, invite and write another member's
+-- state (and from outside a click) is [verify] (SPEC-14 §13).
+local CREATE = { "C_Calendar.CreateGuildSignUpEvent", "C_Calendar.EventSetTitle", "C_Calendar.EventSetDescription",
+	"C_Calendar.EventSetDate", "C_Calendar.EventSetTime", "C_Calendar.EventSetType", "C_Calendar.AddEvent" }
+
+-- True when the client has the calls to create a guild event and says this character may add one.
+function Cal.CanCreate()
+	for _, path in ipairs(CREATE) do
+		if type(Resolve(path)) ~= "function" then return false end
+	end
+	local v, state = first("C_Calendar.CanAddEvent")
+	if state == MISSING then return true end
+	return v == true
+end
+
+-- Creates a guild sign-up event. e = { title, description, year, month, day, hour, minute }. True when every call ran.
+function Cal.Create(e)
+	local steps = { { CREATE[1] }, { CREATE[2], e.title }, { CREATE[3], e.description }, { CREATE[4], e.month, e.day, e.year },
+		{ CREATE[5], e.hour, e.minute }, { CREATE[6], Compat.CALENDAR_EVENT_RAID }, { CREATE[7] } }
+	for _, step in ipairs(steps) do
+		if Compat.Call(unpack(step)) ~= AVAILABLE then return false end
+	end
+	return true
+end
+
+-- True when the open event may be edited by this character (EventCanEdit).
+function Cal.CanEdit() return first("C_Calendar.EventCanEdit") == true end
+
+-- True when the client lets this character send invites to the open event.
+function Cal.CanSendInvite()
+	return type(Resolve("C_Calendar.EventInvite")) == "function" and first("C_Calendar.CanSendInvite") == true
+end
+
+-- Invites a character to the open event. True when the call ran.
+function Cal.Invite(name) return (Compat.Call("C_Calendar.EventInvite", name)) == AVAILABLE end
+
+-- True when this officer may write the state `status` for the invite `index` of the open event: CanEditGuildEvent(),
+-- EventCanEdit() and the state among EventGetStatusOptions(index); false when the client cannot tell.
+function Cal.CanSetStatus(index, status)
+	if type(Resolve("C_Calendar.EventSetInviteStatus")) ~= "function" then return false end
+	if first("CanEditGuildEvent") ~= true or not Cal.CanEdit() then return false end
+	local options = first("C_Calendar.EventGetStatusOptions", index)
+	options = type(options) == "table" and readableCopy(options) or nil
+	for _, option in ipairs(options or {}) do
+		if type(option) == "table" and option.status == status then return true end
+	end
+	return false
+end
+
+function Cal.SetStatus(index, status) return (Compat.Call("C_Calendar.EventSetInviteStatus", index, status)) == AVAILABLE end
+
+-- The date and time of the realm's calendar now ({ year, month, day, hour, minute }), or nil
+-- (C_DateAndTime.GetCurrentCalendarTime [verify]).
+function Compat.RealmTime()
+	local t = first("C_DateAndTime.GetCurrentCalendarTime")
+	if type(t) == "table" and num(t.year) and num(t.month) and num(t.monthDay) and num(t.hour) and num(t.minute) then
+		return { year = t.year, month = t.month, day = t.monthDay, hour = t.hour, minute = t.minute }
+	end
+	return nil
+end
+
 -- True while a boss encounter is in progress (SPEC-14 §10): C_InstanceEncounter.IsEncounterInProgress or the global;
 -- Compat.encounter is set from ENCOUNTER_START to ENCOUNTER_END (Net/Transport.lua).
 function Compat.EncounterInProgress()
@@ -1494,6 +1556,12 @@ local CAPS = {
 	{ "calendar.EventTentative", "calendar", "C_Calendar.EventTentative", note = "[verify] protected?" },
 	{ "calendar.EventDecline", "calendar", "C_Calendar.EventDecline", note = "[verify] protected?" },
 	{ "calendar.CalendarStatus", "calendar", "Enum.CalendarStatus", table = true, note = "values not in the dump" },
+	{ "calendar.CreateGuildSignUpEvent", "calendar", "C_Calendar.CreateGuildSignUpEvent", note = "[verify] (SPEC-14 §6.5)" },
+	{ "calendar.AddEvent", "calendar", "C_Calendar.AddEvent", note = "[verify] only from a click?" },
+	{ "calendar.EventInvite", "calendar", "C_Calendar.EventInvite", note = "[verify] on a guild sign-up event" },
+	{ "calendar.EventSetInviteStatus", "calendar", "C_Calendar.EventSetInviteStatus", note = "[verify] an officer, another member" },
+	{ "calendar.CanEditGuildEvent", "calendar", "CanEditGuildEvent" },
+	{ "calendar.GetCurrentCalendarTime", "calendar", "C_DateAndTime.GetCurrentCalendarTime" },
 	{ "time.GetServerTime", "time", "GetServerTime", call = true },
 	{ "time.GetTime", "time", "GetTime", call = true },
 	{ "time.NewTicker", "time", "C_Timer.NewTicker" },

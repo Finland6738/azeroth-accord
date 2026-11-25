@@ -53,6 +53,8 @@ When you declare for a raid season (MS1, MS2, OS, a note, or *Not sure yet*), th
 
 When you sign up to a guild event from Accord, your answer goes into the **game calendar**, as if you had answered in the game. The **role** you choose for the event, which the game calendar cannot hold, reaches the whole guild and is listed in *What I share*; so are your answers to events kept only in Accord (when a client has no game calendar). Only your own account can write them, and they are removed 2 days after the event. Accord records no attendance. See [[Events|Events]].
 
+When an officer imports a **Raid-Helper** event from Discord, the guild receives its title, its date and the **matched members only** (character, state, role, class and spec), until 2 days after the event. The names that matched nobody and the officer's hand matches stay on that officer's computer and are never sent; the unmatched names are removed 2 days after the event. Accord never contacts Discord or Raid-Helper. See [[Raid-Helper events|Raid-Helper]].
+
 ## Other addons
 
 Apart from that list (new in `v0.9.0`), the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.

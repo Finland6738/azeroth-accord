@@ -16,6 +16,7 @@
 - [[Guild Bank|Guild-Bank]]
 - [[Season Roster|Season-Roster]]
 - [[Events|Events]]
+- [[Raid-Helper events|Raid-Helper]]
 - [[Raid and Loot Addons|Raid-and-Loot-Addons]]
 
 **Reference**
@@ -40,6 +41,7 @@
 - [[Banca di gilda|Guild-Bank-it]]
 - [[Roster della season|Season-Roster-it]]
 - [[Eventi|Events-it]]
+- [[Eventi di Raid-Helper|Raid-Helper-it]]
 - [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]
 - [[Privacy e dati|Privacy-and-Data-it]]
 - [[Domande frequenti|FAQ-it]]

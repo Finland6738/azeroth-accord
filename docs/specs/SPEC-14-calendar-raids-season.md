@@ -33,7 +33,9 @@ Da M10.3 M10 ha un interruttore suo, `season`, in [`Core/Features.lua`](../../Az
 | `Data/Season.lua` | season e dichiarazioni, il fornitore `OWN` di `Integrations` (§4) | M10.3 |
 | `UI/Season.lua` | la vista *Season*: la propria dichiarazione, l'elenco, i conteggi per gli ufficiali, l'esportazione (§4.6) | M10.3, M10.4 |
 | `Data/Calendar.lua` | lettura degli eventi di gilda e delle risposte, la propria risposta, gli eventi solo dell'addon (§5) | M10.5 |
-| `Data/RaidHelper.lua` | lettura del testo incollato, abbinamento, copia nel calendario (§6) | M10.6 |
+| `Data/RaidHelperText.lua` | il lettore del testo incollato, JSON e CSV (§6.1) | M10.6 |
+| `Data/RaidHelper.lua` | abbinamento, record `H:`, confronto, copia nel calendario, riga nel Centro azioni (§6) | M10.6 |
+| `UI/RaidHelperBox.lua` | la casella in cui l'ufficiale incolla, controlla e importa (§6) | M10.6 |
 | `Data/Composition.lua` | composizione obiettivo, conteggi del roster della season (§4.5, §7.1); formazione e panchina (§7.2) | M10.4, M10.7 |
 | `UI/Events.lua` | la vista *Events*: elenco, dettaglio, iscrizione, importazione, composizione | M10.5–M10.7 |
 | `Data/Availability.lua`, `UI/Availability.lua` | la mappa della disponibilità (§8) | M10.8 |
@@ -202,12 +204,12 @@ Gli eventi del calendario non si copiano: `raidev` tiene solo ciò che il calend
 | Ruolo per un evento | `R:<chiave>:<GUID>` | `role`, `spec` (`ms1` \| `ms2` \| `class`), `at` (l'inizio dell'evento, da M10.5) | l'account del personaggio | 2 giorni dopo l'evento |
 | Evento solo dell'addon (§5.4) | `F:<GUID>:<n>` | `title` (1–48), `start` (ora del server), `size` (5–40), `note` (0–120) | solo ufficiali | 2 giorni dopo l'inizio |
 | Risposta a un evento solo dell'addon | `A:<chiave>:<GUID>` | `answer` = `yes` \| `maybe` \| `no`, `role`, `at` (l'inizio dell'evento, da M10.5) | l'account del personaggio | come l'evento |
-| Importazione di Raid-Helper (§6) | `H:<id dell'evento Discord>` | `title`, `start`, `at` (ora dell'importazione), `s` = `{ { g = GUID, st, role, class, spec } }` (al massimo 80) | solo ufficiali | 2 giorni dopo `start` |
+| Importazione di Raid-Helper (§6) | `H:<id dell'evento Discord>` (`H:t<start>` senza id) | `title`, `start`, `at` (ora dell'importazione), `s` = `{ { g = GUID, st, role?, class?, spec? } }` (al massimo 80; `st` = `signed`, `late`, `bench`, `tentative`, `absence`) | solo ufficiali | 2 giorni dopo `start` |
 | Composizione (§7) | `C:<chiave>` | `raid = { GUID }`, `bench = { GUID }` (al massimo 40 + 40) | solo ufficiali | 2 giorni dopo l'evento |
 
-La chiave di un evento è `c<eventID>` (calendario) o `f<GUID>:<n>` (solo addon). Fiducia: `R:` e `A:` come SEA-01 (prima mano o ritrasmissione di un ufficiale, mai la voce di un altro); `F:`, `H:` e `C:` NET-12 con `authorAny`. Dimensione massima 2 KB (`H:` con 80 iscritti). Nessuno di questi record dice chi c'era a un raid (RAID-05): una composizione è un piano, non una presenza, e scade con l'evento.
+La chiave di un evento è `c<eventID>` (calendario) o `f<GUID>:<n>` (solo addon). Fiducia: `R:` e `A:` come SEA-01 (prima mano o ritrasmissione di un ufficiale, mai la voce di un altro); `F:`, `H:` e `C:` NET-12 con `authorAny`. Dimensione massima di un record 512 byte; di un `H:` 12 KB stimati (80 iscritti; circa 2 KB sul filo, compresso), deciso in M10.6. Nessuno di questi record dice chi c'era a un raid (RAID-05): una composizione è un piano, non una presenza, e scade con l'evento.
 
-*Fatto in M10.5:* l'insieme `raidev` (`Net/Store.lua`, 512 byte per record finché non arriva `H:`, dietro `season`) accetta `R:`, `F:` e `A:`; `H:` e `C:` si rifiutano finché M10.6 e M10.7 non li aggiungono. I ruoli e le risposte propri sono in *What I share*.
+*Fatto in M10.5:* l'insieme `raidev` (`Net/Store.lua`, dietro `season`) accetta `R:`, `F:` e `A:`; *in M10.6* anche `H:` (il limite dell'insieme sale a 12 KB, gli altri record restano a 512 byte: `Calendar.MAX_BYTES`); `C:` si rifiuta finché M10.7 non lo aggiunge. I ruoli e le risposte propri sono in *What I share*, come le importazioni scritte da un ufficiale.
 
 ## 6. Gli eventi di Raid-Helper da Discord (M10.6)
 
@@ -229,9 +231,11 @@ La gilda del proprietario raccoglie le iscrizioni ai raid con il bot Raid-Helper
 | `Tentative` | **forse** |
 | `Absence` | **no** |
 
+*Fatto in M10.6 (`Data/RaidHelperText.lua`), senza un'esportazione vera (resta **[verificare]**, §13):* il JSON deve avere `title` e `signUps`; `startTime` (secondi, o millisecondi) può mancare e allora l'ufficiale scrive data e ora; `id` si usa solo se sono cifre. Lo stato viene da `className` (`Late`, `Bench`, `Tentative`, `Absence`), altrimenti da `status`; `status` = `queued` vale **panchina**, un'iscrizione `secondary` conta dopo le `primary` (documentati da terzi, non da Raid-Helper). La classe viene da `className`; per una riga senza classe vera (`Tank`, `Tentative`…) la specializzazione (con le cifre finali tolte, `Protection1`) dà le classi possibili e decide il personaggio abbinato. Il ruolo viene da `roleName`, poi dal nome (`Guardian`, `Tank`), poi dalla specializzazione. Il CSV: la **prima riga** è l'intestazione; separatore `,`, `;` o tabulazione; virgolette RFC 4180; titolo e data li scrive l'ufficiale. Un `||` (la casella del gioco può raddoppiare `|`) torna `|` prima di leggere.
+
 ### 6.2 Chi importa
 
-Solo ufficiali e Guild Master (SPEC-10 Q21, `Raid.WRITERS = "officers"`, un solo punto). L'importazione è legata a un giorno e un'ora (da `startTime`); un'importazione nuova dello stesso evento Discord (`id`) sostituisce la precedente.
+Solo ufficiali e Guild Master (SPEC-10 Q21, `Raid.WRITERS = "officers"`, un solo punto). L'importazione è legata a un giorno e un'ora (da `startTime`); un'importazione nuova dello stesso evento Discord (`id`) sostituisce la precedente. *Fatto in M10.6:* `startTime` diventa l'ora del reame con la differenza di adesso tra `C_DateAndTime.GetCurrentCalendarTime` **[verificare]** e l'ora del server, al quarto d'ora; un cambio dell'ora legale tra oggi e l'evento non si vede, e l'ufficiale può scrivere data e ora nella casella. Si rifiuta una data più vecchia di 2 giorni o oltre 366 giorni. Senza id (CSV) il record è `H:t<start>`, o quello di un'importazione alla stessa data e ora.
 
 ### 6.3 Abbinamento per nome Discord
 
@@ -250,6 +254,8 @@ Raid-Helper mostra il **soprannome sul server**, che può essere diverso dal nom
 
 Gli ufficiali vedono, accanto all'importazione: la composizione per ruolo accanto al roster della season; **chi è iscritto su Discord ma non nel calendario del gioco**; **chi è iscritto nel calendario ma non su Discord**.
 
+*Fatto in M10.6 (`Data/RaidHelper.lua`):* "iscritto" nel confronto è sì o forse; chi ha risposto in modo diverso è in un elenco a parte. Un account conta **una volta** per evento (la prima iscrizione `primary`). Al massimo 80 membri abbinati per record; gli altri si contano nell'anteprima. Oltre ai nomi, nient'altro delle persone non abbinate si salva: l'esportazione letta resta **solo in memoria** fino al ricaricamento, così un abbinamento a mano si applica subito; dopo, si salva l'abbinamento e l'ufficiale incolla di nuovo. Il record `H:` si mostra con l'evento del calendario alla stessa data e ora (prima quello con lo stesso titolo), altrimenti da solo, segnato *From Discord*.
+
 ### 6.5 Nel calendario del gioco
 
 Con **una conferma** dell'ufficiale ("Create the event in the game calendar and invite N members?"), Accord:
@@ -259,11 +265,15 @@ Con **una conferma** dell'ufficiale ("Create the event in the game calendar and 
 3. **non cambia mai una risposta che il membro ha già dato nel calendario**: la risposta del gioco vince e la differenza si mostra (SPEC-10 Q25);
 4. una chiamata alla volta, aspettando `CALENDAR_ACTION_PENDING(false)` o un errore, al massimo 40 inviti per conferma; un errore ferma la serie e la vista dice chi è rimasto fuori.
 
-Se il client non permette di scrivere lo stato degli altri, Accord crea l'evento e manda gli inviti, e i membri abbinati trovano nel **Centro azioni** una riga "Sign up in the game calendar for <evento>" (fornitore di M9.2), che apre la vista sull'evento. FDCP collega a una serata il **primo evento raid del giorno**, quelli di gilda prima: se il giorno ha già un altro evento raid, la conferma lo dice ("FDCP links the first raid event of the day").
+Se il client non permette di scrivere lo stato degli altri, Accord crea l'evento e manda gli inviti, e i membri abbinati trovano nel **Centro azioni** una riga "Answer in the game calendar: <evento>" (fornitore `events`, M9.2), che apre la vista sull'evento. FDCP collega a una serata il **primo evento raid del giorno**, quelli di gilda prima: se il giorno ha già un altro evento raid, la conferma lo dice ("FDCP links the first raid event of the day").
+
+*Fatto in M10.6:* la conferma è un secondo clic (**Confirm**) sotto la frase che dice che cosa succederà. Un evento esistente alla stessa data e ora si usa solo se `EventCanEdit()`; se non si può modificare, Accord si ferma e non ne crea un secondo. Il titolo nel calendario è tagliato a 31 caratteri **[verificare]**, la descrizione è nella lingua dell'ufficiale. Si scrive solo su un invito con stato **invitato** o **non iscritto**: qualunque altro stato (anche sconosciuto) è una risposta e non si tocca. Il limite di 40 conta i **membri** scritti (invito, stato o entrambi). Ogni chiamata aspetta il suo effetto nell'elenco degli inviti e `IsActionPending()` falso, al massimo 10 s; un errore del calendario, una chiamata rifiutata dal client (`ADDON_ACTION_BLOCKED`), il silenzio del server, la finestra del gioco, il combattimento o un boss fermano la serie. La riga del Centro azioni compare per ogni evento importato in cui il proprio account è abbinato, l'evento è nel calendario e la propria risposta manca, anche quando l'ufficiale non ha ancora scritto niente.
 
 ### 6.6 Ritorno a Discord
 
 La composizione decisa nel gioco (§7) si esporta come testo da incollare su Discord, con l'esportazione di §4.6.
+
+*Fatto in M10.6:* il tipo `event` di `Data/Export.lua`, solo ufficiali: un evento del calendario o importato, una riga per account con `name`, `realm`, `class`, `role`, `game_answer`, `discord` (CSV e testo per Discord, con il titolo e la data dell'evento). Raid e panchina si aggiungono con M10.7.
 
 ## 7. Panchina e composizione (M10.7)
 
@@ -311,7 +321,7 @@ Come FDCP, Accord **non manda nulla** durante un incontro con un boss: da `ENCOU
 
 ## 11. Traffico
 
-Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): dichiarazioni una volta per season (circa 200 byte ciascuna); ruoli per evento circa 60 byte a iscritto; un'importazione al massimo 2 KB per evento; disponibilità circa 70 byte per account al giorno; raduni come gli annunci di gruppo. In media meno di **20 B/min** per client oltre al traffico di oggi, da misurare nel simulatore in M10.3 (season), M10.5 (eventi) e M10.8 (disponibilità). Il budget condiviso è in [SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10).
+Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): dichiarazioni una volta per season (circa 200 byte ciascuna); ruoli per evento circa 60 byte a iscritto; un'importazione al massimo 2 KB per evento; disponibilità circa 70 byte per account al giorno; raduni come gli annunci di gruppo. Un'importazione `H:` sul filo è compressa (i 12 KB di §5.5 sono la stima in memoria). In media meno di **20 B/min** per client oltre al traffico di oggi, da misurare nel simulatore in M10.3 (season), M10.5 (eventi) e M10.8 (disponibilità). Il budget condiviso è in [SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10).
 
 ## 12. Test per passo
 
@@ -334,6 +344,8 @@ Nella prova di M10.10 (`docs/checklists/M10.md`), con una gilda che ha FDCP e un
 - che il client mandi `CALENDAR_UPDATE_EVENT_LIST` dopo `OpenCalendar` entro 60 s (altrimenti Accord passa agli eventi solo dell'addon);
 - se un ufficiale può creare un evento di iscrizione di gilda e scrivere lo stato di un altro membro (`EventSetInviteStatus`) su Forever;
 - se gli eventi di gilda si caricano senza aprire la finestra del calendario;
-- il formato attuale dell'esportazione JSON e CSV di Raid-Helper (campi di un'iscrizione, stati speciali);
+- il formato attuale dell'esportazione JSON e CSV di Raid-Helper (campi di un'iscrizione, stati speciali, intestazione del CSV);
+- se `EventInvite` funziona su un evento di iscrizione di gilda, se `AddEvent` e le scritture funzionano fuori da un clic, la lunghezza massima di un titolo, e `C_DateAndTime.GetCurrentCalendarTime`;
+- se un testo incollato di molti KB entra intero nella casella del gioco e se la casella raddoppia `|`;
 - i nomi dei rami di talento di ogni classe su Forever;
 - che FDCP veda come iscrizione la risposta data da Accord, e la formazione confermata o in riserva.

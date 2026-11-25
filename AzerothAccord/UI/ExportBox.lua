@@ -91,7 +91,8 @@ local function draw(self)
 	return text
 end
 
--- Opens the box on `items` (what the page shows now): kind "roster" | "inactive" | "timeline" | "season". Officers only.
+-- Opens the box on `items` (what the page shows now): kind "roster" | "inactive" | "timeline" | "season" | "event".
+-- Officers only.
 -- Returns the text of the export, or nil and the reason.
 function Box:Open(kind, items)
 	if not ns.Export.Allowed() then return nil, "officer" end

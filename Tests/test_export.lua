@@ -94,7 +94,16 @@ local function declarations()
 	end
 	return A().Composition.FromAccord(out)
 end
-local ITEMS = { roster = entries, inactive = rows, timeline = changes, season = declarations }
+-- an event's sign-ups (M10.6): the rows of RaidHelper:ExportRows
+local function signups()
+	local out = {}
+	for _, guid in ipairs({ BOB, ANN }) do
+		local member = A().Roster:ByGUID(guid)
+		out[#out + 1] = { guid = guid, name = member and member.name, class = "MAGE", role = "ranged", answer = "yes", discord = "late" }
+	end
+	return out
+end
+local ITEMS = { roster = entries, inactive = rows, timeline = changes, season = declarations, event = signups }
 
 local function build(kind, format) return X().Build(kind, format, ITEMS[kind]()) end
 
@@ -267,7 +276,7 @@ describe("EXP-01: nothing secret", function()
 				texts = texts + 1
 			end
 		end
-		eq(texts, 8)
+		eq(texts, 10)
 	end
 
 	it("no token, no GUID, no guild key, no officer note of either kind", function()

@@ -10,6 +10,11 @@
 -- addon, the game's calendar opens instead and the view says so.
 -- Only when the client has no usable calendar, officers (Raid.WRITERS) create events here (title, date and time, size),
 -- always marked "Not in the game calendar", and members answer here.
+-- Raid-Helper (M10.6, Data/RaidHelper.lua): officers paste an event's export ("Import from Raid-Helper"). An imported
+-- event shows with the calendar event of its date and time, else on its own, "From Discord". Every member sees the own
+-- state on Discord; officers also the sign-ups, the roles next to the season roster and the target composition, who is on
+-- Discord and not in the game calendar and the reverse, the names that matched nobody (with a hand match), "Put into the
+-- game calendar" (a confirming second click) and the export back to Discord.
 --
 -- View.Model(key) reads everything now; View.Lines(model) is a plain function of it (tested offline); the frames only draw.
 -- While Core/Features.lua "season" is off there is no tab, no command and nothing is redrawn.
@@ -68,18 +73,46 @@ function View.Model(key)
 	m.events = {}
 	for _, e in ipairs(C.events) do m.events[#m.events + 1] = e end
 	for _, e in ipairs(C:LocalEvents()) do m.events[#m.events + 1] = e end
+	-- the imports of Raid-Helper: with the calendar event of their date and time, else on their own
+	local RH = ns.RaidHelper
+	m.officer = RH ~= nil and RH.CanImport()
+	local linked = {}
+	if RH then
+		for i, e in ipairs(m.events) do
+			if not e.addonOnly then
+				local id = RH:ForEvent(e)
+				if id then
+					local copy = {}
+					for k, v in pairs(e) do copy[k] = v end
+					copy.importId = id
+					m.events[i], linked[id] = copy, true
+				end
+			end
+		end
+		for _, row in ipairs(RH:List()) do
+			if not linked[row.id] then
+				m.events[#m.events + 1] = { key = "h" .. row.id, title = row.rec.title, start = row.rec.start, importId = row.id,
+					discordOnly = true, game = RH:EventAt(row.rec) }
+			end
+		end
+	end
 	local I = ns.Integrations
 	m.fdcp = I ~= nil and (I:Source("raid") == "fdcp" or I:Source("loot") == "fdcp")
 	local chosen
 	for _, e in ipairs(m.events) do if e.key == key then chosen = e end end
+	if not chosen and type(key) == "string" and key:sub(1, 1) == "h" then
+		-- the import is now shown with its calendar event
+		for _, e in ipairs(m.events) do if e.importId == key:sub(2) then chosen = e end end
+	end
 	if not chosen then
 		for _, e in ipairs(m.events) do
-			if not chosen and e.start >= m.now - 3 * 3600 then chosen = e end
+			if e.start >= m.now - 3 * 3600 and (not chosen or e.start < chosen.start) then chosen = e end
 		end
 		chosen = chosen or m.events[1]
 	end
 	m.event = chosen
-	if chosen then
+	if chosen and chosen.importId then m.rh = View.ImportModel(chosen, m.officer) end
+	if chosen and not chosen.discordOnly then
 		local me = ns.Compat.Player.GUID()
 		m.role, m.roleFrom = C:SuggestRole(chosen.key)
 		m.outcome = C.outcome[chosen.key]
@@ -99,6 +132,43 @@ function View.Model(key)
 	return m
 end
 
+-- The counts of the season roster by MS1, of the guild's source, or nil without one.
+local function seasonCounts()
+	local C, rows = ns.Composition, nil
+	if ns.Season.Source() == "accord" then
+		local cur = ns.Season:Current()
+		if cur then rows = C.FromAccord(ns.Season:Entries(cur.n)) end
+	elseif ns.FDCP then
+		local pool = ns.FDCP.Pool()
+		if pool and #pool > 0 then rows = (C.FromPool(pool)) end
+	end
+	return rows and C.Count(rows).ms1 or nil
+end
+
+-- What the view shows of an imported event: the own state for everybody, the rest for officers.
+function View.ImportModel(event, officer)
+	local RH = ns.RaidHelper
+	local rec = RH:Get(event.importId)
+	if not rec then return nil end
+	local own = RH:Own(rec)
+	local out = { id = event.importId, at = rec.at, matched = #rec.s, own = own }
+	if not officer then return out end
+	out.states = {}
+	for _, s in ipairs(rec.s) do
+		local member = ns.Roster:ByGUID(s.g)
+		local name = short(member and member.name or s.g)
+		if s.role then name = L["EVENTS_NAME_ROLE"]:format(name, L["SEASON_ROLE_" .. s.role:upper()]) end
+		local list = out.states[s.st] or {}
+		list[#list + 1] = name
+		out.states[s.st] = list
+	end
+	out.roles, out.season, out.target = RH.Roles(rec), seasonCounts(), ns.Composition:Target()
+	out.compare = not event.discordOnly and RH:Compare(rec, event) or nil
+	out.unmatched = RH:Unmatched(event.importId)
+	out.result = RH.result[event.importId]
+	return out
+end
+
 local function nameLines(out, head, names)
 	if #names == 0 then return end
 	out[#out + 1] = { text = head:format(#names), sub = true }
@@ -106,6 +176,76 @@ local function nameLines(out, head, names)
 		local part = {}
 		for j = i, min(#names, i + View.NAMES_PER_LINE - 1) do part[#part + 1] = names[j] end
 		out[#out + 1] = { text = concat(part, ", "), indent = true }
+	end
+end
+
+local function shorten(names)
+	local out = {}
+	for i, name in ipairs(names) do out[i] = short(name) end
+	return out
+end
+
+local function stateText(state) return L["RH_STATE_" .. state:upper()] end
+
+-- The outcome of "Put into the game calendar".
+local function resultLines(out, res)
+	local function add(text, kind) local l = { text = text } if kind then l[kind] = true end out[#out + 1] = l end
+	if res.pending then return add(L["RH_RESULT_PENDING"], "muted") end
+	if res.created then add(L["RH_RESULT_CREATED"], "muted") end
+	if res.ok then add(L["RH_RESULT_DONE"]:format(res.invited, #res.written))
+	else add(L["RH_RESULT_STOPPED"]:format(ns.RaidHelperBox.Reason(res.why)), "warn") end
+	nameLines(out, L["RH_RESULT_ANSWERED"], shorten(res.answered))
+	nameLines(out, L["RH_RESULT_MEMBER"], shorten(res.member))
+	nameLines(out, L["RH_RESULT_LEFT"], shorten(res.left))
+end
+
+-- The Raid-Helper part of the chosen event.
+local function importLines(out, m)
+	local r = m.rh
+	if not r then return end
+	local function add(text, kind) local l = { text = text } if kind then l[kind] = true end out[#out + 1] = l end
+	add(L["RH_SECTION"], "sub")
+	add(L["RH_IMPORTED"]:format(whenText(r.at), r.matched), "muted")
+	if r.own then
+		local detail = {}
+		if r.own.class then detail[#detail + 1] = ns.Roster.ClassName(r.own.class) end
+		if r.own.role then detail[#detail + 1] = roleText(r.own.role) end
+		add(L["RH_YOURS"]:format(stateText(r.own.st)) .. (#detail > 0 and (" (" .. concat(detail, ", ") .. ")") or ""))
+	else
+		add(L["RH_YOURS_NONE"], "muted")
+	end
+	if not r.states then return end
+	if r.result then resultLines(out, r.result) end
+	add(L["RH_ROLES"], "sub")
+	for _, role in ipairs(ns.Specs.ROLES) do
+		local parts = { L["SEASON_COUNT"]:format(L["SEASON_FIELD_" .. role:upper()], r.roles.signed[role]) }
+		if r.roles.tentative[role] > 0 then parts[#parts + 1] = L["RH_ROLE_TENTATIVE"]:format(r.roles.tentative[role]) end
+		if r.roles.bench[role] > 0 then parts[#parts + 1] = L["RH_ROLE_BENCH"]:format(r.roles.bench[role]) end
+		if r.season then parts[#parts + 1] = L["RH_ROLE_SEASON"]:format(r.season[role]) end
+		if r.target then parts[#parts + 1] = L["SEASON_COUNT_TARGET"]:format(r.target[role]) end
+		out[#out + 1] = { text = concat(parts, View.SEP), indent = true }
+	end
+	if r.roles.unknown > 0 then add(L["RH_ROLE_UNKNOWN"]:format(r.roles.unknown), "muted") end
+	for _, state in ipairs(ns.RaidHelper.STATE_ORDER) do
+		nameLines(out, stateText(state) .. " (%d)", r.states[state] or {})
+	end
+	local c = r.compare
+	if c then
+		add(L["RH_COMPARE"], "sub")
+		nameLines(out, L["RH_ONLY_DISCORD"], shorten(c.onlyDiscord))
+		nameLines(out, L["RH_ONLY_GAME"], shorten(c.onlyGame))
+		local differ = {}
+		for i, d in ipairs(c.differ) do
+			differ[i] = L["RH_DIFFER_NAME"]:format(short(d.name), stateText(d.discord), answerText(d.game))
+		end
+		nameLines(out, L["RH_DIFFER"], differ)
+		if #c.onlyDiscord + #c.onlyGame + #c.differ == 0 then add(L["RH_AGREE"], "muted") end
+	elseif m.event and not m.event.discordOnly then
+		add(L["RH_COMPARE_LATER"], "muted")
+	end
+	if r.unmatched and #r.unmatched > 0 then
+		nameLines(out, L["RH_UNMATCHED"], r.unmatched)
+		add(L["RH_UNMATCHED_HINT"], "muted")
 	end
 end
 
@@ -121,6 +261,8 @@ end
 local function eventLine(e, chosen)
 	local parts = { whenText(e.start), e.title or "?" }
 	if e.addonOnly then parts[#parts + 1] = L["EVENTS_NOT_IN_GAME"] end
+	if e.discordOnly then parts[#parts + 1] = e.game and L["RH_LIST_DISCORD"] or L["RH_LIST_DISCORD_ONLY"]
+	elseif e.importId then parts[#parts + 1] = L["RH_LIST_LINKED"] end
 	return { text = concat(parts, View.SEP), member = true, selected = chosen or nil }
 end
 
@@ -149,6 +291,11 @@ function View.Lines(m)
 	local e = m.event
 	if not e then return out end
 	add(L["EVENTS_EVENT"]:format(e.title or "?", whenText(e.start)), "sub")
+	if e.discordOnly then
+		if not e.game then add(L["RH_NOT_IN_GAME"], "warn") end
+		importLines(out, m)
+		return out
+	end
 	if e.addonOnly then
 		add(L["EVENTS_NOT_IN_GAME_LONG"], "warn")
 		if m.fdcp then add(L["EVENTS_FDCP_NOTE"], "warn") end
@@ -191,6 +338,7 @@ function View.Lines(m)
 	elseif not e.addonOnly then
 		add(m.blocked and View.ReasonText(m.blocked) or L["EVENTS_ANSWERS_LATER"], "muted")
 	end
+	importLines(out, m)
 	return out
 end
 
@@ -234,10 +382,95 @@ function View:Create(title, when, size, note)
 end
 
 function View:Choose(key)
+	if key ~= self.chosen then self.confirm = nil end
 	self.chosen = key
 	local e = ns.Calendar:Event(key)
 	if e then ns.Calendar:LoadInvites(key) end
 	self:Redraw()
+end
+
+-- Opens the view on an event (the row of the Action Center).
+function View:Open(key)
+	if ns.Shell and not ns.Shell:OpenView("events") then return false end
+	self:Choose(key)
+	return true
+end
+
+-- The box imported event `id`: it is chosen, with its calendar event when there is one.
+function View:Imported(id, title)
+	local rec = ns.RaidHelper:Get(id)
+	local e = rec and ns.RaidHelper:EventAt(rec)
+	self:Say(L["RH_DONE_IMPORT"]:format(title or "?"))
+	local key = "h" .. id
+	if e and ns.Calendar:Event(e.key) then key = e.key end
+	self:Choose(key)
+end
+
+-- What the officer confirms before Accord writes into the game calendar.
+function View.ConfirmText(plan)
+	local parts = { (plan.create and L["RH_CONFIRM_CREATE"] or L["RH_CONFIRM_WRITE"]):format(plan.members) }
+	if plan.total > plan.members then parts[#parts + 1] = L["RH_CONFIRM_MORE"]:format(plan.total - plan.members) end
+	if plan.other then parts[#parts + 1] = L["RH_CONFIRM_OTHER"]:format(plan.other) end
+	parts[#parts + 1] = L["RH_CONFIRM_PRESS"]
+	return concat(parts, " ")
+end
+
+-- "Put into the game calendar": the first click says what will happen, the second does it.
+function View:Push()
+	local m = View.Model(self.chosen)
+	local id = m.event and m.event.importId
+	if not id then return false, "missing" end
+	if self.confirm ~= id then
+		local plan, why = ns.RaidHelper:Plan(id)
+		if not plan then
+			self:Say(ns.RaidHelperBox.Reason(why))
+			self:Redraw()
+			return false, why
+		end
+		self.confirm = id
+		self:Say(View.ConfirmText(plan))
+		self:Redraw()
+		return false, "confirm"
+	end
+	self.confirm = nil
+	local ok, why = ns.RaidHelper:Push(id)
+	self:Say(ok and "" or ns.RaidHelperBox.Reason(why))
+	self:Redraw()
+	return ok, why
+end
+
+-- A hand match of a name that matched nobody.
+function View:Match(name, member)
+	local m = View.Model(self.chosen)
+	local id = m.event and m.event.importId
+	if not (id and name) then
+		self:Say(L["RH_ERR_NAME"])
+		return false, "name"
+	end
+	local ok, why = ns.RaidHelper:SetMatch(id, name, member)
+	if ok then
+		self:Say(why == "added" and L["RH_MATCHED"]:format(name) or L["RH_MATCHED_PASTE"]:format(name))
+		if self.frame then self.frame.member:Clear() end
+	else
+		self:Say(ns.RaidHelperBox.Reason(why))
+	end
+	self:Redraw()
+	return ok, why
+end
+
+-- The export back to Discord of the chosen event (officers). Returns the text, or nil and a reason.
+function View:Export()
+	local m = View.Model(self.chosen)
+	local e = m.event
+	if not e or e.addonOnly then return nil, "missing" end
+	local rec = e.importId and ns.RaidHelper:Get(e.importId) or nil
+	local rows = ns.RaidHelper:ExportRows(not e.discordOnly and e or nil, rec)
+	if #rows == 0 then
+		self:Say(L["RH_EXPORT_NONE"])
+		return nil, "empty"
+	end
+	rows.subject = L["EVENTS_EVENT"]:format((e.title or "?"):gsub("||", "|"), whenText(e.start))
+	return ns.ExportBox:Open("event", rows)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -292,6 +525,25 @@ function View:Build(f)
 		View:Create(f.title:GetText(), f.when:GetText(), f.size:Selected())
 	end })
 	f.createButton:SetPoint("LEFT", f.size, "RIGHT", 8, 0)
+
+	-- officers: Raid-Helper (M10.6)
+	f.rhRow = CreateFrame("Frame", nil, f)
+	f.rhRow:SetHeight(32)
+	f.import = Widgets.Button(f.rhRow, { text = L["RH_IMPORT_BUTTON"], style = "secondary", height = 28, onClick = function()
+		ns.RaidHelperBox:Open()
+	end })
+	f.push = Widgets.Button(f.rhRow, { text = L["RH_PUSH"], style = "secondary", height = 28, onClick = function() View:Push() end })
+	f.export = Widgets.Button(f.rhRow, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28, onClick = function() View:Export() end })
+	f.matchRow = CreateFrame("Frame", nil, f)
+	f.matchRow:SetHeight(32)
+	f.unmatched = Widgets.Select(f.matchRow, { width = 200, rows = 8, placeholder = L["RH_MATCH_NAME"] })
+	f.unmatched:SetPoint("TOPLEFT", f.matchRow, "TOPLEFT", 0, 0)
+	f.member = Widgets.EditBox(f.matchRow, { width = 180, maxLetters = 64, placeholder = L["RH_MATCH_MEMBER"] })
+	f.member:SetPoint("LEFT", f.unmatched, "RIGHT", 8, 0)
+	f.match = Widgets.Button(f.matchRow, { text = L["RH_MATCH"], style = "secondary", height = 28, onClick = function()
+		View:Match(f.unmatched:Selected(), f.member:GetText())
+	end })
+	f.match:SetPoint("LEFT", f.member, "RIGHT", 8, 0)
 	f.message = Widgets.Text(f, "Small", "text-3", "LEFT")
 
 	f.list = CreateFrame("Frame", nil, f)
@@ -317,7 +569,7 @@ function View:Redraw()
 	local choices = {}
 	for _, e in ipairs(m.events) do
 		local text = whenText(e.start) .. "  " .. (e.title or "?")
-		if e.addonOnly then text = text .. "  *" end
+		if e.addonOnly or e.discordOnly then text = text .. "  *" end
 		choices[#choices + 1] = { id = e.key, text = text }
 	end
 	f.picker:SetChoices(choices)
@@ -326,8 +578,9 @@ function View:Redraw()
 	f.game:SetShown(m.state ~= "missing")
 
 	local y = -40
-	f.answer:SetShown(m.event ~= nil)
-	if m.event then
+	local answers = m.event ~= nil and not m.event.discordOnly
+	f.answer:SetShown(answers)
+	if answers then
 		f.answer:ClearAllPoints()
 		f.answer:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
 		f.answer:SetPoint("RIGHT", f, "RIGHT", 0, 0)
@@ -343,6 +596,40 @@ function View:Redraw()
 		f.create:ClearAllPoints()
 		f.create:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
 		f.create:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+		y = y - 40
+	end
+	-- officers: import a Raid-Helper event, put it into the game calendar, export the event back to Discord
+	f.rhRow:SetShown(m.officer == true)
+	if m.officer then
+		f.rhRow:ClearAllPoints()
+		f.rhRow:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
+		f.rhRow:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+		local shown = { f.import }
+		local push = m.rh ~= nil and m.state == "available"
+		local export = m.event ~= nil and not m.event.addonOnly
+		f.push:SetShown(push)
+		f.export:SetShown(export)
+		if push then
+			f.push:SetLabel(self.confirm == m.rh.id and L["RH_CONFIRM"] or L["RH_PUSH"])
+			shown[#shown + 1] = f.push
+		end
+		if export then shown[#shown + 1] = f.export end
+		for i, button in ipairs(shown) do
+			button:ClearAllPoints()
+			if i == 1 then button:SetPoint("TOPLEFT", f.rhRow, "TOPLEFT", 0, 0)
+			else button:SetPoint("LEFT", shown[i - 1], "RIGHT", 8, 0) end
+		end
+		y = y - 40
+	end
+	local unmatched = m.officer and m.rh and m.rh.unmatched or nil
+	f.matchRow:SetShown(unmatched ~= nil and #unmatched > 0)
+	if unmatched and #unmatched > 0 then
+		f.matchRow:ClearAllPoints()
+		f.matchRow:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
+		f.matchRow:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+		local names = {}
+		for i, name in ipairs(unmatched) do names[i] = { id = name, text = name } end
+		f.unmatched:SetChoices(names)
 		y = y - 40
 	end
 	self.painting = false
@@ -412,7 +699,7 @@ if ns.addon then
 	if ns.Bus then
 		local function changed() if on() then View:Changed() end end
 		for _, event in ipairs({ "CALENDAR_CHANGED", "EVENT_CHANGED", "SEASON_CHANGED", "SOURCES_CHANGED", "ROLE_CHANGED",
-			"ROSTER_UPDATED", "FEATURE_CHANGED" }) do
+			"ROSTER_UPDATED", "ACCOUNTS_UPDATED", "FEATURE_CHANGED" }) do
 			ns.Bus:On(event, changed)
 		end
 	end

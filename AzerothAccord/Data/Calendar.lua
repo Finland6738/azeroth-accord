@@ -24,13 +24,17 @@
 --             (Raid.WRITERS) create events in the addon (F:<GUID>:<n>) and members answer there (A:<key>:<GUID>). Those
 --             are always marked "Not in the game calendar", also on a client that has a calendar.
 --
--- The data set `raidev` (Net/Store.lua, SPEC-14 §5.5), synced on GUILD; M10.5 takes three kinds of record (H: and C:
--- come with M10.6 and M10.7 and are refused until then):
+-- The data set `raidev` (Net/Store.lua, SPEC-14 §5.5), synced on GUILD; four kinds of record (C: comes with M10.7 and
+-- is refused until then):
 --   R:<key>:<GUID>   { role, spec = "ms1" | "ms2" | "class", at }  the role of a character for an event; its account only
 --   F:<GUID>:<n>     { title, start, size, note? }                 an event only of the addon; officers only (authorAny)
 --   A:<key>:<GUID>   { answer = "yes" | "maybe" | "no", role, at } an answer to an event only of the addon; its account
--- The key of an event is "c<eventID>" (calendar) or "f<GUID>:<n>" (addon only). `at` and `start` are server times; a
--- record expires Calendar.KEEP seconds after its event. No record says who was at a raid (RAID-05).
+--   H:<id>           { title, start, at, s }                       a Raid-Helper event pasted by an officer (M10.6,
+--                    Data/RaidHelper.lua checks it); officers only (authorAny)
+-- The key of an event is "c<eventID>" (calendar) or "f<GUID>:<n>" (addon only). `at` and `start` are server times (of
+-- H:, `start` is the realm's date and time as a calendar event's and `at` the time of the import); a record expires
+-- Calendar.KEEP seconds after its event. No record says who was at a raid (RAID-05). Calendar.MAX_BYTES is the size of a
+-- record, but of H: (the set takes RaidHelper.MAX_BYTES for it).
 --
 -- Switch: Core/Features.lua "season" (M10). Off: no call to C_Calendar, nothing written, accepted or sent.
 -- Bus: CALENDAR_CHANGED() when the events or the calendar's state were read again; EVENT_CHANGED(key) when the answers,
@@ -54,6 +58,7 @@ Calendar.TITLE_MAX = 48
 Calendar.NOTE_MAX = 120
 Calendar.SIZE_MIN, Calendar.SIZE_MAX = 5, 40
 Calendar.N_MAX = 99999
+Calendar.MAX_BYTES = 512        -- of an R:, F: or A: record
 Calendar.ANSWERS = { yes = true, maybe = true, no = true }
 Calendar.SPECS = { ms1 = true, ms2 = true, class = true }
 
@@ -118,7 +123,7 @@ function Calendar.LocalIdOf(key)
 	return Calendar.LocalId(guid, tonumber(n))
 end
 
--- "R", "F", "A" (M10.5), "H", "C" (M10.6, M10.7) or nil from the id.
+-- "R", "F", "A" (M10.5), "H" (M10.6), "C" (M10.7) or nil from the id.
 function Calendar.KindOf(rec)
 	local id = type(rec) == "table" and rec.id
 	if type(id) ~= "string" then return nil end
@@ -147,6 +152,11 @@ end
 function Calendar.ValidRecord(rec, store)
 	store = store or S()
 	local kind = Calendar.KindOf(rec)
+	if kind == "H" then
+		if not ns.RaidHelper then return false end
+		return ns.RaidHelper.ValidRecord(rec)
+	end
+	if ns.Config and ns.Config.EstimateSize(rec) > Calendar.MAX_BYTES then return false, "size" end
 	if kind == "R" or kind == "A" then
 		local key, guid = splitCharId(rec.id)
 		if not (key and Calendar.KeyKind(key) and isGUID(guid)) then return false end
@@ -167,16 +177,20 @@ function Calendar.ValidRecord(rec, store)
 		if rec.note ~= nil and not cleanText(rec.note, Calendar.NOTE_MAX) then return false end
 		return true
 	end
-	return false, "step"                                        -- H: and C: come with M10.6 and M10.7
+	return false, "step"                                        -- C: comes with M10.7
 end
 
--- Officers only (NET-12): the events of the addon.
-function Calendar.Authority(rec) return Calendar.KindOf(rec) == "F" end
+-- Officers only (NET-12): the events of the addon and the imports of Raid-Helper.
+function Calendar.Authority(rec)
+	local kind = Calendar.KindOf(rec)
+	return kind == "F" or kind == "H"
+end
 
 -- Retention: Calendar.KEEP after the event.
 function Calendar.Expired(rec, t)
 	local kind = Calendar.KindOf(rec)
-	local at = kind == "F" and rec.start or rec.at
+	local at
+	if kind == "F" or kind == "H" then at = rec.start else at = rec.at end
 	if type(at) ~= "number" then return true end
 	return at < t - Calendar.KEEP
 end
@@ -218,15 +232,15 @@ function Calendar:Start()
 	return true
 end
 
--- Reads the guild events again. Returns the list.
-function Calendar:Read()
-	if not Calendar.Enabled() then return {} end
-	local C = Cal()
-	local t = now()
+-- Every guild event the client holds now, also outside the window of the view (an imported event may be further ahead),
+-- oldest first.
+function Calendar:AllEvents()
 	local out = {}
+	if not Calendar.Enabled() then return out end
+	local C = Cal()
 	for _, row in ipairs(C.GuildEvents()) do
 		local start = Calendar.RowStart(row)
-		if start and start >= t - Calendar.PAST_DAYS * DAY and start <= t + Calendar.AHEAD_DAYS * DAY then
+		if start then
 			out[#out + 1] = { key = Calendar.CalendarKey(row.eventID), eventID = row.eventID, title = row.title or "?",
 				start = start, y = row.year, m = row.month, d = row.monthDay, h = row.hour or 0, mi = row.minute or 0,
 				raid = row.eventType == ns.Compat.CALENDAR_EVENT_RAID, kind = row.calendarType,
@@ -237,6 +251,18 @@ function Calendar:Read()
 		if a.start ~= b.start then return a.start < b.start end
 		return a.eventID < b.eventID
 	end)
+	return out
+end
+
+-- Reads the guild events again. Returns the list.
+function Calendar:Read()
+	if not Calendar.Enabled() then return {} end
+	local C = Cal()
+	local t = now()
+	local out = {}
+	for _, e in ipairs(self:AllEvents()) do
+		if e.start >= t - Calendar.PAST_DAYS * DAY and e.start <= t + Calendar.AHEAD_DAYS * DAY then out[#out + 1] = e end
+	end
 	self.events = out
 	emit("CALENDAR_CHANGED")
 	return out
@@ -282,12 +308,40 @@ local function readInvites(self, key, complete)
 	self.invites[key] = { at = now(), list = list, complete = complete and true or nil }
 end
 
+-- Holds the client's one open event for a job that writes into the calendar (Data/RaidHelper.lua): `open` = { key,
+-- eventID?, ended = function(why) }. The caller asked Calendar:Blocked() first. `ended` runs when Calendar:Finish closes
+-- the event or the game takes it.
+function Calendar:Hold(open)
+	if self.open then return false end
+	open.purpose, open.at = "import", now()
+	self.open = open
+	return true
+end
+
+-- Closes the held event without ending its job (a created event, before it is opened again).
+function Calendar:Release()
+	if not (self.open and self.open.purpose == "import") then return false end
+	self.open = nil
+	Cal().CloseEvent()
+	return true
+end
+
+-- Reads the answers of the held event, when it is a calendar event.
+function Calendar:ReadHeld(complete)
+	local o = self.open
+	if o and Calendar.KeyKind(o.key) == "c" then readInvites(self, o.key, complete) end
+end
+
 -- Closes the event Accord opened. `why` nil: done.
 function Calendar:Finish(why)
 	local o = self.open
 	if not o then return false end
 	self.open = nil
-	if o.purpose == "answer" then
+	if o.purpose == "import" then
+		Cal().CloseEvent()
+		if o.ended then o.ended(why) end
+		self:Read()
+	elseif o.purpose == "answer" then
 		local info = Cal().EventInfo()
 		local status = info and info.inviteStatus
 		readInvites(self, o.key, false)
@@ -582,7 +636,7 @@ function Calendar:OnInviteList(complete)
 	if o.purpose == "invites" then
 		readInvites(self, o.key, complete)
 		if complete then self:Finish() else emit("EVENT_CHANGED", o.key) end
-	else
+	elseif o.purpose == "answer" then
 		self:AnswerSeen()
 	end
 end
@@ -616,6 +670,11 @@ if ns.addon then
 	Calendar:RegisterEvent("CALENDAR_UPDATE_ERROR", function()
 		if Calendar.open then Calendar:Finish("error") end
 	end)
+	for _, event in ipairs({ "CALENDAR_UPDATE_ERROR_WITH_COUNT", "CALENDAR_UPDATE_ERROR_WITH_PLAYER_NAME" }) do
+		Calendar:RegisterEvent(event, function()
+			if Calendar.open then Calendar:Finish("error") end
+		end)
+	end
 	-- the game's window took the open event: Accord lets go and reads again later
 	Calendar:RegisterEvent("CALENDAR_OPEN_EVENT", function()
 		local o = Calendar.open
@@ -625,6 +684,8 @@ if ns.addon then
 				local res = Calendar.outcome[o.key] or {}
 				res.ok, res.why, res.pending = false, "shown", nil
 				Calendar.outcome[o.key] = res
+			elseif o.ended then
+				o.ended("shown")
 			end
 			emit("EVENT_CHANGED", o.key)
 		end

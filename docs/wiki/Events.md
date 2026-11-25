@@ -35,6 +35,10 @@ The game has **one open event at a time**, shared by its calendar window and eve
 
 If the game does not let an addon answer for you, Accord opens the game's calendar window instead: answer there.
 
+## Raid-Helper events from Discord
+
+Officers can paste the export of a Raid-Helper event: it shows here with the calendar event of the same date and time, or on its own, and can be written into the game calendar after a confirmation. See [[Raid-Helper events|Raid-Helper]].
+
 ## Without the game calendar
 
 Only when your client has **no usable calendar** (the game gives no event list within a minute), officers and the Guild Master can create an event in Accord: a title, the date and time (`YYYY-MM-DD HH:MM`) and the raid size. Members answer it in Accord. These events are always marked **Not in the game calendar**, also for members whose game has a calendar, and the game, FDCP and the other addons do not see them. When FDCP is the guild's source, the event says that **answers given there do not count for FDCP**, which reads sign-ups from the game calendar only.

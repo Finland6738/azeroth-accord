@@ -1,5 +1,5 @@
--- Export: the roster, the inactive accounts, the timeline and the season roster as CSV or as text for Discord (SPEC-12 §6,
--- M8.6; SPEC-14 §4.6, M10.4). Lua 5.1.
+-- Export: the roster, the inactive accounts, the timeline, the season roster and an event's sign-ups as CSV or as text for
+-- Discord (SPEC-12 §6, M8.6; SPEC-14 §4.6, M10.4; §6.6, M10.6). Lua 5.1.
 -- Pure text: it reads what a page of the officer tools shows (the items) and writes columns; UI/ExportBox.lua shows it.
 --
 --   Export.Build(kind, format, items, t) -> text, { rows = rows in the text, left = rows left out } or nil, "officer" | "kind"
@@ -7,6 +7,7 @@
 --             "inactive"  items: the accounts of Inactivity:Rows
 --             "timeline"  items: { { ev, name }, ... } of OfficersView.TimelineRows
 --             "season"    items: the declarations of the Season view (the rows of Data/Composition.lua)
+--             "event"     items: the rows of RaidHelper:ExportRows, with items.subject = the event's title and date
 --     format  "csv" | "discord"
 --   Export.Display(text)  the text as the edit box takes it: "|" doubled (EXP-04)
 --
@@ -25,7 +26,7 @@ local type, ipairs, tostring = type, ipairs, tostring
 local floor, max = math.floor, math.max
 local concat = table.concat
 
-Export.KINDS = { "roster", "inactive", "timeline", "season" }
+Export.KINDS = { "roster", "inactive", "timeline", "season", "event" }
 Export.FORMATS = { "csv", "discord" }
 Export.MAX_TEXT = 262144       -- 256 KB, as the backup
 Export.PART_MAX = 1900         -- characters of one Discord part (a message takes 2000)
@@ -39,6 +40,7 @@ Export.CSV = {
 		"last_seen_character", "last_seen_source", "grouped_by_note", "away_until" },
 	timeline = { "date_utc", "since_utc", "event", "name", "realm", "from", "to", "observers" },
 	season = { "name", "realm", "class", "role", "ms1", "ms2", "os", "unsure", "note", "declared_date" },
+	event = { "name", "realm", "class", "role", "game_answer", "discord" },
 }
 local SOURCES = { native = "game", shared = "shared", own = "you" }
 
@@ -183,6 +185,27 @@ function RECORDS.season(rows)
 	return out
 end
 
+-- An event's sign-ups (back to Discord): by answer in the game (yes, maybe, no, none), then role, then name.
+local ANSWER_ORDER = { yes = 1, maybe = 2, no = 3 }
+local ROLE_ORDER = { tank = 1, healer = 2, melee = 3, ranged = 4 }
+
+function RECORDS.event(rows)
+	local out = {}
+	for _, r in ipairs(rows) do
+		local name, realm = nameRealm(r.guid, nil, r.name)
+		out[#out + 1] = { name = name, realm = realm, class = r.class or "", role = r.role or "", game_answer = r.answer or "",
+			discord = r.discord or "" }
+	end
+	table.sort(out, function(a, b)
+		local x, y = ANSWER_ORDER[a.game_answer] or 4, ANSWER_ORDER[b.game_answer] or 4
+		if x ~= y then return x < y end
+		x, y = ROLE_ORDER[a.role] or 5, ROLE_ORDER[b.role] or 5
+		if x ~= y then return x < y end
+		return a.name < b.name
+	end)
+	return out
+end
+
 ---------------------------------------------------------------------------------------------------------------------
 -- CSV (§6.3)
 ---------------------------------------------------------------------------------------------------------------------
@@ -291,11 +314,18 @@ local DISCORD = {
 		{ "SEASON_OS", function(r) return pickText(r._row.os) end },
 		{ "EXPORT_COL_NOTE", function(r) return value(r.note, Export.NOTE_CUT) end },
 	},
+	event = {
+		{ "COL_NAME", function(r) return name(r.name) end },
+		{ "COL_CLASS", function(r) return r.class ~= "" and ns.Roster.ClassName(r.class) or "" end },
+		{ "EXPORT_COL_ROLE", function(r) return r.role ~= "" and ns.L["SEASON_ROLE_" .. r.role:upper()] or "" end },
+		{ "EXPORT_COL_GAME", function(r) return r.game_answer ~= "" and ns.L["EVENTS_ANSWER_" .. r.game_answer:upper()] or "" end },
+		{ "EXPORT_COL_DISCORD", function(r) return r.discord ~= "" and ns.L["RH_STATE_" .. r.discord:upper()] or "" end },
+	},
 }
 
 local function pad(text, width) return text .. (" "):rep(width - Export.Length(text)) end
 
-local function discordText(kind, records, t)
+local function discordText(kind, records, t, subject)
 	local L, columns = ns.L, DISCORD[kind]
 	local head, widths = {}, {}
 	for i, column in ipairs(columns) do
@@ -317,6 +347,7 @@ local function discordText(kind, records, t)
 		return (concat(out, "  "):gsub(" +$", ""))
 	end
 	local title = ("%s · %s · %s"):format(L["EXPORT_" .. kind:upper()], value(compat().Guild.GuildName() or "?"), dayText(t))
+	if subject then title = ("%s · %s"):format(value(subject, 80), title) end
 	local header = line(head)
 	-- what every part holds besides its rows, with room for the " (999/999)" of the title
 	local frameChars = Export.Length(title) + 10 + Export.Length(header) + #"```\n\n\n```"
@@ -362,7 +393,7 @@ function Export.Build(kind, format, items, t)
 	local records = RECORDS[kind](items or {}, t)
 	local text, taken
 	if format == "csv" then text, taken = csvText(kind, records)
-	else text, taken = discordText(kind, records, t) end
+	else text, taken = discordText(kind, records, t, items and items.subject) end
 	return text, { rows = taken, left = #records - taken }
 end
 

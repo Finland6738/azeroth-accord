@@ -300,7 +300,7 @@ end)
 describe("the data set raidev", function()
 	before_boot(setup(3))
 
-	it("refuses another account's role or answer, a member's event, and the records of later steps", function()
+	it("refuses another account's role or answer, a member's event, an import without content and later records", function()
 		local t = GetServerTime()
 		local ok, why = S():Accept("raidev", { id = "R:c101:" .. BOB, author = OFF, rev = 1, time = t, role = "tank", spec = "ms1",
 			at = t + DAY }, { sender = "Officer" })
