@@ -23,6 +23,7 @@ embeds.xml
 Locale\enUS.lua
 Locale\itIT.lua
 Core\Init.lua
+Core\Features.lua
 Core\Compat.lua
 Core\Config.lua
 Core\Bus.lua

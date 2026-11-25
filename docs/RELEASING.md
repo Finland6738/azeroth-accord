@@ -2,27 +2,29 @@
 
 > Adapted from Azeroth Guild Finder (docs/RELEASING.md), same owner, GPL-3.0 ([ADR 0018](adr/0018-reuse-azeroth-guild-finder-foundations.md)).
 
-**No tag exists yet, and none is created by the development sessions.** Every tag waits for the owner's in-game checks. The workflow below has never run: its first run is the dry run in *Try it without publishing anything*.
+**The first release is `v0.8.0`** (2026-11-25). By the owner's decision it was published before any in-game check, so `v0.1.0` to `v0.7.0` are not tagged: `v0.8.0` covers M1 to M8, its checks stay open and what they find is fixed in `v0.8.<F>` releases. **From M9 on, `v0.<N>.0` is released after each completed milestone** (its last step, the checklist, is on `main`). No tag existed before `v0.8.0`; the first run of the workflow below was the dry run of *Try it without publishing anything*, made while preparing it. Development steps create no tags.
 
-How a version of Azeroth Accord is built and published. The workflow is [release.yml](../.github/workflows/release.yml); the decisions are in [ADR 0011](adr/0011-embedded-ace3-savedvariables-and-schema-versions.md). Only the repository owner tags and adds secrets.
+How a version of Azeroth Accord is built and published. The workflow is [release.yml](../.github/workflows/release.yml); the decisions are in [ADR 0011](adr/0011-embedded-ace3-savedvariables-and-schema-versions.md). The repository owner decides on tags (the milestone tags `v0.<N>.0` have standing approval; anything else, such as a fix tag or a pre-release, is asked first) and only the owner adds secrets.
 
 ## The versions
 
-| Tag | When | The in-game check that comes first |
+| Tag | When | The in-game check (open checks are listed, they did not come before `v0.8.0`) |
 |---|---|---|
-| `v0.1.0` | end of M1, for the owner's guild | [M1](checklists/M1.md) |
-| `v0.2.0` | end of M2 | [M2](checklists/M2.md) |
-| `v0.3.0` | end of M3 | [M3](checklists/M3.md) |
-| `v0.4.0` | end of M4 | [M4](checklists/M4.md) |
-| `v0.5.0` | end of M5 | [M5](checklists/M5.md) |
-| `v0.6.0` | end of M6 | [the release check](checklists/release.md) |
-| `v0.7.0` | end of M7 | [M7](checklists/M7.md) |
-| `v0.8.0` | end of M8 (the owner releases it before the check is run, 2026-11-25) | [M8](checklists/M8.md) |
+| `v0.1.0` | end of M1 (not tagged: part of `v0.8.0`), for the owner's guild | [M1](checklists/M1.md) |
+| `v0.2.0` | end of M2 (not tagged: part of `v0.8.0`) | [M2](checklists/M2.md) |
+| `v0.3.0` | end of M3 (not tagged: part of `v0.8.0`) | [M3](checklists/M3.md) |
+| `v0.4.0` | end of M4 (not tagged: part of `v0.8.0`) | [M4](checklists/M4.md) |
+| `v0.5.0` | end of M5 (not tagged: part of `v0.8.0`) | [M5](checklists/M5.md) |
+| `v0.6.0` | end of M6 (not tagged: part of `v0.8.0`) | [the release check](checklists/release.md) |
+| `v0.7.0` | end of M7 (not tagged: part of `v0.8.0`) | [M7](checklists/M7.md) |
+| `v0.8.0` | end of M8: **the first release**, tagged before the checks (2026-11-25) | [M8](checklists/M8.md), and the earlier ones |
 | `v0.9.0` … `v0.15.0` | end of M9 … M15 ([the plan](roadmap/README.md)) | the milestone's own checklist, written in its last step |
 | `v0.<N>.<F>` | the F-th fix release of milestone N (`v0.6.1`, `v0.6.2`, …) | the checks the fix touches |
 | `v1.0.0` | when every planned milestone, up to M15, is done | [the release check](checklists/release.md), run again over everything |
 
-Every milestone is released as `v0.<milestone>.0`, and its fixes raise only the last number ([ADR 0020](adr/0020-one-version-per-milestone.md)). The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on the build you mean to tag (one tag then covers them all and the earlier tags are simply skipped). A pre-release suffix (`-alpha`, `-beta`, `-rc`) makes the GitHub Release a pre-release.
+Every milestone is released as `v0.<milestone>.0`, and its fixes raise only the last number ([ADR 0020](adr/0020-one-version-per-milestone.md)). The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on one build.
+
+**No half-finished features.** Before each tag, whatever a later milestone left in the addon is hidden behind its switch in `AzerothAccord/Core/Features.lua` (off in the shipped code, checked by `Tests/test_features.lua`), and switched on when that milestone is complete. In `v0.8.0` the switch `raid` is off: the detection of raid and loot addons (M10.2) and the reading of FDCP (M11.7) wait for M10 and M11. A pre-release suffix (`-alpha`, `-beta`, `-rc`) makes the GitHub Release a pre-release.
 
 ## What a tag does
 
@@ -67,7 +69,7 @@ Until steps 2 and 4 are both done, tags only publish on GitHub.
 
 ## Releasing a version
 
-1. Everything merged on `main`, CI green, the in-game checklist of the version passed ([`docs/checklists/`](checklists/release.md)) and its results reported.
+1. Everything merged on `main`, CI green, the unfinished features of later milestones hidden. The in-game checklist of the version ([`docs/checklists/`](checklists/release.md)) is run when the owner can; when it was not run before the tag, the changelog section says so.
 2. In a normal pull request: promote the changelog with `python -I -X utf8 tools/release_notes.py --promote 0.6.0` (*Unreleased* becomes `## [0.6.0] - <date>` and a new empty *Unreleased* goes on top), and update the status of the README, `README.it.md` and the wiki. Check what the release will say: `python -I -X utf8 tools/release_notes.py v0.6.0`.
 3. Tag the merge commit and push the tag. **Check your git identity first**: an annotated tag records the tagger's name and email, and this repository's rule is the GitHub noreply address ([CLAUDE.md](../CLAUDE.md), Privacy). `git config user.email` must print an `@users.noreply.github.com` address; then:
 

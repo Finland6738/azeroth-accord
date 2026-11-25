@@ -217,7 +217,7 @@ function Model.Sizes()
 			-- the store is the bulk of the data: one line per data set instead of one for the whole store
 			for _, set in ipairs(ns.Store and ns.Store.SET_ORDER or {}) do
 				local records = sets[set]
-				if type(records) == "table" then
+				if type(records) == "table" and ns.Store.IsActive(set) then
 					local n = 0
 					for _ in pairs(records) do n = n + 1 end
 					out.parts[#out.parts + 1] = { name = set, bytes = C.EstimateSize(records), records = n }

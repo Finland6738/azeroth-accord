@@ -34,6 +34,16 @@ local function count(event)
 	return n
 end
 
+-- These tests cover the logic behind the switch "raid" (Core/Features.lua), which is off in releases: they turn it on.
+-- tests of the switch off: Tests/test_features.lua.
+local plainDescribe = describe
+local function describe(name, body)
+	plainDescribe(name, function()
+		before_boot(function(M) M.features = { raid = true } end)
+		body()
+	end)
+end
+
 describe("the known addons", function()
 	it("lists only loot and raid-roster addons, each id and folder once, and only FDCP's folder confirmed", function()
 		local ids, folders = {}, {}

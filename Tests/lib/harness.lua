@@ -169,6 +169,13 @@ function H.boot(opts)
 	if addonObject and addonObject.Timeline then addonObject.Timeline.AUTO = H.autoTimeline == true end
 	if addonObject and addonObject.Absence then addonObject.Absence.AUTO = H.autoAbsence == true end
 
+	-- The feature switches (Core/Features.lua) a test turns on: a setup writes Mock.features = { raid = true }, and it holds
+	-- from before ADDON_LOADED, through /reload too (Mock.world keeps it).
+	if Mock.features then Mock.world.features = Mock.features end
+	if addonObject and addonObject.Features then
+		for name, on in pairs(Mock.world.features or {}) do addonObject.Features[name] = on end
+	end
+
 	for name, text in pairs(opts.saved or {}) do E[name] = deserialize(text) end
 
 	Mock.Fire("ADDON_LOADED", cfg.addonName)

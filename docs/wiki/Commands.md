@@ -11,7 +11,6 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view: likes of every player and the Like button, your social index, the group map (officers), *Someone new* to play with *(M4)* |
 | `/accord bank` | Opens the Bank view *(M5)* |
-| `/accord raid` | Opens the Raid view: the guild's sources and what FDCP publishes *(M11.7)* |
 | `/accord settings` | Opens the Settings view: Discord name, main character, notices, Roster columns, saved data (see [[Settings|Settings]]) |
 | `/accord away 2026-12-31` | Declares that you are away until that day (only officers see it); `/accord away off` clears it, `/accord away` shows it (see [[Guild Roster|Guild-Roster]]) *(M8.3)* |
 | `/accord about` | Opens the Info page of Settings: credits, links to copy, licence. `/accord about chat` prints the credits in the chat instead (see [[About and credits|About]]) |
@@ -32,7 +31,7 @@ Other ways to open the window:
 
 ## Demo mode
 
-`/accord demo` turns the addon into a guided tour: every view (Roster, member card, Professions and recipes, Reputation with likes and the group map, Bank with its logs and requests, Raid, Settings) is filled from an **invented guild**, "Demo Guild", of 60 members with invented names, 20 players with the addon, three professions, a bank and its requests. It works without a guild and without a connection, so it is also the way to look at the addon before you join one.
+`/accord demo` turns the addon into a guided tour: every view (Roster, member card, Professions and recipes, Reputation with likes and the group map, Bank with its logs and requests, Settings) is filled from an **invented guild**, "Demo Guild", of 60 members with invented names, 20 players with the addon, three professions, a bank and its requests. It works without a guild and without a connection, so it is also the way to look at the addon before you join one.
 
 - A strip at the top of the panel says **Demo: invented guild. Nothing is sent or saved.** and has an *Exit demo* button; the title bar and the line under the panel say *Demo* instead of the number of guildmates.
 - **Nothing is sent**: not a message to the guild, not a whisper, not an invitation. What the guild sends you meanwhile is ignored (the sync repairs it a few seconds after you leave). A message that was already waiting to go out waits, and leaves after the demo.

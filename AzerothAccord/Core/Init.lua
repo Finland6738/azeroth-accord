@@ -39,7 +39,7 @@ ACC.commands = {
 	{ name = "professions", help = L["HELP_PROFESSIONS"], handler = viewCommand("professions") },
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
-	{ name = "raid", help = L["HELP_RAID"], handler = viewCommand("raid") },
+	{ name = "raid", feature = "raid", help = L["HELP_RAID"], handler = viewCommand("raid") },
 	{ name = "settings", help = L["HELP_SETTINGS"], handler = viewCommand("settings") },
 	{ name = "away", help = L["HELP_AWAY"], handler = function(self, input) if ns.Absence then ns.Absence.Command(input) end end },
 	{ name = "about", help = L["HELP_ABOUT"], handler = function(self, input) if ns.About then ns.About.Command(input) end end },
@@ -86,11 +86,16 @@ function ACC:OpenView(view)
 	self:Print(L["COMING_SOON"])
 end
 
+-- False for the command of a feature whose switch is off (Core/Features.lua): it is then like no command at all.
+local function available(c)
+	return c.feature == nil or (ns.Features ~= nil and ns.Features.On(c.feature))
+end
+
 function ACC:PrintHelp()
 	self:Print(L["HELP_HEADER"])
 	self:Print("/accord - " .. L["HELP_TOGGLE"])
 	for _, c in ipairs(self.commands) do
-		self:Print("/accord " .. c.name .. " - " .. c.help)
+		if available(c) then self:Print("/accord " .. c.name .. " - " .. c.help) end
 	end
 end
 
@@ -100,7 +105,7 @@ function ACC:OnSlashCommand(input)
 		return self:Toggle()
 	end
 	for _, c in ipairs(self.commands) do
-		if c.name == cmd then
+		if c.name == cmd and available(c) then
 			if c.handler then
 				return c.handler(self, input)
 			end

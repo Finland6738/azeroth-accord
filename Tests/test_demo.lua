@@ -165,6 +165,8 @@ describe("entering and leaving", function()
 end)
 
 describe("every view opens in demo mode with no guild and no network", function()
+	before_boot(function(M) M.features = { raid = true } end)   -- the Raid view too; off: Tests/test_features.lua
+
 	it("opens each view of the panel without an error, filled with the invented guild", function()
 		enter()
 		local Shell = A().Shell

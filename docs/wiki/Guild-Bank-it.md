@@ -2,7 +2,7 @@
 
 *English: [[Guild Bank|Guild-Bank]]*
 
-> Disponibile dalla versione della banca (`v0.5.0`). L'addon non è ancora stato provato nel gioco vero: le prime prove sono con la gilda del proprietario (la prova nel gioco è [docs/checklists/M5.md](https://github.com/Finland6738/azeroth-accord/blob/main/docs/checklists/M5.md), in inglese).
+> Disponibile dal primo rilascio (`v0.8.0`). L'addon non è ancora stato provato nel gioco vero: le prime prove sono con la gilda del proprietario (la prova nel gioco è [docs/checklists/M5.md](https://github.com/Finland6738/azeroth-accord/blob/main/docs/checklists/M5.md), in inglese).
 
 - Il gioco mostra la banca solo alla cassaforte. Ogni volta che un compagno con l'addon la apre, l'addon salva cosa contiene ogni scheda e lo condivide, quindi la vista **Banca** funziona ovunque. Ogni scheda mostra quanto è vecchio il suo contenuto.
 - Le schede che il tuo grado non può vedere nel gioco restano nascoste anche nell'addon.

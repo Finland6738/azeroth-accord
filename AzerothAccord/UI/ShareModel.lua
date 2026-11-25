@@ -166,9 +166,13 @@ builders.hello = function()
 end
 
 builders.officer = function(guid)
-	local ledger, cfg = 0, own("guildcfg", guid)
+	local ledger = 0
 	for _, r in ipairs(own("likes", guid)) do ledger = ledger + 1 end
-	return { L["SHARE_OFFICER_LEDGER"]:format(ledger), L["SHARE_OFFICER_CFG"]:format(#cfg) }, cfg
+	local lines = { L["SHARE_OFFICER_LEDGER"]:format(ledger) }
+	if not (ns.Store and ns.Store.IsActive("guildcfg")) then return lines, {} end
+	local cfg = own("guildcfg", guid)
+	lines[#lines + 1] = L["SHARE_OFFICER_CFG"]:format(#cfg)
+	return lines, cfg
 end
 
 -- The officer tools (SPEC-12 §7): the roster changes this character observed, by month, and where they stay.

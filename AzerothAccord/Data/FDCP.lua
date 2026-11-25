@@ -35,6 +35,9 @@
 -- reload). It runs on INTEGRATIONS_CHANGED and SOURCES_CHANGED. Each FDCP event becomes Bus FDCP_CHANGED(event); a
 -- READY that happened before Accord registered is passed on once at registration.
 --
+-- Switch: while Core/Features.lua "raid" is off, no callback is ever registered, nothing asks FDCP for anything and
+-- /accord debug has no FDCP section.
+--
 -- Opening FDCP (level 0 and 1): FDCP.Open() runs FDCP's own /fdcp command, as typing it would; false when there is none.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -257,8 +260,9 @@ local function onEvent(event)
 end
 FDCP.OnEvent = onEvent
 
--- True when the callbacks should be registered: level 1 and FDCP chosen as a source by the guild.
+-- True when the callbacks should be registered: the feature's switch on, level 1 and FDCP chosen as a source by the guild.
 function FDCP.Wanted()
+	if not (ns.Features and ns.Features.On("raid")) then return false end
 	local I = ns.Integrations
 	return I ~= nil and I:Level(FDCP.ID) == 1 and I:Uses(FDCP.ID)
 end
@@ -319,5 +323,9 @@ if ns.addon then
 		ns.Bus:On("INTEGRATIONS_CHANGED", function() FDCP:Update() end)
 		ns.Bus:On("SOURCES_CHANGED", function() FDCP:Update() end)
 	end
-	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("FDCP", FDCP.DebugLines) end
+	if ns.OnEnable then
+		ns.OnEnable(function()
+			if ns.Features.On("raid") and ns.addon.AddDebugSection then ns.addon:AddDebugSection("FDCP", FDCP.DebugLines) end
+		end)
+	end
 end

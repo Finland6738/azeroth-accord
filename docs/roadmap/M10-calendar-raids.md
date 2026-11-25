@@ -10,6 +10,8 @@
 
 Release: `v0.10.0`.
 
+**Switched off until complete (2026-11-25).** M10.2 landed ahead of the milestone. It ships hidden behind the switch `raid` of `AzerothAccord/Core/Features.lua` (no detection, no choice of a source, the data set `guildcfg` neither accepted nor sent). The switch is turned on when M10 and M11 are complete.
+
 **Exit criterion:** in game:
 - three members declare MS1, MS2 and OS for the season, and an officer sees the role counts and the gaps;
 - a member signs up to an event as tentative from Accord, and the same answer shows in the game's calendar;

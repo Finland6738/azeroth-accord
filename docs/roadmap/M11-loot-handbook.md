@@ -10,6 +10,8 @@
 
 Loot is documented, not computed. The loot page says which system the guild uses and names its addon. Accord detects that addon in every member's client and, for FDCP, reads what FDCP publishes. Release: `v0.11.0`.
 
+**Switched off until complete (2026-11-25).** M11.7 landed ahead of the milestone. It ships hidden behind the switch `raid` of `AzerothAccord/Core/Features.lua` (no **Raid** view or `/accord raid`, no *Loot (FDCP)* row, no FDCP callback). The switch is turned on when M10 and M11 are complete.
+
 **Exit criterion:** in game:
 - an officer edits the rules page, and a member who logs in later reads the new version marked as updated;
 - the loot page names the guild's loot addon, and officers see who in the guild has it loaded.

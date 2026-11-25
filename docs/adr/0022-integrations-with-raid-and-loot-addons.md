@@ -19,6 +19,8 @@ M10 (calendar, raids and the season roster) and M11 (loot and the guild handbook
 8. **Callbacks only while needed.** Accord registers FDCP's callbacks only while the guild chose FDCP as a source and level 1 holds, and unregisters them when the source changes away from FDCP (M11.7).
 9. **Where it shows** (M11.7): the officers choose the sources in the **Raid** view, which also shows FDCP's season pool, the night's lineup and bench and the rules summary; the member card shows a member's credits and queue place. Until the handbook's loot page exists (M11.6), the rules summary lives in the Raid view only. Nothing read from FDCP is saved or sent.
 
+10. **Switched off until M10 and M11 are complete** (2026-11-25, no half-finished features in a release): the switch `raid` of `Core/Features.lua` is off in the shipped code. Then nothing above happens: no detection, no choice of a source, `guildcfg` neither accepted nor sent, no FDCP call or callback, no Raid view, command or member card row.
+
 ## Alternatives considered
 
 - **Each client guesses the source** (FDCP if it is loaded, else Accord). Members with and without FDCP would see different rosters.

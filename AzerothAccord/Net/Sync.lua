@@ -187,7 +187,7 @@ end
 -- group name of an officer tool) and its class, or nil.
 local function place(groups, set, id, rec)
 	local author = type(rec) == "table" and rec.author
-	if type(author) ~= "string" then return nil end
+	if type(author) ~= "string" or not store().IsActive(set) then return nil end
 	local class, key = classOf(set, rec)
 	local into = groups[class]
 	local g = into[key]

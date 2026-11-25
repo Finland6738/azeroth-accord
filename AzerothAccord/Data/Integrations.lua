@@ -24,6 +24,9 @@
 -- Providers      Integrations:Provider(datum) gives the module that answers for the chosen source: Data/FDCP.lua for
 --                "fdcp", Integrations.OWN for Accord's own season roster (it reads nothing yet: it comes with M10.3), nil
 --                for loot "none" (Accord has no loot engine, SPEC-10 Q6). Every provider has `id` and Level().
+-- Switch         Core/Features.lua "raid": while it is off, nothing is detected at login or on ADDON_LOADED, no officer
+--                can choose a source (SetSource: false, "off"), the data set `guildcfg` is neither accepted nor sent
+--                (Net/Store.lua) and /accord debug has no Integrations section.
 -- Census         Which known addons the OTHER members have loaded comes from the addon census of M9.9; this module keeps no
 --                field of its own and sends nothing.
 local ADDON_NAME, ns = ...
@@ -176,9 +179,11 @@ function Integrations:CanChoose()
 	return ns.Role ~= nil and ns.Role:IsOfficer()
 end
 
--- An officer chooses the source of `datum`. Returns true, or false and the reason: "officer" (not an officer), "choice"
+-- An officer chooses the source of `datum`. Returns true, or false and the reason: "off" (the feature's switch is off),
+-- "officer" (not an officer), "choice"
 -- (an unknown datum or value), or a reason of Store:Put. Choosing the source already set changes nothing.
 function Integrations:SetSource(datum, value)
+	if not (ns.Features and ns.Features.On("raid")) then return false, "off" end
 	if not self:CanChoose() then return false, "officer" end
 	if not valid(datum, value) then return false, "choice" end
 	local fields = {}
@@ -223,14 +228,19 @@ if ns.addon then
 	ns.addon.Integrations = Integrations
 	LibStub("AceEvent-3.0"):Embed(Integrations)
 	Integrations:RegisterEvent("ADDON_LOADED", function(_, name)
-		if byFolder[name] then Integrations:Refresh() end
+		if byFolder[name] and ns.Features.On("raid") then Integrations:Refresh() end
 	end)
-	if ns.OnEnable then ns.OnEnable(function() Integrations:Refresh() end) end
+	if ns.OnEnable then
+		ns.OnEnable(function()
+			if not ns.Features.On("raid") then return end
+			Integrations:Refresh()
+			if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Integrations", function() return Integrations:DebugLines() end) end
+		end)
+	end
 	if ns.Bus then
 		ns.Bus:On("STORE_CHANGED", function(set)
 			if set == Integrations.SET then emit("SOURCES_CHANGED") end
 		end)
 		ns.Bus:On("GUILD_CHANGED", function() emit("SOURCES_CHANGED") end)
 	end
-	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Integrations", function() return Integrations:DebugLines() end) end
 end

@@ -2,9 +2,7 @@
 
 *Italiano: [[Installazione|Installation-it]]*
 
-> **Not available yet.** The first test version (`v0.1.0`) comes at the end of milestone M1.
-
-When it is out:
+> **Test version.** The first release is `v0.8.0`. It has been tested offline only: the in-game checks are not done yet, so expect problems and [report them](Reporting-Bugs-and-Feedback).
 
 1. Download the zip of the latest release from the repository's *Releases* page.
 2. Extract the `AzerothAccord` folder into `<WoW folder>/_forever_/Interface/AddOns/`.

@@ -6,7 +6,7 @@
 
 **Una finestra di gilda più ricca per World of Warcraft: Forever.** Azeroth Accord aggiunge una scheda **Accord** alla finestra della gilda del gioco: un roster esteso con professioni e ricette, i personaggi di ogni account, i contatti, i like, un indice sociale e la banca di gilda con le richieste.
 
-> **Stato: completo nel codice, in attesa delle prove nel gioco.** La scheda Accord, la finestra autonoma, il roster, le professioni, i like, la banca di gilda, le impostazioni e l'interfaccia italiana esistono già e sono stati provati offline; nessuno li ha ancora usati nel gioco, quindi **non c'è ancora un download** (ogni milestone esce come versione di prova, da `v0.1.0`; `v1.0.0` arriva quando tutte le milestone pianificate, fino a M15, sono finite). Le immagini di questo manuale sono anteprime di progetto, non screenshot.
+> **Stato: versione di prova, prove nel gioco aperte.** Il primo rilascio è `v0.8.0` (2026-11-25): la scheda Accord, la finestra autonoma, il roster, le professioni, i like, la banca di gilda, le impostazioni, gli strumenti per ufficiali e l'interfaccia italiana. È stato provato solo offline; nessuno l'ha ancora verificato nel gioco. Si scarica dalla pagina *Releases* del repository ([[Installazione|Installation-it]]). Ogni milestone successiva esce come `v0.<milestone>.0`; `v1.0.0` arriva quando tutte le milestone pianificate, fino a M15, sono finite. Le immagini di questo manuale sono anteprime di progetto, non screenshot.
 
 ![La scheda Accord nella finestra della gilda: il roster della gilda con professioni, like e chi usa l'addon](../specs/mockups/previews/accord-tab-roster.webp)
 

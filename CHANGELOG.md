@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-25
+
+The first release, **0.8.0**. It covers the milestones **M1 to M8**: foundations, roster, professions and recipes, reputation, guild bank, settings and Italian interface with the look of Finland Dragon Credit Points, data trust and officer tools.
+
+- **The in-game checks were not run before this release**, by the owner's decision (2026-11-25): nothing here has been verified on WoW Forever, only offline. The checklists in `docs/checklists/` stay open, and what they find is fixed in `v0.8.<F>` releases.
+- **The Raid view and the reading of FDCP are hidden until milestones M10 and M11** are complete, with the detection of raid and loot addons. The M10.2 and M11.7 entries below describe code that is in the addon but switched off.
+
+### Release
+
+- Release preparation of `v0.8.0` (owner's decisions of 2026-11-25: no half-finished features in a release, `v0.8.0` before M9 without the in-game checks, and from M9 on `v0.<milestone>.0` after each completed milestone). New feature switches in `Core/Features.lua`, with `raid = false`: while it is off there is no **Raid** tab, view or `/accord raid`, no *Loot (FDCP)* row on the member card, no detection of other addons, no FDCP callback or call, no choice of a source, the data set `guildcfg` is neither accepted nor sent, and `/accord debug`, *What I share* and the data sizes of Settings do not mention it. The code and its tests stay (the tests turn the switch on); `Tests/test_features.lua` checks the switch off. The wiki, the READMEs, the roadmap, [RELEASING](docs/RELEASING.md), ADR 0020, ADR 0022, SPEC-04 and SPEC-09 follow.
+
 ### Look
 
 - The addon's logo (`assets/logo-source.webp`) at the top of both READMEs and of the manual's Home page, as in Finland Dragon Credit Points. The NEBULA community logos for the dark and light themes (`assets/nebula-logo-dark.png`, `assets/nebula-logo-light.png`) are added for the credits of the coming About page; the game textures made from them come with the interface work.
@@ -11,7 +22,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Documentation
 
 - M8.8: `docs/checklists/M8.md`, the in-game check of M8 for the owner (observed timeline, inactive accounts and absences, cleanup review and queue, demotion, extended notes, export, bank requests with a tip, with the exit criterion and the unverified API questions); README status: M8 is complete in code. The owner releases `v0.8.0` without waiting for the check.
-- M7.8: `docs/checklists/M7.md`, the in-game check of M7 for the owner (provenance labels, alts in another guild, demo mode, personal backup, hardening, names with a space, "What I share" and the co-play switch), with the unverified API questions; README status. The `v0.7.0` tag follows the owner's check.
+- M7.8: `docs/checklists/M7.md`, the in-game check of M7 for the owner (provenance labels, alts in another guild, demo mode, personal backup, hardening, names with a space, "What I share" and the co-play switch), with the unverified API questions; README status. `v0.7.0` is not tagged: M7 is part of `v0.8.0`.
 - SPEC-11 §6.5 gains the numbers of the 1000-login scenario measured on the Linux CI (Long tests) beside the Windows ones: the same limits are met, but the convergence after the last write takes 1480 s, 20 s inside the 25-minute limit (730 s on Windows); the tight margin is noted in SPEC-10 R9.
 
 ### Added

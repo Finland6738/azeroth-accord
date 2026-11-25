@@ -55,7 +55,7 @@ describe("a guild whose roster has not loaded yet", function()
 	end)
 
 	it("every view and the report open without a Lua error", function()
-		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "raid", "settings" }) do viewText(id) end
+		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do viewText(id) end
 		Mock.Slash("/accord debug")
 		eq(#Mock.errors, 0)
 	end)
@@ -73,7 +73,7 @@ describe("a client that lacks the optional APIs", function()
 	end)
 
 	it("opens every view, the member card, the report and the Settings page without a Lua error", function()
-		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "raid", "settings" }) do
+		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do
 			truthy(A().Shell:OpenView(id), id)
 			Mock.Advance(2)
 		end

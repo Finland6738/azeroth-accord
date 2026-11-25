@@ -70,3 +70,4 @@
 - Done when:
   - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.8.0`.
+- Note: the owner tagged `v0.8.0`, the first release, on 2026-11-25 **before** the in-game checks (the Raid view and the FDCP reading hidden until M10 and M11, [RELEASING](../RELEASING.md)). The second box stays unticked because the checks are still open.

@@ -43,6 +43,7 @@
 - Done when:
   - [x] The release workflow (BigWigs packager, package and zip checks, GitHub Release with the notes of `CHANGELOG.md`, CurseForge only with `CF_API_KEY` and a project id in the TOC) is in place and has **not run**: no tag exists; `tools/release_notes.py` writes the notes and promotes *Unreleased* (self-tested by `tools/check_docs.py`); the TOC has the commented CurseForge line; `docs/RELEASING.md` lists the versions, the checks that come first and the owner's steps; SPEC-10 Q9 records the CurseForge decision.
   - [ ] The first dry run of the workflow (Actions, *Run workflow*, nothing published) and a draft release, then the real tag: the owner, after the in-game checks.
+- Note (2026-11-25): by the owner's decision the first release is `v0.8.0`, before the in-game checks; the first dry run of the workflow is made while preparing it, without a draft release. `v0.6.0` is not tagged. The box stays unticked.
 
 ### M6.6 — Wiki mockups and images
 - Branch: `step/m6-6-mockups`

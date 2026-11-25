@@ -159,6 +159,14 @@ function Store.IsOfficerTool(set)
 	return def ~= nil and def.officerTool == true
 end
 
+-- false for an unknown set, and for the set of a feature whose switch is off (Core/Features.lua): such a set takes no
+-- record, local or received, and is not summarised or sent (Net/Sync.lua).
+function Store.IsActive(set)
+	local def = Store.SETS[set]
+	if def == nil then return false end
+	return def.feature == nil or (ns.Features ~= nil and ns.Features.On(def.feature))
+end
+
 local function closedBankRequest(rec)
 	return rec.status == "fulfilled" or rec.status == "rejected" or rec.status == "cancelled"
 end
@@ -207,6 +215,7 @@ Store.SETS = {
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
 	guildcfg = {   -- guild settings chosen by officers (Data/Integrations.lua, M10.2): id = "sources", { raid, loot }
+		feature = "raid",                         -- Core/Features.lua: with the switch off, neither written, accepted nor sent
 		maxBytes = 256,
 		authority = function() return true end,   -- written and passed on only by officers (NET-12)
 		authorAny = true,                         -- the choice stays valid after its officer left or was demoted
@@ -315,7 +324,7 @@ end
 -- record, or nil plus a reason ("set", "guild", "id", "player", "size", "owner").
 function Store:Put(set, id, fields)
 	local def = Store.SETS[set]
-	if not def then return nil, "set" end
+	if not def or not Store.IsActive(set) then return nil, "set" end
 	if not str(id) then return nil, "id" end
 	local author = ownGUID()
 	if not author then return nil, "player" end
@@ -368,7 +377,7 @@ end
 -- and the sender is no officer), "authority", "observer", "owner").
 function Store:Check(set, rec, ctx)
 	local def = Store.SETS[set]
-	if not def then return false, "set" end
+	if not def or not Store.IsActive(set) then return false, "set" end
 	local bad = validShape(rec, def)
 	if bad then return false, bad end
 	if def.restricted and def.restricted(rec) and not (ns.Role and ns.Role:IsOfficer()) then return false, "restricted" end
@@ -504,7 +513,9 @@ end
 function Store:DebugLines()
 	local parts = {}
 	if root(false) then
-		for _, set in ipairs(Store.SET_ORDER) do parts[#parts + 1] = set .. " " .. self:Count(set) end
+		for _, set in ipairs(Store.SET_ORDER) do
+			if Store.IsActive(set) then parts[#parts + 1] = set .. " " .. self:Count(set) end
+		end
 	end
 	local reasons = {}
 	for k, v in pairs(stats.reasons) do reasons[#reasons + 1] = k .. " " .. v end

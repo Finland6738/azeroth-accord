@@ -11,7 +11,6 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord professions` | Apre la vista Professioni su **chi può creare** (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) |
 | `/accord reputation` | Apre la vista Reputazione: i like di ogni giocatore e il pulsante Like, il tuo indice sociale, la mappa dei gruppi (ufficiali), *Qualcuno di nuovo* con cui giocare *(M4)* |
 | `/accord bank` | Apre la vista Banca *(M5)* |
-| `/accord raid` | Apre la vista Raid: le fonti della gilda e ciò che FDCP pubblica *(M11.7)* |
 | `/accord settings` | Apre la vista Impostazioni: nome Discord, personaggio principale, avvisi, colonne del Roster, dati salvati (vedi [[Impostazioni|Settings-it]]) |
 | `/accord away 2026-12-31` | Dichiara che sei assente fino a quel giorno (lo vedono solo gli ufficiali); `/accord away off` la cancella, `/accord away` la mostra (vedi [[Roster di gilda|Guild-Roster-it]]) *(M8.3)* |
 | `/accord about` | Apre la pagina Info delle Impostazioni: crediti, link da copiare, licenza. `/accord about chat` scrive invece i crediti in chat (vedi [[Informazioni e crediti|About-it]]) |
@@ -32,7 +31,7 @@ Altri modi per aprire la finestra:
 
 ## Modalità demo
 
-`/accord demo` trasforma l'addon in una visita guidata: ogni vista (Roster, scheda del compagno, Professioni e ricette, Reputazione con i like e la mappa dei gruppi, Banca con registri e richieste, Raid, Impostazioni) si riempie con una **gilda inventata**, "Demo Guild", di 60 membri con nomi inventati, 20 giocatori con l'addon, tre professioni, una banca e le sue richieste. Funziona senza gilda e senza connessione, quindi è anche il modo di vedere l'addon prima di entrare in una gilda.
+`/accord demo` trasforma l'addon in una visita guidata: ogni vista (Roster, scheda del compagno, Professioni e ricette, Reputazione con i like e la mappa dei gruppi, Banca con registri e richieste, Impostazioni) si riempie con una **gilda inventata**, "Demo Guild", di 60 membri con nomi inventati, 20 giocatori con l'addon, tre professioni, una banca e le sue richieste. Funziona senza gilda e senza connessione, quindi è anche il modo di vedere l'addon prima di entrare in una gilda.
 
 - Una striscia in cima al pannello dice **Demo: gilda inventata. Non si invia né si salva nulla.** e ha il pulsante *Esci dalla demo*; la barra del titolo e la riga sotto il pannello dicono *Demo* al posto del numero di compagni.
 - **Non si invia nulla**: né un messaggio alla gilda, né un sussurro, né un invito. Ciò che la gilda ti manda intanto si ignora (la sincronizzazione lo ripara pochi secondi dopo l'uscita). Un messaggio che era già in attesa di partire aspetta, e parte dopo la demo.

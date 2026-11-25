@@ -21,3 +21,11 @@ The first plan had a test version per milestone up to M4 (`v0.1.0` to `v0.4.0`),
 - The checklists, `docs/RELEASING.md`, SPEC-09 §4, the roadmap and the READMEs use this scheme.
 - The release workflow already accepts any `vMAJOR.MINOR.PATCH` tag; nothing in it changes.
 - The "Unreleased" section of the changelog is promoted to `0.N.0` at each milestone release.
+
+## Update (2026-11-25)
+
+The owner changed points 1 and 5:
+
+- The first release is **`v0.8.0`**, tagged before any in-game check; `v0.1.0` to `v0.7.0` are not tagged. The open checks stay open and what they find is fixed in `v0.8.<F>` releases.
+- From M9 on, `v0.N.0` is released after each completed milestone; these milestone tags have the owner's standing approval. Any other tag is asked first, and development steps still create none.
+- A release carries no half-finished feature: what a later milestone left in the code is switched off in `AzerothAccord/Core/Features.lua` until that milestone is complete.

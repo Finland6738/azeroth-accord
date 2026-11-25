@@ -20,6 +20,8 @@
 -- only draw the lines. View.CardSection(entry) adds "Loot (FDCP)" to the member card: the member's credits and place in
 -- the loot queue as FDCP shows them, when the guild chose FDCP for the loot and this client has them.
 -- The view redraws on SOURCES_CHANGED, INTEGRATIONS_CHANGED, FDCP_CHANGED and ROLE_CHANGED, only while it is visible.
+-- While Core/Features.lua "raid" is off there is no tab (the view says it is not visible), no card section and nothing is
+-- redrawn.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
@@ -87,6 +89,8 @@ local function namesText(list)
 	if more > 0 then text = text .. L["RAID_MORE"]:format(more) end
 	return text
 end
+
+local function on() return ns.Features ~= nil and ns.Features.On("raid") end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- The model and its lines
@@ -261,7 +265,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 function View.CardSection(e)
 	local I = ns.Integrations
-	if not (I and type(e) == "table") or e.notInGuild or I:Source("loot") ~= "fdcp" then return nil end
+	if not (on() and I and type(e) == "table") or e.notInGuild or I:Source("loot") ~= "fdcp" then return nil end
 	local lines = {}
 	local st = I:State("fdcp")
 	if not (st and st.level == 1 and ns.FDCP) then
@@ -390,13 +394,14 @@ end
 if ns.MemberCard then ns.MemberCard.AddSection("fdcp", 7, View.CardSection) end
 
 if ns.Shell then
-	ns.Shell:RegisterView("raid", { label = L["VIEW_RAID"], order = 50, build = function(f) View:Build(f) end })
+	ns.Shell:RegisterView("raid", { label = L["VIEW_RAID"], order = 50, visible = on, build = function(f) View:Build(f) end })
 end
 
 if ns.addon then
 	ns.addon.RaidView = View
 	if ns.Bus then
 		local function changed()
+			if not on() then return end
 			View:Changed()
 			if ns.MemberCard and ns.MemberCard.Refresh then ns.MemberCard:Refresh() end
 		end
