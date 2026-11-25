@@ -23,11 +23,13 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 | `OHELLO` | come `HELLO` ma per i **record solo per ufficiali** (le schede della banca lette da un ufficiale): riepilogo `s` calcolato solo su quei record; un ufficiale più avanti spedisce i mancanti in whisper (§4). Da M8 anche `m`, il riepilogo per gruppo degli insiemi degli strumenti per ufficiali ([SPEC-12 §1.5](SPEC-12-officer-tools.md#15-sincronizzazione-tra-ufficiali)); un client precedente lo ignora | `OFFICER` |
 | `VOTE` | voto per un like: `g` = GUID del destinatario, `n` = numero del voto ([SPEC-07 §2.2](SPEC-07-reputation-social.md#22-voti-e-libro-datalikeslua-m42)) | `WHISPER` al notaio |
 | `LEDGER` | ricevuta del notaio: `g`, `n`, `r` = esito, `e` = la voce nuova del libro (le voci arrivano a tutti come `REC` dell'insieme `likes`, su `GUILD`) | `WHISPER` al votante |
+| `GAPP` | da M9.6: candidatura a un annuncio di gruppo e risposta del capo, `g` = id dell'annuncio, `k` = `apply`, `cancel`, `accept`, `decline`, `full` ([SPEC-13 §6.5](SPEC-13-action-center-notices.md#65-candidature-il-messaggio-gapp)) | `WHISPER` tra candidato e capo |
+| `GASK` | da M9.6: chiede gli annunci di gruppo aperti, `h` = impronte di quelli già noti; ogni capo risponde con il proprio `REC` in whisper ([SPEC-13 §6.7](SPEC-13-action-center-notices.md#67-chi-arriva-dopo-il-messaggio-gask)) | `GUILD` |
 | `SALT` | segreto di gilda per gli pseudonimi: `k = "q"` (domanda, `f` = impronte dei salt che si hanno) o `k = "s"` (`s` = lista di `{b = salt in Base64, at = creazione}`) | `OFFICER`; anche `WHISPER` tra ufficiali finché S5 non è provato |
 
 ## 3. Insiemi di dati
 
-`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2), e da M8 gli insiemi solo per ufficiali `timeline`, `absence`, `onotes`, `ocfg` ([SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali)). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
+`accounts`, `contacts`, `recipes`, `coplay`, `likes`, `bank`, `bankreq`, `guildcfg` (da M10.2), e da M8 gli insiemi solo per ufficiali `timeline`, `absence`, `onotes`, `ocfg` ([SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali)), e da M9 `groups` (annunci di gruppo: **volatile**, fuori da ogni riepilogo e solo di prima mano, [SPEC-13 §6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)) e `addons` (censimento degli addon, [SPEC-13 §8.2](SPEC-13-action-center-notices.md#82-linsieme-addons)). Ogni record ha `id`, `author`, `rev` (contatore crescente dell'autore) e `time` (ora del server). Vince la `rev` più alta per `id`.
 
 ## 4. Sincronizzazione
 

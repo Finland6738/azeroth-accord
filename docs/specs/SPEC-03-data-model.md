@@ -107,3 +107,7 @@ Lo scrivono solo ufficiali e Guild Master; si accetta solo se il mittente è un 
 ## 9. Strumenti per ufficiali (`timeline`, `absence`, `onotes`, `ocfg`)
 
 Da M8. Quattro insiemi solo per ufficiali: la cronologia osservata del roster (un record per osservatore e giorno), le assenze dichiarate (dal membro o da un ufficiale), le note estese per personaggio e le fasce dell'inattività. Forma, regole del proprietario, conservazione e canali sono in [SPEC-12 §1.2](SPEC-12-officer-tools.md#12-insiemi-solo-per-ufficiali); la fotografia del roster e la coda delle azioni manuali restano solo sul computer dell'ufficiale (`AzerothAccordDB.guilds[<chiave>].officer`).
+
+## 10. Annunci di gruppo (`groups`) e censimento degli addon (`addons`)
+
+Da M9, in [SPEC-13](SPEC-13-action-center-notices.md): `groups` ([§6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)) è un insieme **volatile**, un record per annuncio (`<GUID del capo>:<n>`), scritto solo dal capo, fuori dai riepiloghi della sincronizzazione e tolto 10 minuti dopo la fine; `addons` ([§8.2](SPEC-13-action-center-notices.md#82-linsieme-addons)) ha un record per personaggio con gli addon caricati, al massimo 120, conservato 60 giorni. Il Centro azioni, gli avvisi e il riepilogo non scrivono record condivisi: i loro dati stanno nell'archivio locale della gilda (`GuildKey:Data().notify`, `.digest`, `.craftAsks`).

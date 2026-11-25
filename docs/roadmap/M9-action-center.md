@@ -19,7 +19,8 @@ Release: `v0.9.0`.
   - the guild group finder: the `groups` data set (short-lived, written only by its leader), listing types and fields, applications, invitations, expiry, and what the game's own Group Finder allows on Forever (`C_LFGList`, `isPrivateGroup`, checked against the dump);
   - the addon census: what is shared, its switch, who sees what (SPEC-10 Q11), size limits.
 - Done when:
-  - [ ] SPEC-13 is linked from the spec index; `tools/check_docs.py` passes.
+  - [x] SPEC-13 is linked from the spec index; `tools/check_docs.py` passes.
+  - *Done (2026-11-25):* [SPEC-13](../specs/SPEC-13-action-center-notices.md) and [ADR 0024](../adr/0024-guild-group-finder-short-lived-listings-private-game-listing.md). Three feature switches (`actions`, `groups`, `census`) stay off until M9.10. The owner's questions are SPEC-10 Q17-Q19, already applied as proposed.
 
 ### M9.2 — Action Center
 - Branch: `step/m9-2-action-center`

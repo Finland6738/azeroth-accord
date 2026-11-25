@@ -31,3 +31,4 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md) | The interface follows the ecosystem style of FDCP | accepted |
 | [0022](0022-integrations-with-raid-and-loot-addons.md) | Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared | accepted |
 | [0023](0023-officer-tools-observe-and-suggest-officer-data-stays-among-officers.md) | Officer tools observe and suggest; officer data stays among officers | accepted |
+| [0024](0024-guild-group-finder-short-lived-listings-private-game-listing.md) | Guild group finder: short-lived listings outside the sync summary; the game's finder only private and on the leader's click | accepted |
