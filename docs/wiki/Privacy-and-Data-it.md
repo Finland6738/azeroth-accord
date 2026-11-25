@@ -28,6 +28,12 @@ Ogni dato condiviso indica il personaggio che l'ha scritto, e il gioco stesso di
 
 Un addon rotto o modificato non può nemmeno bloccare il tuo: un messaggio troppo grande, danneggiato o della forma sbagliata si scarta, e l'addon di un compagno che manda troppo, o che continua a mandare dati che non può mandare, viene ignorato per 10 minuti. Intanto i tuoi messaggi continuano a partire, e dopo i dati della gilda si riparano da soli. `/accord debug` dice quanti addon sono ignorati in quel momento, mai quali.
 
+## Gruppi
+
+> Dalla `v0.9.0`.
+
+Un [[gruppo|Groups-it]] che pubblichi (tipo, attività, livelli, posti, ruoli cercati, la tua nota e il ritrovo, mai una posizione) va solo alla tua gilda, e il computer di ogni membro lo elimina 10 minuti dopo la fine. Una **candidatura** (il tuo ruolo, il livello e un commento facoltativo) va in sussurro solo al capo di quel gruppo, e così la risposta: nessun altro lo sa. Restano sui due computer finché il gruppo non si chiude, e non entrano nei backup né nelle esportazioni. I filtri salvati restano sul tuo computer.
+
 ## Altri addon
 
 L'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.

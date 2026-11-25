@@ -18,6 +18,7 @@ Non salva nulla di suo e non decide niente al posto tuo. Ogni riga viene letta d
 | *3 promozioni da fare nel gioco* (anche retrocessioni, rimozioni e note) | ufficiali e Guild Master | la pagina **Coda** della [[scheda Ufficiali|Guild-Roster-it]] | in coda non resta nulla di quel tipo |
 | *Rientro di … (assente fino al …)* | ufficiali e Guild Master, dal giorno del rientro ai tre giorni dopo | la pagina **Inattivi** | tre giorni dopo il rientro |
 | *La tua assenza finisce il …* | tu, nei tre giorni prima della fine | la card **Assenza** delle [[Impostazioni|Settings-it]] | dopo il rientro |
+| *… vuole unirsi come …* | tu, come capo di un [[gruppo|Groups-it]] | la pagina **Il mio gruppo** di Gruppi | accetti o rifiuti, o il gruppo si chiude |
 
 Un ufficiale che chiede qualcosa alla banca vede la richiesta due volte: da decidere, e come proprio promemoria.
 
@@ -27,13 +28,13 @@ Una richiesta di creazione è solo un sussurro che invii tu (vedi [[Professioni 
 
 Ogni riga ha un pallino colorato per l'urgenza:
 
-- **Adesso** (rosso): qualcuno ti aspetta ora, o la cosa scade entro un giorno. Nessuna riga lo usa ancora: i primi saranno i candidati al tuo gruppo, in un passo successivo di M9;
+- **Adesso** (rosso): qualcuno ti aspetta ora, o la cosa scade entro un giorno, per esempio un candidato al tuo [[gruppo|Groups-it]];
 - **Da fare** (colore del tema): tocca a te;
 - **Promemoria** (grigio): aspetti gli altri, o è solo da ricordare.
 
 Prima le più urgenti; a parità, ciò che aspetta da più tempo. Il numero sulla scheda conta le righe **Adesso** e **Da fare**, e il tooltip dell'addon nel Compartimento AddOn dice *Centro azioni: N da fare*.
 
-I filtri in alto mostrano **Tutto** o un solo tipo: *Banca*, *Creazioni*, *Ufficiali e assenze*. Quando un tipo ha più di 50 righe, un'ultima riga dice *e altre N*; l'elenco ne tiene al massimo 200. Se non c'è nulla dice *Non c'è niente in attesa.*
+I filtri in alto mostrano **Tutto** o un solo tipo: *Gruppi*, *Banca*, *Creazioni*, *Ufficiali e assenze*. Quando un tipo ha più di 50 righe, un'ultima riga dice *e altre N*; l'elenco ne tiene al massimo 200. Se non c'è nulla dice *Non c'è niente in attesa.*
 
 ## Avvisi
 
@@ -52,10 +53,13 @@ La seconda pagina del Centro azioni, **Avvisi**, è la cronologia di ciò che l'
 | *La tua richiesta alla banca (…) è stata approvata / rifiutata / consegnata* | tu, per le tue richieste | una riga in chat |
 | *Rientro di … (assente fino al …)* | ufficiali e Guild Master | solo qui |
 | *Hai ricevuto … like* (il numero, mai chi) | tu | solo qui |
+| *… vuole unirsi come …* | il capo di un [[gruppo|Groups-it]] | una riga in chat e un riquadro a schermo |
+| *… ti ha accettato* / *ha rifiutato la tua candidatura* | chi si è candidato | una riga in chat e un riquadro a schermo |
+| *Nuovo gruppo: …* | tu, per un gruppo adatto ai tuoi filtri | **spento** (solo qui) |
 
 ### Chat, schermo o suono
 
-Nelle [[Impostazioni|Settings-it]], card **Notifiche**, scegli per gli avvisi della banca quello che vuoi tra:
+Nelle [[Impostazioni|Settings-it]], card **Notifiche**, scegli per gli avvisi della banca e per quelli dei gruppi quello che vuoi tra:
 
 - **Riga in chat**: una riga che comincia con `Accord:`. Gli avvisi che arrivano insieme escono insieme, al massimo tre righe e *e altri N*.
 - **Avviso sullo schermo**: un riquadro in alto sullo schermo per 6 secondi. Clic per aprire la sua vista, clic destro per chiuderlo. Uno alla volta; quando ne aspettano molti sono riassunti in un riquadro.

@@ -506,6 +506,26 @@ function Player.ClassFile()
 	return values and str(values[2]) or nil
 end
 
+-- The roles the player saved in the game's Group Finder, as a set of "t", "h", "d" (C_LFGListRoles.GetSavedRoles, in
+-- the Forever dump; the fields of its LFGRoles answer are not documented there: tank, healer, dps [verify]). nil when
+-- the client does not say or nothing is saved. SPEC-13 §6.10.
+function Player.SavedRoles()
+	local v = first("C_LFGListRoles.GetSavedRoles")
+	if type(v) ~= "table" then return nil end
+	local out = {}
+	if v.tank == true then out.t = true end
+	if v.healer == true then out.h = true end
+	if v.dps == true or v.damage == true then out.d = true end
+	return next(out) and out or nil
+end
+
+local ASSIGNED = { TANK = "t", HEALER = "h", DAMAGER = "d" }
+-- The role the player has in the game's group (UnitGroupRolesAssigned): "t", "h", "d" or nil.
+function Player.GroupRole()
+	local v = first("UnitGroupRolesAssigned", "player")
+	return ASSIGNED[str(v) or ""]
+end
+
 -- The player's own BattleTag ("Name#1234") [verify S8]: BNet_GetBattleTagSelf, else the second result of BNGetInfo.
 function Player.BattleTag()
 	local tag = first("BNet_GetBattleTagSelf")

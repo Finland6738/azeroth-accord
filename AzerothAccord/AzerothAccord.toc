@@ -104,6 +104,8 @@ UI\OfficersOps.lua
 UI\OfficerNotes.lua
 UI\Actions.lua
 UI\Toast.lua
+UI\GroupsModel.lua
+UI\Groups.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

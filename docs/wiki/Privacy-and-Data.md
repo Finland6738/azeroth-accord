@@ -29,6 +29,12 @@ Every piece of shared data names the character that wrote it, and the game itsel
 
 A broken or modified addon cannot jam yours either: a message that is too large, damaged or of the wrong shape is dropped, and a guildmate's addon that sends far too much, or keeps sending data it may not send, is ignored for 10 minutes. Your own messages keep going out meanwhile, and the guild's data repairs itself afterwards. `/accord debug` says how many addons are ignored right now, never who.
 
+## Groups
+
+> From `v0.9.0`.
+
+A [[group|Groups]] you post (type, activity, levels, size, roles still needed, your note and meeting point, never a position) is sent to your guild only, and every member's computer drops it 10 minutes after it ends. An **application** (your role, level and optional comment) goes by whisper to that group's leader only, and so does the answer: nobody else knows. Both are kept on the two computers until the group closes, and neither enters backups or exports. Your saved filters stay on your computer.
+
 ## Other addons
 
 The released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.

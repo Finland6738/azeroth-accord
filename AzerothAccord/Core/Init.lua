@@ -40,6 +40,7 @@ ACC.commands = {
 	{ name = "professions", help = L["HELP_PROFESSIONS"], handler = viewCommand("professions") },
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
+	{ name = "groups", feature = "groups", help = L["HELP_GROUPS"], handler = viewCommand("groups") },
 	{ name = "raid", feature = "raid", help = L["HELP_RAID"], handler = viewCommand("raid") },
 	{ name = "settings", help = L["HELP_SETTINGS"], handler = viewCommand("settings") },
 	{ name = "away", help = L["HELP_AWAY"], handler = function(self, input) if ns.Absence then ns.Absence.Command(input) end end },

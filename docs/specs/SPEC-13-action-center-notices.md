@@ -30,7 +30,7 @@ Come per `raid`, i moduli chiedono `Features.On(nome)` quando agiscono, mai una 
 | `Data/GameFinder.lua` | l'annuncio privato nel Group Finder del gioco (§7) | M9.8 |
 | `Data/Census.lua` | censimento degli addon (§8) | M9.9 |
 | `UI/Actions.lua`, `UI/Toast.lua` | la vista *Action Center* (pagine *Inbox* e *Notices*), il toast | M9.2, M9.3 |
-| `UI/Groups.lua` | la vista *Groups* | M9.7 |
+| `UI/GroupsModel.lua`, `UI/Groups.lua` | la vista *Groups*: la logica senza cornici e le cornici | M9.7 |
 | `UI/GuildAddons.lua` | la vista *Guild addons* | M9.9 |
 
 `Config.VIEWS` aggiunge `actions`, `groups`, `addons`. Comandi: `/accord inbox`, `/accord groups`, `/accord addons` (aprono la vista; con l'interruttore spento rispondono come un comando sconosciuto).
@@ -379,6 +379,10 @@ Vista `groups` (*Groups* / *Gruppi*, ordine 40), nello stile del pannello dei gr
 - **Candidarsi**: *Apply* con il ruolo **preselezionato**: il primo ruolo cercato tra quelli salvati nel Group Finder del gioco (`C_LFGListRoles.GetSavedRoles()`, nel dump); altrimenti il ruolo nel gruppo (`UnitGroupRolesAssigned("player")`); altrimenti il primo che la classe può fare (tabella `Groups.CLASS_ROLES`). Con M10 la dichiarazione della stagione viene prima. Accanto all'annuncio lo stato: `Applied as healer, waiting`, `Accepted: watch for the invitation`, `Declined`.
 - **Avviso `groups.match`** (spento di predefinito): un annuncio nuovo il cui tipo è nei filtri salvati, che va bene per il livello e cerca un ruolo che il giocatore può fare; al massimo uno ogni 5 minuti; trattenuto come ogni avviso (§4).
 - La pagina del manuale *Groups* in inglese e italiano; la demo mostra 6 annunci e 2 candidati.
+- **Come è fatto (M9.7).** Tre pagine nel selettore: *Groups* (l'elenco; sotto, l'annuncio scelto con *Apply* o *Withdraw*), *Post a group* (il modulo) e *My group* (i candidati, con il loro numero sul nome della pagina e sulla scheda). `UI/GroupsModel.lua` fa tutto ciò che si prova senza cornici. I ruoli per classe sono `Groups.CLASS_ROLES`; la dichiarazione della stagione è `Groups.SeasonRole()`, che oggi non risponde e che M10 sostituisce. `C_LFGListRoles.GetSavedRoles` si legge con i campi `tank`, `healer`, `dps` (il dump non li descrive, **[verificare]**).
+- **Filtri**: si salvano tipo, livello e ruoli; l'attività e la ricerca valgono per la sessione. Nessun ruolo scelto = nessun limite nell'elenco; per l'avviso = tutti i ruoli della classe. L'avviso chiede sempre che il livello vada bene, anche con *Fits my level* spento.
+- **Avvisi**: `groups.applicant` esce per una candidatura nuova o che cambia ruolo. `groups.match` guarda un annuncio una volta sola, quando lo vede aperto (`notify.seen.groups`, la prima volta solo la fotografia); spento di predefinito, entra nella cronologia come *muted* (NTF-01), con lo stesso limite di uno ogni 5 minuti; quelle voci *muted* non contano tra gli avvisi non letti del riepilogo all'accesso (§5), perché il giocatore non le ha chieste (campo del tipo `optIn`). Il modulo `groups` di `Notify` ha `feature = "groups"`: con l'interruttore spento non ha righe in Settings.
+- **Azioni**: la riga del fornitore `groups` ha ordine 5 (la prima tra le righe di pari urgenza e ora). *Post* con un annuncio già aperto chiede un secondo clic entro 8 secondi. La demo mette annunci e candidature al loro posto solo con l'interruttore acceso.
 
 ## 7. Il Group Finder del gioco, in privato (M9.8)
 

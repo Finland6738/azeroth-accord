@@ -18,6 +18,7 @@ It keeps nothing of its own and decides nothing for you. Every line is read from
 | *3 promotions to do in the game* (also demotions, removals and notes) | officers and the Guild Master | the **Queue** page of the [[Officers tab|Guild-Roster]] | nothing of that kind is left in the queue |
 | *… is back (away until …)* | officers and the Guild Master, from the return day to three days after | the **Inactive** page | three days after the return |
 | *Your absence ends on …* | you, within three days of the end | the **Absence** card of [[Settings|Settings]] | after the return |
+| *… wants to join as …* | you, as the leader of a [[group|Groups]] | the **My group** page of Groups | you accept or decline, or the group closes |
 
 An officer who asks the bank for something sees the request twice: to decide it, and as their own reminder.
 
@@ -27,13 +28,13 @@ A craft request is only a whisper that you send yourself (see [[Professions and 
 
 Each line has a coloured dot for its urgency:
 
-- **Now** (red): somebody is waiting for you right now, or it expires within a day. No line uses it yet: the first will be the applicants to your group, in a later step of M9;
+- **Now** (red): somebody is waiting for you right now, or it expires within a day. such as an applicant to your [[group|Groups]];
 - **To do** (accent colour): it is your turn;
 - **Reminder** (grey): you are waiting for others, or it is just worth remembering.
 
 The most urgent come first; among equals, what has been waiting longest. The number on the tab counts the lines that are **Now** or **To do**, and the tooltip of the addon in the AddOn Compartment says *Action Center: N to do*.
 
-The chips on top show **All** lines or those of one kind: *Bank*, *Crafting*, *Officers and absences*. When one kind has more than 50 lines, a last line says *and N more*; the list holds at most 200. With nothing to show it says *Nothing waits for you.*
+The chips on top show **All** lines or those of one kind: *Groups*, *Bank*, *Crafting*, *Officers and absences*. When one kind has more than 50 lines, a last line says *and N more*; the list holds at most 200. With nothing to show it says *Nothing waits for you.*
 
 ## Notices
 
@@ -52,10 +53,13 @@ The second page of the Action Center, **Notices**, is the history of what the ad
 | *Your bank request (…) was approved / rejected / fulfilled* | you, for your own requests | a chat line |
 | *… is back (away until …)* | officers and the Guild Master | here only |
 | *You received … likes* (the number, never who) | you | here only |
+| *… wants to join as …* | the leader of a [[group|Groups]] | a chat line and an on-screen box |
+| *… accepted you* / *declined your application* | the applicant | a chat line and an on-screen box |
+| *New group: …* | you, for a group that fits your filters | **off** (here only) |
 
 ### Chat, screen or sound
 
-In [[Settings|Settings]], card **Notifications**, choose for the bank notices any of:
+In [[Settings|Settings]], card **Notifications**, choose for the bank notices and for those of the groups any of:
 
 - **Chat line**: one line starting with `Accord:`. Notices that arrive together are printed together, three lines at most and *and N more*.
 - **On-screen notice**: a small box at the top of the screen for 6 seconds. Click it to open its view, right-click to close it. One at a time; when many are waiting they are summed up in one box.

@@ -110,6 +110,8 @@ describe("the owner rule and the texts", function()
 		local cut = G().CleanText(("a"):rep(39) .. "é", 40)
 		eq(cut, ("a"):rep(39))
 		truthy(G().ValidText(cut, 40))
+		eq(G().CleanText("in città", 40), "in città", "a letter whose last byte looks like a space stays whole")
+		truthy(G().ValidText("in città", 40))
 	end)
 
 	it("knows the dungeons and raids of the base game, and the name of an unknown instance", function()

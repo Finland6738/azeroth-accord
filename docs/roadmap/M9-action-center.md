@@ -85,7 +85,8 @@ Release: `v0.9.0`.
   - an Action Center item for the leader's pending applicants;
   - an optional notice, through the notification centre, for new listings that match the player's own filters and roles. It is off by default and quiet in combat and quiet hours.
 - Done when:
-  - [ ] A group can be posted, found, applied to, accepted and closed from the view; the wiki has a page in English and Italian.
+  - [x] A group can be posted, found, applied to, accepted and closed from the view; the wiki has a page in English and Italian.
+  - *Done (2026-11-25):* `UI/GroupsModel.lua` and `UI/Groups.lua` (the pages *Groups*, *Post a group* and *My group*), `/accord groups`, the preselected role (`Groups.SeasonRole` is the hook for M10), the Action Center provider `groups`, the notices `groups.applicant`, `groups.answer` and `groups.match` (off by default), the demo's groups, `settings.groupFilter` in schema 4; wiki [Groups](../wiki/Groups.md) and [Gruppi](../wiki/Groups-it.md); `Tests/test_groups_view.lua`. Behind the switch `groups` (rows and notices also need `actions`), off until M9.10. No design preview images. Not checked in the game.
 
 ### M9.8 — The game's Group Finder, privately
 - Branch: `step/m9-8-groups-game`

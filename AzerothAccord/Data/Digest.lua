@@ -234,7 +234,10 @@ function Digest:Lines(base, diff)
 
 	local unread = 0
 	for _, e in ipairs(ns.Notify:Entries(true)) do
-		if (e.time or 0) > base.at then unread = unread + 1 end
+		local def = ns.Notify:Module(e.module)
+		local kind = def and def.byKind[e.kind]
+		-- a notice the player never asked for (a kind that is off until switched on) brings up no summary
+		if (e.time or 0) > base.at and not (e.muted and kind and kind.optIn) then unread = unread + 1 end
 	end
 	if unread > 0 then
 		out[#out + 1] = { id = "notices", n = unread, view = "actions", page = "notices" }

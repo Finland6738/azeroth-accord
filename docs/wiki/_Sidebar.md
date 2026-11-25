@@ -8,6 +8,7 @@
 
 **Features**
 - [[Action Center|Action-Center]]
+- [[Groups|Groups]]
 - [[Guild Roster|Guild-Roster]]
 - [[Professions and Recipes|Professions-and-Recipes]]
 - [[Likes and Social Index|Likes-and-Social-Index]]
@@ -28,6 +29,7 @@
 - [[Comandi|Commands-it]]
 - [[Impostazioni|Settings-it]]
 - [[Centro azioni|Action-Center-it]]
+- [[Gruppi|Groups-it]]
 - [[Roster di gilda|Guild-Roster-it]]
 - [[Professioni e ricette|Professions-and-Recipes-it]]
 - [[Like e indice sociale|Likes-and-Social-Index-it]]

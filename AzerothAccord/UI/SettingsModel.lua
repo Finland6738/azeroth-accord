@@ -90,7 +90,9 @@ function Model.NoticeModules()
 	local out = {}
 	local N = ns.Notify
 	for _, def in ipairs(N and N:Modules() or {}) do
-		if N.HasOutputs(def) then out[#out + 1] = def end
+		-- a module of a feature that is switched off (Core/Features.lua) has no row
+		local there = def.feature == nil or (ns.Features ~= nil and ns.Features.On(def.feature))
+		if there and N.HasOutputs(def) then out[#out + 1] = def end
 	end
 	return out
 end

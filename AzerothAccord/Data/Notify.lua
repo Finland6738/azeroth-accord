@@ -5,11 +5,13 @@
 --
 --   def  = { label,   -- locale key of the module's name (the Notices page, the Settings card)
 --            order,
---            kinds,   -- array of { id, level, group, option, off }:
+--            feature, -- optional: a switch of Core/Features.lua; off, the module has no row in the Settings card
+--            kinds,   -- array of { id, level, group, option, off, optIn }:
 --                     --   level  "alert" | "normal" | "quiet" (quiet: history only, never an output)
 --                     --   group  locale key of the text of many notices of this kind ("%d new bank requests")
 --                     --   option key of UI/SettingsModel.lua that switches the kind (the two M5 bank options)
 --                     --   off    locale key of the switch of a kind without `option` (account.settings.notify.<m>.off.<id>)
+--                     --   optIn  true: off by default; its muted entries do not count in the login digest
 --            outputs, -- optional: the outputs the module has, of OUTPUTS (default: all three)
 --            open,    -- optional: function(entry), opens the view of an entry; the default opens entry.view
 --            check }  -- optional: function(), called every TICK seconds and at the start (notices nothing announces)

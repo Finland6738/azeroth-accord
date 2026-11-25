@@ -38,6 +38,11 @@
 --          asker per ASK_ANSWER. Asked when the Groups view opens (M9.7), or ASK_AFTER_HELLO seconds after the first HELLO
 --          of a login when the notice `groups.match` is on. Nothing is sent at login.
 --
+-- The view (M9.7, UI/Groups.lua) reads here: the roles of the player and the one preselected, the saved filters
+--          (account.settings.groupFilter = { kinds = {}, fits = true, roles = {} }) and the match of a listing. This file
+--          also registers the Action Center provider `groups` (one row per waiting applicant of the own listing, urgency
+--          3) and the notices `groups.applicant`, `groups.answer` and `groups.match` (off by default; at most one per
+--          MATCH_EVERY seconds), both shown only while the switch `actions` is on too.
 -- Switch: Features.On("groups") (Core/Features.lua), off until M9.10. Off: the set takes and sends nothing (Store), GAPP and
 -- GASK are ignored, nothing is sent, no event is registered. Demo mode sends nothing.
 -- Bus: GROUPS_CHANGED(id) a listing changed (nil: several); APPLICANTS_CHANGED(id) the applications of a listing changed on
@@ -72,6 +77,13 @@ Groups.ANSWER_DELAY = { 0.5, 3 }
 Groups.ASK_AFTER_HELLO = { 60, 90 }
 Groups.TICK = 60              -- seconds between two passes of the clean-up
 Groups.KEPT = 3600            -- an answered application of the candidate is forgotten this long after its listing went
+Groups.MATCH_EVERY = 300      -- seconds between two notices of a new listing that matches (SPEC-13 §6.10)
+-- The roles each class can take, for the preselection and the filters (SPEC-13 §6.10).
+Groups.CLASS_ROLES = {
+	WARRIOR = { "t", "d" }, PALADIN = { "t", "h", "d" }, HUNTER = { "d" }, ROGUE = { "d" }, PRIEST = { "h", "d" },
+	SHAMAN = { "h", "d" }, MAGE = { "d" }, WARLOCK = { "d" }, DRUID = { "t", "h", "d" }, DEATHKNIGHT = { "t", "d" },
+	MONK = { "t", "h", "d" }, DEMONHUNTER = { "t", "d" }, EVOKER = { "h", "d" },
+}
 
 local KIND, ROLE = {}, { t = true, h = true, d = true }
 for _, k in ipairs(Groups.KINDS) do KIND[k] = true end
@@ -116,7 +128,8 @@ end
 -- bytes (never cut inside a character).
 function Groups.CleanText(value, limit)
 	if type(value) ~= "string" then return "" end
-	value = value:gsub("[%c|]", " "):gsub("%s+", " "):gsub("^ ", ""):gsub(" $", "")
+	-- ASCII classes only: %s and %c follow the C locale, which may take a byte of a UTF-8 letter ("à" ends in 0xA0)
+	value = value:gsub("[%z\1-\31\127|]", " "):gsub(" +", " "):gsub("^ ", ""):gsub(" $", "")
 	if #value > limit then value = utf8Tail(value:sub(1, limit)):gsub(" $", "") end
 	return value
 end
@@ -124,7 +137,93 @@ end
 -- true for a text the owner rule accepts: a string of at most `limit` bytes (at least `least`) that CleanText leaves as is.
 function Groups.ValidText(value, limit, least)
 	if type(value) ~= "string" or #value > limit or #value < (least or 0) then return false end
-	return not value:find("[%c|]") and not value:find("^%s") and not value:find("%s$")
+	return not value:find("[%z\1-\31\127|]") and not value:find("^ ") and not value:find(" $")
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Names, roles and filters (the view, the notices and the Action Center)
+---------------------------------------------------------------------------------------------------------------------
+-- What a listing is about, in the language of the client: the instance's name, or the leader's text.
+function Groups.ActivityName(rec)
+	if INSTANCE[rec.kind] and ns.GroupActivities then return ns.GroupActivities:Name(rec.act) end
+	return tostring(rec.act)
+end
+
+-- The roles the player's class can take, in the order t, h, d; every role for a class not in the table.
+function Groups.ClassRoles()
+	local file = compat().Player.ClassFile()
+	return Groups.CLASS_ROLES[file or ""] or Groups.ROLES
+end
+
+-- The role the player declared for the raid season. Seasons come with M10: until then there is none, and M10 replaces
+-- this function (it comes first in the preselection, SPEC-13 §6.10).
+function Groups.SeasonRole()
+	return nil
+end
+
+-- The role preselected on a listing: the season's declaration, else the first needed role among those saved in the
+-- game's Group Finder, else the role in the game's group, else the first needed one the class can take; nil when none.
+function Groups.PreferredRole(rec)
+	local need = rec and rec.need
+	if type(need) ~= "table" then return nil end
+	local function wanted(r) return r ~= nil and (need[r] or 0) > 0 end
+	local season = Groups.SeasonRole()
+	if wanted(season) then return season end
+	local saved = compat().Player.SavedRoles()
+	if saved then
+		for _, r in ipairs(Groups.ROLES) do
+			if saved[r] and wanted(r) then return r end
+		end
+	end
+	local assigned = compat().Player.GroupRole()
+	if wanted(assigned) then return assigned end
+	for _, r in ipairs(Groups.ClassRoles()) do
+		if wanted(r) then return r end
+	end
+	return nil
+end
+
+local function set(t)
+	local out = {}
+	for k, on in pairs(type(t) == "table" and t or {}) do
+		if on == true then out[k] = true end
+	end
+	return out
+end
+
+-- The saved filters, a copy: { kinds = { [kind] = true }, fits = bool, roles = { [role] = true } }; empty = all.
+function Groups:Filter()
+	local saved = ns.Config and ns.Config:Get("account.settings.groupFilter")
+	saved = type(saved) == "table" and saved or {}
+	return { kinds = set(saved.kinds), fits = saved.fits ~= false, roles = set(saved.roles) }
+end
+
+function Groups:SetFilter(filter)
+	if not ns.Config then return false end
+	return ns.Config:Set("account.settings.groupFilter",
+		{ kinds = set(filter.kinds), fits = filter.fits ~= false, roles = set(filter.roles) })
+end
+
+-- Whether `level` is inside the levels of a listing.
+function Groups.LevelFits(rec, level)
+	return level ~= nil and level >= rec.min and level <= rec.max
+end
+
+-- A listing the notice `groups.match` is about: open, of another account, of a kind of the saved filters, for the
+-- player's level, and needing a role the player can take (the saved roles of the filters, among the class's).
+function Groups:IsMatch(rec)
+	if not rec or self:Status(rec) ~= "open" or store():SameAccount(ownGUID(), rec.author) then return false end
+	local f = self:Filter()
+	if next(f.kinds) and not f.kinds[rec.kind] then return false end
+	if not Groups.LevelFits(rec, compat().Player.Level()) then return false end
+	local chosen = false
+	for _, r in ipairs(Groups.ClassRoles()) do
+		if f.roles[r] then chosen = true end
+	end
+	for _, r in ipairs(Groups.ClassRoles()) do
+		if (not chosen or f.roles[r]) and (rec.need[r] or 0) > 0 then return true end
+	end
+	return false
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -193,6 +292,7 @@ local function fresh()
 		shown = {},         -- id -> the status last announced with GROUPS_CHANGED
 		loginClose = false, -- a login happened: own listings still open are closed (logout) once the guild is known
 		loginAsk = false,   -- a login happened: one GASK after the first HELLO when `groups.match` is on
+		matchedAt = nil,    -- when the last notice `groups.match` was posted
 		stats = { posted = 0, closed = 0, applied = 0, appsHeard = 0, appsRefused = 0, answersHeard = 0, invited = 0,
 			asks = 0, asksHeard = 0, asksAnswered = 0, ignored = 0, pruned = 0 },
 	}
@@ -707,10 +807,12 @@ local function onApply(msg, sender, member)
 		end
 	end
 	local c = type(msg.c) == "string" and Groups.CleanText(msg.c, Groups.MAX_COMMENT) or nil
+	local before = apps[name]
 	apps[name] = { r = msg.r, c = c ~= "" and c or nil, l = int(msg.l, 1, maxLevel()) and msg.l or nil, at = serverTime(),
 		guid = member.guid }
 	state.stats.appsHeard = state.stats.appsHeard + 1
 	emit("APPLICANTS_CHANGED", msg.g)
+	if not before or before.r ~= msg.r then Groups:NoticeApplicant(msg.g, name) end
 end
 
 local ANSWER = { accept = "accepted", decline = "declined", full = "closed" }
@@ -726,6 +828,7 @@ local function onAnswer(msg, member)
 	m.state, m.at = ANSWER[msg.k], serverTime()
 	state.stats.answersHeard = state.stats.answersHeard + 1
 	emit("APPLICANTS_CHANGED", msg.g)
+	Groups:NoticeAnswer(msg.g, m)
 end
 
 function Groups:OnApp(msg, sender, dist)
@@ -739,6 +842,131 @@ function Groups:OnApp(msg, sender, dist)
 	if msg.k == "apply" or msg.k == "cancel" then onApply(msg, sender, member)
 	elseif ANSWER[msg.k] then onAnswer(msg, member)
 	else state.stats.ignored = state.stats.ignored + 1 end
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Notices and the Action Center (SPEC-13 §3.2, §6.10)
+---------------------------------------------------------------------------------------------------------------------
+-- The notification centre while both switches are on, else nil.
+local function centre()
+	local N = ns.Notify
+	return Groups.Enabled() and N and N.Enabled() and N or nil
+end
+
+-- The name to show for a character: the roster's short one, else `name`.
+function Groups.ShortName(guid, name)
+	local e = ns.Roster and guid and ns.Roster:ByGUID(guid)
+	return e and (e.short or e.name) or name or "?"
+end
+
+-- "<name> wants to join as <role>", one text key per role so the history reads in today's language.
+function Groups.ApplicantKey(role) return "GRP_APPLICANT_" .. tostring(role):upper() end
+
+function Groups:NoticeApplicant(id, name)
+	local N = centre()
+	local apps = appsOf(id)
+	local a = apps and apps[name]
+	if not (N and a) then return end
+	N:Post("groups", "applicant", { key = "applicant#" .. id .. "#" .. name .. "#" .. a.at, text = Groups.ApplicantKey(a.r),
+		args = { Groups.ShortName(a.guid, name) }, view = "groups", page = "mine", char = ownGUID(), still = function()
+			local held = appsOf(id)
+			return held ~= nil and held[name] ~= nil
+		end })
+end
+
+function Groups:NoticeAnswer(id, m)
+	local N = centre()
+	if not N or (m.state ~= "accepted" and m.state ~= "declined") then return end
+	N:Post("groups", "answer", { key = "answer#" .. id .. "#" .. m.state, view = "groups", page = "list", char = ownGUID(),
+		text = m.state == "accepted" and "GRP_NOTICE_ACCEPTED" or "GRP_NOTICE_DECLINED",
+		args = { Groups.ShortName(m.author, m.leader) } })
+end
+
+-- The listings already looked at for `groups.match`, per guild. The first look only remembers (NTF-04).
+local function seenBook()
+	local N = centre()
+	local book = N and N:Seen("groups")
+	if not book then return nil end
+	local first = not book.__baseline
+	if first then
+		book.__baseline = true
+		for id in pairs(store():Records("groups")) do book[id] = true end
+	end
+	return book, first
+end
+
+-- Forgets the listings that are gone, so the book does not grow.
+function Groups:NoticeCheck()
+	local book = seenBook()
+	if not book then return end
+	local records = store():Records("groups")
+	for id in pairs(book) do
+		if id ~= "__baseline" and not records[id] then book[id] = nil end
+	end
+end
+
+-- A listing arrived or changed: one notice for a new one that matches, at most one per MATCH_EVERY seconds. A listing
+-- seen not open yet (its leader still offline in the roster) is looked at again when it changes.
+function Groups:NoticeMatch(id)
+	if not (id and ready()) then return end
+	local book, first = seenBook()
+	if not book or first or book[id] then return end
+	local rec = store():Get("groups", id)
+	if not rec or self:Status(rec) ~= "open" then return end
+	book[id] = true
+	if not self:IsMatch(rec) then return end
+	local t = compat().Now()
+	if state.matchedAt and t - state.matchedAt < Groups.MATCH_EVERY then return end
+	state.matchedAt = t
+	ns.Notify:Post("groups", "match", { key = "match#" .. id, text = "GRP_NOTICE_MATCH", view = "groups", page = "list",
+		args = { Groups.ActivityName(rec), Groups.ShortName(rec.author) }, char = ownGUID(), still = function()
+			local held = Groups:Get(id)
+			return held ~= nil and Groups:IsOpen(held)
+		end })
+end
+
+local function openNotice(entry)
+	local view = ns.GroupsView
+	if not view then return end
+	if entry.page == "mine" then return view:ShowMine() end
+	local id = type(entry.key) == "string" and entry.key:match("^%a+#([^#]+)") or nil
+	return view:ShowListing(id)
+end
+
+-- The Action Center rows: one per waiting applicant of an own open listing (SPEC-13 §6.10), urgency 3.
+function Groups:ActionRows()
+	local rows = {}
+	local g = ready() and db()
+	if not g then return rows end
+	for id in pairs(g.apps) do
+		local rec = own(id)
+		if rec and self:Status(rec) == "open" then
+			for _, a in ipairs(self:Applicants(id)) do
+				local who = Groups.ShortName(a.guid, a.name)
+				rows[#rows + 1] = { key = (id:match(":(%d+)$") or "0") .. ":" .. tostring(a.guid or a.name):sub(1, 48), urgency = 3,
+					time = a.at, mark = a.r .. a.at, who = who, title = ns.L[Groups.ApplicantKey(a.r)]:format(who),
+					detail = Groups.ActivityName(rec) .. (a.c and (" - " .. a.c) or ""),
+					open = function() if ns.GroupsView then ns.GroupsView:ShowMine() end end }
+			end
+		end
+	end
+	return rows
+end
+
+if ns.Notify then
+	ns.Notify:Register("groups", { label = "ACT_PROVIDER_GROUPS", order = 20, feature = "groups", open = openNotice,
+		check = function() Groups:NoticeCheck() end, kinds = {
+			{ id = "applicant", level = "alert", off = "SET_NOTICE_GROUPS_APPLICANT", group = "GRP_NOTICE_APPLICANT_MANY" },
+			{ id = "answer", level = "alert", off = "SET_NOTICE_GROUPS_ANSWER", group = "GRP_NOTICE_ANSWER_MANY" },
+			-- optIn: off until the player asks for it, so its muted entries do not count in the login digest
+			{ id = "match", level = "normal", off = "SET_NOTICE_GROUPS_MATCH", group = "GRP_NOTICE_MATCH_MANY", optIn = true },
+		} })
+end
+
+if ns.Actions then
+	ns.Actions:Register("groups", { label = "ACT_PROVIDER_GROUPS", order = 5, feature = "groups",
+		events = { "APPLICANTS_CHANGED", "GROUPS_CHANGED", "ROSTER_UPDATED" },
+		items = function() return Groups:ActionRows() end })
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -933,6 +1161,7 @@ if ns.addon then
 		ns.Bus:On("STORE_CHANGED", function(set, id, origin) Groups:OnStoreChanged(set, id, origin) end)
 		ns.Bus:On("GUILD_CHANGED", function(key) Groups:OnGuildChanged(key) end)
 		ns.Bus:On("SYNC_HELLO", function(sent) if sent then Groups:OnHello() end end)
+		ns.Bus:On("GROUPS_CHANGED", function(id) Groups:NoticeMatch(id) end)
 	end
 	LibStub("AceEvent-3.0"):Embed(Groups)
 	if ns.OnEnable then

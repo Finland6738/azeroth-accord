@@ -41,7 +41,7 @@ Config.LIMITS = {
 	BANK_REQUEST_CLOSED_DAYS = 60,
 }
 
-Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "raid", "settings" }
+Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "groups", "raid", "settings" }
 
 -- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
 Config.THEMES = { "nebula", "aurora", "accord" }
@@ -62,6 +62,7 @@ Config.defaults = {
 			},
 			quiet = { on = false, from = 23, to = 8, instances = true },   -- quiet hours, local time (SPEC-13 §4)
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
+			groupFilter = { kinds = {}, fits = true, roles = {} },   -- the saved filters of the Groups view (SPEC-13 §6.10)
 			shareCoplay = true },   -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
 	},
 	char = {
@@ -93,6 +94,18 @@ Config.rules = {
 	["account.settings.animations"] = { type = "boolean" },
 	["account.settings.font"] = { type = "string", enum = Config.FONT_SOURCES },
 	["account.settings.shareCoplay"] = { type = "boolean" },
+	["account.settings.groupFilter"] = { type = "table", validate = function(v)
+		if v.fits ~= nil and type(v.fits) ~= "boolean" then return false end
+		for _, key in ipairs({ "kinds", "roles" }) do
+			if v[key] ~= nil then
+				if type(v[key]) ~= "table" then return false end
+				for k, on in pairs(v[key]) do
+					if type(k) ~= "string" or type(on) ~= "boolean" then return false end
+				end
+			end
+		end
+		return true
+	end },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },
@@ -138,8 +151,8 @@ end
 -- Version 2 (M6.10) adds the look settings to the account's settings, each only when it is not there yet (a value that
 -- is there but wrong is reset by the rules afterwards). The character data has no change: its step only moves the version.
 -- Version 3 (M7.6) adds `shareCoplay` (default true) to the account's settings, when it is not there yet.
--- Version 4 (M9) adds `notify` and `quiet` to the account's settings, each only when it is not there yet, and `groups`
--- (the group finder's ids and applications, M9.6) to the character's data.
+-- Version 4 (M9) adds `notify`, `quiet` and `groupFilter` (M9.7) to the account's settings, each only when it is not
+-- there yet, and `groups` (the group finder's ids and applications, M9.6) to the character's data.
 local function deep(v)
 	if type(v) ~= "table" then return v end
 	local out = {}
@@ -165,6 +178,7 @@ Config.migrations = {
 			if type(db.settings) ~= "table" then db.settings = {} end
 			if db.settings.notify == nil then db.settings.notify = defaultSetting("notify") end
 			if db.settings.quiet == nil then db.settings.quiet = defaultSetting("quiet") end
+			if db.settings.groupFilter == nil then db.settings.groupFilter = defaultSetting("groupFilter") end
 		end,
 	},
 	char = { [1] = function(db) end, [2] = function(db) end, [3] = function(db) end,

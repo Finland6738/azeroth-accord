@@ -484,6 +484,39 @@ function DemoData.Build(now)
 		{ guid = members[3].guid, recipeId = 7418, at = now - 3 * HOUR },
 	}
 
+	-- Six listings of the guild group finder and two applications to the player's own (SPEC-13 §6.10), outside D.sets:
+	-- Core/Demo.lua puts them in place only while the switch `groups` is on.
+	do
+		local player = members[PLAYER_INDEX]
+		local listings = {}
+		local function listing(m, n, minutesAgo, fields)
+			local created = now - minutesAgo * 60
+			local rec = { id = m.guid .. ":" .. n, author = m.guid, rev = 1, time = created, created = created, ends = created + 2 * HOUR,
+				status = "open", have = 1, size = 5, min = 1, max = 60 }
+			for k, v in pairs(fields) do rec[k] = v end
+			listings[rec.id] = rec
+			return rec
+		end
+		local own = listing(player, 1, 12, { kind = "dungeon", act = 329, min = 55, max = 60, have = 2, need = { t = 1, h = 1, d = 1 },
+			note = "Full clear, quests welcome", meet = "At the bank" })
+		local online = {}
+		for _, m in ipairs(members) do
+			if m.online and m ~= player then online[#online + 1] = m end
+		end
+		listing(online[1], 1, 4, { kind = "dungeon", act = 36, min = 15, max = 25, need = { t = 0, h = 1, d = 2 }, have = 2,
+			note = "Quests first, then the full run" })
+		listing(online[2], 1, 18, { kind = "raid", act = 409, size = 40, min = 60, have = 22, need = { t = 1, h = 4, d = 8 },
+			note = "Bring fire resistance", meet = "Entrance, 20:45" })
+		listing(online[3], 1, 27, { kind = "quest", act = "Stranglethorn Vale", min = 30, max = 45, need = { t = 0, h = 0, d = 2 } })
+		listing(online[4], 1, 41, { kind = "help", act = "Elwynn Forest", size = 2, need = { t = 0, h = 0, d = 1 },
+			note = "Need a hand with an elite" })
+		listing(online[5], 1, 55, { kind = "farm", act = "Un'Goro Crater", min = 48, need = { t = 0, h = 1, d = 2 } })
+		local apps = {}
+		apps[online[6].name] = { r = "t", c = "I know the place", l = 60, at = now - 6 * 60, guid = online[6].guid }
+		apps[online[7].name] = { r = "h", l = 58, at = now - 2 * 60, guid = online[7].guid }
+		D.groups = { listings = listings, own = own.id, apps = apps }
+	end
+
 	-- 32 bytes for the notary's salt
 	local salt = {}
 	for i = 1, 32 do salt[i] = char(rand(256) - 1) end

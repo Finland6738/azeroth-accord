@@ -135,6 +135,10 @@ local function fill(data, account, char)
 		craftAsks = data.guildData.craftAsks }
 	account.guilds = { [data.key] = guild }
 	char.outbox = {}
+	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
+		data.sets.groups = data.groups.listings
+		char.groups = { guild = data.key, next = 1, apps = { [data.groups.own] = data.groups.apps }, mine = {} }
+	end
 end
 
 -- Enters demo mode. Returns true, or false and a reason ("active", "config", "data").
