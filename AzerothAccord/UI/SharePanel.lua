@@ -1,6 +1,7 @@
 -- SharePanel: the "What I share" page of Settings (SPEC-11 §5, M7.6). One card per data set this character publishes, with
 -- who receives it, when it goes out and its current content (UI/ShareModel.lua reads the records the client last sent).
--- The only switch is "Record time played together" on the co-play card (account.settings.shareCoplay).
+-- The switches are "Record time played together" on the co-play card (account.settings.shareCoplay) and, while the addon
+-- census is switched on (M9.9), "Share my addon list" on its card (account.settings.shareAddons).
 -- Fields of the frame `f.share`: .cards[id] = { card, to, content, updated, note, switch }, .intro, .empty. Lua 5.1.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -60,7 +61,9 @@ local function newCard(f, id)
 	k.switchLabel:SetPoint("LEFT", k.switchRow, "LEFT", 0, 0)
 	k.switchLabel:SetPoint("RIGHT", k.switch, "LEFT", -12, 0)
 	k.switchRow:SetScript("OnClick", function(self) k.switch:Click() end)
-	Widgets.Tooltip.Attach(k.switchRow, { L["SHARE_COPLAY_SWITCH"], L["SHARE_COPLAY_SWITCH_TIP"] }, "RIGHT")
+	Widgets.Tooltip.Attach(k.switchRow, function()
+		return k.switchTip and { k.switchText, k.switchTip } or nil
+	end, "RIGHT")
 	c:Add(k.switchRow, 12)
 	info.cards[id] = k
 	return k
@@ -88,6 +91,7 @@ function Panel.Refresh(f)
 		k.switchKey = row.switch
 		k.switchRow:SetShown(row.switch ~= nil)
 		if row.switch then
+			k.switchText, k.switchTip = row.switchLabel, row.switchTip
 			k.switchLabel:SetText(row.switchLabel)
 			k.switch:SetOn(row.on, true)
 		end

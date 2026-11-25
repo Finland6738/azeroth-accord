@@ -30,6 +30,10 @@
 --                    OFFICER or by WHISPER to an officer only, once the channel is proven (OFF-01..OFF-09). The one
 --                    exception (`firstHand`): a member's own declared absence reaches an officer by WHISPER from its account.
 --
+-- The addon census (`addons`, SPEC-13 §8.2) is an ordinary set (first hand, officer relay, saved) whose records are
+-- summarised apart from the older sets (`summary = "extra"`, Net/Sync.lua), so that a client which does not know the set
+-- compares the same summaries as before.
+--
 -- Short-lived sets (`volatile`, SPEC-13 GRP-03): the group finder's listings travel only first hand (`firstHandOnly`: no
 --                    relay, not even by an officer) and are left out of every summary.
 --
@@ -155,6 +159,12 @@ function Store.IsRestricted(set, rec)
 	return def ~= nil and def.restricted ~= nil and type(rec) == "table" and def.restricted(rec) == true
 end
 
+-- true when the records of `set` are summarised apart from the older sets (SPEC-13 §8.2: the addon census).
+function Store.IsExtraSummary(set)
+	local def = Store.SETS[set]
+	return def ~= nil and def.summary == "extra"
+end
+
 -- true when `set` is one of the officer tools' sets (SPEC-12 §1.2): its records are never sent on GUILD and are summarised
 -- by group, not by author.
 -- true when `set` is short-lived (SPEC-13 GRP-03): its records are written and sent like the others, but never counted in a
@@ -271,6 +281,13 @@ Store.SETS = {
 		owner = function(rec) return ns.Groups ~= nil and ns.Groups.ValidRecord(rec) end,
 		expires = function(rec, t) return ns.Groups ~= nil and ns.Groups.Expired(rec, t) end,
 	},
+	addons = {     -- the addon census (Data/Census.lua, M9.9): id = character GUID, { l = { { folder, version, title } }, more } or { del }
+		feature = "census",                        -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 6144,
+		summary = "extra",                         -- its own entries in the summaries (SPEC-13 §8.2)
+		owner = function(rec, s) return ns.Census ~= nil and ns.Census.ValidRecord(rec, s) end,
+		expires = function(rec, t) return ns.Census ~= nil and ns.Census.Expired(rec, t) end,
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -281,7 +298,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

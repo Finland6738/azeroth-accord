@@ -39,6 +39,8 @@
 --                                                     received, closed by itself or removed; nil: several), M9.6.
 --   APPLICANTS_CHANGED(id)                            Data/Groups.lua; the applications of a listing changed on the
 --                                                     leader's client or the candidate's, M9.6.
+--   CENSUS_CHANGED()                                  Data/Census.lua; what the addon census counts changed (a record, the
+--                                                     roster, the accounts, the guild), collected for a second, M9.9.
 --   OFFICER_PURGED(removed)                           Data/Officer.lua; the officer data was deleted from this computer because
 --                                                     no character of the account is an officer any more (SPEC-12 OFF-10).
 -- Later modules add their events here.

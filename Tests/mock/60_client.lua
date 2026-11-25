@@ -3,7 +3,8 @@
 --
 -- Imitates: Ambiguate, UnitName, UnitFullName, UnitGUID, UnitLevel, UnitClass, UnitRace, UnitFactionGroup, UnitIsUnit, GetRealmName,
 -- GetNormalizedRealmName, GetLocale, GetBuildInfo, WOW_PROJECT_ID / WOW_PROJECT_CAMELOT, IsLoggedIn, GetAddOnMetadata,
--- C_AddOns.GetAddOnMetadata / IsAddOnLoaded / DoesAddOnExist / GetAddOnEnableState, GetMaxPlayerLevel, GetAverageItemLevel.
+-- C_AddOns.GetAddOnMetadata / IsAddOnLoaded / DoesAddOnExist / GetAddOnEnableState / GetNumAddOns / GetAddOnInfo,
+-- GetMaxPlayerLevel, GetAverageItemLevel.
 -- Dump files: ../WoW-Addons/docs/api/ (Player-Character, AddOns-Scripting); api.json "meta" gives the build
 -- (1.60.1, interface 16001). The numeric value of WOW_PROJECT_CAMELOT is not in the dump: use the constant, never a
 -- number. GetMaxPlayerLevel and GetAverageItemLevel are "to verify" in the spec.
@@ -84,10 +85,20 @@ function BNet_GetBattleTagSelf() return player.battleTag end
 function BNGetInfo() return 1, player.battleTag, 1, nil, false, false, false end
 
 -- AddOn metadata comes from the TOC the harness parsed. Other addons (M10.2): Mock.addons[folder] = { loaded = bool,
--- enabled = bool (default true), version = "1.0.2" }; a folder that is not listed does not exist. Kept across Mock.Reload.
+-- enabled = bool (default true), version = "1.0.2", title = "Name", security = "INSECURE" }; a folder that is not listed
+-- does not exist. Kept across Mock.Reload. By index (M9.9) the addons are this one and the listed ones, by folder name.
 W.addons = W.addons or {}
 Mock.addons = W.addons
+-- The folder of index `i`, or `i` itself when it already is a name.
+local function addonName(i)
+	if type(i) ~= "number" then return i end
+	local names = { H.addonName }
+	for name in pairs(W.addons) do names[#names + 1] = name end
+	table.sort(names)
+	return names[i]
+end
 local function getMetadata(name, field)
+	name = addonName(name)
 	if name == H.addonName then return H.tocFields[field] end
 	local a = W.addons[name]
 	if a and field == "Version" then return a.version end
@@ -95,10 +106,25 @@ end
 GetAddOnMetadata = getMetadata
 C_AddOns = {
 	GetAddOnMetadata = getMetadata,
+	-- loadedOrLoading, loaded
 	IsAddOnLoaded = function(name)
-		if name == H.addonName or name == nil then return true end
+		name = addonName(name)
+		if name == H.addonName or name == nil then return true, true end
 		local a = W.addons[name]
-		return a ~= nil and a.loaded == true
+		local loaded = a ~= nil and a.loaded == true
+		return loaded, loaded
+	end,
+	GetNumAddOns = function()
+		local n = 1
+		for _ in pairs(W.addons) do n = n + 1 end
+		return n
+	end,
+	-- name, title, notes, loadable, reason, security
+	GetAddOnInfo = function(index)
+		local name = addonName(index)
+		if name == H.addonName then return name, H.tocFields.Title, H.tocFields.Notes, true, nil, "INSECURE" end
+		local a = W.addons[name]
+		if a then return name, a.title or name, "", true, nil, a.security or "INSECURE" end
 	end,
 	DoesAddOnExist = function(name) return name == H.addonName or W.addons[name] ~= nil end,
 	-- Enum.AddOnEnableState: 0 none, 1 some characters, 2 all
@@ -109,7 +135,7 @@ C_AddOns = {
 		return 2
 	end,
 }
-function IsAddOnLoaded(name) return C_AddOns.IsAddOnLoaded(name) end
+function IsAddOnLoaded(name) return (C_AddOns.IsAddOnLoaded(name)) end
 
 -- Sounds: PlaySound records the id; SOUNDKIT is the client's table of constants (the values are the retail ones).
 SOUNDKIT = { TELL_MESSAGE = 3081, RAID_WARNING = 8959 }

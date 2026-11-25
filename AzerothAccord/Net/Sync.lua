@@ -44,6 +44,12 @@
 -- asked for: a local change goes out on GUILD after the batch like any other, and a client that comes later asks for them
 -- with GASK (Data/Groups.lua).
 --
+-- Extra summaries (Store.IsExtraSummary: the addon census, SPEC-13 §8.2): those records are summarised and exchanged like
+-- the others, but apart: an entry of their own per author (the key of "+" .. GUID), in `c` of HELLO, in `cb` of BHELLO
+-- (EXTRA_BLOCKS blocks) and in `c` of DIGEST. `s`, `b` and `d` are exactly what a client without those sets computes, so
+-- an older client sees no difference; nothing of them is pushed to, asked of or compared with a client that did not send
+-- those fields.
+--
 -- Received records always go through Store:Receive, so a client that is not allowed to pass something on is simply
 -- refused by the others. Every timer is cancelled on a change of guild. Bus: SYNC_HELLO(sent), SYNC_RECEIVED(set, n).
 --
@@ -83,6 +89,7 @@ Sync.BLOCKS = 96                    -- blocks of a BHELLO, 3 bytes each: the mes
 Sync.BLOCK_SINCE = { 0, 7, 0 }      -- the first version that knows BHELLO
 Sync.DIGEST_MAX = 1400              -- entries in one DIGEST (11 bytes each: the message stays under Codec.MAX_DECODED)
 Sync.BHELLO_ANSWER = 600            -- seconds after a BHELLO in which a DIGEST is expected
+Sync.EXTRA_BLOCKS = 12              -- blocks of the extra summary in a BHELLO (`cb`): the message stays under 512 B
 
 if ns.Codec then ns.Codec:RegisterType("BHELLO", { b = "string" }) end
 
@@ -172,6 +179,27 @@ end
 
 local function ownerKey(set, id) return set .. "|" .. tostring(id) end
 
+-- The name of an author's group of the extra summary.
+function Sync.ExtraName(guid) return "+" .. tostring(guid) end
+
+-- true when this client has a set of the extra summary switched on: only then it sends and reads those fields.
+local function speaksExtra()
+	local S = store()
+	for set in pairs(S.SETS) do
+		if S.IsExtraSummary(set) and S.IsActive(set) then return true end
+	end
+	return false
+end
+
+-- The groups of `groups` that are authors of the older sets (what decides between HELLO and BHELLO).
+local function authorCount(groups)
+	local n = 0
+	for _, g in pairs(groups) do
+		if not g.extra then n = n + 1 end
+	end
+	return n
+end
+
 -- The three classes of groups: false (what a member may hold, per author), true (the officers' bank tabs, per author) and
 -- "officer" (the officer tools, per group name).
 local CLASSES = { false, true, "officer" }
@@ -193,9 +221,11 @@ local function place(groups, set, id, rec)
 	local author = type(rec) == "table" and rec.author
 	if type(author) ~= "string" or not store().IsActive(set) or store().IsVolatile(set) then return nil end   -- GRP-03
 	local class, key = classOf(set, rec)
+	local extra = class == false and store().IsExtraSummary(set)
+	if extra then key = Sync.ExtraName(author) end
 	local into = groups[class]
 	local g = into[key]
-	if not g then g = { byId = {} } into[key] = g end
+	if not g then g = { byId = {}, author = author, extra = extra or nil } into[key] = g end
 	local k = ownerKey(set, id)
 	g.byId[k] = { set, rec, id, k }
 	state.owner[k] = { key, class }
@@ -274,10 +304,13 @@ local function readBE(s, at, bytes)
 	return n
 end
 
--- The summary as a byte string: entries sorted by key, each key (4 bytes), digest (3), newest time (4).
-function Sync:EncodeSummary(groups)
+-- The summary as a byte string: entries sorted by key, each key (4 bytes), digest (3), newest time (4). `extra` true
+-- takes the groups of the extra summary instead of the others.
+function Sync:EncodeSummary(groups, extra)
 	local entries = {}
-	for _, g in pairs(groups or self:Groups()) do entries[#entries + 1] = g end
+	for _, g in pairs(groups or self:Groups()) do
+		if (g.extra == true) == (extra == true) then entries[#entries + 1] = g end
+	end
 	sort(entries, function(a, b) return a.key < b.key end)
 	local out = {}
 	for i, g in ipairs(entries) do
@@ -306,40 +339,48 @@ function Sync.BlockOf(key)
 	return floor(mixed / 4294967296 * Sync.BLOCKS)
 end
 
+local function blockCount(extra) return extra and Sync.EXTRA_BLOCKS or Sync.BLOCKS end
+
+-- The block of a key among `n`: BLOCKS of them, or EXTRA_BLOCKS made of neighbouring ones.
+local function partOf(key, n) return floor(Sync.BlockOf(key) * n / Sync.BLOCKS) end
+
 -- The digest of each block of `groups` (block -> 24-bit number, 0 for an empty block), cached until the store changes
--- when `groups` is the current summary.
-function Sync:BlockSums(groups)
-	local current = groups == nil
+-- when `groups` is the current summary. `extra` true: the blocks of the extra summary.
+function Sync:BlockSums(groups, extra)
+	local current, slot = groups == nil, extra and "extraBlocks" or "blocks"
 	groups = groups or self:Groups()
-	if current and state.blocks and state.blocks.version == state.version then return state.blocks.sums end
-	local sums, H = {}, hash()
-	for b = 0, Sync.BLOCKS - 1 do sums[b] = 0 end
+	if current and state[slot] and state[slot].version == state.version then return state[slot].sums end
+	local sums, H, n = {}, hash(), blockCount(extra)
+	for b = 0, n - 1 do sums[b] = 0 end
 	for _, g in pairs(groups) do
-		local b = Sync.BlockOf(g.key)
-		local h = g.h or H.Fast(g.key .. "|" .. g.d .. "|" .. max(0, min(floor(g.t), 4294967295)))
-		sums[b] = (sums[b] + h) % 16777216
+		if (g.extra == true) == (extra == true) then
+			local b = partOf(g.key, n)
+			local h = g.h or H.Fast(g.key .. "|" .. g.d .. "|" .. max(0, min(floor(g.t), 4294967295)))
+			sums[b] = (sums[b] + h) % 16777216
+		end
 	end
-	if current then state.blocks = { version = state.version, sums = sums } end
+	if current then state[slot] = { version = state.version, sums = sums } end
 	return sums
 end
 
--- The blocks of a BHELLO as a byte string: BLOCKS digests of 3 bytes, block 0 first (cached with the sums for the
--- current summary).
-function Sync:EncodeBlocks(groups)
-	local sums, out = self:BlockSums(groups), {}
-	local current = groups == nil and state.blocks
+-- The blocks of a BHELLO as a byte string: BLOCKS digests of 3 bytes (EXTRA_BLOCKS for the extra summary), block 0
+-- first (cached with the sums for the current summary).
+function Sync:EncodeBlocks(groups, extra)
+	local sums, out = self:BlockSums(groups, extra), {}
+	local current = groups == nil and state[extra and "extraBlocks" or "blocks"]
 	if current and current.text then return current.text end
-	for b = 0, Sync.BLOCKS - 1 do out[b + 1] = be(sums[b], 3) end
+	for b = 0, blockCount(extra) - 1 do out[b + 1] = be(sums[b], 3) end
 	local text = concat(out)
 	if current then current.text = text end
 	return text
 end
 
--- block -> digest from a BHELLO's `b`, or nil when it is malformed.
-function Sync.DecodeBlocks(s)
-	if type(s) ~= "string" or #s ~= Sync.BLOCKS * 3 then return nil end
+-- block -> digest from a BHELLO's `b` (or `cb`, with `extra`), or nil when it is malformed.
+function Sync.DecodeBlocks(s, extra)
+	local n = blockCount(extra)
+	if type(s) ~= "string" or #s ~= n * 3 then return nil end
 	local out = {}
-	for b = 0, Sync.BLOCKS - 1 do
+	for b = 0, n - 1 do
 		local x, y, z = byte(s, b * 3 + 1, b * 3 + 3)
 		out[b] = (x * 256 + y) * 256 + z
 	end
@@ -553,16 +594,18 @@ function Sync:SendHello()
 	local av = type(version) == "string" and version:sub(1, 20) or nil
 	Sync:Invalidate()   -- the summary sent is read from the whole store (a change without its event cannot linger)
 	local groups = self:Groups()
-	local authors = count(groups)
+	local authors, extra = authorCount(groups), speaksExtra()
 	local ok
 	if authors > Sync.BLOCK_OVER and self:BlocksAllowed() then
-		ok = send("GUILD", { t = "BHELLO", b = self:EncodeBlocks(groups), n = authors, av = av }, { key = "HELLO" })
+		ok = send("GUILD", { t = "BHELLO", b = self:EncodeBlocks(groups), cb = extra and self:EncodeBlocks(groups, true) or nil,
+			n = authors, av = av }, { key = "HELLO" })
 		if ok then
 			state.stats.bhellosSent = state.stats.bhellosSent + 1
 			state.bhelloAt, state.digested = now(), {}
 		end
 	else
-		ok = send("GUILD", { t = "HELLO", d = {}, s = self:EncodeSummary(groups), av = av }, { key = "HELLO" })
+		ok = send("GUILD", { t = "HELLO", d = {}, s = self:EncodeSummary(groups),
+			c = extra and self:EncodeSummary(groups, true) or nil, av = av }, { key = "HELLO" })
 	end
 	if ok then
 		state.stats.hellosSent = state.stats.hellosSent + 1
@@ -598,7 +641,7 @@ end
 -- The range of the wait before the first HELLO after login: the more authors a guild has, the more the logins after a
 -- server restart spread out (SPEC-11 §6.4: 1000 authors, 10 to 130 seconds).
 function Sync.FirstHelloDelay(authors)
-	authors = authors or count(Sync:Groups())
+	authors = authors or authorCount(Sync:Groups())
 	return { Sync.HELLO_DELAY[1], Sync.HELLO_DELAY[1] + Sync.HELLO_DELAY[2] + authors / 10 }
 end
 
@@ -659,11 +702,11 @@ local function behindOn(theirs, member, groups)
 	local senderOfficer = member.officer == true
 	local wanted = {}
 	for key, entryTheirs in pairs(theirs) do
-		local author = myKeys[key]
-		local mine = author and groups[author]
+		local name = myKeys[key]
+		local mine = name and groups[name]
 		if mine == nil or entryTheirs.t > mine.t then
-			local canDeliver = senderOfficer or key == Sync.KeyOf(target)
-				or (author ~= nil and S:SameAccount(target, author))
+			local canDeliver = senderOfficer or key == Sync.KeyOf(target) or key == Sync.KeyOf(Sync.ExtraName(target))
+				or (mine ~= nil and S:SameAccount(target, mine.author))
 			-- this includes the client's own records: after a lost or older saved file it gets its versions back,
 			-- so its next write does not start again from rev 1
 			if canDeliver then wanted[key] = true end
@@ -712,6 +755,9 @@ end
 local function onHello(msg, sender)
 	local theirs = Sync.DecodeSummary(msg.s)
 	if not theirs then return end
+	-- the extra summary, from a client that sends it (and when this one speaks it)
+	local more = speaksExtra() and Sync.DecodeSummary(msg.c) or nil
+	for key, entry in pairs(more or {}) do theirs[key] = entry end
 	local member = touch(sender)
 	if not member then return end
 	if not helloAllowed(msg, sender, onHello) then return end
@@ -725,15 +771,16 @@ local function onHello(msg, sender)
 
 	-- push what the sender lacks and this client may deliver
 	local pushAuthors = {}
-	for author, g in pairs(groups) do
-		if ahead(g, theirs[g.key]) then
+	for name, g in pairs(groups) do
+		if (more ~= nil or not g.extra) and ahead(g, theirs[g.key]) then
+			local author = g.author
 			local targetsOwn = author == target or S:SameAccount(author, target)
 			if me and S:SameAccount(me, author) and not targetsOwn then
-				pushAuthors[author] = true
+				pushAuthors[name] = true
 			elseif targetsOwn or not accountsOnline[author] then
 				-- an offline author, or the sender's own records that it lost (a new computer): one officer relays
 				if isDesignated == nil then isDesignated = designated(target) end
-				if isDesignated then pushAuthors[author] = true end
+				if isDesignated then pushAuthors[name] = true end
 			end
 		end
 	end
@@ -752,36 +799,50 @@ local function onBlockHello(msg, sender)
 	if not helloAllowed(msg, sender, onBlockHello) then return end
 	state.stats.bhellosHeard = state.stats.bhellosHeard + 1
 	heardHello(msg, sender, member)
-	if msg.b == Sync:EncodeBlocks() then return end   -- the usual case: in step, nothing to compare (SPEC-11 §6.5: <= 1 ms)
-	local theirs = Sync.DecodeBlocks(msg.b)
-	local target, S, me = member.guid, store(), myGUID()
-	local mine = Sync:BlockSums()
-	local differ, any = {}, false
-	for b = 0, Sync.BLOCKS - 1 do
-		if theirs[b] ~= mine[b] then differ[b], any = true, true end
+	local extra = speaksExtra() and type(msg.cb) == "string" and #msg.cb == Sync.EXTRA_BLOCKS * 3
+	if msg.b == Sync:EncodeBlocks() and (not extra or msg.cb == Sync:EncodeBlocks(nil, true)) then
+		return   -- the usual case: in step, nothing to compare (SPEC-11 §6.5: <= 1 ms)
 	end
+	local target, S, me = member.guid, store(), myGUID()
+	local any = false
+	local function differing(text, isExtra)
+		local theirs, mine, out = Sync.DecodeBlocks(text, isExtra), Sync:BlockSums(nil, isExtra), {}
+		for b = 0, blockCount(isExtra) - 1 do
+			if theirs[b] ~= mine[b] then out[b], any = true, true end
+		end
+		return out
+	end
+	local differ = differing(msg.b)
+	local differExtra = extra and differing(msg.cb, true) or {}
 	if not any then return end
 	local all = designated(target)
 	local own = not all and me ~= nil and me ~= target and S:SameAccount(me, target)
 	if not (all or own) then return end
-	local byBlock = {}
+	local byBlock, byExtra = {}, {}
 	for b in pairs(differ) do byBlock[b] = {} end
-	for author, g in pairs(Sync:Groups()) do
-		local list = byBlock[Sync.BlockOf(g.key)]
-		if list and (all or S:SameAccount(me, author)) then list[#list + 1] = g end
+	for b in pairs(differExtra) do byExtra[b] = {} end
+	for _, g in pairs(Sync:Groups()) do
+		local list
+		if g.extra then list = byExtra[partOf(g.key, Sync.EXTRA_BLOCKS)] else list = byBlock[Sync.BlockOf(g.key)] end
+		if list and (all or S:SameAccount(me, g.author)) then list[#list + 1] = g end
 	end
-	local blocks = {}
-	for b in pairs(byBlock) do blocks[#blocks + 1] = b end
-	sort(blocks)
-	local d, entries = {}, 0
-	for _, b in ipairs(blocks) do
-		local list = byBlock[b]
-		if entries + #list > Sync.DIGEST_MAX then break end   -- the rest waits for the next BHELLO
-		entries = entries + #list
-		d[b] = Sync:EncodeSummary(list)
+	local entries = 0
+	local function digest(lists, isExtra)
+		local blocks, out = {}, {}
+		for b in pairs(lists) do blocks[#blocks + 1] = b end
+		sort(blocks)
+		for _, b in ipairs(blocks) do
+			local list = lists[b]
+			if entries + #list > Sync.DIGEST_MAX then break end   -- the rest waits for the next BHELLO
+			entries = entries + #list
+			out[b] = Sync:EncodeSummary(list, isExtra)
+		end
+		return out
 	end
-	if not next(d) then return end
-	if send("WHISPER", { t = "DIGEST", d = d, o = own and 1 or nil }, { target = sender, key = "DIGEST|" .. sender }) then
+	local d = digest(byBlock)
+	local c = extra and digest(byExtra, true) or nil
+	if not next(d) and not (c and next(c)) then return end
+	if send("WHISPER", { t = "DIGEST", d = d, c = c, o = own and 1 or nil }, { target = sender, key = "DIGEST|" .. sender }) then
 		state.stats.digestsSent = state.stats.digestsSent + 1
 	end
 end
@@ -794,34 +855,41 @@ local function onDigest(msg, sender)
 	if state.digested[key] then return end   -- one answer per sender and BHELLO
 	local member = touch(sender)
 	if not member then return end
-	local theirs, blocks, entries = {}, {}, 0
-	for k, s in pairs(msg.d) do
-		local b = tonumber(k)
-		if not (b and b == floor(b) and b >= 0 and b < Sync.BLOCKS) then return end
-		local part = Sync.DecodeSummary(s)
-		if not part then return end
-		blocks[b] = true
-		for authorKey, e in pairs(part) do
-			if Sync.BlockOf(authorKey) == b then
-				theirs[authorKey] = e
-				entries = entries + 1
+	local theirs, blocks, extraBlocks, entries = {}, {}, {}, 0
+	local function read(list, into, n)
+		for k, s in pairs(list) do
+			local b = tonumber(k)
+			if not (b and b == floor(b) and b >= 0 and b < n) then return false end
+			local part = Sync.DecodeSummary(s)
+			if not part then return false end
+			into[b] = true
+			for authorKey, e in pairs(part) do
+				if partOf(authorKey, n) == b then
+					theirs[authorKey] = e
+					entries = entries + 1
+				end
 			end
+			if entries > 2000 then return false end
 		end
-		if entries > 2000 then return end
+		return true
 	end
-	if not next(blocks) then return end
+	if not read(msg.d, blocks, Sync.BLOCKS) then return end
+	if speaksExtra() and type(msg.c) == "table" and not read(msg.c, extraBlocks, Sync.EXTRA_BLOCKS) then return end
+	if not (next(blocks) or next(extraBlocks)) then return end
 	state.digested[key] = true
 	state.stats.digestsHeard = state.stats.digestsHeard + 1
 	local S, me = store(), myGUID()
 	local ownOnly = msg.o ~= nil
 	local groups, part = Sync:Groups(), {}
-	for author, g in pairs(groups) do
-		if blocks[Sync.BlockOf(g.key)] and (not ownOnly or (me and S:SameAccount(me, author))) then part[author] = g end
+	for name, g in pairs(groups) do
+		local listed
+		if g.extra then listed = extraBlocks[partOf(g.key, Sync.EXTRA_BLOCKS)] else listed = blocks[Sync.BlockOf(g.key)] end
+		if listed and (not ownOnly or (me and S:SameAccount(me, g.author))) then part[name] = g end
 	end
 	-- push what this client is ahead in and may deliver: its own account always, everything when it is an officer
 	local officer, pushAuthors = iAmOfficer(), {}
-	for author, g in pairs(part) do
-		if ahead(g, theirs[g.key]) and (officer or (me and S:SameAccount(me, author))) then pushAuthors[author] = true end
+	for name, g in pairs(part) do
+		if ahead(g, theirs[g.key]) and (officer or (me and S:SameAccount(me, g.author))) then pushAuthors[name] = true end
 	end
 	schedulePush(sender, pushAuthors)
 	scheduleReq(sender, theirs, behindOn(theirs, member, part))
@@ -914,7 +982,7 @@ local function onReq(msg, sender)
 	for i, key in ipairs(msg.a) do
 		if i > (single and 20 or 500) then break end
 		local author = type(key) == "number" and byKey[key]
-		if author and (officer or (me and S:SameAccount(me, author))) then
+		if author and (officer or (me and S:SameAccount(me, groups[author].author))) then
 			local entries = {}
 			for _, e in ipairs(groups[author].records) do
 				if not single or e[1] == single then entries[#entries + 1] = e end
@@ -936,7 +1004,8 @@ end
 local function onRec(msg, sender, dist)
 	touch(sender)
 	local S = store()
-	if not S.SETS[msg.s] then return end
+	-- an unknown set, or the set of a feature that is switched off, is ignored without counting against the sender
+	if not S.IsActive(msg.s) then return end
 	if type(msg.r) ~= "table" or count(msg.r) > Sync.MAX_REC then   -- dropped whole (SPEC-11 §6.1, `count`)
 		state.stats.oversized = state.stats.oversized + 1
 		state.stats.refused = state.stats.refused + 1
@@ -1126,7 +1195,7 @@ function Sync:DebugLines()
 		if p.officer then officers = officers + 1 end
 	end
 	local authors = 0
-	if ns.GuildKey and ns.GuildKey:Current() then for _ in pairs(self:Groups()) do authors = authors + 1 end end
+	if ns.GuildKey and ns.GuildKey:Current() then authors = authorCount(self:Groups()) end
 	return {
 		("Sync: %s, %d author(s) known, %d peer(s) with the addon heard recently (%d officer(s))"):format(
 			self.AUTO and "automatic" or "manual", authors, peers, officers),

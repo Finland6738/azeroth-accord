@@ -7,7 +7,9 @@
 --                                note = text | nil }
 --   ShareModel.Add(id, def)   another data set (M9.9, the addon list): def = { order, to, when, switch, build(me, at) ->
 --                                lines, records, rev, updated, note }
---   ShareModel.SetSwitch(key, on)   the switch of a row (only "shareCoplay" exists)
+--   ShareModel.SetSwitch(key, on)   the switch of a row ("shareCoplay"; "shareAddons", M9.9)
+-- A row with `feature` shows only while that switch of Core/Features.lua is on. A row with a switch may name its texts
+-- (switchLabel, switchTip, offNote: locale keys); without them they are the co-play ones.
 -- The other characters' own `accounts` rows are not shown as published by this one (SPEC-11 §5): the page says so.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -21,6 +23,7 @@ local sort, concat, max = table.sort, table.concat, math.max
 
 Model.COPLAY_DAYS = 7           -- the days of co-play the panel lists
 Model.REQUESTS = 5              -- the bank requests it lists
+Model.ADDONS = 5                -- the addons it names
 
 local function S() return ns.Store end
 local function me() return ns.Compat and ns.Compat.Player.GUID() end
@@ -233,6 +236,27 @@ local function define(id, def)
 	if not Model.DEFS[id] then Model.ORDER[#Model.ORDER + 1] = id end
 	Model.DEFS[id] = def
 end
+-- The addon census (SPEC-13 §8.3): how many addons the own record lists and the first of them.
+builders.addons = function(guid)
+	local rec = S():Get("addons", guid)
+	local lines, recs = {}, { rec }
+	if not rec then
+		lines[1] = L["SHARE_NOTHING_YET"]
+	elseif rec.del == true then
+		lines[1] = L["SHARE_ADDONS_WITHDRAWN"]
+	else
+		local names = {}
+		for i = 1, math.min(#(rec.l or {}), Model.ADDONS) do names[i] = tostring(rec.l[i][3] or rec.l[i][1]) end
+		local count = #(rec.l or {})
+		lines[1] = L["SHARE_ADDONS_COUNT"]:format(count)
+		if count > #names then lines[2] = L["SHARE_ADDONS_FIRST"]:format(concat(names, ", "), count - #names)
+		else lines[2] = concat(names, ", ") end
+		if rec.more then lines[#lines + 1] = L["SHARE_ADDONS_MORE"]:format(rec.more) end
+	end
+	lines[#lines + 1] = L["SHARE_ADDONS_NAMES"]
+	return lines, recs
+end
+
 define("accounts", { set = "accounts", build = builders.accounts, title = "SHARE_ACCOUNTS", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_LOGIN" })
 define("contacts", { set = "contacts", build = builders.contacts, title = "SHARE_CONTACTS", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_CHANGE", always = true })
 define("recipes", { set = "recipes", build = builders.recipes, title = "SHARE_RECIPES", to = "SHARE_TO_GUILD", when = "SHARE_WHEN_PROFESSION" })
@@ -270,7 +294,8 @@ function Model.Describe(at)
 	if not (guid and S() and ns.GuildKey and ns.GuildKey:Current()) then return rows end
 	for _, id in ipairs(Model.ORDER) do
 		local def = Model.DEFS[id]
-		local visible = not def.officersOnly or (ns.Role ~= nil and ns.Role:IsOfficer())
+		local visible = (not def.officersOnly or (ns.Role ~= nil and ns.Role:IsOfficer()))
+			and (def.feature == nil or (ns.Features ~= nil and ns.Features.On(def.feature)))
 		if visible then
 			local lines, recs = def.build(guid, at)
 			local rev, updated = summary(recs or {})
@@ -279,8 +304,9 @@ function Model.Describe(at)
 			if updated then row.age = L["SHARE_UPDATED"]:format(ns.Provenance.AgeText(ns.Provenance.Age(updated, at))) end
 			if def.switch then
 				row.switch, row.on = def.switch, switchOn(def.switch)
-				row.switchLabel = L["SHARE_COPLAY_SWITCH"]
-				if not row.on then row.note = L["SHARE_COPLAY_OFF_NOTE"] end
+				row.switchLabel = L[def.switchLabel or "SHARE_COPLAY_SWITCH"]
+				row.switchTip = L[def.switchTip or "SHARE_COPLAY_SWITCH_TIP"]
+				if not row.on then row.note = L[def.offNote or "SHARE_COPLAY_OFF_NOTE"] end
 			end
 			rows[#rows + 1] = row
 		end
@@ -293,5 +319,10 @@ function Model.SetSwitch(key, on)
 	if not (M and M.OPTION[key] and M.OPTION[key].group == "sharing") then return false, "unknown" end
 	return M.Set(key, on)
 end
+
+-- added after the sets above, under the recipes (SPEC-13 §8.3)
+Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",
+	switchTip = "SHARE_ADDONS_SWITCH_TIP", offNote = "SHARE_ADDONS_OFF_NOTE" })
 
 if ns.addon then ns.addon.ShareModel = Model end

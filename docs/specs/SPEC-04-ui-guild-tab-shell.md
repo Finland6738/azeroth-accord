@@ -75,7 +75,7 @@ La vista **Settings** (`/accord settings`) e un pannello **Azeroth Accord** nell
 
 ### 6.1 Cosa condivido (M7.6)
 
-La pagina **What I share** / **Cosa condivido** (`UI/SharePanel.lua`, `UI/ShareModel.lua`) è la seconda pagina del selettore, tra Settings e Info (`AddPage("share", …)`, ordine 15). Elenca, per ogni insieme di dati che questo personaggio pubblica, a chi va, quando parte e il contenuto dei record che il client ha mandato per ultimi; il contenuto, le righe e l'unico interruttore (`Record time played together`, `account.settings.shareCoplay`) sono in [SPEC-11 §5](SPEC-11-data-trust.md#5-pannello-cosa-condivido-m76). L'interruttore non è nella card Notifiche: ha `group = "sharing"` in `SettingsModel.OPTIONS` e si disegna solo su questa pagina.
+La pagina **What I share** / **Cosa condivido** (`UI/SharePanel.lua`, `UI/ShareModel.lua`) è la seconda pagina del selettore, tra Settings e Info (`AddPage("share", …)`, ordine 15). Elenca, per ogni insieme di dati che questo personaggio pubblica, a chi va, quando parte e il contenuto dei record che il client ha mandato per ultimi; il contenuto, le righe e l'unico interruttore (`Record time played together`, `account.settings.shareCoplay`) sono in [SPEC-11 §5](SPEC-11-data-trust.md#5-pannello-cosa-condivido-m76). L'interruttore non è nella card Notifiche: ha `group = "sharing"` in `SettingsModel.OPTIONS` e si disegna solo su questa pagina. Da M9.9, con l'interruttore di funzione `census` acceso, la pagina ha anche la carta *Loaded addons* con *Share my addon list* (`account.settings.shareAddons`), che compare anche nella carta *Contacts* della pagina Settings ([SPEC-13 §8.3](SPEC-13-action-center-notices.md#83-linterruttore)).
 
 ## 7. Informazioni (M6.15)
 

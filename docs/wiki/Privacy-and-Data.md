@@ -35,9 +35,15 @@ A broken or modified addon cannot jam yours either: a message that is too large,
 
 A [[group|Groups]] you post (type, activity, levels, size, roles still needed, your note and meeting point, never a position) is sent to your guild only, and every member's computer drops it 10 minutes after it ends. An **application** (your role, level and optional comment) goes by whisper to that group's leader only, and so does the answer: nobody else knows. Both are kept on the two computers until the group closes, and neither enters backups or exports. Your saved filters stay on your computer.
 
+## Your addon list
+
+> From `v0.9.0`.
+
+Accord shares with your guild the **list of the addons this character has loaded** (folder name, version and title; never Blizzard's own addons, their settings or any file), so that the [[Guild addons|Guild-Addons]] tab can count them. Everybody sees the counts and the versions; **who** uses an addon Accord shows only to officers and the Guild Master, and to you your own entry. That is a rule of the interface: the lists reach the whole guild. A list is kept for 60 days. **Share my addon list** is on by default; switch it off (on *What I share* or in the Contacts card of Settings) and your lists are withdrawn and no new one is sent.
+
 ## Other addons
 
-The released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.
+Apart from that list, which comes with `v0.9.0`, the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.
 
 ## What stays on your computer
 

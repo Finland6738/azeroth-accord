@@ -24,7 +24,7 @@ The folder names of the addons other than FDCP come from their public pages and 
 - **Level 1, reading.** Accord reads what the addon publishes for other addons. Only FDCP publishes such an interface (`FinlandDragonCreditPointsAPI`), and Accord reads it only when its version is one Accord knows (version 1). With another version Accord goes back to level 0 and nothing breaks: update Accord.
 - There is no level 2: Accord never sends anything to another addon.
 
-`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which addons the *other* members have comes later, with the guild's addon list (M9).
+`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`); the raid and loot features will use it when they are released.
 
 ## The Raid view
 

@@ -113,7 +113,9 @@ Release: `v0.9.0`.
   - M10.2 reads the known raid and loot addons from this census instead of keeping its own field.
 - Tests: `Tests/test_addons_census.lua`: counts over many authors; an author who turns sharing off disappears from the counts; changed lists replace old ones; oversized lists are capped; old entries drop after the usual retention.
 - Done when:
-  - [ ] The tab shows the right counts; with sharing off nothing is sent; the wiki explains what is shared.
+  - [x] The tab shows the right counts; with sharing off nothing is sent; the wiki explains what is shared.
+  - *Done (2026-11-25):* `Data/Census.lua` (the loaded addons through `Compat.Addon.Loaded`, Blizzard's left out, at most 120 entries and 6 KB, sent after the first `HELLO` only when the list changed, withdrawn when sharing is switched off, 60 days of retention; counts per account; who uses an addon for officers and the Guild Master only, `Census.NAMES_VISIBLE_TO`; `Integrations:Holders` for M10.2), the data set `addons`, summarised apart so that `v0.8.0` clients see no difference (`Net/Sync.lua`), the view *Guild addons* (`UI/GuildAddons.lua`, `/accord addons`), the switch **Share my addon list** in Settings and *What I share*, the demo's lists, `settings.shareAddons` in schema 4; wiki [Guild addons](../wiki/Guild-Addons.md) and [Addon della gilda](../wiki/Guild-Addons-it.md); `Tests/test_addons_census.lua` with the simulator and the traffic budget (SPEC-13 §8.7). Behind the switch `census`, off until M9.10. No design preview images. Not checked in the game.
+- Real client: what `C_AddOns` gives on Forever (loaded state by index, `security` of Blizzard's addons, title and version texts) and the size of real addon lists against the limit.
 
 ### M9.10 — In-game check and release
 - Branch: `step/m9-10-check`

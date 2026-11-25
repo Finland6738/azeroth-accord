@@ -45,6 +45,7 @@ end
 local SAME = {
 	DIGEST_CHAT_LIKES_ONE = true, DIGEST_CHAT_LIKES = true,   -- "like" is the word in Italian too
 	TL_LINE = true, ONT_OTHER = true, EXPORT_ROSTER = true, EXPORT_CSV = true, EXPORT_DISCORD = true,
+	ADDONS_COL_NAME = true,   -- "Addon" in Italian too
 	ADDON_TITLE = true, WINDOW_TITLE = true, VIEW_ROSTER = true, COL_ADDON = true, ONLINE = true, FILTER_ONLINE = true, CARD_MAIN = true, CARD_ALT = true,
 	CONTACT_BT_SHORT = true, CONTACT_DISCORD_SHORT = true, CARD_BATTLETAG = true, CARD_DISCORD = true, SET_DATA_PART = true,
 	RV_TITLE = true, REP_LIKE = true, SOC_HOURS = true, SOC_TOP_LINE = true, NEW_MINUTES = true, BANK_TAB_COUNT = true,

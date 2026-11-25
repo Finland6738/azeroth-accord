@@ -206,3 +206,24 @@ describe("the switch groups (M9.6) is off", function()
 		eq(A().Store:Count("groups"), 0)
 	end)
 end)
+
+describe("the switch census (M9.9) is off", function()
+	before_boot(function(M)
+		M.guild.Set{ name = "Accord", myRank = 1, members = {
+			{ name = "Bob", level = 60, class = "MAGE", rank = 3, guid = BOB, online = true },
+		} }
+	end)
+
+	-- the whole behaviour with the switch off and on is in Tests/test_addons_census.lua
+	it("is off in the shipped code: no view, and nothing of the addon census is sent", function()
+		eq(A().Features.census, false)
+		falsy(A().Features.On("census"))
+		falsy(A().Store.IsActive("addons"))
+		local before = #Mock.chat.sent
+		A().Bus:Emit("SYNC_HELLO", true)
+		Mock.Advance(200)
+		eq(#Mock.chat.sent, before)
+		eq(A().Store:Count("addons"), 0)
+		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "addons") end
+	end)
+end)

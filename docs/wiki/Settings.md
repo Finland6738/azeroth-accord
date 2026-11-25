@@ -32,6 +32,8 @@ Hover a switch for a short explanation. A font the game has not loaded yet shows
 
 Both are **always shared with your guild**, so guildmates can reach you: there is no switch. Nothing leaves the guild. See [[Privacy and Data|Privacy-and-Data]].
 
+From `v0.9.0` this card also has **Share my addon list** (on by default), the same switch as on the *What I share* page: see [[Guild addons|Guild-Addons]].
+
 ## Main character
 
 Pick which of your characters is your **main**. It leads your characters in the grouped Roster and on the member card ([[Guild Roster|Guild-Roster]]). Until you pick one, the highest-level character leads. The menu lists the characters of your account on this realm.
@@ -73,6 +75,7 @@ Every card says **who receives** the data, **when it goes out** and **what it co
 | Contacts | your BattleTag and Discord name; always shared, there is no switch |
 | Recipes | each profession: name, rank and the number of recipes |
 | Time played together | the last 7 days: how many pairs and minutes per day. The pairs name your guildmates, not only you |
+| Loaded addons *(from `v0.9.0`)* | how many addons your list holds and the first five, with the switch **Share my addon list**; the list reaches the whole guild, and Accord shows who uses an addon only to officers ([[Guild addons|Guild-Addons]]) |
 | Guild bank snapshots | the tabs you read (name, number of items), the money and the logs |
 | Your bank requests | your latest 5 requests and their status |
 | Likes | how many likes your account has given (kept only on this computer) |
@@ -83,9 +86,9 @@ Every card says **who receives** the data, **when it goes out** and **what it co
 
 Your other characters are not listed as published by this one: each publishes its own records when you log in with it.
 
-### The one switch
+### The switches
 
-**Record time played together** (on by default) is the only thing you can switch off here. Off, this client stops counting and publishing co-play and writes no new records. Records already published stay until they expire (90 days), and your guildmates' clients still observe the groups this character is in; the card says so. Recipes and bank snapshots have no switch because they are the feature itself, and your characters, BattleTag and Discord are always shared ([[Privacy and data|Privacy-and-Data]]).
+**Record time played together** (on by default) is the one switch of `v0.8.0`; from `v0.9.0` there is also **Share my addon list** (on by default; off, your lists are withdrawn from the guild's table, [[Guild addons|Guild-Addons]]). With **Record time played together** off, this client stops counting and publishing co-play and writes no new records. Records already published stay until they expire (90 days), and your guildmates' clients still observe the groups this character is in; the card says so. Recipes and bank snapshots have no switch because they are the feature itself, and your characters, BattleTag and Discord are always shared ([[Privacy and data|Privacy-and-Data]]).
 
 ## Backup and restore
 

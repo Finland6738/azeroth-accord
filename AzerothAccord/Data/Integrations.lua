@@ -27,8 +27,9 @@
 -- Switch         Core/Features.lua "raid": while it is off, nothing is detected at login or on ADDON_LOADED, no officer
 --                can choose a source (SetSource: false, "off"), the data set `guildcfg` is neither accepted nor sent
 --                (Net/Store.lua) and /accord debug has no Integrations section.
--- Census         Which known addons the OTHER members have loaded comes from the addon census of M9.9; this module keeps no
---                field of its own and sends nothing.
+-- Census         Which known addons the OTHER members have loaded comes from the addon census of M9.9 (Data/Census.lua,
+--                with the same folder name as in KNOWN): Integrations:Holders(id) reads it. This module keeps no field
+--                of its own and sends nothing.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Integrations = {}
@@ -207,6 +208,17 @@ function Integrations:Provider(datum)
 	if source == "fdcp" then return ns.FDCP end
 	if source == "accord" then return Integrations.OWN end
 	return nil
+end
+
+-- Which members have the known addon `id` loaded, from the addon census (M9.9, SPEC-13 §8.1): the accounts and their
+-- versions as far as this character may see them (Census:Who: officers and the Guild Master all of them, anybody else
+-- only the own account), then how many accounts use it and out of how many that share. nil for an unknown id and while
+-- the census is switched off.
+function Integrations:Holders(id)
+	local def, Census = byId[id], ns.Census
+	if not (def and Census and Census.Enabled()) then return nil end
+	local n, total = Census:Count(def.folder)
+	return Census:Who(def.folder), n, total
 end
 
 function Integrations:DebugLines()

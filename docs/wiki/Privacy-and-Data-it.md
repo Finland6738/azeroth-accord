@@ -34,9 +34,15 @@ Un addon rotto o modificato non può nemmeno bloccare il tuo: un messaggio tropp
 
 Un [[gruppo|Groups-it]] che pubblichi (tipo, attività, livelli, posti, ruoli cercati, la tua nota e il ritrovo, mai una posizione) va solo alla tua gilda, e il computer di ogni membro lo elimina 10 minuti dopo la fine. Una **candidatura** (il tuo ruolo, il livello e un commento facoltativo) va in sussurro solo al capo di quel gruppo, e così la risposta: nessun altro lo sa. Restano sui due computer finché il gruppo non si chiude, e non entrano nei backup né nelle esportazioni. I filtri salvati restano sul tuo computer.
 
+## L'elenco dei tuoi addon
+
+> Dalla `v0.9.0`.
+
+Accord condivide con la tua gilda l'**elenco degli addon che questo personaggio ha caricati** (nome della cartella, versione e titolo; mai gli addon di Blizzard, le loro impostazioni o dei file), perché la scheda [[Addon della gilda|Guild-Addons-it]] li possa contare. Conteggi e versioni li vedono tutti; **chi** usa un addon Accord lo mostra solo agli ufficiali e al Guild Master, e a te la tua voce. È una regola dell'interfaccia: gli elenchi arrivano a tutta la gilda. Un elenco si tiene 60 giorni. **Condividi l'elenco dei miei addon** è acceso di default; spegnilo (in *Cosa condivido* o nella carta dei Contatti delle Impostazioni) e i tuoi elenchi si ritirano e non se ne mandano di nuovi.
+
 ## Altri addon
 
-L'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.
+A parte quell'elenco, che arriva con la `v0.9.0`, l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.
 
 ## Cosa resta sul tuo computer
 

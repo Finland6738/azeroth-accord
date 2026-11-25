@@ -7,6 +7,8 @@
 --   notifyOfficer   a chat line when a bank request arrives that an officer has not seen (officers only)
 --   notifyDecision  a chat line when a bank request of the player was approved, rejected or fulfilled
 --   shareCoplay     record and publish the time played together (M7.6; Data/CoPlay.lua), on the "What I share" page
+--   shareAddons     publish the list of the loaded addons (M9.9; Data/Census.lua), on the "What I share" page and in the
+--                   contacts card of Settings; only while the switch `census` is on (Core/Features.lua)
 -- The look (theme, effects, animations, font: account.settings.*, M6.14) has its own small table, Model.LOOK, read by the
 -- Appearance card; UI/Theme.lua applies a change at once.
 -- Elsewhere, and only listed here for the page: the Discord name (account.settings.discord, Data/Contacts.lua), the main
@@ -30,6 +32,9 @@ Model.OPTIONS = {
 	-- the only switch of "What I share" (M7.6, SPEC-11 §5): shown on that page, not in the notices card
 	{ key = "shareCoplay", path = "account.settings.shareCoplay", label = "SHARE_COPLAY_SWITCH", tip = "SHARE_COPLAY_SWITCH_TIP",
 		group = "sharing" },
+	-- the addon census (M9.9, SPEC-13 §8.3): on "What I share" and in the contacts card
+	{ key = "shareAddons", path = "account.settings.shareAddons", label = "SHARE_ADDONS_SWITCH", tip = "SHARE_ADDONS_SWITCH_TIP",
+		group = "sharing", feature = "census" },
 }
 
 local byKey = {}
@@ -78,6 +83,7 @@ end
 function Model.Visible(key)
 	local o = byKey[key]
 	if not o then return false end
+	if o.feature and not (ns.Features and ns.Features.On(o.feature)) then return false end
 	if o.officersOnly then return ns.Role ~= nil and ns.Role:IsOfficer() end
 	return true
 end

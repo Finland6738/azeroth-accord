@@ -16,7 +16,7 @@ Prefisso unico `AzAccord` ([ADR 0004](../adr/0004-guild-addon-channels-and-versi
 
 | Tipo | Contenuto | Distribuzione |
 |---|---|---|
-| `HELLO` | versione dell'addon, riepilogo per autore (§4) | `GUILD` |
+| `HELLO` | versione dell'addon, riepilogo per autore (§4); da M9.9 `c` = il riepilogo a parte del censimento degli addon | `GUILD` |
 | `DIGEST` | riservato: non usato dalla sincronizzazione attuale (la risposta a `HELLO` è l'invio diretto dei record, §4) | `WHISPER` |
 | `REQ` | richiesta dei record di uno o più autori (chiavi del riepilogo); con `s` = un insieme (non `*`) chiede **solo i record di quell'insieme**, per una vista che li serve subito (§4, punto 7) | `WHISPER` |
 | `REC` | uno o più record di un insieme | `GUILD` o `WHISPER` |
@@ -55,6 +55,8 @@ Le regole di fiducia (§6) dicono **chi** può passare un record: l'account del 
 | Tempo per convergere dopo l'ultimo accesso | ≤ 5 minuti di norma; ≤ 25 minuti (un periodo di `HELLO`) se un messaggio va perso: la riparazione aspetta il `HELLO` successivo di chi ha il record | da circa 30 secondi a circa 15 minuti, secondo i messaggi persi (con 1% di perdita) |
 | Tutti online e allineati, media per client | ≤ 100 B/min | circa 35 B/min |
 | Tutti online e allineati, client più carico | ≤ 200 B/min | circa 90 B/min |
+
+**Riepilogo a parte** (da M9.9, [SPEC-13 §8.7](SPEC-13-action-center-notices.md#87-come-è-fatto-m99)): i record dell'insieme `addons` non entrano nel riepilogo per autore ma in una voce propria per autore (chiave di `"+" .. GUID`), mandata in `c` del `HELLO`, in `cb` del `BHELLO` (12 blocchi) e in `c` del `DIGEST`; invio, richiesta e ritrasmissione sono gli stessi (§4.2, §4.3). Un client che non manda quei campi (la `v0.8.0`) vede riepiloghi identici a prima e non riceve nulla del censimento oltre ai `REC` su `GUILD`, che ignora. Costo: 11 byte in più nel `HELLO` per ogni autore che condivide. Misurato nel simulatore (50 client, 5 ufficiali, 60–110 addon ciascuno, 1% di messaggi persi, `Tests/test_addons_census.lua`): con accessi, uscite ed elenchi che cambiano il traffico medio è di circa 82 B/min per client (il più carico circa 540), tutti allineati circa 44 B/min (il più carico circa 60), dentro i limiti qui sopra; il primo scambio degli elenchi, a gilda nuova, costa circa 140 KB in tutto. Un `BHELLO` di 1000 autori con entrambi i riepiloghi pesa 477 B.
 
 Il riepilogo cresce di 11 byte per autore: con 200 membri con l'addon un `HELLO` pesa circa 3 KB (12 pezzi da 255 byte), ogni 15–20 minuti; per gilde molto più grandi serve un riepilogo a blocchi: oltre 200 autori un `BHELLO` di 96 blocchi, con la risposta `DIGEST` solo dell'ufficiale designato e dell'account del mittente, provato con 1000 accessi insieme in M7.7 ([SPEC-11 §6](SPEC-11-data-trust.md#6-limiti-contro-i-client-malevoli-e-le-gilde-grandi-m77)).
 

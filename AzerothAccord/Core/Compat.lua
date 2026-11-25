@@ -1182,6 +1182,37 @@ function Compat.Addon.State(name)
 	return out
 end
 
+-- The loaded addons of this character (M9.9, SPEC-13 CEN-02): { { name = folder, title, version, security }, ... } sorted
+-- by folder, with the same calls and rules as Compat.Addon.State; nil when the client cannot list them (feature
+-- detection: C_AddOns.GetNumAddOns, GetAddOnInfo and IsAddOnLoaded). Loaded is the second value of IsAddOnLoaded
+-- (`loaded`, not only "loading"). Only reads; a secret value is left out.
+Compat.Addon.MAX_LISTED = 1000
+function Compat.Addon.Loaded()
+	if type(Resolve("C_AddOns.GetAddOnInfo")) ~= "function" or type(Resolve("C_AddOns.IsAddOnLoaded")) ~= "function" then
+		return nil
+	end
+	local count = first("C_AddOns.GetNumAddOns")
+	if type(count) ~= "number" then return nil end
+	local out = {}
+	for i = 1, min(count, Compat.Addon.MAX_LISTED) do
+		local state = all("C_AddOns.IsAddOnLoaded", i)
+		local loaded = state and state[2]
+		if state and loaded == nil then loaded = state[1] end   -- a client that gives one value only
+		if loaded == true or loaded == 1 then
+			local info = readable("C_AddOns.GetAddOnInfo", i)
+			local name = info and info[1]
+			if type(name) == "string" and name ~= "" then
+				local version = first("C_AddOns.GetAddOnMetadata", name, "Version")
+				if type(version) ~= "string" or version == "" or #version > 40 then version = nil end
+				out[#out + 1] = { name = name, title = type(info[2]) == "string" and info[2] or nil,
+					security = type(info[6]) == "string" and info[6] or nil, version = version }
+			end
+		end
+	end
+	table.sort(out, function(a, b) return a.name < b.name end)
+	return out
+end
+
 -- The name of a game specialization id ("Holy"), or nil when the client does not know it (GetSpecializationInfoByID, a
 -- global of the Forever dump; its second result is the name).
 function Compat.SpecName(specID)
@@ -1297,6 +1328,8 @@ local CAPS = {
 	{ "addons.DoesAddOnExist", "addons", "C_AddOns.DoesAddOnExist" },
 	{ "addons.GetAddOnEnableState", "addons", "C_AddOns.GetAddOnEnableState" },
 	{ "addons.GetAddOnMetadata", "addons", "C_AddOns.GetAddOnMetadata" },
+	{ "addons.GetNumAddOns", "addons", "C_AddOns.GetNumAddOns", call = true },
+	{ "addons.GetAddOnInfo", "addons", "C_AddOns.GetAddOnInfo", note = "[verify] by index; security of Blizzard's addons" },
 	{ "spec.GetSpecializationInfoByID", "spec", "GetSpecializationInfoByID" },
 	{ "time.GetServerTime", "time", "GetServerTime", call = true },
 	{ "time.GetTime", "time", "GetTime", call = true },

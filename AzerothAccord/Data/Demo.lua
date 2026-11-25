@@ -517,6 +517,32 @@ function DemoData.Build(now)
 		D.groups = { listings = listings, own = own.id, apps = apps }
 	end
 
+	-- The addon census (SPEC-13 §8): the lists of the members with the addon, outside D.sets: Core/Demo.lua puts them in
+	-- place only while the switch `census` is on. { folder, how many of ten have it, title, newer version, older one }.
+	do
+		local ADDONS = {
+			{ "AzerothAccord", 10, "Azeroth Accord", "0.9.0", "0.8.0" }, { "Auctionator", 4, nil, "10.2", "10.1" },
+			{ "Bagnon", 5, nil, "2.13", "2.12" }, { "BigWigs", 3, "BigWigs Bossmods", "v320", "v318" },
+			{ "DBM-Core", 6, "Deadly Boss Mods", "11.0.2", "11.0.1" }, { "Gargul", 3, nil, "7.1", "7.0" },
+			{ "Leatrix_Plus", 2, "Leatrix Plus", "4.0" }, { "Questie", 8, nil, "9.1.0", "9.0.3" },
+			{ "RaidCore", 1, nil, "1.4" }, { "WeakAuras", 4, nil, "5.19", "5.18" },
+		}
+		local lists = {}
+		for i, m in ipairs(members) do
+			if D.hasAddon[m.guid] then
+				local l = {}
+				for k, a in ipairs(ADDONS) do
+					if a[2] >= 10 or (i * 7 + k * 3) % 10 < a[2] then
+						local version = (i % 4 == 0 and a[5]) or a[4]
+						l[#l + 1] = { a[1], version, a[3] }
+					end
+				end
+				lists[m.guid] = { id = m.guid, author = m.guid, rev = 1, time = now - (i % 48 + 1) * HOUR, l = l }
+			end
+		end
+		D.addons = lists
+	end
+
 	-- 32 bytes for the notary's salt
 	local salt = {}
 	for i = 1, 32 do salt[i] = char(rand(256) - 1) end

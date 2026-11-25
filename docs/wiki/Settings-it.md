@@ -32,6 +32,8 @@ Passa il mouse su un interruttore per una breve spiegazione. Un carattere che il
 
 Entrambi sono **sempre condivisi con la tua gilda**, così i compagni possono raggiungerti: non c'è un interruttore. Niente esce dalla gilda. Vedi [[Privacy e dati|Privacy-and-Data-it]].
 
+Dalla `v0.9.0` questa carta ha anche **Condividi l'elenco dei miei addon** (acceso di default), lo stesso interruttore della pagina *Cosa condivido*: vedi [[Addon della gilda|Guild-Addons-it]].
+
 ## Personaggio principale
 
 Scegli quale dei tuoi personaggi è il tuo **main**. Guida i tuoi personaggi nel Roster raggruppato e nella scheda del membro ([[Roster di gilda|Guild-Roster-it]]). Finché non ne scegli uno, guida il personaggio di livello più alto. Il menu elenca i personaggi del tuo account in questo reame.
@@ -73,6 +75,7 @@ Ogni card dice **chi lo riceve**, **quando parte** e **cosa contiene adesso**, c
 | Contatti | il tuo BattleTag e il nome Discord; sempre condivisi, senza interruttore |
 | Ricette | ogni professione: nome, grado e numero di ricette |
 | Tempo giocato insieme | gli ultimi 7 giorni: quante coppie e quanti minuti per giorno. Le coppie nominano i tuoi compagni, non solo te |
+| Addon caricati *(dalla `v0.9.0`)* | quanti addon ha il tuo elenco e i primi cinque, con l'interruttore **Condividi l'elenco dei miei addon**; l'elenco arriva a tutta la gilda, e Accord mostra chi usa un addon solo agli ufficiali ([[Addon della gilda|Guild-Addons-it]]) |
 | Foto della banca di gilda | le schede lette (nome, numero di oggetti), il denaro e i registri |
 | Le tue richieste alla banca | le tue ultime 5 richieste e il loro stato |
 | Like | quanti like ha dato il tuo account (tenuto solo su questo computer) |

@@ -157,6 +157,10 @@ local function refreshContacts(f)
 	if not f.discordEdit:HasFocus() then f.discordEdit:SetText(typed) end
 	local mine = ns.Roster and ns.Roster:ByGUID(ns.Compat.Player.GUID())
 	f.native:SetShown(mine ~= nil and mine.discordSource == "native")
+	local census = Model().Visible("shareAddons")
+	f.checks.shareAddons:SetChecked(Model().Get("shareAddons"))
+	f.checks.shareAddons:SetShown(census)
+	f.addonsNote:SetShown(census)
 end
 
 local function refreshMain(f)
@@ -510,6 +514,11 @@ local function buildContacts(f, page)
 	f.status = card:Add(text(card, "Small", "text-2"), 8)
 	f.native = card:Add(text(card, "Small", "text-3"), 6)
 	f.native:SetText(L["SET_DISCORD_NATIVE"])
+	-- the addon census (M9.9, SPEC-13 §8.3): shown only while its feature switch is on
+	f.checks.shareAddons = card:Add(switchRow(card, L["SHARE_ADDONS_SWITCH"],
+		{ L["SHARE_ADDONS_SWITCH"], L["SHARE_ADDONS_SWITCH_TIP"] }, function(on) Model().Set("shareAddons", on) end), 14)
+	f.addonsNote = card:Add(text(card, "Small", "text-3"), 6)
+	f.addonsNote:SetText(L["SHARE_ADDONS_NAMES"])
 	return card
 end
 

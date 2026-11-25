@@ -432,7 +432,7 @@ Che cosa **non** dice: i dati di creazione non hanno nome né commento (il titol
 
 ### 8.2 L'insieme `addons`
 
-Un record per personaggio, `id` = il suo GUID, `author` = un personaggio dello stesso account (come `contacts`); un insieme **normale**: nei riepiloghi, ritrasmesso dagli ufficiali (NET-11), salvato.
+Un record per personaggio, `id` = il suo GUID, `author` = un personaggio dello stesso account (come `contacts`); un insieme **normale**: nei riepiloghi, ritrasmesso dagli ufficiali (NET-11), salvato. Nei riepiloghi sta **a parte** dagli insiemi più vecchi (§8.7), così un client che non lo conosce confronta gli stessi riepiloghi di prima.
 
 | Campo | Contenuto |
 |---|---|
@@ -448,7 +448,7 @@ Un record per personaggio, `id` = il suo GUID, `author` = un personaggio dello s
 ### 8.3 L'interruttore
 
 - `account.settings.shareAddons` (booleano, predefinito **acceso**, risposta del proprietario a Q11), *Share my addon list* / *Condividi l'elenco dei miei addon*, nella pagina *What I share* e nella carta della privacy di Settings.
-- **CEN-03 Spento**: al prossimo accesso di ogni personaggio dell'account che aveva pubblicato un elenco parte **un solo** record con `del = true` (così gli altri lo tolgono dai conteggi), poi più nulla; nessun record se non aveva mai pubblicato. Riacceso: si pubblica al controllo successivo.
+- **CEN-03 Spento**: ogni record del censimento dell'account che questo computer ha ancora pubblicato riceve **un solo** record con `del = true` (così gli altri lo tolgono dai conteggi), poi più nulla; nessun record se l'account non aveva mai pubblicato. Parte 5 s dopo l'interruttore per il personaggio collegato e per gli altri dell'account (elenco reciproco; l'autore è il personaggio collegato); un personaggio di cui il computer non ha il record lo ritira al proprio accesso, e un record che torna dalla gilda si ritira al controllo successivo (M9.9: così chi spegne sparisce subito dai conteggi, anche con più personaggi). Riacceso: si pubblica al controllo successivo (5 s dopo l'interruttore).
 - *What I share* ([SPEC-11 §5](SPEC-11-data-trust.md#5-pannello-cosa-condivido-m76)) aggiunge la riga con `ShareModel.Add("addons", …)`: *Loaded addons* · tutta la gilda · all'accesso e quando cambiano · quanti addon e i primi 5 · l'interruttore.
 
 ### 8.4 Chi vede che cosa (SPEC-10 Q11)
@@ -472,6 +472,17 @@ La scelta è quella **decisa dal proprietario** (2026-11-24, [SPEC-10 Q11](SPEC-
 
 Vista `addons` (*Guild addons* / *Addon della gilda*, ordine 70): una tabella con nome (il titolo, o la cartella; la cartella nel tooltip), utenti, quota (%), versioni (la più usata e `+N`); ricerca; ordine per ogni colonna (predefinito: utenti, decrescente); la frase del denominatore sopra la tabella. Un ufficiale clicca una riga e vede chi: gli account (nome del main e personaggi) con la versione. La propria riga è segnata. Pagina del manuale in inglese e italiano.
 
+### 8.7 Come è fatto (M9.9)
+
+- **File**: `Data/Census.lua` (dopo `Data/GameFinder.lua` nel TOC), `UI/GuildAddons.lua`; in `Core/Compat.lua` `Compat.Addon.Loaded()` (`C_AddOns.GetNumAddOns`, `GetAddOnInfo(i)`, `IsAddOnLoaded(i)`, `GetAddOnMetadata`; `nil` se il client non ha le chiamate: allora non si pubblica nulla) e le due capacità `addons.GetNumAddOns`, `addons.GetAddOnInfo` di `/accord debug`. In `Net/Store.lua` l'insieme `addons` con `feature = "census"` e `summary = "extra"`.
+- **Voci**: `{ cartella, versione, titolo }` come tabella a posizioni; `""` = senza versione quando c'è il titolo. Da versione e titolo si tolgono le sequenze `|`; il limite di dimensione si applica sulla stima di `Config.EstimateSize` (circa 70–100 B per voce: con titoli lunghi i 6144 B arrivano prima delle 120 voci).
+- **Sincronizzazione separata nei riepiloghi** (`Net/Sync.lua`): la `v0.8.0` non conosce l'insieme; se i suoi record entrassero nel digest dell'autore, un client vecchio e uno nuovo non si troverebbero mai allineati e si rimanderebbero record a ogni `HELLO`. Perciò ogni autore con un censimento ha una **voce in più**, con la chiave di `"+" .. GUID`: in `c` del `HELLO` (stesso formato di `s`), in `cb` del `BHELLO` (**12 blocchi** da 3 byte, ognuno 8 blocchi vicini dei 96; il messaggio resta sotto 512 B) e in `c` del `DIGEST`. `s`, `b` e `d` sono identici a quelli di prima. Verso chi non ha mandato quei campi non si spinge, non si chiede e non si confronta nulla del censimento; con l'interruttore spento i campi non si mandano e quelli ricevuti si ignorano. La soglia del `BHELLO` conta solo gli autori degli altri insiemi. Un `REC` di un insieme sconosciuto **o spento** si ignora senza contare contro il mittente.
+- **Quando**: `SYNC_HELLO` (il primo della sessione o della nuova gilda) arma un controllo dopo 60–120 s; `ADDON_LOADED` e un record del proprio account arrivato dalla gilda ne chiedono un altro dopo 60 s, al massimo uno ogni 10 minuti; *Clear guild data* anche. In modalità demo non si pubblica; la demo ha i suoi elenchi inventati (`DemoData.Build().addons`).
+- **Lettura**: `Census:Summary()` (conteggi, mai nomi), `Census:Who(cartella)` (applica `NAMES_VISIBLE_TO`; la propria voce c'è sempre, anche se non condivisa: `shared = false`, non contata), `Census:Count(cartella)`, `Integrations:Holders(id)`. I record scaduti non si contano anche prima di essere tolti. `CENSUS_CHANGED` raccoglie per 1 s.
+- **Vista**: la frase del denominatore, l'avviso *Your list is not shared…* quando la condivisione è spenta, la tabella (colonna *Versions* ordinata per numero di versioni, poi per la più usata) e sotto la riga scelta chi usa l'addon (per un membro solo la propria voce). L'interruttore sta nella carta *Contacts* di Settings (quella che dice che cosa si condivide) e nella carta *Loaded addons* di *What I share*.
+- **Test**: `Tests/test_addons_census.lua`, con il mock di `C_AddOns` per indice. Nel simulatore: gli elenchi arrivano a tutti e a chi entra dopo (dagli autori e, per chi è offline, dall'ufficiale designato), anche con i blocchi; un client senza il censimento non riceve nulla di più, non chiede nulla e non rifiuta nulla; **50 client con 60–110 addon ciascuno** (record di circa 5–6 KB stimati) restano nel budget di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione). I numeri misurati sono in SPEC-02 §4.
+- **Costo da tenere presente**: la prima volta chi entra riceve l'elenco di tutti (circa 1–2 KB compressi per personaggio), dagli autori online e dall'ufficiale designato; poi viaggiano solo gli elenchi cambiati.
+
 ## 9. Test per passo
 
 | Passo | Test | Che cosa prova |
@@ -490,4 +501,4 @@ Vista `addons` (*Guild addons* / *Addon della gilda*, ordine 70): una tabella co
 - `C_PartyInfo.InviteUnit` da un addon, con nomi con lo spazio e dentro un'istanza durante il lockdown della chat (§6.6).
 - `GetMaxPlayerLevel`, `GetRealZoneText(mapID)` e quali spedizioni e incursioni ha Forever (§6.4); `C_LFGListRoles.GetSavedRoles` (§6.10).
 - Se gli annunci privati esistono su Forever, chi li vede, se `CreateListing`/`RemoveListing` chiedono un evento dell'hardware e se il gioco toglie l'annuncio quando il capo esce (§7).
-- `C_AddOns.GetAddOnInfo` per indice e il valore di `security` degli addon di Blizzard su Forever (§8.1).
+- `C_AddOns.GetAddOnInfo` per indice e il valore di `security` degli addon di Blizzard su Forever (§8.1); quanto sono grandi gli elenchi veri rispetto al limite di 120 voci e 6 KB, e come sono scritti titoli e versioni (§8.7).

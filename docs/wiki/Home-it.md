@@ -20,6 +20,7 @@
 | Orientarmi | [[Giro dell'interfaccia|Interface-Tour-it]] |
 | Vedere cosa mi aspetta (dalla `v0.9.0`) | [[Centro azioni|Action-Center-it]] |
 | Trovare o pubblicare un gruppo di gilda (dalla `v0.9.0`) | [[Gruppi|Groups-it]] |
+| Vedere quali addon usa la gilda (dalla `v0.9.0`) | [[Addon della gilda|Guild-Addons-it]] |
 | Vedere chi gioca quale personaggio e come raggiungerlo | [[Roster di gilda|Guild-Roster-it]] |
 | Trovare chi può creare un oggetto | [[Professioni e ricette|Professions-and-Recipes-it]] |
 | Capire i like e l'indice sociale | [[Like e indice sociale|Likes-and-Social-Index-it]] |

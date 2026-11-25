@@ -64,6 +64,7 @@ Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
 Data\GameFinder.lua
+Data\Census.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua
@@ -107,6 +108,7 @@ UI\Actions.lua
 UI\Toast.lua
 UI\GroupsModel.lua
 UI\Groups.lua
+UI\GuildAddons.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

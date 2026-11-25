@@ -11,9 +11,13 @@
 --   groups   the guild group finder (M9.6-M9.8, SPEC-13 §6): the data set `groups`, the applications (GAPP), the
 --          question of who comes later (GASK), the Groups view and `/accord groups`. Off: nothing of it is shown,
 --          written, accepted, sent or answered. Its Action Center rows and notices also need `actions`. Switched on by M9.10.
+--   census  the addon census (M9.9, SPEC-13 §8): the data set `addons` (the list of its own loaded addons that each
+--          character publishes), the "Guild addons" view, `/accord addons`, the switch "Share my addon list" and its row
+--          in "What I share". Off: the list is not read, and nothing of it is written, accepted, sent or shown.
+--          Switched on by M9.10.
 local ADDON_NAME, ns = ...
 ns = ns or {}
-local Features = { raid = false, actions = false, groups = false }
+local Features = { raid = false, actions = false, groups = false, census = false }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

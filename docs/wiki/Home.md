@@ -20,6 +20,7 @@
 | Find my way around | [[Interface Tour|Interface-Tour]] |
 | See what waits for me (from `v0.9.0`) | [[Action Center|Action-Center]] |
 | Find or post a guild group (from `v0.9.0`) | [[Groups|Groups]] |
+| See which addons the guild uses (from `v0.9.0`) | [[Guild addons|Guild-Addons]] |
 | See who plays which character and how to reach them | [[Guild Roster|Guild-Roster]] |
 | Find someone who can craft an item | [[Professions and Recipes|Professions-and-Recipes]] |
 | Understand likes and the social index | [[Likes and Social Index|Likes-and-Social-Index]] |
