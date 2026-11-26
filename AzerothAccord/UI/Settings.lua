@@ -147,6 +147,7 @@ local function refreshLook(f)
 	f.font.seg:Select(M.GetLook("font"))
 	f.effects:SetChecked(M.GetLook("effects"))
 	f.animations:SetChecked(M.GetLook("animations"))
+	f.guildPanel:SetChecked(M.GetLook("guildPanel"))
 end
 
 local function refreshContacts(f)
@@ -508,6 +509,8 @@ local function buildLook(f, page)
 		function(on) View:SetLook(f, "effects", on) end), 8)
 	f.animations = card:Add(switchRow(card, L["SET_LOOK_ANIMATIONS"], { L["SET_LOOK_ANIMATIONS"], L["SET_LOOK_ANIMATIONS_TIP"] },
 		function(on) View:SetLook(f, "animations", on) end), 8)
+	f.guildPanel = card:Add(switchRow(card, L["SET_LOOK_GUILD_PANEL"], { L["SET_LOOK_GUILD_PANEL"], L["SET_LOOK_GUILD_PANEL_TIP"] },
+		function(on) View:SetLook(f, "guildPanel", on) end), 8)
 	f.font = card:Add(segmentRow(card, L["SET_LOOK_FONT"], { { id = "addon", text = L["SET_LOOK_FONT_ADDON"] },
 		{ id = "game", text = L["SET_LOOK_FONT_GAME"] } }, function(id)
 		if id ~= M.GetLook("font") then View:SetLook(f, "font", id) end

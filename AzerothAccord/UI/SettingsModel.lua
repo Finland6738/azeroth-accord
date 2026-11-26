@@ -165,9 +165,10 @@ Model.LOOK = {
 	theme = { path = "account.settings.theme", values = ns.Config and ns.Config.THEMES or { "nebula", "aurora", "accord" } },
 	effects = { path = "account.settings.effects" },
 	animations = { path = "account.settings.animations" },
+	guildPanel = { path = "account.settings.guildPanel" },   -- the Accord tab opens the panel in the guild window (UI/GuildTab.lua)
 	font = { path = "account.settings.font", values = ns.Config and ns.Config.FONT_SOURCES or { "addon", "game" } },
 }
-Model.LOOK_ORDER = { "theme", "effects", "animations", "font" }
+Model.LOOK_ORDER = { "theme", "effects", "animations", "guildPanel", "font" }
 
 local function allowed(spec, value)
 	if not spec.values then return type(value) == "boolean" end

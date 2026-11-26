@@ -21,6 +21,8 @@ The owner asked that everything a player sees is in the new look, the window's n
 
 In the real WoW Forever client the Accord tab covered the fourth Blizzard tab. Forever does not stack the side tabs in the order of their keys (`ChatTab`, `RosterTab`, `GuildBenefitsTab`, `GuildInfoTab`), so "under the last visible tab in key order" was the wrong place. The tab now goes under the **lowest tab as the window draws them**, at the **distance measured** between Blizzard's tabs, and anchors again on the next frame, once positions are known. It falls back to key order and a 20-point gap when positions are not known yet. `/accord debug` lists each side tab's position and the chosen anchor. The owner also asked for the **game's tab frame with the Accord logo inside**: the tab is made from `CommunitiesFrameTabTemplate` again, and the M6.18 tile is only the fallback when the client refuses the template. While the panel is open the theme draws the Accord tab like Blizzard's (GT-07).
 
+The owner's next screenshot showed the panel too small for the roster table, which spilled past the window's right edge, and a Blizzard box showing through on the left. Resizing Blizzard's window is ruled out by decision 2, so **the Accord tab now opens the larger Accord window** (decision 3) where the guild window was, and closes the guild window with Blizzard's own `HideUIPanel`. The panel inside the guild window stays behind a setting (*Open Accord inside the guild window*, off by default). It now covers the list of communities too, and clips what does not fit.
+
 ## Alternatives considered
 
 - **Replacing a Blizzard tab or the display mode.** Taint risk in a window that hosts protected actions.

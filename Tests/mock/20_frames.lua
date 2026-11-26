@@ -274,7 +274,7 @@ for _, name in ipairs({
 	"SetDisabledTexture", "SetDisabledFontObject", "SetHighlightFontObject", "SetPushedTextOffset",
 	"SetCheckedTexture", "SetDisabledCheckedTexture", "SetHighlightLocked", "LockHighlight", "UnlockHighlight",
 	"SetMouseClickEnabled", "SetMouseMotionEnabled", "SetIgnoreParentScale", "SetIgnoreParentAlpha", "SetFlattensRenderLayers",
-	"SetClipsChildren", "SetClampRectInsets", "SetTextInsets", "SetHorizTile", "SetVertTile", "SetSubTexCoord", "SetDontSavePosition", "SetTitle", "SetPassThroughButtons", "SetScrollChild", "SetVerticalScroll",
+	"SetClampRectInsets", "SetTextInsets", "SetHorizTile", "SetVertTile", "SetSubTexCoord", "SetDontSavePosition", "SetTitle", "SetPassThroughButtons", "SetScrollChild", "SetVerticalScroll",
 	"SetHorizontalScroll", "SetInsertMode", "SetFading", "SetFadeDuration", "SetTimeVisible", "SetSpacing",
 	"SetMaxResize", "SetMinResize", "SetResizeBounds", "SetFlashing", "SetSubTexCoord", "SetModel", "SetUnit",
 }) do
@@ -282,6 +282,8 @@ for _, name in ipairs({
 end
 
 -- Text, colour, font and focus state that tests look at (dump: UI-Widgets-Frames, FontString, Texture, EditBox).
+function Widget:SetClipsChildren(on) self._clips = on and true or false end
+function Widget:DoesClipChildren() return self._clips == true end
 function Widget:SetFontObject(font) self._fontObject = font end
 function Widget:GetFontObject() return self._fontObject end
 function Widget:SetFont(path, size, flags)
@@ -430,6 +432,10 @@ UIParent = newWidget("Frame", "UIParent", nil)
 UIParent._width, UIParent._height = 1920, 1080
 frames[#frames + 1] = UIParent
 UIParent._seq = #frames
+
+-- Blizzard's UI panel helpers (FrameXML UIParent.lua): an addon closes Blizzard's window with them, as its close button does.
+function ShowUIPanel(f) if f and f.Show then f:Show() end end
+function HideUIPanel(f) if f and f.Hide then f:Hide() end end
 WorldFrame = newWidget("Frame", "WorldFrame", nil)
 Minimap = CreateFrame("Minimap", "Minimap", UIParent)
 Minimap:SetSize(140, 140)

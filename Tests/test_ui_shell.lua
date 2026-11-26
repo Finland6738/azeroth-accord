@@ -2,6 +2,8 @@
 -- (Tests/mock/85_communities.lua). GT-01..GT-06 of SPEC-04 §1 each have a group below. M6.12: the window, its title bar
 -- and the tab bar in the look of docs/specs/ui-style.md §3, and the themed panel inside the guild window.
 local function A() return AzerothAccord end
+-- The Accord tab opens the Accord window by default; these tests are about the panel inside the guild window (the setting).
+local function panelMode() AzerothAccordDB = { schemaVersion = 4, settings = { guildPanel = true } } end
 local function Tab() return A().GuildTab end
 local function Shell() return A().Shell end
 local function Win() return A().Window end
@@ -76,8 +78,41 @@ describe("GT-01: the tab in the guild window", function()
 	end)
 end)
 
-describe("GT-02: when the tab shows", function()
+describe("GT-03: the Accord tab opens the Accord window (owner, 2026-11-26)", function()
 	before_boot(function(M) guild() end)
+
+	it("by default a click opens the larger Accord window where the guild window was and closes the guild window", function()
+		local cf = Mock.communities.Open()
+		cf.GetLeft = function() return 120 end
+		cf.GetTop = function() return 700 end
+		Tab().tab:Click()
+		truthy(A().Window:IsShown(), "the Accord window")
+		falsy(Tab():IsPanelShown(), "no panel inside the guild window")
+		falsy(Tab().tab:GetChecked())
+		falsy(cf:IsShown(), "the guild window is closed")
+		local point, _, relPoint, x, y = A().Window:Frame():GetPoint(1)
+		eq(point, "TOPLEFT"); eq(relPoint, "BOTTOMLEFT"); eq(x, 120); eq(y, 700)
+	end)
+
+	it("a place the player chose for the Accord window wins", function()
+		A().Config:Set("char.ui.windowPos", { point = "CENTER", relPoint = "CENTER", x = 10, y = 20 })
+		Mock.communities.Open()
+		Tab().tab:Click()
+		local point, _, _, x, y = A().Window:Frame():GetPoint(1)
+		eq(point, "CENTER"); eq(x, 10); eq(y, 20)
+	end)
+
+	it("with the setting on, the tab opens the panel inside the guild window as before", function()
+		truthy(A().Config:Set("account.settings.guildPanel", true))
+		Mock.communities.Open()
+		Tab().tab:Click()
+		truthy(Tab():IsPanelShown())
+		falsy(A().Window:IsShown())
+	end)
+end)
+
+describe("GT-02: when the tab shows", function()
+	before_boot(function(M) guild() panelMode() end)
 
 	it("only while the guild is the selected community", function()
 		Mock.communities.Open()
@@ -105,7 +140,7 @@ describe("GT-02: when the tab shows", function()
 end)
 
 describe("GT-03: the panel", function()
-	before_boot(function(M) guild() end)
+	before_boot(function(M) guild() panelMode() end)
 
 	it("opens over the content area with the Accord content and checks the tab", function()
 		Shell().views = {}   -- the Roster view of M2.3 registers itself: this test is about the welcome text
@@ -119,8 +154,12 @@ describe("GT-03: the panel", function()
 		truthy(content.empty:IsShown(), "no view yet: the welcome text")
 		eq(content.empty.title:GetText(), "Welcome to Azeroth Accord")
 		truthy(Tab().panel:GetFrameLevel() > CommunitiesFrame:GetFrameLevel())
-		local _, inset = Tab().panel:GetPoint(1)
+		-- the whole inside of the window, the list of communities too (in game a Blizzard box showed through, 2026-11-26)
+		local _, list = Tab().panel:GetPoint(1)
+		eq(list, CommunitiesFrame.CommunitiesList)
+		local _, inset = Tab().panel:GetPoint(2)
 		eq(inset, CommunitiesFrame.Inset)
+		truthy(Tab().panel:DoesClipChildren(), "a wide table never spills out of the window")
 	end)
 
 	it("closes when the player clicks any Blizzard tab, and Blizzard's own click still works", function()
@@ -242,7 +281,7 @@ describe("GT-05: a changed guild window", function()
 end)
 
 describe("GT-06: combat", function()
-	before_boot(function(M) guild() end)
+	before_boot(function(M) guild() panelMode() end)
 
 	it("the tab, the panel and the window open and close in combat", function()
 		Mock.world.inCombat = true
@@ -341,6 +380,7 @@ describe("the standalone window (SPEC-04 §3, ui-style.md §3)", function()
 	end)
 
 	it("pop out moves the panel from the guild window to the window, pop in moves it back", function()
+		A().Config:Set("account.settings.guildPanel", true)
 		Mock.communities.Open()
 		Tab().tab:Click()
 		truthy(Shell().content.bar.popOut:IsShown())
@@ -358,6 +398,7 @@ describe("the standalone window (SPEC-04 §3, ui-style.md §3)", function()
 	end)
 
 	it("pop in shows only while the guild window can take the panel; a click on the tab takes it and closes the window", function()
+		A().Config:Set("account.settings.guildPanel", true)
 		Mock.Slash("/accord")
 		falsy(Win().frame.titleBar.popIn:IsShown(), "no guild window: no pop in (the addon never opens it)")
 		Mock.communities.Open()
@@ -385,7 +426,7 @@ describe("the standalone window (SPEC-04 §3, ui-style.md §3)", function()
 end)
 
 describe("the panel in the guild window (ui-style.md §3, ADR 0003)", function()
-	before_boot(function(M) guild() end)
+	before_boot(function(M) guild() panelMode() end)
 
 	it("is the addon's own frame with the theme's fill, the same tabs, no title bar, Pop out and the sync state", function()
 		Mock.communities.Open()

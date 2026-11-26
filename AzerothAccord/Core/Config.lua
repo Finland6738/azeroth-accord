@@ -63,6 +63,7 @@ Config.defaults = {
 			},
 			quiet = { on = false, from = 23, to = 8, instances = true },   -- quiet hours, local time (SPEC-13 §4)
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
+			guildPanel = false,     -- the Accord tab opens the panel inside the guild window (true) or the Accord window (false, owner 2026-11-26)
 			groupFilter = { kinds = {}, fits = true, roles = {} },   -- the saved filters of the Groups view (SPEC-13 §6.10)
 			shareCoplay = true,     -- record and publish the time played together (M7.6, SPEC-11 §5), Data/CoPlay.lua
 			shareAddons = true,     -- publish the list of the loaded addons (M9.9, SPEC-13 §8.3), Data/Census.lua
@@ -95,6 +96,7 @@ Config.rules = {
 	["account.settings.theme"] = { type = "string", enum = Config.THEMES },
 	["account.settings.effects"] = { type = "boolean" },
 	["account.settings.animations"] = { type = "boolean" },
+	["account.settings.guildPanel"] = { type = "boolean" },
 	["account.settings.font"] = { type = "string", enum = Config.FONT_SOURCES },
 	["account.settings.shareCoplay"] = { type = "boolean" },
 	["account.settings.shareAddons"] = { type = "boolean" },

@@ -5,8 +5,11 @@
 --          a tab placed by key order covered the fourth one: owner, 2026-11-26), with the game's tab frame
 --          (CommunitiesFrameTabTemplate) around the Accord logo and the tooltip "Azeroth Accord";
 --   GT-02  shown only while the selected community is the guild and the window is not minimized;
---   GT-03  a click shows the Accord panel over the content area and checks our tab; a click on a Blizzard tab hides the
---          panel (observed with HookScript), as do a change of display mode or club and closing the window;
+--   GT-03  a click opens the larger Accord window where the guild window was and closes the guild window (owner,
+--          2026-11-26: the guild window is too small for Accord's tables); with the setting "Open Accord inside the guild
+--          window" (account.settings.guildPanel) it shows the Accord panel over the window instead and checks our tab; a
+--          click on a Blizzard tab hides the panel (observed with HookScript), as do a change of display mode or club and
+--          closing the window;
 --   GT-04  never calls SetDisplayMode and never replaces a Blizzard function: only hooksecurefunc and HookScript, and
 --          only on Blizzard frames; everything it changes is a frame it created;
 --   GT-05  if CommunitiesFrame has none of the expected tabs, no tab is made: the standalone window stays, and the
@@ -33,7 +36,7 @@ GuildTab.TAB_KEYS = { "ChatTab", "RosterTab", "GuildBenefitsTab", "GuildInfoTab"
 GuildTab.TEMPLATES = { "CommunitiesFrameTabTemplate", "" }
 GuildTab.TAB_NAME, GuildTab.PANEL_NAME = "AzerothAccordGuildTab", "AzerothAccordGuildPanel"
 GuildTab.GAP = 20                -- vertical space between our tab and the last Blizzard tab, like theirs
-GuildTab.LEVEL_ABOVE = 20        -- the panel sits this many frame levels above the guild window
+GuildTab.LEVEL_ABOVE = 60        -- the panel sits this many frame levels above the guild window (above its nested frames)
 
 local function frame() return _G.CommunitiesFrame end
 
@@ -160,6 +163,41 @@ function GuildTab:UpdateVisibility()
 	updatePopIn()
 end
 
+-- The Accord tab's click: the Accord window (default) or the panel inside the guild window (the setting).
+function GuildTab.UsesPanel()
+	return ns.Config ~= nil and ns.Config.db ~= nil and ns.Config:Get("account.settings.guildPanel") == true
+end
+
+function GuildTab:OnTabClick()
+	if GuildTab.UsesPanel() or not ns.Window then return self:ShowPanel() end
+	return self:OpenWindow()
+end
+
+-- Opens the Accord window where the guild window is (unless the player already placed it: a saved place wins) and closes
+-- the guild window with Blizzard's own HideUIPanel, as its close button does.
+function GuildTab:OpenWindow()
+	local cf = frame()
+	if self.tab then self.tab:SetChecked(false) end
+	self:HidePanel()
+	local f = ns.Window:Frame()
+	local saved = ns.Config and ns.Config.db and ns.Config:Get("char.ui.windowPos")
+	if cf and not saved and not f:IsShown() then
+		local okL, left = call(cf, "GetLeft")
+		local okT, top = call(cf, "GetTop")
+		local okS, scale = call(cf, "GetEffectiveScale")
+		local ui = _G.UIParent
+		local uiScale = ui and ui.GetEffectiveScale and ui:GetEffectiveScale() or 1
+		if okL and okT and type(left) == "number" and type(top) == "number" then
+			local k = (okS and type(scale) == "number" and scale or 1) / (uiScale ~= 0 and uiScale or 1)
+			f:ClearAllPoints()
+			f:SetPoint("TOPLEFT", ui, "BOTTOMLEFT", left * k, top * k)
+		end
+	end
+	if cf and type(_G.HideUIPanel) == "function" then pcall(_G.HideUIPanel, cf) end
+	ns.Window:Open()
+	return true
+end
+
 function GuildTab:ShowPanel()
 	if not self.panel then return false end
 	self.panel:Show()
@@ -236,21 +274,29 @@ local function buildTab(cf)
 	tab.accordIcon = icon
 	tab.tooltip = L["ADDON_TITLE"]
 	Widgets.Tooltip.Attach(tab, function() return { L["ADDON_TITLE"], L["TAB_TOOLTIP"] } end, "RIGHT")
-	tab:SetScript("OnClick", function() GuildTab:ShowPanel() end)   -- a second click keeps the panel (like Blizzard's tabs)
+	tab:SetScript("OnClick", function() GuildTab:OnTabClick() end)   -- a second click keeps the panel (like Blizzard's tabs)
 	return tab
 end
 
 local function buildPanel(cf)
 	local panel = CreateFrame("Frame", GuildTab.PANEL_NAME, cf)
 	local inset = cf.Inset or cf.InsetFrame
+	local list = cf.CommunitiesList
 	if type(inset) == "table" and type(inset.GetObjectType) == "function" then
-		panel:SetAllPoints(inset)
+		-- the whole inside of the window, the list of communities too: nothing of Blizzard's shows through the panel
+		if type(list) == "table" and type(list.GetObjectType) == "function" then
+			panel:SetPoint("TOPLEFT", list, "TOPLEFT", 0, 0)
+			panel:SetPoint("BOTTOMRIGHT", inset, "BOTTOMRIGHT", 0, 0)
+		else
+			panel:SetAllPoints(inset)
+		end
 	else
 		panel:SetPoint("TOPLEFT", cf, "TOPLEFT", 8, -64)
 		panel:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -8, 8)
 	end
 	panel:SetFrameLevel((cf:GetFrameLevel() or 1) + GuildTab.LEVEL_ABOVE)
 	panel:EnableMouse(true)   -- clicks on the panel do not fall through to the Blizzard content under it
+	if panel.SetClipsChildren then panel:SetClipsChildren(true) end   -- a wide table never spills out of the window
 	panel.fill = panel:CreateTexture(nil, "BACKGROUND")
 	panel.fill:SetAllPoints(panel)
 	Theme.Fill(panel.fill, "bg")   -- square: the corners of Blizzard's area stay covered

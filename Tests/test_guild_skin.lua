@@ -10,7 +10,8 @@ local function chromeParts(cf)
 end
 
 describe("the guild window skin (M6.18)", function()
-	before_boot(function(M) guild() end)
+	-- the skin is for the panel inside the guild window, which the setting turns on (the default opens the Accord window)
+	before_boot(function(M) guild() AzerothAccordDB = { schemaVersion = 4, settings = { guildPanel = true } } end)
 
 	it("is off until the Accord tab is clicked, and the window is Blizzard's then", function()
 		Mock.communities.Open()
