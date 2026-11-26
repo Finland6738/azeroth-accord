@@ -10,6 +10,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- The owner accepted SPEC-10 Q34-Q38 as proposed (2026-11-26):
+  - the recruitment text is for officers and the Guild Master only, built from the MS1 gaps, and never posted by the addon;
+  - trials are seen only by officers and the Guild Master, last 14 days by default (1 to 60, extended up to 120) and are kept for ever once closed;
+  - the welcome checklist stays on the new member's computer for at most 30 days, and officers do not see its progress;
+  - mentoring is offered by opt-in, the mentor list is visible to everybody, and suggested pairs are seen only by officers and the Guild Master, never saved or sent;
+  - a suggested pair notifies nobody.
+
+  SPEC-16 says so; nothing changes in the addon.
+
 - M12.1: **SPEC-16, recruitment, trials and mentors** (Italian, [SPEC-16](docs/specs/SPEC-16-recruitment-trials-mentors.md)), the design of M12, all of it behind a new switch `recruit` (off until M12.6). The recruitment text: built on the client from the MS1 gaps of the season roster against the target composition and the first paragraph of the handbook's *Guild info* page, plus a contact and an extra line kept on the officer's computer, as a 255-byte chat line or a 1900-character Discord text in a read-only box; only officers open it and the addon never posts it. Trials: an officer-only data set `trials` under the rules of M8 (officer channel only, local until it is proven), with a start, a length (14 days by default), extensions, a closing decision and one feedback note per officer; an Action Center row and one notice on the end day. Onboarding: a welcome checklist (read the guild info and rules, choose a main, add Discord, declare for the season) shown only on the new member's own client when it can tell the character joined after the guild used Accord, ticking itself, dismissable, never sent. Mentors: an opt-in data set `mentor` (one offer per account, left at any time), a public list, and suggested pairs computed on officers' clients from co-play, shared companions, the group map and availability, never stored or sent. Traffic: nothing of M12 exists when the switch turns on, so it stays out of the first exchange, and the budget of SPEC-09 §7 does not rise. New ADR 0026; SPEC-10 questions Q34-Q38 and risks R19-R20.
 
 ## [0.11.0] - 2026-11-26

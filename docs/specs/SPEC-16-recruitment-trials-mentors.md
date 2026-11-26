@@ -111,7 +111,7 @@ Un insieme **solo per ufficiali** come quelli di M8 ([SPEC-12 §1.2](SPEC-12-off
 - **Lunghezza**: predefinita `Trials.DEFAULT_DAYS` = 14 giorni, da 1 a `Trials.MAX_DAYS` = 60; una **proroga** sposta `ends` più avanti (al massimo `start` + 120 giorni) e si può fare finché la prova è aperta. `start` non più di 30 giorni nel passato né più di 14 nel futuro rispetto al giorno della scrittura (SPEC-10 Q35).
 - **Una nota per ufficiale e per prova**, con le regole di [SPEC-12 §5](SPEC-12-officer-tools.md#5-note-estese-m85) (ONT-02): al massimo 500 caratteri, 1000 byte e 20 righe, niente caratteri di controllo tranne l'a capo, il `|` raddoppiato nella visualizzazione; *Delete* scrive `text = ""` e il record vuoto scade dopo 60 giorni. Ogni ufficiale scrive solo la propria nota; quelle degli altri si leggono.
 - **Una prova chiusa non si riapre**: per una seconda prova dello stesso personaggio se ne scrive una nuova, con un altro `start`. Le prove chiuse restano come storia nella scheda del membro.
-- **Conservazione**: come la cronologia e le note estese, **nessun limite di età** (risposta del proprietario a SPEC-10 Q14, applicata qui in attesa di Q35); restano i limiti di dimensione. Sparisce solo con OFF-10 (un ufficiale retrocesso).
+- **Conservazione**: come la cronologia e le note estese, **nessun limite di età** (risposta del proprietario a SPEC-10 Q14, confermata per le prove con Q35 il 2026-11-26); restano i limiti di dimensione. Sparisce solo con OFF-10 (un ufficiale retrocesso).
 
 ### 4.2 Regole di fiducia (TRI-01…TRI-05)
 
