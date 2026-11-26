@@ -166,7 +166,7 @@ Un testo semplice, scritto a mano nell'editor, pensato per essere letto anche ne
 
 Dentro un blocco:
 
-- **Collegamenti tra pagine**: `[[slug]]` (il testo è il titolo della pagina) o `[[slug|testo]]`. Un collegamento a una pagina che non c'è, è cancellata o è ancora un modello si mostra come testo grigio, non cliccabile.
+- **Collegamenti tra pagine**: `[[slug]]` (il testo è il titolo della pagina) o `[[slug|testo]]` (nel testo salvato il separatore è `¦`: lo scrittore digita `|`, che non si salva mai, e la pulizia di §4.4 lo scrive `¦`; il lettore riconosce quello). Un collegamento a una pagina che non c'è, è cancellata o è ancora un modello si mostra come testo grigio, non cliccabile.
 - **Sezione di una pagina**: `[[slug#titolo]]` apre la pagina e scorre all'intestazione con quel testo (senza maiuscole).
 - **Collegamento alla pagina della season**: `[[season]]` apre la vista *Season* di M10 (o, con FDCP come fonte, mostra la riga di §8.6); `[[loot]]` è la pagina del loot. Nessun'altra vista si apre da un collegamento.
 - **Indirizzi web**: restano testo. Il lettore li mostra come testo selezionabile e, cliccandoli, li mette in una casella di copia (`UI/CopyBox.lua`), come la pagina *About*; il gioco non apre il browser.
@@ -177,7 +177,7 @@ Il carattere `|` introduce nel gioco colori, icone e link (`|c`, `|T`, `|H`): un
 
 ### 4.2 Come si mostra
 
-Il lettore converte i blocchi in **SimpleHTML** (`SimpleHTMLAPI` è nel dump di Forever `1.60.1`, solo consultato): `<h1>`, `<h2>`, `<p>`, le voci di elenco come `<p>` con `•` o il numero e un rientro, i collegamenti come `<a href="page:slug">` con `OnHyperlinkClick`. Il testo passa dall'escape HTML (`&`, `<`, `>`) prima della conversione: nessun tag scritto dallo scrittore arriva al gioco. I caratteri e i colori sono quelli del tema ([ui-style](ui-style.md)) con `SetFontObject` per ogni tipo di testo. **[verificare]** nel client che SimpleHTML mostri i caratteri dell'addon e i collegamenti; se non va, M11.3 ripiega su un `FontString` per blocco e pulsanti trasparenti per i collegamenti, con lo stesso formato del testo.
+Il lettore mette **un `SimpleHTML` per blocco**, uno sotto l'altro (`SimpleHTMLAPI` è nel dump di Forever `1.60.1`, solo consultato): così conosce l'altezza di ogni blocco (`GetContentHeight`, con una stima finché il gioco non la dà) e può scorrere a un'intestazione o a una riga. Ogni blocco è `<h1>`, `<h2>` o `<p>`; le voci di elenco sono `<p>` con `•` o il numero, il secondo livello rientrato. I collegamenti che si possono seguire sono `<a href="acc:<n>">` (il numero indica la destinazione nel blocco) con `OnHyperlinkClick`; gli altri sono testo grigio. Il testo passa dall'escape HTML (`&`, `<`, `>`) prima della conversione: nessun tag scritto dallo scrittore arriva al gioco. I caratteri e i colori sono quelli del tema ([ui-style](ui-style.md)) con `SetFontObject` per ogni tipo di testo. **[verificare]** nel client che SimpleHTML mostri i caratteri dell'addon, i collegamenti e l'altezza del testo; se non va, si ripiega su un `FontString` per blocco e pulsanti trasparenti per i collegamenti, con lo stesso formato del testo (M11.8).
 
 ### 4.3 Ricerca
 
@@ -195,11 +195,12 @@ Ogni membro con l'addon vede tutte le pagine vive e non `tpl`, anche offline, da
 
 ### 5.2 La vista *Handbook*
 
-- **A sinistra, l'elenco** delle pagine per `order`, poi titolo: il titolo, il segno *Updated* (§5.4) e, per gli scrittori, *Template* o *Over the limit*. In cima la casella di ricerca; in fondo, per gli scrittori, *New page* e, per gli ufficiali, *Writers* (§3.3). Le frecce su e giù accanto a una pagina (scrittori) cambiano `order` scrivendo una revisione della pagina.
+- **A sinistra, l'elenco** delle pagine per `order`, poi titolo: il titolo, il segno *Updated* (§5.4) e, per gli scrittori, *Template* o *Over the limit*. La casella di ricerca è quella del pannello, a destra delle schede, come nelle altre viste ([SPEC-04 §2](SPEC-04-ui-guild-tab-shell.md#2-il-pannello)); con almeno 2 caratteri i risultati prendono il posto dell'elenco; in fondo, per gli scrittori, *New page* e, per gli ufficiali, *Writers* (§3.3). Le frecce su e giù accanto a una pagina (scrittori) cambiano `order` scrivendo una revisione della pagina.
 - **A destra, il lettore**: il titolo, sotto "Updated <data> by <nome>", poi il testo (§4.2), in un'area che scorre. Per gli scrittori *Edit*, *Revisions*, *Delete* (con un secondo clic **Confirm**: "Delete this page for the whole guild?").
 - **Senza pagine**: "No handbook pages yet." per i membri; per gli scrittori anche *Create the default pages* (§7.1), finché la semina non è avvenuta.
 - **La pagina del loot** (`P:loot`) ha sopra il testo la parte fissa di §8.
 - `/accord handbook <slug>` apre la vista su una pagina; `/accord handbook` sull'ultima letta o sulla prima.
+- **Fatto in M11.3**: elenco, ricerca, segni, *Mark all as read*, il lettore con *Back*, il comando. *New page*, *Writers*, le frecce, *Edit*, *Revisions* e *Delete* arrivano con l'editor (M11.4), *Create the default pages* con M11.5, la parte fissa della pagina del loot con M11.6.
 
 ### 5.3 Storia della navigazione
 
@@ -352,7 +353,7 @@ Il sondaggio è nel file della milestone ([M11, Addons on WoW Forever](../roadma
 | Passo | File | Casi |
 |---|---|---|
 | M11.2 | `Tests/test_handbook.lua` | una pagina di un non scrittore si rifiuta (`authority`), anche come revisione; un grado scelto scrive, un grado rinominato no; un ex scrittore: le pagine restano, le revisioni nuove no; due modifiche della stessa revisione tengono la più recente su tutti i client e l'autore della perdente ha l'avviso e la revisione `lost`; salvare sopra una revisione cambiata non sostituisce in silenzio; limiti (corpo, titolo, pagine, totale, ritmo); revisioni locali (5) senza traffico; riepilogo a parte ignorato da un client che non lo conosce; richieste servite una volta su `GUILD` a più client; traffico nel simulatore (§3.7); interruttore spento |
-| M11.3 | `Tests/test_handbook_text.lua`, `Tests/test_handbook_view.lua` | blocchi, elenchi, collegamenti (vivi, mancanti, a sezione, `[[season]]`), escape HTML, nessun `|`; ricerca senza maiuscole e accenti; lettura offline; il segno "aggiornata" si toglie leggendo e non per le proprie modifiche |
+| M11.3 | `Tests/test_handbook_view.lua` (testo e vista) | blocchi, elenchi, collegamenti (vivi, mancanti, a sezione, `[[season]]`), escape HTML, nessun `|`; ricerca senza maiuscole e accenti; lettura offline; il segno "aggiornata" si toglie leggendo e non per le proprie modifiche |
 | M11.4 | `Tests/test_handbook_editor.lua` | un testo oltre il limite non si salva (dopo la pulizia); anteprima; bozza; *Restore* crea una revisione nuova; pagina cancellata ripristinata |
 | M11.5 | `Tests/test_handbook_defaults.lua` | una gilda nuova riceve i modelli una volta; due semine insieme non fanno doppioni; una pagina cancellata non torna, nemmeno da un client che semina dopo; i modelli non hanno testo oltre a intestazioni e collegamenti; i membri non vedono i modelli |
 | M11.6 | `Tests/test_loot_page.lua` | sistema e addon scritti solo da ufficiali; addon e fonte `loot` scritti insieme; chi lo ha (ufficiali) e i conteggi (tutti); senza addon nessun controllo; il suggerimento è una chiave di `Locale` e solo per gli scrittori; indirizzo `other` solo dai siti ammessi; regole di FDCP accanto alla pagina e mai nel testo; FDCP assente o al livello 0 |

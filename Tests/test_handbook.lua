@@ -381,7 +381,7 @@ describe("two edits of the same revision (HBK-04)", function()
 		notNil(notice); eq(notice.kind, "conflict"); eq(notice.level, "alert")
 		contains(A().Notify.Text(notice), "Boss")
 		local row
-		for _, r in ipairs(A().Actions:Refresh()) do if r.provider == "handbook" then row = r end end
+		for _, r in ipairs(A().Actions:Refresh()) do if r.provider == "handbook" and r.key ~= "updated" then row = r end end
 		notNil(row); eq(row.urgency, 2)
 		-- restore: a new revision with my text; the row goes
 		Mock.Advance(5)

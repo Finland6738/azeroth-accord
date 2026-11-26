@@ -71,3 +71,19 @@ function Widget:Hide()
 		cascade(self, "OnHide")
 	end
 end
+
+-- SimpleHTML (dump: UI-Widgets-Frames/SimpleHTMLAPI, SimpleFrameAPI), M11.3: a font and a colour per kind of text,
+-- hyperlinks, and the height of the content. GetContentHeight answers Mock.htmlHeight (nil: 0, as before a layout).
+local setFontObject, setTextColor = Widget.SetFontObject, Widget.SetTextColor
+function Widget:SetFontObject(a, b)
+	if self._type ~= "SimpleHTML" or b == nil then return setFontObject(self, a) end
+	self._fonts = self._fonts or {}
+	self._fonts[a] = b
+end
+function Widget:SetTextColor(a, ...)
+	if self._type ~= "SimpleHTML" or type(a) ~= "string" then return setTextColor(self, a, ...) end
+	self._colors = self._colors or {}
+	self._colors[a] = { ... }
+end
+function Widget:SetHyperlinksEnabled(v) self._hyperlinks = v and true or false end
+function Widget:GetContentHeight() return Mock.htmlHeight and Mock.htmlHeight(self) or 0 end

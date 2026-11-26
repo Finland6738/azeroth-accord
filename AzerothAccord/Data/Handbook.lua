@@ -20,8 +20,11 @@
 --            client of the losing author, when its own version is replaced by another author's of the same revision,
 --            keeps its text as a `lost` revision, emits HANDBOOK_CONFLICT(id), posts the notice `handbook` / `conflict`
 --            and shows an Action Center row until Restore (a new revision) or Dismiss. Nobody else is told.
+-- Read marks (M11.3, SPEC-15 §5.4) GuildKey:Data().handbook.read[id], per account: the revision last read. A page is
+--            updated while its revision is higher and another account wrote it; the reader marks it read.
 -- Switch     Core/Features.lua "raid": off, nothing is written, accepted or sent, and nothing is shown.
--- Bus        HANDBOOK_CHANGED(id) a page arrived, was written or deleted (nil: many); HANDBOOK_CONFLICT(id).
+-- Bus        HANDBOOK_CHANGED(id) a page arrived, was written or deleted (nil: many); HANDBOOK_CONFLICT(id);
+--            HANDBOOK_READ(id) the read mark of a page (nil: many) changed.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Handbook = {}
@@ -224,10 +227,10 @@ function Handbook:Get(id)
 end
 
 -- The live pages in their order (`order`, then the title, then the id), the templates only with `templates`. The second
--- result is the number of pages left out over MAX_PAGES (SPEC-15 §3.2).
+-- result is the number of pages left out over MAX_PAGES (SPEC-15 §3.2), the third those pages, in the same order.
 function Handbook:Pages(templates)
 	local out = {}
-	if not ready() then return out, 0 end
+	if not ready() then return out, 0, {} end
 	for _, rec in pairs(records()) do
 		if live(rec) then out[#out + 1] = rec end
 	end
@@ -236,15 +239,14 @@ function Handbook:Pages(templates)
 		if a.title ~= b.title then return a.title < b.title end
 		return a.id < b.id
 	end)
-	local hidden = 0
+	local over = {}
 	while #out > Handbook.MAX_PAGES do
-		remove(out)
-		hidden = hidden + 1
+		table.insert(over, 1, remove(out))
 	end
 	if not templates then
 		for i = #out, 1, -1 do if out[i].tpl then remove(out, i) end end
 	end
-	return out, hidden
+	return out, #over, over
 end
 
 -- The live pages and the bytes of their bodies, without the page `except`.
@@ -266,6 +268,7 @@ local ACCENTS = {
 	["ë"] = "e", ["ì"] = "i", ["í"] = "i", ["î"] = "i", ["ï"] = "i", ["ò"] = "o", ["ó"] = "o", ["ô"] = "o", ["ö"] = "o",
 	["õ"] = "o", ["ù"] = "u", ["ú"] = "u", ["û"] = "u", ["ü"] = "u", ["ñ"] = "n", ["ç"] = "c", ["ß"] = "ss",
 }
+Handbook.ACCENTS = ACCENTS   -- the search of Data/HandbookText.lua
 function Handbook.Slug(title)
 	-- the accents first and only ASCII lowered by hand: string.lower follows the C locale, which may change UTF-8 bytes
 	local s = type(title) == "string" and title or ""
@@ -397,6 +400,51 @@ function Handbook.Replaced(held, rec, origin)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- Read marks (SPEC-15 §5.4)
+---------------------------------------------------------------------------------------------------------------------
+-- true when the page changed since this account last read it: a published page whose revision is higher than the one
+-- read (never read: every page) and whose last revision no character of this account wrote.
+function Handbook:IsUpdated(rec)
+	if not (ready() and live(rec)) or rec.tpl then return false end
+	local hb = localData()
+	if not hb or rec.rev <= (tonumber(hb.read[rec.id]) or 0) then return false end
+	return not sameAccount(ownGUID(), rec.author)
+end
+
+-- The updated pages, in the order of the list.
+function Handbook:Updated()
+	local out = {}
+	for _, rec in ipairs(self:Pages()) do
+		if self:IsUpdated(rec) then out[#out + 1] = rec end
+	end
+	return out
+end
+
+local function mark(rec)
+	local hb = localData()
+	if not (hb and live(rec)) or (tonumber(hb.read[rec.id]) or 0) >= rec.rev then return false end
+	hb.read[rec.id] = rec.rev
+	return true
+end
+
+-- The page `id` has been read, at the revision held. Returns true when its mark changed.
+function Handbook:MarkRead(id)
+	if not ready() or not mark(store():Get(Handbook.SET, id)) then return false end
+	emit("HANDBOOK_READ", id)
+	return true
+end
+
+-- "Mark all as read". Returns the number of pages it marked.
+function Handbook:MarkAllRead()
+	local n = 0
+	for _, rec in ipairs(self:Updated()) do
+		if mark(rec) then n = n + 1 end
+	end
+	if n > 0 then emit("HANDBOOK_READ") end
+	return n
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Writing
 ---------------------------------------------------------------------------------------------------------------------
 -- Writes a page. `fields` = { title, body, order, tpl }; `opts` = { base = the revision the editor started from (nil for
@@ -523,15 +571,35 @@ function Handbook:Conflict(mine, winner)
 	end
 end
 
--- The Action Center rows: one per lost revision waiting for a choice, urgency 2.
+local function openView(id)
+	if ns.HandbookView and ns.HandbookView.Open then ns.HandbookView:Open(id) end
+end
+
+-- The Action Center rows: for a writer one per lost revision waiting for a choice (urgency 2); for everybody one for the
+-- pages updated since they were read (urgency 1).
 function Handbook:ActionRows()
 	local rows = {}
-	if not self:CanWrite() then return rows end
-	for _, c in ipairs(self:Conflicts()) do
-		rows[#rows + 1] = { key = c.id .. ":" .. tostring(c.rev), urgency = 2, time = c.time, mark = tostring(c.rev),
-			who = nameOf(c.winner), title = ns.L["HANDBOOK_ROW_CONFLICT"]:format(c.page or "?"),
-			detail = ns.L["HANDBOOK_ROW_CONFLICT_DETAIL"]:format(nameOf(c.winner)),
-			open = function() if ns.HandbookView and ns.HandbookView.Open then ns.HandbookView:Open(c.id) end end }
+	if self:CanWrite() then
+		for _, c in ipairs(self:Conflicts()) do
+			rows[#rows + 1] = { key = c.id .. ":" .. tostring(c.rev), urgency = 2, time = c.time, mark = tostring(c.rev),
+				who = nameOf(c.winner), title = ns.L["HANDBOOK_ROW_CONFLICT"]:format(c.page or "?"),
+				detail = ns.L["HANDBOOK_ROW_CONFLICT_DETAIL"]:format(nameOf(c.winner)),
+				open = function() openView(c.id) end }
+		end
+	end
+	local updated = self:Updated()
+	if #updated > 0 then
+		local since, mark_, titles = updated[1].time, 0, {}
+		for i, rec in ipairs(updated) do
+			if rec.time < since then since = rec.time end
+			mark_ = mark_ + rec.rev
+			titles[i] = rec.title
+		end
+		local first = updated[1].id
+		rows[#rows + 1] = { key = "updated", urgency = 1, time = since, mark = #updated .. ":" .. mark_,
+			title = #updated == 1 and ns.L["HANDBOOK_ROW_UPDATED_ONE"]
+				or ns.L["HANDBOOK_ROW_UPDATED"]:format(#updated),
+			detail = table.concat(titles, ", "), open = function() openView(first) end }
 	end
 	return rows
 end
@@ -559,7 +627,7 @@ end
 
 if ns.Actions then
 	ns.Actions:Register("handbook", { label = "ACT_PROVIDER_HANDBOOK", order = 7, feature = "raid",
-		events = { "HANDBOOK_CONFLICT", "HANDBOOK_CHANGED", "ROSTER_UPDATED" }, items = function() return Handbook:ActionRows() end })
+		events = { "HANDBOOK_CONFLICT", "HANDBOOK_CHANGED", "HANDBOOK_READ", "ROSTER_UPDATED" }, items = function() return Handbook:ActionRows() end })
 end
 
 if ns.addon then

@@ -82,6 +82,7 @@ function Box:Open(text, title)
 	local f = self:Frame()
 	f.text = tostring(text or "")
 	f.title:SetText(title or "")
+	f.edit:SetMaxLetters(math.max(64, #f.text))   -- a long web address is not cut
 	f.edit:SetText(f.text)
 	f.edit:SetCursorPosition(0)
 	f:Open()

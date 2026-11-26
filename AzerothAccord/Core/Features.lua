@@ -9,7 +9,8 @@
 --          follow (the last one the rallies, M10.9, the data set `rally`). Off: nothing of it is detected, shown, written,
 --          accepted or sent. On since M10.10.
 --   raid   the M11 features read from FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)", the
---          choice of the loot source). It builds on M10, so while it is on `season` is on too (Features.IMPLIES).
+--          choice of the loot source) and the guild handbook (M11.2-M11.6: the data set `handbook`, the Handbook view and
+--          `/accord handbook`). It builds on M10, so while it is on `season` is on too (Features.IMPLIES).
 --          Switched on when M11 is complete (docs/roadmap/M11-loot-handbook.md).
 --   actions  the Action Center, the notices, quiet hours and the login digest (M9.2-M9.5, SPEC-13): the view,
 --          `/accord inbox`, the line in the Compartment tooltip and the craft reminders. On since M9.10.

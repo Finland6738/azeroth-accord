@@ -19,6 +19,7 @@
 - [[Raid-Helper events|Raid-Helper]]
 - [[Availability|Availability]]
 - [[Raid and Loot Addons|Raid-and-Loot-Addons]]
+- [[Guild handbook|Guild-Handbook]]
 
 **Reference**
 - [[Privacy and Data|Privacy-and-Data]]
@@ -45,6 +46,7 @@
 - [[Eventi di Raid-Helper|Raid-Helper-it]]
 - [[Disponibilità|Availability-it]]
 - [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]
+- [[Manuale di gilda|Guild-Handbook-it]]
 - [[Privacy e dati|Privacy-and-Data-it]]
 - [[Domande frequenti|FAQ-it]]
 - [[Informazioni e crediti|About-it]]

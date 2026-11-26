@@ -79,7 +79,9 @@ Notes:
   - search;
   - a mark on pages updated since the player last read them.
 - Done when:
-  - [ ] Every member can read every page offline from the last sync; the "updated" mark clears on reading.
+  - [x] Every member can read every page offline from the last sync; the "updated" mark clears on reading.
+  - *Done (2026-11-26):* `Data/HandbookText.lua` (blocks, links, cleaning, HTML, search), the read marks in `Data/Handbook.lua` and the Handbook view `UI/Handbook.lua` with `/accord handbook`, one SimpleHTML per block, all behind `raid`; `Tests/test_handbook_view.lua`.
+- Real client: how SimpleHTML draws the fonts, the links and the height of a block; scrolling to a heading.
 
 ### M11.4 — Editor
 - Branch: `step/m11-4-editor`
