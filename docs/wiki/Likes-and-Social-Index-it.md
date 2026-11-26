@@ -62,6 +62,19 @@ La modalità **Qualcuno di nuovo** della vista Reputazione suggerisce compagni d
 
 *Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
 
+## Mentori
+
+> **Non ancora disponibile**: è nascosto finché le funzioni del reclutamento (M12) non sono complete. Nulla è stato verificato nel gioco vero.
+
+La modalità **Mentori** della vista Reputazione elenca i membri che si offrono di aiutare i nuovi; la vedono **tutti**.
+
+- **Nessuno compare senza averlo scelto.** L'offerta è spenta: **Offriti come mentore ai nuovi membri** ti mette nell'elenco con un clic (da qui o dalla sua carta in *Cosa condivido*). Una sola offerta per account, sul personaggio con cui vuoi essere contattato.
+- **Modifica** sceglie gli argomenti (raid, spedizioni, PvP, professioni, livellamento, addon) e una nota breve (80 byte).
+- **Lascia l'elenco dei mentori** ti toglie quando vuoi, con un clic; l'uscita arriva agli altri come l'offerta.
+- L'elenco mostra il personaggio, il main, gli argomenti, la nota e chi è in linea; filtra per argomento o cerca per nome. **Sussurra** apre soltanto la casella della chat.
+
+I **mentori suggeriti** sono solo per gli ufficiali e il Guild Master: per ogni nuovo membro (in prova, o entrato negli ultimi 30 giorni) fino a tre tra chi si è offerto, in base al tempo giocato insieme, ai compagni in comune, alla mappa dei gruppi e alle ore in cui di solito si è in linea ([[Roster di gilda|Guild-Roster-it]], *Prove*). Di una coppia non si salva né si invia nulla, e né il mentore né il nuovo membro ricevono avvisi. Il tempo giocato insieme arriva all'addon di ogni membro: mostrare le coppie solo agli ufficiali è una regola dell'interfaccia.
+
 ## Cosa viene registrato (dalla versione del roster in poi)
 
 Ogni minuto in cui sei in gruppo o in raid con almeno un compagno di gilda, l'addon aggiunge un minuto a ogni coppia di compagni di gilda nel gruppo, anche dentro le istanze. I minuti sono conservati per giorno, condivisi con la tua gilda una volta all'ora (e quando esci) e scartati dopo 90 giorni. Quando più giocatori con l'addon erano nello stesso gruppo, si usa il conteggio più alto, mai la somma. L'indice sociale, la mappa dei gruppi e i suggerimenti si calcolano da questi minuti; `/accord debug` stampa solo conteggi (mai nomi). I membri che il gioco nasconde agli addon dentro un'istanza vengono lasciati fuori invece che indovinati.

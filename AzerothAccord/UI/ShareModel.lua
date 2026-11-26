@@ -8,6 +8,7 @@
 --   ShareModel.Add(id, def)   another data set (M9.9, the addon list): def = { order, to, when, switch, build(me, at) ->
 --                                lines, records, rev, updated, note }
 --   ShareModel.SetSwitch(key, on)   the switch of a row ("shareCoplay"; "shareAddons", M9.9; "shareAvailability", M10.8)
+-- A row whose switch is not a setting gives `toggle` = { get() -> on, set(on) } (the mentor offer, M12.5).
 -- A row with `feature` shows only while that switch of Core/Features.lua is on. A row with a switch may name its texts
 -- (switchLabel, switchTip, offNote: locale keys); without them they are the co-play ones.
 -- The other characters' own `accounts` rows are not shown as published by this one (SPEC-11 §5): the page says so.
@@ -318,10 +319,11 @@ function Model.Describe(at)
 				records = #(recs or {}), rev = rev, updated = updated, always = def.always }
 			if updated then row.age = L["SHARE_UPDATED"]:format(ns.Provenance.AgeText(ns.Provenance.Age(updated, at))) end
 			if def.switch then
-				row.switch, row.on = def.switch, switchOn(def.switch)
+				row.switch = def.switch
+				if def.toggle then row.on = def.toggle.get() == true else row.on = switchOn(def.switch) end
 				row.switchLabel = L[def.switchLabel or "SHARE_COPLAY_SWITCH"]
 				row.switchTip = L[def.switchTip or "SHARE_COPLAY_SWITCH_TIP"]
-				if not row.on then row.note = L[def.offNote or "SHARE_COPLAY_OFF_NOTE"] end
+				if not row.on and not def.toggle then row.note = L[def.offNote or "SHARE_COPLAY_OFF_NOTE"] end
 			end
 			rows[#rows + 1] = row
 		end
@@ -330,6 +332,9 @@ function Model.Describe(at)
 end
 
 function Model.SetSwitch(key, on)
+	for _, def in pairs(Model.DEFS) do
+		if def.toggle and def.switch == key then return def.toggle.set(on and true or false) end
+	end
 	local M = ns.SettingsModel
 	if not (M and M.OPTION[key] and M.OPTION[key].group == "sharing") then return false, "unknown" end
 	return M.Set(key, on)
@@ -430,6 +435,42 @@ builders.rally = function(guid)
 end
 Model.Add("rally", { set = "rally", feature = "season", build = builders.rally, title = "SHARE_RALLY",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_RALLY" })
+
+-- the mentor offer (M12.5, SPEC-16 §8): the record of this account; the switch is the offer itself, off by default
+builders.mentor = function()
+	local M = ns.Mentors
+	local rec = M and M:OwnRecord()
+	local lines, recs = {}, { rec }
+	if not rec then
+		lines[1] = L["SHARE_MENTOR_NONE"]
+	elseif rec.off == true then
+		lines[1] = L["SHARE_MENTOR_LEFT"]
+	else
+		local topics = {}
+		for i, id in ipairs(rec.topics or {}) do topics[i] = L["MEN_TOPIC_" .. id:upper()] end
+		lines[1] = L["SHARE_MENTOR_ON"]:format(#topics > 0 and concat(topics, ", ") or L["MEN_NO_TOPICS"])
+		if rec.note then
+			lines[2] = L["SHARE_MENTOR_TEXT"]:format(ns.Contacts and ns.Contacts.Escape(rec.note) or rec.note)
+		end
+	end
+	lines[#lines + 1] = L["MEN_PAIRS_NOTE"]
+	return lines, recs
+end
+Model.Add("mentor", { set = "mentor", feature = "recruit", build = builders.mentor, title = "SHARE_MENTOR",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_MENTOR", switch = "mentorOffer", switchLabel = "MEN_OFFER",
+	switchTip = "SHARE_MENTOR_SWITCH_TIP", toggle = {
+		get = function() return ns.Mentors ~= nil and ns.Mentors:Own() ~= nil end,
+		set = function(on)
+			local M = ns.Mentors
+			if not M then return false, "off" end
+			local done, why
+			if on then done, why = M:Join() else done, why = M:Leave() end
+			if done then return true end
+			if ns.MentorsView then ns.MentorsView.Refused(why) end
+			if ns.Bus then ns.Bus:Emit("MENTORS_CHANGED") end   -- the switch goes back to what is held
+			return false, why
+		end,
+	} })
 
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",

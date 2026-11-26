@@ -1,5 +1,6 @@
 -- TrialsView: the "Trials" page of the Officers tab, the dialogs of a trial and the "Trial" section of the member card
 -- (M12.3; SPEC-16 §4.5). Lua 5.1.
+-- A third tab of the page shows the mentors suggested to the new members (M12.5, UI/Mentors.lua).
 -- Only the officers and the Guild Master see any of it (Trials.CanSee), and only with the switch "recruit". Nothing on
 -- these frames changes the game (RC-02): Passed may add a promotion to the officer's own queue of manual actions (M8.4).
 --   View.RowText(row, column, t)   the text of a cell of the page (plain, tested offline)
@@ -121,6 +122,12 @@ local function buildPage(f, officers)
 	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)
 	f.count = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.count:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 2)
+	if ns.MentorsView then
+		f.pairs = ns.MentorsView.BuildPairs(f)
+		f.pairs:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -2 * officers.FILTER_HEIGHT)
+		f.pairs:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)
+		f.pairs:Hide()
+	end
 end
 
 -- The rows the page shows now, with the search of the panel.
@@ -135,7 +142,19 @@ function View.PageRows(tab, search, t)
 end
 
 local function refreshPage(f, officers)
-	f.tabs:SetItems({ { id = "open", text = L["TRI_TAB_OPEN"] }, { id = "closed", text = L["TRI_TAB_CLOSED"] } }, View.tab)
+	local mentors = f.pairs ~= nil and ns.Mentors.CanSeePairs()
+	if View.tab == "mentors" and not mentors then View.tab = "open" end
+	local tabs = { { id = "open", text = L["TRI_TAB_OPEN"] }, { id = "closed", text = L["TRI_TAB_CLOSED"] } }
+	if mentors then tabs[3] = { id = "mentors", text = L["TRI_TAB_MENTORS"] } end
+	f.tabs:SetItems(tabs, View.tab)
+	local onPairs = View.tab == "mentors"
+	f.table:SetShown(not onPairs)
+	if f.pairs then f.pairs:SetShown(onPairs) end
+	if onPairs then
+		View.rows = {}
+		f.count:SetText(L["MEN_PAIRS_COUNT"]:format(ns.MentorsView.RefreshPairs(f.pairs, officers.search)))
+		return
+	end
 	if f.shownTab ~= View.tab then
 		f.shownTab = View.tab
 		f.table:SetColumns(columns(View.tab))

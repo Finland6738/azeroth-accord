@@ -45,6 +45,8 @@
 --                                                     is not the one held before (guild keys, "" = none), M12.4.
 --   ONBOARDING_CHANGED()                              Data/Onboarding.lua; the welcome checklist appeared, was dismissed or
 --                                                     one of its items changed, M12.4.
+--   MENTORS_CHANGED()                                 Data/Mentors.lua; a mentor offer arrived, was written or taken back
+--                                                     (or the guild changed), M12.5.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

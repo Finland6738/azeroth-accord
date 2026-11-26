@@ -69,6 +69,7 @@ Data\Inactivity.lua
 Data\OfficerOps.lua
 Data\Trials.lua
 Data\Onboarding.lua
+Data\Mentors.lua
 Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
@@ -126,6 +127,7 @@ UI\Officers.lua
 UI\OfficersOps.lua
 UI\OfficerNotes.lua
 UI\Trials.lua
+UI\Mentors.lua
 UI\Actions.lua
 UI\Onboarding.lua
 UI\Toast.lua

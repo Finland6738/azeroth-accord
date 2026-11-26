@@ -7,6 +7,7 @@ L'addon non ha un server, non invia nulla fuori dal gioco e non raccoglie teleme
 | Chi lo vede | Cosa |
 |---|---|
 | La tua gilda | I nomi nel registro della banca con ciò che hanno depositato o prelevato (come lo mostra il gioco) e l'elenco delle donazioni costruito da lì; l'elenco dei tuoi personaggi nel reame e il tuo main, il tuo BattleTag, il tuo nome Discord, le tue ricette, i minuti passati in gruppo con compagni di gilda, il contenuto della banca che hai visto, le tue richieste alla banca |
+| La tua gilda, solo se ti offri | Da M12 (nascosto finché non è completa): la tua **offerta di mentore** (il personaggio, gli argomenti e una nota breve), spenta finché non la accendi; anche l'uscita viene inviata. I mentori suggeriti agli ufficiali per i nuovi membri si calcolano sui loro computer e non si salvano né si inviano (vedi *Like e indice sociale*) |
 | La tua gilda, solo come totali | I like che ricevi |
 | Tu, gli ufficiali e il Maestro di gilda | Il tuo indice sociale e i compagni con cui hai giocato di più (calcolati da ogni addon dai minuti condivisi) |
 | L'ufficiale che registra il tuo like | Che il like viene da te, nel momento in cui è consegnato; poi è conservato sotto un codice che i membri non possono leggere |

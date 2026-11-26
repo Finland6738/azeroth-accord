@@ -149,6 +149,7 @@ if ns.Bus then
 	ns.Bus:On("SETTINGS_CHANGED", refreshVisible)
 	ns.Bus:On("STORE_CHANGED", function(_, _, origin) if origin == "local" or origin == "backup" then refreshVisible() end end)
 	ns.Bus:On("GUILD_CHANGED", refreshVisible)
+	ns.Bus:On("MENTORS_CHANGED", refreshVisible)
 	ns.Bus:On("ROLE_CHANGED", refreshVisible)
 end
 if ns.addon then ns.addon.SharePanel = Panel end

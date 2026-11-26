@@ -135,7 +135,7 @@ Solo **ufficiali e Guild Master** (`Officer.VISIBLE_TO.trials = "officers"`, la 
 
 ### 4.5 L'interfaccia
 
-- **Pagina *Trials*** della scheda *Officers*: le prove aperte (nome, grado, inizio, fine, giorni che mancano, numero di note) e sotto, in un selettore, quelle chiuse degli ultimi 90 giorni (più vecchie dalla scheda del membro). Pulsanti: *Start trial* (un menu dei membri del roster, con la lunghezza e l'inizio, oggi di predefinito), *Extend* (giorni in più), *Passed*, *Not passed*, *Cancel*, ognuno con un secondo clic **Confirm**. Con i nuovi membri (§6.4) la stessa pagina mostra i mentori suggeriti.
+- **Pagina *Trials*** della scheda *Officers*: le prove aperte (nome, grado, inizio, fine, giorni che mancano, numero di note) e sotto, in un selettore, quelle chiuse degli ultimi 90 giorni (più vecchie dalla scheda del membro). Pulsanti: *Start trial* (un menu dei membri del roster, con la lunghezza e l'inizio, oggi di predefinito), *Extend* (giorni in più), *Passed*, *Not passed*, *Cancel*, ognuno con un secondo clic **Confirm**. La stessa pagina mostra, in un terzo selettore *Suggested mentors*, i mentori suggeriti ai nuovi membri (§6.4).
 - **Sezione *Trial*** della scheda del membro, solo per gli ufficiali: la prova aperta o l'ultima chiusa, le note degli ufficiali (la propria modificabile, nella finestra a più righe delle note estese, `UI/OfficerNotes.lua`, le altre in sola lettura con autore ed età, M7.2).
 - **Passed** propone, con un riquadro da spuntare (spento di predefinito), di aggiungere alla propria coda delle azioni manuali ([SPEC-12 §4.2](SPEC-12-officer-tools.md#42-la-coda)) una promozione da fare nel gioco; Accord non promuove (RC-02).
 
@@ -210,14 +210,14 @@ Un insieme sincronizzato su `GUILD` come gli altri, un record per account che si
 | `topics` | da 0 a 6 tra `raids`, `dungeons`, `pvp`, `professions`, `leveling`, `addons` | gli argomenti su cui aiuta |
 | `note` | 0–80 byte | testo libero, senza `|`, a capo né caratteri di controllo |
 
-Esattamente uno tra `on` e `off`. `maxBytes = 256`. Un record `off` scade 60 giorni dopo il suo `time` (come una nota estesa cancellata); un record `on` non scade, ma conta solo se il personaggio è nel roster.
+Esattamente uno tra `on` e `off`. `maxBytes = 384` (la stima di un record con tutti gli argomenti e la nota più lunga supera i 256 byte previsti in M12.1). L'insieme va nel **riepilogo a parte** del censimento degli addon (`summary = "extra"`, [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): un'offerta nuova o cambiata non fa richiedere gli altri dati del suo autore. Un record `off` scade 60 giorni dopo il suo `time` (come una nota estesa cancellata); un record `on` non scade, ma conta solo se il personaggio è nel roster.
 
 **Regole di fiducia (MEN-01…MEN-04):**
 
 - **MEN-01 Solo la propria offerta.** Un record `M:<GUID>` si accetta solo se l'autore è `GUID` o un personaggio dello stesso account con l'elenco reciproco (NET-10), o se lo ritrasmette un ufficiale (NET-11) con il contenuto dell'autore; nessuno, ufficiali compresi, mette un altro nell'elenco (`owner`), come SEA-01.
 - **MEN-02 Forma.** Campi e limiti sopra; un argomento sconosciuto, una nota con `|` o un record con altri campi si rifiutano (`owner`).
 - **MEN-03 Uno per account.** `Mentors:Join` rifiuta (`account`) l'offerta di un secondo personaggio dell'account (prima si lascia quella vecchia); se arrivano offerte vive di due personaggi dello stesso account, la vista mostra quella con il `time` più vecchio (a parità il GUID minore), senza rifiutare l'altra, come SEA-05.
-- **MEN-04 Ritmo.** Al massimo 10 revisioni all'ora per autore si accettano da chi riceve (`rate`): entrare e uscire di continuo non inonda la gilda.
+- **MEN-04 Ritmo.** Al massimo 10 revisioni all'ora per autore si accettano da chi riceve (`rate`): entrare e uscire di continuo non inonda la gilda. Un `off` che segue un'offerta valida tenuta da chi riceve si accetta sempre (si esce quando si vuole); anche il client dell'autore rifiuta di entrare o modificare oltre il limite, mai di uscire.
 
 ### 6.2 Entrare e uscire
 
@@ -248,6 +248,14 @@ Solo sul client di un ufficiale o del Guild Master (`Mentors.PAIRS_VISIBLE_TO = 
 
 I minuti di gioco insieme sono dati che ogni client riceve (`coplay` va a tutta la gilda, SPEC-03 §4): tenere le coppie per gli ufficiali è una **regola dell'interfaccia**, come i nomi del censimento (SPEC-10 Q17) e la mappa dei gruppi (Q3), e *What I share* lo dice (§8). Chi ha spento *Record time played together* non pubblica co-play nuovo, ma gli altri osservano ancora i gruppi in cui c'è anche lui (SPEC-11 §5).
 
+### 6.5 Come è fatta (M12.5)
+
+- `Data/Mentors.lua` (`ns.Mentors`) e `UI/Mentors.lua` (`ns.MentorsView`). *Offer to mentor new members* scrive subito un'offerta senza argomenti; *Edit* apre la finestra con gli argomenti e la nota (a capo e caratteri di controllo diventano spazi, il `|` si toglie, oltre 80 byte non si salva). *Leave* scrive `off` per ogni offerta viva dell'account. Da un altro personaggio dell'account *Edit* e *Leave* agiscono sull'offerta esistente.
+- La modalità *Mentors* è la quinta della vista *Reputation* (ordine 50), con la casella di ricerca per nome. La riga di *What I share* ha un interruttore che è l'offerta stessa (`toggle` in `UI/ShareModel.lua`), non un'impostazione.
+- Le coppie: `Mentors:Newcomers` (prove aperte e ingressi degli ultimi 30 giorni; l'ordine d'ingresso è il primo ingresso recente, altrimenti l'inizio della prova), `Mentors:Pairs` (calcolo a ogni apertura sul grafo di `Social:Result()`; finché il grafo non è calcolato la pagina lo dice), `Availability:Common` per le ore in comune. I motivi mostrati sono tutti quelli veri; *No play together yet* quando il grafo non dice nulla. Un mentore che è già la prima scelta di 3 può comparire come secondo o terzo.
+- Limite noto: un account con un ingresso recente conta come nuovo anche se quell'ingresso è di un alt di un membro di vecchia data (la regola di §6.4 guarda la cronologia, non l'accoglienza), e in quei 30 giorni non è suggerito come mentore.
+- La demo (§8) aggiunge cinque offerte a `D.recruit.mentor`.
+
 ## 7. Traffico
 
 Stima per la gilda di 50 client di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione):
@@ -258,11 +266,11 @@ Stima per la gilda di 50 client di [SPEC-02 §4](SPEC-02-network-protocol.md#4-s
 | Accoglienza | da nessuna parte | 0 |
 | Coppie suggerite | da nessuna parte (calcolate sui dati che il client ha) | 0 |
 | `trials` | solo `OFFICER` e whisper tra ufficiali (TRI-02) | una prova circa 120 B sul filo, una nota fino a circa 900 B; qualche scrittura a settimana; una voce di 11 byte nel riepilogo `m` di `OHELLO`: meno di **2 B/min** per ufficiale |
-| `mentor` | `GUILD`, nel riepilogo per autore come gli altri insiemi | circa 120 B sul filo per record, scritto solo da un clic; ogni offerta nuova o cambiata fa richiedere il gruppo del suo autore una volta (come una mappa della disponibilità, R17): con 10 offerte a settimana meno di **2 B/min** per client in media |
+| `mentor` | `GUILD`, nel riepilogo a parte (con il censimento degli addon) | circa 150 B sul filo per record, scritto solo da un clic; a gilda allineata il costo misurato è sotto il rumore della misura; al primo scambio vedi sotto |
 
 **Il primo scambio.** Il giorno in cui si accende `recruit` nessun record di `trials` o `mentor` esiste: le offerte e le prove nascono dai clic, sparse nei giorni seguenti, quindi M12 **non si somma** al primo scambio delle mappe della disponibilità né a quello del manuale. Il tetto resta quello accettato dal proprietario per il primo scambio (SPEC-10 Q26, R17): la media fino a circa **550 B/min** e il client più carico al picco misurato (2,3 KB/min); a gilda allineata la media al massimo **450 B/min** e il client più carico **2 KB/min** ([SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10)). Il limite **non sale per M12**.
 
-**Da misurare in M12.5** (`Tests/test_mentors.lua`, con `recruit` acceso, lo scenario di M10.8 al primo scambio e a gilda allineata, con un account su dieci che entra nell'elenco dei mentori ed esce durante i 45 minuti): la media e il client più carico devono restare entro i limiti sopra. Se non ci stanno, prima si riduce (le offerte in una voce a parte del riepilogo come il censimento, `c`/`cb`), poi si chiede al proprietario. M12.3 misura le prove nel simulatore degli ufficiali di M8.2 (`Tests/test_sync_sim.lua`): nessun record su `GUILD` né in whisper a un membro, e il traffico degli insiemi degli ufficiali sotto i 150 B/min per ufficiale di SPEC-12 §1.5.
+**Misurato in M12.5** (`Tests/test_mentors.lua`, `recruit` acceso, lo scenario di M10.8: 50 client, 45 minuti, un account su dieci che entra nell'elenco dei mentori e ne esce, cioè dieci scritture, molte più delle poche a settimana attese). A gilda allineata: media **318 B/min** (324 senza mentori), il più carico 774 B/min, dentro i limiti. Al primo scambio delle mappe: media **560 B/min** (530 senza), il più carico 2667 (2353); sui semi 42–45 media 543–583 B/min, il più carico fino a 2667. La riduzione prevista (il riepilogo a parte) è applicata e abbassa il picco del più carico (da 3353 a 2667) ma non la media: supera di poco i 550 B/min accettati per il primo scambio, e la scelta è del proprietario ([SPEC-10 Q39](SPEC-10-risks-open-questions.md)); finché non risponde il test tiene la media sotto 600 B/min e il più carico sotto 2816. M12.3 misura le prove nel simulatore degli ufficiali di M8.2 (`Tests/test_sync_sim.lua`): nessun record su `GUILD` né in whisper a un membro, e il traffico degli insiemi degli ufficiali sotto i 150 B/min per ufficiale di SPEC-12 §1.5.
 
 ## 8. *What I share*, diagnostica, demo, backup
 
@@ -295,4 +303,5 @@ Nella prova di M12.6 (`docs/checklists/M12.md`):
 - il canale degli ufficiali (S5) per le prove e le note, e un membro che non le riceve;
 - il giorno della fine di una prova: il promemoria parte alle 00:00 UTC del giorno `ends` (l'una o le due di notte in Italia), con l'ora del server; da controllare che la data mostrata, UTC come nella cronologia, sia quella che l'ufficiale si aspetta;
 - con FDCP come fonte, che `GetMember` sul client di un membro dica se il suo personaggio è nel pool (voce `season` dell'accoglienza);
-- le coppie suggerite con il gioco di gruppo reale di una gilda (una serata di dungeon con un nuovo membro).
+- le coppie suggerite con il gioco di gruppo reale di una gilda (una serata di dungeon con un nuovo membro);
+- *Whisper* dalla modalità *Mentors* e dai suggerimenti (anche con un nome con lo spazio), e l'aspetto della modalità, della finestra dell'offerta e del terzo selettore della pagina *Trials*.

@@ -44,6 +44,9 @@
 -- The availability map (`avail`, SPEC-14 §8.2) is an ordinary set (first hand, officer relay, saved): one small record per
 -- character, the 168 levels of when its account is online, or its withdrawal.
 --
+-- The mentor offers (`mentor`, SPEC-16 §6) are an ordinary set (first hand, officer relay, saved): one record per account
+-- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04).
+--
 -- The guild handbook (`handbook`, SPEC-15 §3) is an ordinary set (first hand, officer relay, saved) with three rules of
 -- its own: only a writer (Data/Handbook.lua: the Guild Master, the officers and the ranks the officers chose) passes a page
 -- first hand (`writer`, HBK-01: refused as "authority"); a receiver takes at most Handbook.WRITES_PER_HOUR new revisions
@@ -54,7 +57,8 @@
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
--- A trial is kept forever, closed or not (SPEC-16 §4.1, Q35); a deleted trial note expires after 60 days.
+-- A trial is kept forever, closed or not (SPEC-16 §4.1, Q35); a deleted trial note expires after 60 days. A left mentor
+-- offer expires after 60 days.
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -366,6 +370,14 @@ Store.SETS = {
 		group = function() return "trials" end,    -- one group of the summary `m` of OHELLO (TRI-02)
 		expires = function(rec, t) return ns.Trials ~= nil and ns.Trials.Expired(rec, t) end,     -- deleted notes only
 	},
+	mentor = {     -- the mentor offers (Data/Mentors.lua, M12.5, SPEC-16 §6): "M:<GUID>" { on, topics, note } or { off }
+		feature = "recruit",                       -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 384,
+		summary = "extra",                         -- apart from the older sets, with the census (SPEC-16 §7)
+		owner = function(rec, s) return ns.Mentors ~= nil and ns.Mentors.ValidRecord(rec, s) end,    -- MEN-01, MEN-02
+		rate = function(rec) return ns.Mentors ~= nil and ns.Mentors.Within(rec) end,               -- MEN-04
+		expires = function(rec, t) return ns.Mentors ~= nil and ns.Mentors.Expired(rec, t) end,     -- an `off` after 60 days
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -376,7 +388,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

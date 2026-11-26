@@ -15,7 +15,7 @@
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
 --                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
---   recruit                      the records of M12, by set (switch "recruit"): the recruitment text, the trials
+--   recruit                      the records of M12, by set (switch "recruit"): the recruitment text, the trials, the mentors
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -582,6 +582,21 @@ function DemoData.Build(now)
 		trial(59, 3, 20, 14, 10)
 		trial(58, 1, 40, 14, -26, 25)
 		D.recruit.trials = trials
+		-- Five mentor offers (SPEC-16 §6, §8) of members who play together, one per account; the members on trial above
+		-- are the new members the officers get suggestions for
+		local offers = {}
+		for k, offer in ipairs({
+			{ 1, { "raids", "dungeons" }, "Raid nights and first dungeons." },
+			{ 5, { "leveling", "addons" }, "Ask me about addons." },
+			{ 9, { "pvp" } },
+			{ 15, { "professions", "leveling" }, "Crafting questions welcome." },
+			{ 22, { "dungeons", "professions", "addons" } },
+		}) do
+			local m = members[offer[1]]
+			local id = "M:" .. m.guid
+			offers[id] = { id = id, author = m.guid, rev = 1, time = now - (12 - k) * DAY, on = true, topics = offer[2], note = offer[3] }
+		end
+		D.recruit.mentor = offers
 		-- The welcome checklist (SPEC-16 §5, §8) of the player as a new member, two items ticked; no chat line
 		D.onboarding = { [members[PLAYER_INDEX].guid] = { joined = now - 2 * DAY, how = "seen", known = true, notified = true,
 			done = { read = now - DAY, main = now - DAY } } }

@@ -47,7 +47,7 @@
 - Spec: SPEC-16; SPEC-07
 - Scope: an opt-in list of mentors. Suggested pairs come from co-play and the social graph, and are shown to officers only.
 - Done when:
-  - [ ] Only opted-in members are suggested; a member can leave the list at any time.
+  - [x] Only opted-in members are suggested; a member can leave the list at any time.
 
 ### M12.6 — In-game check and release
 - Branch: `step/m12-6-check`

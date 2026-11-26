@@ -415,6 +415,23 @@ function Availability.CanSeeNames()
 	return ns.Role ~= nil and ns.Role:IsOfficer() == true
 end
 
+-- In how many cells both accounts are usually online (level >= USUAL), for whoever may see who is online (Q23); 0 else,
+-- and for an account that shares nothing.
+function Availability:Common(a, b)
+	if not (Availability.Enabled() and Availability.CanSeeNames()) then return 0 end
+	local x, y
+	for _, m in ipairs(members()) do
+		if m.account == a then x = m.levels end
+		if m.account == b then y = m.levels end
+	end
+	if not (x and y) then return 0 end
+	local n = 0
+	for h = 0, Availability.CELLS - 1 do
+		if x[h] >= Availability.USUAL and y[h] >= Availability.USUAL then n = n + 1 end
+	end
+	return n
+end
+
 -- Who has played in the cell, as far as this character may see it: { { account, name (the main's), level, weeks, own },
 -- ... }, the most often first. Officers and the Guild Master get every account; anybody else only the own one.
 function Availability:Who(cell)

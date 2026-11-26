@@ -63,6 +63,19 @@ The **Someone new** mode of the Reputation view suggests guildmates who are **on
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
+## Mentors
+
+> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+
+The **Mentors** mode of the Reputation view lists the members who offer to help new members; **everybody** sees it.
+
+- **Nobody is listed without asking.** The offer is off: **Offer to mentor new members** puts you on the list with one click (here or on its card in *What I share*). One offer per account, on the character you want to be reached on.
+- **Edit** chooses your topics (raids, dungeons, PvP, professions, levelling, addons) and a short note (80 bytes).
+- **Leave the mentor list** takes you off at any time, with one click; the leaving reaches the others like the offer did.
+- The list shows the character, the main, the topics, the note and who is online; filter by topic or search by name. **Whisper** only opens your chat box.
+
+**Suggested mentors** are for officers and the Guild Master only: for each new member (on trial, or joined in the last 30 days) up to three of the members who offered, from the time played together, shared teammates, the group map and usual online hours ([[Guild Roster|Guild-Roster]], *Trials*). Nothing about a pair is saved or sent, and neither the mentor nor the new member is told. The time played together reaches every member's addon: showing the pairs to officers only is a rule of the interface.
+
 ## What is recorded (from the roster version on)
 
 Every minute you are in a party or raid with at least one guildmate, the addon adds one minute to each pair of guildmates in the group, also inside instances. The minutes are kept per day, shared with your guild once an hour (and when you log out) and discarded after 90 days. When several players with the addon were in the same group, the largest count is used, never the sum. The social index, the group map and the suggestions are computed from these minutes; `/accord debug` prints only counts (never names). Members the game hides from addons inside an instance are left out rather than guessed.
