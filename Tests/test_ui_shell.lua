@@ -457,11 +457,12 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 	it("every view opens from its tab and from its command, in the order of the spec", function()
 		Mock.Slash("/accord")
 		local tabs = Shell().content.tabs
-		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "addons", "settings" })
+		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "availability",
+			"addons", "settings" })
 		local labels = {}
 		for _, id in ipairs(tabs.order) do labels[#labels + 1] = tabs.buttons[id].label:GetText() end
-		deepEq(labels, { "Action Center", "Roster", "Professions", "Reputation", "Bank", "Groups", "Guild addons",
-			"Settings" })
+		deepEq(labels, { "Action Center", "Roster", "Professions", "Reputation", "Bank", "Groups", "Season", "Events",
+			"Availability", "Guild addons", "Settings" })
 		for _, id in ipairs(tabs.order) do
 			tabs.buttons[id]:Click()
 			eq(tabs:Active(), id, "tab " .. id)
@@ -622,7 +623,8 @@ describe("more tabs than the bar has room for (M9.10)", function()
 
 	it("shows every view of the shipped switches when there is room, and no More tab", function()
 		local tabs = open(2000)
-		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "addons", "settings" })
+		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "availability",
+			"addons", "settings" })
 		deepEq(onBar(tabs), tabs.order)
 		isNil(tabs.more)
 	end)

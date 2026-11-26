@@ -164,15 +164,16 @@ describe("an Italian client", function()
 		local A = AzerothAccord
 		local text = function() return table.concat(Mock.PlainOutput(), "\n") end
 		eq(GetLocale(), "itIT")
-		for _, view in ipairs({ "actions", "roster", "professions", "reputation", "bank", "groups", "addons", "settings" }) do
+		for _, view in ipairs({ "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events",
+			"availability", "addons", "settings" }) do
 			truthy(A.Shell:OpenView(view), view)
 			Mock.Advance(2)
 		end
 		eq(#Mock.errors, 0)
 		local labels = {}
 		for _, v in ipairs(A.Shell:ViewList()) do labels[#labels + 1] = v.label end
-		deepEq(labels, { "Centro azioni", "Roster", "Professioni", "Reputazione", "Banca", "Gruppi", "Addon della gilda",
-			"Ufficiali", "Impostazioni" })
+		deepEq(labels, { "Centro azioni", "Roster", "Professioni", "Reputazione", "Banca", "Gruppi", "Season", "Eventi",
+			"Disponibilità", "Addon della gilda", "Ufficiali", "Impostazioni" })
 		A.Shell:OpenView("settings")
 		eq(A.SettingsView.frame.title:GetText(), "Contatti condivisi con la gilda")
 		eq(A.SettingsView.frame.mainTitle:GetText(), "Personaggio principale")
