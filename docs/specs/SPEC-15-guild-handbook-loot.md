@@ -262,9 +262,12 @@ Un quarto record di `guildcfg`, scritto solo da ufficiali e Guild Master (NET-12
 | `systemName` | 1–32 byte | solo con `system = other` |
 | `addon` | un id di `Integrations.KNOWN` di tipo `loot` o `both` \| `other` \| `none` | l'**addon del loot**; predefinito `none` |
 | `addonName` | 1–32 byte | solo con `addon = other` |
-| `url` | indirizzo, 1–120 byte | solo con `addon = other` (§8.4) |
+| `addonFolder` | 1–64 byte, lettere, cifre, `_`, `-` e `.` | solo con `addon = other`: la cartella dell'addon, per il riconoscimento (§8.3) |
+| `url` | indirizzo CurseForge, 1–120 byte | solo con `addon = other` (§8.4) |
 
 Un record con altri campi o valori si rifiuta (`owner`). Senza record vale `none` e `none`. I nomi dei sistemi nell'interfaccia: *Rolls (MS/OS)*, *Soft reserve*, *Loot council*, *DKP*, *Credits*, *Other*; nessun sistema d'asta d'oro (GDKP, vietato su Forever secondo la nota del sondaggio, [M11](../roadmap/M11-loot-handbook.md#addons-on-wow-forever)), che si può scrivere solo come *Other* dalla gilda.
+
+**Qualunque addon di CurseForge** (risposta del proprietario a SPEC-10 Q30, 2026-11-26). Oltre agli addon di `KNOWN`, la gilda può scegliere come addon del loot qualunque addon di loot pubblicato su CurseForge, con `addon = other`: un ufficiale scrive il nome (`addonName`), la cartella (`addonFolder`) e l'indirizzo CurseForge (`url`). Per un addon così Accord fa solo il **livello 0**: lo stato su questo client (`Integrations:Detect` sulla cartella data) e chi lo ha caricato (§8.3). Il **livello 1**, la lettura dei suoi dati, resta per gli addon con un'API pubblica documentata e un provider nel codice di Accord, oggi solo FDCP (regole d'integrazione di [M10](../roadmap/M10-calendar-raids.md#integration-rules-owner-2026-11-24)); un addon che ne pubblica una si aggiunge a `KNOWN` con un passo suo.
 
 **Una sola fonte per dato.** La fonte `loot` di `sources` (`none` | `fdcp`, M10.2) dice da dove Accord legge i crediti e le regole; l'addon del loot dice che cosa usa la gilda. Da M11.6 si scelgono **insieme**, nella parte fissa della pagina del loot (la vista *Raid* mostra la scelta e rimanda lì): scegliere FDCP come addon scrive anche `sources.loot = fdcp`, scegliere un altro addon o nessuno scrive `sources.loot = none`, nella stessa operazione (due record, lo stesso clic). Un client che riceve `sources.loot = fdcp` con `loot.addon ≠ fdcp` (due ufficiali insieme) mostra l'addon e non legge FDCP. È la proposta di SPEC-10 Q30.
 
@@ -283,7 +286,7 @@ Gli ufficiali vedono *Change* accanto a sistema e addon: un menu con i valori di
 
 ### 8.3 Chi ha l'addon
 
-Dal censimento degli addon di M9.9 attraverso `Integrations:Holders(id)` (M10.2, [SPEC-14 §3.4](SPEC-14-calendar-raids-season.md#34-chi-ha-gli-addon-in-gilda-m102)), per l'addon scelto (di `KNOWN`; con `other` si cerca la cartella con il nome dato, senza maiuscole, tra le cartelle del censimento, e se non si trova la riga lo dice):
+Dal censimento degli addon di M9.9 attraverso `Integrations:Holders(id)` (M10.2, [SPEC-14 §3.4](SPEC-14-calendar-raids-season.md#34-chi-ha-gli-addon-in-gilda-m102)), per l'addon scelto (di `KNOWN`; con `other` si cerca la cartella `addonFolder`, senza maiuscole, tra le cartelle del censimento, e se non si trova la riga lo dice):
 
 - **tutti** vedono il conteggio: "14 of 22 members who share their list have it loaded", con le versioni più usate;
 - **ufficiali e Guild Master** vedono **chi** lo ha, con la versione, e **chi non ce l'ha**: gli account della gilda che condividono l'elenco e non lo hanno caricato, e a parte quanti non condividono o non hanno Accord (mai contati come mancanti); ognuno vede sempre la propria riga. È la regola di `Census:Who` (`Census.NAMES_VISIBLE_TO`, SPEC-10 Q11, Q17), non una nuova: SPEC-10 Q31.
@@ -295,7 +298,7 @@ La parte non scrive e non manda nulla: legge il censimento che c'è già.
 ### 8.4 L'indirizzo di download
 
 - Per un addon di `KNOWN` l'indirizzo è **dell'addon Accord**, non della gilda: un campo `url` nuovo di `Integrations.KNOWN` (la pagina pubblica del progetto: CurseForge, GitHub, Wago o WoWInterface), scritto e controllato nel codice. FDCP: `https://github.com/Finland6738/finland-dragon-credit-points/releases`. Un addon di `KNOWN` senza `url` confermato non mostra la casella.
-- Per `other` l'indirizzo lo scrive un ufficiale, e si accetta solo se comincia con `https://` e il nome del sito è uno di `Loot.URL_HOSTS` = `www.curseforge.com`, `curseforge.com`, `github.com`, `addons.wago.io`, `wago.io`, `www.wowinterface.com` (SPEC-10 Q32); altrimenti il record si rifiuta (`owner`), sia da chi scrive sia da chi riceve. Niente spazi, `|` o caratteri di controllo.
+- Per `other` l'indirizzo lo scrive un ufficiale, e si accetta solo se comincia con `https://` e il nome del sito è uno di `Loot.URL_HOSTS` = `www.curseforge.com`, `curseforge.com`: **solo CurseForge** (risposta del proprietario a SPEC-10 Q32, 2026-11-26); altrimenti il record si rifiuta (`owner`), sia da chi scrive sia da chi riceve. Niente spazi, `|` o caratteri di controllo.
 - La casella è di **sola lettura** (come in *About*: si seleziona al clic e torna com'era se il giocatore ci scrive); il gioco non apre il browser. Sopra: "Copy this address into your browser. Install addons only from sources you trust."
 
 ### 8.5 Il suggerimento di FDCP

@@ -102,7 +102,7 @@ Notes:
   - the loot page's text, written by officers, with a link to the season roster ("loot follows the declared spec");
   - two fields chosen by officers:
     - the guild's **loot system**: rolls MS/OS, soft reserve, loot council, DKP, credits, other;
-    - the **loot addon**: one of the known addons of M10.2, "other" with a name, or none;
+    - the **loot addon**: one of the known addons of M10.2, "other" or none. "Other" is any loot addon published on CurseForge (owner, SPEC-10 Q30, 2026-11-26): its name, its folder (so the addon census shows who has it loaded, level 0) and its CurseForge address (Q32: `https://` on CurseForge only). Reading its data (level 1) stays for addons with a documented public API, today only FDCP;
   - who in the guild has that addon loaded (from the addon census of M9.9, through M10.2), with the version, and a list of who lacks it for officers;
   - the download address in a read-only box to copy;
   - with no addon chosen, the page shows nothing about addons and suggests FDCP, the family's loot addon.
