@@ -568,8 +568,8 @@ describe("the mentor offers between clients", function()
 
 	-- The same ten changes in 45 minutes while half the guild has never run do not fit the 550 B/min of SPEC-10 Q26:
 	-- over the seeds 42-45 they add 30-77 B/min on average (543-583) and up to 650 B/min to the busiest client. The
-	-- bounds below keep the measure from growing until the owner answers SPEC-10 Q39.
-	it("measures the offers while the maps are first exchanged (SPEC-10 Q39)", function()
+	-- owner accepted up to 600 B/min on average and 2816 for the busiest client in this scenario (SPEC-10 Q39).
+	it("keeps the offers inside the accepted peak while the maps are first exchanged (SPEC-10 Q39)", function()
 		local base = churn(false, false)
 		local st, joins = churn(true, false)
 		report("first exchange", st, base)
