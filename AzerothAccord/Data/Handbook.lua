@@ -1,7 +1,7 @@
 -- Handbook: the guild handbook's data (M11.2, SPEC-15 §3; ADR 0025). Lua 5.1.
 --
 -- Records    the data set `handbook` (Net/Store.lua): "P:<slug>" a page { title, body, order, tpl } or { del }, and
---            "seeded" { at, by } (the default pages' seeding, M11.5). `rev` is the page's revision: Store:Put writes the
+--            "seeded" { at, by } (the default pages' seeding, Data/HandbookDefaults.lua). `rev` is the page's revision: Store:Put writes the
 --            revision held plus one, whoever wrote it, and the highest revision wins, then the later time, then the
 --            greater author (Store.Compare). A deleted page stays a `del` record for ever, so it never comes back.
 -- Writers    the Guild Master, the officers and the ranks the officers chose: the record "handbook" of `guildcfg`
@@ -448,8 +448,9 @@ local function sameAccount(a, b) return a ~= nil and b ~= nil and store():SameAc
 function Handbook.Replaced(held, rec, origin)
 	if not live(held) then return end
 	local me_ = ownGUID()
+	-- two writers seeding the default pages at once (SPEC-15 §7.2) lose no text of anybody
 	local lost = origin == "remote" and held.rev == rec.rev and sameAccount(me_, held.author)
-		and not sameAccount(me_, rec.author)
+		and not sameAccount(me_, rec.author) and not (held.tpl and rec.tpl)
 	remember(held, lost, lost)
 	if lost then Handbook:Conflict(held, rec) end
 end

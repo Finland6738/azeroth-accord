@@ -203,7 +203,7 @@ Ogni membro con l'addon vede tutte le pagine vive e non `tpl`, anche offline, da
 - `/accord handbook <slug>` apre la vista su una pagina; `/accord handbook` sull'ultima letta o sulla prima.
 - **Fatto in M11.3**: elenco, ricerca, segni, *Mark all as read*, il lettore con *Back*, il comando.
 - **Fatto in M11.4**: *New page* e *Writers* sotto l'elenco; le frecce sono sulla pagina **scelta**, al posto del suo segno; *Edit*, *Revisions* e *Delete* sono sotto il testo. Una pagina nuova va dopo l'ultima (`order` + 5). Spostare scrive di norma **una** revisione (della pagina o della vicina, con un `order` che la mette al suo posto); solo se gli `order` uguali non lasciano posto le pagine si rinumerano (`Handbook:MovePlan`). *Writers* è un menu dei gradi 1–9: quelli degli ufficiali si leggono ma non si tolgono.
-- *Create the default pages* arriva con M11.5, la parte fissa della pagina del loot con M11.6.
+- **Fatto in M11.5**: *Create the default pages* al centro della vista vuota (§7). La parte fissa della pagina del loot arriva con M11.6.
 
 ### 5.3 Storia della navigazione
 
@@ -229,7 +229,7 @@ Solo per gli scrittori (`Handbook.IsWriter`), dentro la vista *Handbook* (`UI/Ha
 
 ### 7.1 I modelli
 
-Sei pagine, con slug, `order` e titolo fissi; il corpo ha **solo intestazioni** e, sotto ognuna, una riga vuota (HB-03). I testi sono in `Data/HandbookDefaults.lua`, nella lingua dell'interfaccia dello scrittore che semina (inglese o italiano, da `Locale`); nessuna parola della gilda del proprietario.
+Sei pagine, con slug, `order` e titolo fissi; il corpo ha **solo intestazioni** e, sotto ognuna, una riga vuota (HB-03). I modelli sono in `Data/HandbookDefaults.lua`; titoli, intestazioni e testo del collegamento sono stringhe dell'interfaccia (`HANDBOOK_TPL_*` in `Locale`), quindi nella lingua dello scrittore che semina (inglese o italiano). Le intestazioni sono di livello 1 (`# `); nessuna parola della gilda del proprietario.
 
 | Slug | `order` | Titolo (en / it) | Intestazioni (en) |
 |---|---|---|---|
@@ -245,12 +245,12 @@ La pagina `roster`, sotto *The season roster*, ha una riga fissa del modello: `[
 ### 7.2 Una volta sola
 
 - **Chi semina**: uno scrittore, con un clic su *Create the default pages* nella vista vuota (non in automatico all'accesso: due scrittori che entrano insieme non scrivono due volte, e una gilda che non vuole i modelli non li riceve). Il clic scrive le sei pagine con `tpl = true` e il record `seeded` (§7.3).
-- **Mai più**: il pulsante c'è solo se il client non vede né il record `seeded` né nessuna pagina (viva o cancellata). Una pagina predefinita cancellata resta un record `del` per sempre (§3.1), con una `rev` di almeno 2. Una semina tardiva (un client che non aveva ancora ricevuto né `seeded` né il `del`) scrive i modelli con `rev` 1, che perdono contro il `del` su ogni client che lo tiene, e il `del` arriva anche a lei con la sincronizzazione: la pagina non torna. Due semine contemporanee scrivono gli stessi id con `rev` 1 e vince la più recente, senza doppioni. M11.5 lo prova nel simulatore.
+- **Mai più**: il pulsante c'è solo se il client non vede né il record `seeded` né nessuna pagina (viva o cancellata). Una pagina predefinita cancellata resta un record `del` per sempre (§3.1), con una `rev` di almeno 2. Una semina tardiva (un client che non aveva ancora ricevuto né `seeded` né il `del`) scrive i modelli con `rev` 1, che perdono contro il `del` su ogni client che lo tiene, e il `del` arriva anche a lei con la sincronizzazione: la pagina non torna. Due semine contemporanee scrivono gli stessi id con `rev` 1 e vince la più recente, senza doppioni; un modello sostituito da un altro modello **non è un conflitto** (§3.5): nessuno ha perso un testo, quindi nessun avviso. M11.5 prova tutto nel simulatore.
 - **Un modello diventa pagina** al primo salvataggio di uno scrittore, che toglie `tpl`. Un modello non salvato non si mostra ai membri e non conta nei limiti delle pagine vive per i membri (conta per `MAX_PAGES` e `TOTAL_MAX`).
 
 ### 7.3 Il record `seeded`
 
-Nell'insieme `handbook`, id `seeded`: `{ at = ora della semina, by = versione dell'addon }`, scritto da uno scrittore, mai cancellato, stesse regole di HBK-01. Serve a chi non ha ancora ricevuto le pagine (riepilogo per autore) a non proporre la semina; il pulsante aspetta anche che il primo `HELLO` della sessione abbia avuto risposta (2 minuti dopo l'accesso), per non seminare prima della sincronizzazione.
+Nell'insieme `handbook`, id `seeded`: `{ at = ora della semina, by = versione dell'addon }`, scritto da uno scrittore, mai cancellato, stesse regole di HBK-01. Serve a chi non ha ancora ricevuto le pagine (riepilogo per autore) a non proporre la semina; per non seminare prima della sincronizzazione il pulsante aspetta `HandbookDefaults.SEED_WAIT` (120 s) dall'accesso (anche dopo un `/reload`) o dall'ingresso in una gilda, il tempo in cui il primo `HELLO` ha di norma avuto risposta; il client non controlla la risposta in sé.
 
 ## 8. La pagina del loot (M11.6)
 

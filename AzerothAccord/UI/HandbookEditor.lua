@@ -1,6 +1,6 @@
 -- Handbook editor: what a writer gets in the Handbook view (M11.4, SPEC-15 §3.5, §5.2, §6). Lua 5.1.
 --
--- List     "New page", "Writers" (officers: the ranks that write besides the officers), arrows on the chosen page to move
+-- List     "Create the default pages" while the guild has never had one (Data/HandbookDefaults.lua), "New page", "Writers" (officers: the ranks that write besides the officers), arrows on the chosen page to move
 --          it, and the deleted pages this client can restore.
 -- Reader   "Edit", "Revisions" and "Delete" (a second click confirms) under the text.
 -- Editor   takes the whole view: the title, a text box of several lines, the length after cleaning against the limits,
@@ -621,7 +621,16 @@ local function delete()
 	View:Redraw()
 end
 
+-- "Create the default pages" (M11.5), once for the guild.
+local function seed()
+	local ok, why = ns.HandbookDefaults:Seed()
+	if not ok and why ~= "seeded" and ns.addon then ns.addon:Print(Editor.Reason(why)) end
+	View:Redraw()
+end
+
 local function buildWriter(f)
+	f.seed = button(f, "HANDBOOK_SEED", "primary", seed)
+	f.seed:SetPoint("TOP", f, "TOP", 0, -90)
 	f.newPage = button(f, "HANDBOOK_NEW", "secondary", function() View:Edit() end, 100)
 	f.writers = button(f, "HANDBOOK_WRITERS", "ghost", function() Editor:ShowWriters(f.writers) end, 80)
 	f.stale = Widgets.Text(f, "Small", "warn", "LEFT")
@@ -645,7 +654,7 @@ local function hideAll(f)
 	f.reader:Hide()
 	f.empty:Hide()
 	f.markAll:Hide()
-	if f.newPage then f.newPage:Hide() f.writers:Hide() f.stale:Hide() end
+	if f.newPage then f.newPage:Hide() f.writers:Hide() f.stale:Hide() f.seed:Hide() end
 	if f.revPanel then f.revPanel:Hide() end
 end
 
@@ -683,6 +692,7 @@ function Editor:Decorate(f, row)
 	end
 	if f.newPage then
 		f.newPage:SetShown(may)
+		f.seed:SetShown(may and ns.HandbookDefaults:CanSeed() and View.revisions == nil)
 		f.newPage:ClearAllPoints()
 		f.newPage:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 40)
 		f.writers:ClearAllPoints()

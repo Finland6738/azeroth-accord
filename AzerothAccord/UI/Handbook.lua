@@ -7,8 +7,8 @@
 --        reader cannot open is grey text; a web address opens the copy box (the game opens no browser).
 -- Read   a page that stays open for READ_DELAY seconds is marked read (Data/Handbook.lua), never by passing through.
 -- Every member reads every published page from what this client holds, with or without anybody else online. What a
--- writer gets on top of this (the editor, the revisions, New page, Writers: M11.4) is UI/HandbookEditor.lua; the default
--- pages (M11.5) and the loot page's fixed part (M11.6) come later. This file writes no page.
+-- writer gets on top of this (the editor, the revisions, New page, Writers: M11.4) is UI/HandbookEditor.lua; the loot
+-- page's fixed part (M11.6) comes later. This file writes no page.
 -- Everything is behind the switch "raid" (Core/Features.lua): off, there is no tab and no command.
 local ADDON_NAME, ns = ...
 ns = ns or {}

@@ -97,7 +97,8 @@ Notes:
 - Spec: SPEC-15
 - Scope: empty templates with headings for guild info, rules, FAQ, raid management, roster management (linked to the season roster of M10 and to its source) and loot management. Officers fill them in game; the templates hold no guild-specific text.
 - Done when:
-  - [ ] A new guild gets the templates once; deleting one does not bring it back.
+  - [x] A new guild gets the templates once; deleting one does not bring it back.
+  - *Done (2026-11-26):* `Data/HandbookDefaults.lua` (six templates with headings and the `[[season]]` links, texts in the locale files, the `seeded` record) and **Create the default pages** in the empty Handbook view for writers, 2 minutes after login, all behind `raid`; two seedings at once raise no conflict; `Tests/test_handbook_defaults.lua` (also late and double seeding in the simulator).
 
 ### M11.6 — Loot page and loot addons
 - Branch: `step/m11-6-loot`

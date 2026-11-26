@@ -2,7 +2,7 @@
 
 *English: [[Guild handbook|Guild-Handbook]]*
 
-> **Non ancora in un rilascio.** Il manuale è nel codice ma resta spento finché la milestone M11 non è completa: non ci sono la scheda **Manuale** né il comando. La lettura (passo M11.3) e la scrittura (passo M11.4) sono fatte; seguono le pagine predefinite (M11.5) e la pagina del loot (M11.6). Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Non ancora in un rilascio.** Il manuale è nel codice ma resta spento finché la milestone M11 non è completa: non ci sono la scheda **Manuale** né il comando. La lettura (passo M11.3), la scrittura (passo M11.4) e le pagine predefinite (M11.5) sono fatte; segue la pagina del loot (M11.6). Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il manuale è un insieme di pagine di testo che la gilda tiene nel gioco: informazioni, regolamento, FAQ, come funzionano i raid, il roster e il loot. Le scrivono gli ufficiali (e i gradi che gli ufficiali scelgono); **le legge ogni membro con Accord**. Il tuo computer conserva le pagine ricevute, quindi le leggi anche senza nessun altro online, com'erano all'ultima sincronizzazione.
 
@@ -30,6 +30,12 @@ Scrivono il Guild Master, gli ufficiali e i gradi che gli ufficiali scelgono. So
 - Le **frecce** accanto alla pagina scelta ne cambiano il posto nell'elenco.
 - **Elimina** toglie una pagina per tutta la gilda; serve un secondo clic su **Conferma**.
 - **Scrittori** (solo ufficiali) sceglie i gradi che scrivono oltre agli ufficiali. Se la gilda rinomina o sposta un grado scelto, va scelto di nuovo: la vista lo dice.
+
+### Le pagine predefinite
+
+Finché il manuale non ha mai avuto una pagina, chi scrive vede **Crea le pagine predefinite** nella vista vuota, 2 minuti dopo l'accesso (così le pagine che altri hanno già arrivano prima). Un clic crea sei **modelli**: Informazioni sulla gilda, Regolamento, Domande frequenti, Gestione dei raid, Gestione del roster e Gestione del loot, nella tua lingua. Contengono solo intestazioni, più un collegamento al [[roster della season|Season-Roster-it]] nelle pagine del roster e del loot; il roster mostrato lì viene dalla fonte scelta dagli ufficiali. Niente sulla tua gilda viene scritto al posto tuo.
+
+I membri non vedono un modello finché chi scrive non lo compila e lo salva (**Modifica**, poi **Salva**). Il pulsante compare una volta sola: un modello eliminato, o tutti, non torna. Senza il clic non si crea niente.
 
 ### L'editor
 

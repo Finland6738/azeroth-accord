@@ -2,7 +2,7 @@
 
 *Italiano: [[Manuale di gilda|Guild-Handbook-it]]*
 
-> **Not in a release yet.** The handbook is in the code but switched off until milestone M11 is complete: there is no **Handbook** tab and no command. Reading (step M11.3) and writing (step M11.4) are done; the default pages (M11.5) and the loot page (M11.6) come next. Nothing has been checked in the real game. What follows describes how it should work.
+> **Not in a release yet.** The handbook is in the code but switched off until milestone M11 is complete: there is no **Handbook** tab and no command. Reading (step M11.3), writing (step M11.4) and the default pages (M11.5) are done; the loot page (M11.6) comes next. Nothing has been checked in the real game. What follows describes how it should work.
 
 The handbook is a set of text pages your guild keeps in the game: information, rules, FAQ, how raids, the roster and the loot work. Officers (and the ranks officers choose) write them; **every member with Accord reads them**. Your computer keeps the pages it has received, so you can read them with nobody else online, as they were at the last sync.
 
@@ -30,6 +30,12 @@ Writers are the Guild Master, the officers and the ranks the officers choose. On
 - Choose the selected page's place in the list with the **arrows** next to it.
 - **Delete** removes a page for the whole guild; a second click, **Confirm**, does it.
 - **Writers** (officers only) chooses the ranks that write besides the officers. If the guild renames or moves a chosen rank, choose it again: the view says so.
+
+### The default pages
+
+While the handbook has never had a page, writers see **Create the default pages** in the empty view, 2 minutes after logging in (so that pages other members already have can arrive first). One click makes six **templates**: Guild info, Rules, FAQ, Raid management, Roster management and Loot management, in your language. They hold only headings, plus a link to the [[season roster|Season-Roster]] in the roster and loot pages; the roster shown there comes from the source the officers chose. Nothing about your guild is written for you.
+
+Members do not see a template until a writer fills it in and saves it (**Edit**, then **Save**). The button appears only once: a template you delete, or all of them, does not come back. Nothing is created without the click.
 
 ### The editor
 
