@@ -45,7 +45,8 @@ end
 local SAME = {
 	DIGEST_CHAT_LIKES_ONE = true, DIGEST_CHAT_LIKES = true,   -- "like" is the word in Italian too
 	HANDBOOK_TPL_CHAT = true,   -- "chat" too
-	TL_LINE = true, ONT_OTHER = true, EXPORT_ROSTER = true, EXPORT_CSV = true, EXPORT_DISCORD = true,
+	TL_LINE = true, ONT_OTHER = true, TRI_NOTE_LINE = true, EXPORT_ROSTER = true, EXPORT_CSV = true, EXPORT_DISCORD = true,
+	RECRUIT_DISCORD = true, RECRUIT_TANK_ONE = true, RECRUIT_HEALER_ONE = true,   -- "Discord", "tank", "healer" in Italian too
 	ADDONS_COL_NAME = true,   -- "Addon" in Italian too
 	ADDON_TITLE = true, WINDOW_TITLE = true, VIEW_ROSTER = true, COL_ADDON = true, ONLINE = true, FILTER_ONLINE = true, CARD_MAIN = true, CARD_ALT = true,
 	CONTACT_BT_SHORT = true, CONTACT_DISCORD_SHORT = true, CARD_BATTLETAG = true, CARD_DISCORD = true, SET_DATA_PART = true,

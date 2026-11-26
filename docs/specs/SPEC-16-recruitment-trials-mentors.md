@@ -139,6 +139,16 @@ Solo **ufficiali e Guild Master** (`Officer.VISIBLE_TO.trials = "officers"`, la 
 - **Sezione *Trial*** della scheda del membro, solo per gli ufficiali: la prova aperta o l'ultima chiusa, le note degli ufficiali (la propria modificabile, nella finestra a più righe delle note estese, `UI/OfficerNotes.lua`, le altre in sola lettura con autore ed età, M7.2).
 - **Passed** propone, con un riquadro da spuntare (spento di predefinito), di aggiungere alla propria coda delle azioni manuali ([SPEC-12 §4.2](SPEC-12-officer-tools.md#42-la-coda)) una promozione da fare nel gioco; Accord non promuove (RC-02).
 
+### 4.6 Come è fatto (M12.3)
+
+- `Data/Trials.lua` (`ns.Trials`) e `UI/Trials.lua` (`ns.TrialsView`). L'insieme ha `maxBytes` 1280 (la nota); una prova oltre 256 byte la rifiuta `Trials.ValidRecord`. La finestra dell'inizio (30 giorni indietro, 14 avanti) si controlla quando un ufficiale scrive (`Trials:Start`), non quando un record arriva: una prova vecchia resta valida.
+- TRI-04 guarda solo una revisione **più nuova** di quella tenuta (`Store.Compare`); una più vecchia passa e il deposito la scarta come `older`, senza contarla tra i rifiuti. Anche `days` non cambia: una proroga sposta solo `ends`.
+- *Passed* con l'interruttore acceso aggiunge alla coda di M8.4 una voce `promote` verso il grado subito sopra quello del membro tra quelli che l'ufficiale può dare (`OfficerOps:RankChoices`); senza un grado possibile, o con il membro fuori dal roster, la prova si chiude lo stesso e la finestra dice perché.
+- Il nome di un personaggio uscito dalla gilda viene dal roster, poi dall'account, poi dall'ultimo evento della cronologia (§2 di SPEC-12); la riga "<nome> left the guild during the trial" compare solo dopo una lettura del roster non vuota.
+- L'avviso usa il libro di `Notify:Seen("trials")`: una chiave `<id>:<ends>` per prova finita; una chiave che non è più da ricordare (prova chiusa o prorogata) si toglie dal libro, e non torna perché `ends` non diminuisce mai. Il fornitore del Centro azioni ha ordine 32 e la riga ha `mark` = la revisione della prova.
+- La pagina *Trials* è registrata con `View.AddPage("trials", { order = 40, visible = … })`: una pagina con `visible()` falso non è nel selettore della scheda *Officers* (l'interruttore spento). Il menu dei membri di *Start trial* è un `Widgets.Select` con il roster in ordine di nome. La nota di una prova si scrive nella finestra delle note estese, a cui `OfficerNotesView:Open(guid, name, backend)` passa da dove leggere e scrivere.
+- La demo (§8) aggiunge le tre prove e le due note a `D.recruit.trials`, messe al loro posto solo con `recruit` acceso.
+
 ## 5. L'accoglienza (M12.4)
 
 ### 5.1 Chi è nuovo

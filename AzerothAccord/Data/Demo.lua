@@ -15,7 +15,7 @@
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
 --                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
---   recruit                      the records of the recruitment text, by set (switch "recruit")
+--   recruit                      the records of M12, by set (switch "recruit"): the recruitment text, the trials
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -558,6 +558,30 @@ function DemoData.Build(now)
 				order = 10, body = "# About us\nA relaxed guild that raids twice a week and helps new players with their first "
 					.. "dungeons.\n\n# Schedule\nWednesday and Sunday, from 21:00." } },
 		}
+		-- Three trials (SPEC-16 §4, §8) of the members who joined last: one that ends today, one extended, one closed
+		-- (passed), with two notes of the officers
+		local trials = {}
+		local function trial(who, author, startAgo, days, endsIn, closedAgo)
+			local m = members[who]
+			local start = dayOf(now - startAgo * DAY)
+			local id = "T:" .. m.guid .. ":" .. start
+			trials[id] = { id = id, author = members[author].guid, rev = 1 + (endsIn ~= days - startAgo and 1 or 0) + (closedAgo and 1 or 0),
+				time = now - (closedAgo or startAgo) * DAY, char = m.guid, start = start, days = days,
+				ends = dayOf(now + endsIn * DAY), state = closedAgo and "passed" or "open",
+				closed = closedAgo and dayOf(now - closedAgo * DAY) or nil }
+			return id
+		end
+		local function trialNote(id, author, daysAgo, text)
+			local by = members[author].guid
+			local nid = "N:" .. id:sub(3) .. ":" .. by
+			trials[nid] = { id = nid, author = by, rev = 1, time = now - daysAgo * DAY, char = id:match("^T:([^:]+):"), text = text }
+		end
+		local today = trial(60, 1, 14, 14, 0)
+		trialNote(today, 1, 3, "Comes to every dungeon night, asks good questions.")
+		trialNote(today, 3, 1, "Late twice for the raid: talk to them before deciding.")
+		trial(59, 3, 20, 14, 10)
+		trial(58, 1, 40, 14, -26, 25)
+		D.recruit.trials = trials
 	end
 
 	-- The addon census (SPEC-13 §8): the lists of the members with the addon, outside D.sets: Core/Demo.lua puts them in

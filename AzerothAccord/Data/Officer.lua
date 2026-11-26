@@ -1,7 +1,7 @@
 -- Officer: who may see the officer tools, where their data lives and what happens to it (SPEC-12 §1, ADR 0023). Lua 5.1.
 --
 --   Officer.VISIBLE_TO       the one place of the visibility choices (SPEC-10 Q13, decided by the owner): feature -> "officers" |
---                            "members". Features: timeline, inactivity, absences, notes, export.
+--                            "members". Features: timeline, inactivity, absences, notes, export, trials (M12.3).
 --   Officer.CanSee(feature)  true when the connected character may see `feature`: the officers and the Guild Master, or
 --                            everybody when the table says "members". Nothing is shown from a record a member holds: a
 --                            member's client refuses these records (OFF-01) and observes nothing (TL, §2.1).
@@ -21,10 +21,11 @@ ns.modules.Officer = Officer
 local type, pairs, ipairs, next = type, pairs, ipairs, next
 
 -- The owner's answer to SPEC-10 Q13 (2026-11-24): only the officers and the GM see all of it. One line to change if that changes.
-Officer.VISIBLE_TO = { timeline = "officers", inactivity = "officers", absences = "officers", notes = "officers", export = "officers" }
+Officer.VISIBLE_TO = { timeline = "officers", inactivity = "officers", absences = "officers", notes = "officers", export = "officers",
+	trials = "officers" }   -- trials (M12.3): the owner's answer to SPEC-10 Q35
 
 -- The data sets of the officer tools, in the order they were added (a step of M8 appends its own).
-Officer.SETS = { "timeline", "absence", "onotes", "ocfg" }
+Officer.SETS = { "timeline", "absence", "onotes", "ocfg", "trials" }
 
 -- set -> function(rec, id) -> true for a record that survives the purge (M8.3: the account's own `:self` absence).
 Officer.KEEP = {}
@@ -134,10 +135,11 @@ function Officer:DebugLines()
 	if not (ns.GuildKey and ns.GuildKey:Current()) then return { "Officer tools: no guild" } end
 	local parts = {}
 	for _, set in ipairs(Officer.SETS) do
-		if ns.Store and ns.Store.SETS[set] then parts[#parts + 1] = set .. " " .. ns.Store:Count(set) end
+		if ns.Store and ns.Store.SETS[set] and ns.Store.IsActive(set) then parts[#parts + 1] = set .. " " .. ns.Store:Count(set) end
 	end
 	lines[1] = ("Officer tools: channel %s, %s"):format(Officer.ChannelProven() and "working" or "not proven yet", table.concat(parts, ", "))
 	if ns.OfficerOps then lines[#lines + 1] = ns.OfficerOps:DebugLine() end
+	if ns.Trials and ns.Trials.Enabled() then lines[#lines + 1] = ns.Trials:DebugLine() end
 	return lines
 end
 

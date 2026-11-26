@@ -54,6 +54,7 @@
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
+-- A trial is kept forever, closed or not (SPEC-16 §4.1, Q35); a deleted trial note expires after 60 days.
 --
 -- Bus: STORE_CHANGED(set, id, origin) with origin "local" (a write of this client) or "remote" (an accepted record).
 local ADDON_NAME, ns = ...
@@ -353,6 +354,18 @@ Store.SETS = {
 		owner = function(rec) return ns.Rallies ~= nil and ns.Rallies.ValidRecord(rec) end,
 		expires = function(rec, t) return ns.Rallies ~= nil and ns.Rallies.Expired(rec, t) end,
 	},
+	trials = {     -- the trials of new members (Data/Trials.lua, M12.3, SPEC-16 §4): "T:<GUID>:<start>" a trial,
+		feature = "recruit",                       -- "N:<GUID>:<start>:<officer GUID>" an officer's note about it
+		maxBytes = 1280,                           -- a note; a trial is held to 256 bytes by Trials.ValidRecord
+		officerTool = true,
+		restricted = function() return true end,   -- TRI-01: officers only, the member on trial included
+		authority = function() return true end,
+		authorAny = true,                          -- a trial and a note stay valid after their author was demoted
+		owner = function(rec) return ns.Trials ~= nil and ns.Trials.ValidRecord(rec) end,         -- TRI-03
+		transition = function(held, rec) return ns.Trials.Transition(held, rec) end,             -- TRI-04: "locked"
+		group = function() return "trials" end,    -- one group of the summary `m` of OHELLO (TRI-02)
+		expires = function(rec, t) return ns.Trials ~= nil and ns.Trials.Expired(rec, t) end,     -- deleted notes only
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -363,7 +376,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

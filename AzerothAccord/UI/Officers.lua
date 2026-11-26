@@ -2,7 +2,8 @@
 -- section of the member card. Lua 5.1.
 --
 -- The tab shows only to officers (Officer.CanSee), with a page selector: "Inactive" (§3.5, M8.3), "Queue" (§4.2, M8.4,
--- UI/OfficersOps.lua, which also holds the cleanup review) and "Timeline" (§2.4). The search box of the panel filters both pages by name.
+-- UI/OfficersOps.lua, which also holds the cleanup review), "Timeline" (§2.4) and "Trials" (SPEC-16 §4.5, M12.3,
+-- UI/Trials.lua, only with the switch "recruit"). The search box of the panel filters both pages by name.
 --   View.InactiveText(account, column)  the text of a cell of the Inactive page (plain, tested offline)
 --   View.InactiveTip(account)           the lines of the row's tooltip
 --   View.TimelineRows(filter, t)        the events of the Timeline page: filter = { kind, days (7|30|90|365), search, guids }
@@ -476,8 +477,11 @@ View.AddPage("timeline", { label = L["OFF_PAGE_TIMELINE"], order = 30, build = b
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames: the view
 ---------------------------------------------------------------------------------------------------------------------
+-- A page may have `visible()` (the Trials page of M12.3: the switch "recruit"); a hidden page is not in the selector.
+local function shown(p) return p.visible == nil or p.visible() == true end
+
 local function pageOf(id)
-	for _, p in ipairs(View.pages) do if p.id == id then return p end end
+	for _, p in ipairs(View.pages) do if p.id == id and shown(p) then return p end end
 	return nil
 end
 
@@ -504,7 +508,7 @@ function View:Build(f)
 	self.frame = f
 	f.holders = {}
 	local items = {}
-	for i, p in ipairs(View.pages) do items[i] = { id = p.id, text = p.label } end
+	for _, p in ipairs(View.pages) do if shown(p) then items[#items + 1] = { id = p.id, text = p.label } end end
 	f.pager = Widgets.Segmented(f, items, function(id) if id ~= View.pageId then View:ShowPage(id) end end)
 	f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.channel = Widgets.Text(f, "Small", "text-3", "RIGHT")
@@ -520,6 +524,7 @@ function View:Build(f)
 		Widgets.Menu.Hide()
 	end)
 	if ns.Roster then f.watching = true ns.Roster:Watch() end
+	if not pageOf(self.pageId) then self.pageId = "inactive" end
 	self:ShowPage(self.pageId)
 end
 

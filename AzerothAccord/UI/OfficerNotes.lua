@@ -4,7 +4,9 @@
 -- who left, and, read-only, the notes of the other proved characters of the account. A member never gets the section:
 -- Officer.CanSee("notes") is false and the function returns nothing.
 --   View.CardSection(entry)    the section, a plain description (tested offline)
---   View:Open(guid, name)      the dialog: a multi-line field (500 characters, 20 lines), the count, Save, Delete, Close
+--   View:Open(guid, name, backend)  the dialog: a multi-line field (500 characters, 20 lines), the count, Save, Delete,
+--                              Close; `backend` (optional) = { title, get(), set(text), delete() } writes another note with
+--                              the same limits (a trial note, M12.3, UI/Trials.lua); without it, the extended note of `guid`
 --   View:Save(text)            saves what the field holds (or `text`); the dialog closes when it was saved
 --   View:DeleteNote()          writes the empty text (a deletion that reaches every officer)
 --   View.CountText(text)       "123 / 500 characters · 130 / 1000 bytes"
@@ -143,13 +145,20 @@ local function build()
 	return d
 end
 
-function View:Open(guid, name)
-	if not (ns.Role and ns.Role:IsOfficer() and ns.Officer.CanSee("notes")) or type(guid) ~= "string" then return nil end
+-- The extended note of a character, as a backend of the dialog.
+local function noteBackend(guid)
+	return { get = function() return N():Get(guid) end, set = function(text) return N():Set(guid, text) end,
+		delete = function() return N():Delete(guid) end }
+end
+
+function View:Open(guid, name, backend)
+	if not (ns.Role and ns.Role:IsOfficer()) or type(guid) ~= "string" then return nil end
+	if not backend and not ns.Officer.CanSee("notes") then return nil end
 	if not self.dialog then self.dialog = build() end
 	local d = self.dialog
-	d.guid = guid
-	d.title:SetText(L["ONT_DIALOG_TITLE"]:format(escape(name)))
-	local rec = N():Get(guid)
+	d.guid, d.backend = guid, backend or noteBackend(guid)
+	d.title:SetText(backend and backend.title or L["ONT_DIALOG_TITLE"]:format(escape(name)))
+	local rec = d.backend.get()
 	d.edit:SetText(rec and rec.text or "")
 	d.edit:SetCursorPosition(0)
 	d.scroll:SetVerticalScroll(0)
@@ -167,10 +176,10 @@ function View:Save(text)
 	text = text or d.edit:GetText() or ""
 	local clean = N().Clean(text)
 	if clean == "" then
-		if not N():Get(d.guid) then d:Close() return true end
+		if not d.backend.get() then d:Close() return true end
 		return self:DeleteNote()
 	end
-	local rec, why = N():Set(d.guid, clean)
+	local rec, why = d.backend.set(clean)
 	if not rec then say(d.status, N().ErrorText(why, clean), "err") return false, why end
 	d:Close()
 	return true
@@ -179,7 +188,7 @@ end
 function View:DeleteNote()
 	local d = self.dialog
 	if not d or not d.guid then return false end
-	local rec, why = N():Delete(d.guid)
+	local rec, why = d.backend.delete()
 	if not rec and why ~= "empty" then say(d.status, N().ErrorText(why), "err") return false, why end
 	d:Close()
 	return true

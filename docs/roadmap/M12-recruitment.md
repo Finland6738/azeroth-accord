@@ -28,7 +28,7 @@
   - officer-only feedback notes, under the same rules as M8.5;
   - a reminder in the Action Center when the trial ends.
 - Done when:
-  - [ ] The reminder appears once, on the end date; the trial notes never reach a non-officer.
+  - [x] The reminder appears once, on the end date; the trial notes never reach a non-officer.
 
 ### M12.4 — Onboarding
 - Branch: `step/m12-4-onboarding`

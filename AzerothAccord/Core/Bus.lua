@@ -39,6 +39,8 @@
 --                                                     (nil: several), M11.2.
 --   HANDBOOK_CONFLICT(id)                             Data/Handbook.lua; this account's edit of a page was replaced by
 --                                                     another writer's edit of the same revision, or its row was dismissed.
+--   TRIALS_CHANGED(guid)                              Data/Trials.lua; a trial or a trial note arrived or was written (guid:
+--                                                     the character on trial; nil: several), M12.3.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

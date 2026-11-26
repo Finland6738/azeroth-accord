@@ -20,6 +20,7 @@ Non salva nulla di suo e non decide niente al posto tuo. Ogni riga viene letta d
 | *La tua assenza finisce il …* | tu, nei tre giorni prima della fine | la card **Assenza** delle [[Impostazioni|Settings-it]] | dopo il rientro |
 | *… vuole unirsi come …* | tu, come capo di un [[gruppo|Groups-it]] | la pagina **Il mio gruppo** di Gruppi | accetti o rifiuti, o il gruppo si chiude |
 | *Raduno PvP: …* e *Raduno nel mondo: …* *(dalla `v0.10.0`)* | tutti, finché il [[raduno|Events-it]] è aperto | la pagina **Raduni** di Eventi | il raduno finisce o viene chiuso |
+| *La prova di … è finita il …: decidi* e *… è uscito dalla gilda durante la prova* *(nascosto finché M12 non è completo)* | gli ufficiali e il Guild Master, dal giorno della fine | la pagina **Prove** della [[scheda Ufficiali|Guild-Roster-it]], su quella prova | un ufficiale chiude o proroga la prova |
 
 Un ufficiale che chiede qualcosa alla banca vede la richiesta due volte: da decidere, e come proprio promemoria.
 
@@ -58,6 +59,7 @@ La seconda pagina del Centro azioni, **Avvisi**, è la cronologia di ciò che l'
 | *… ti ha accettato* / *ha rifiutato la tua candidatura* | chi si è candidato | una riga in chat e un riquadro a schermo |
 | *Nuovo gruppo: …* | tu, per un gruppo adatto ai tuoi filtri | **spento** (solo qui) |
 | *… chiama un raduno PvP alle …* (o nel mondo) *(dalla `v0.10.0`)* | tutti tranne chi chiama | una riga in chat |
+| *La prova di … è finita il …: decidi* *(nascosto finché M12 non è completo)* | gli ufficiali e il Guild Master, una volta per prova il giorno della fine | una riga in chat |
 
 ### Chat, schermo o suono
 

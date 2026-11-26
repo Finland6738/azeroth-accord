@@ -73,6 +73,20 @@ Gli ufficiali e il Maestro di gilda vedono nella scheda del membro un riquadro *
 - **Solo ufficiali.** I membri non vedono mai il riquadro e non ricevono mai le note. Viaggiano come la cronologia: **solo sul canale degli ufficiali**, mai con la gilda, mai in whisper a un membro, e solo dopo che l'addon ha visto quel canale funzionare nella sessione; fino ad allora una nota resta sul computer dove è stata scritta (*Solo su questo computer finché il canale degli ufficiali non funziona*). Non sono mai in un'esportazione né nel tuo backup personale; *Cosa condivido* conta solo le note che hai scritto.
 - Se smetti di essere ufficiale, con tutti i tuoi personaggi, Accord cancella le note dal tuo computer; se torni ufficiale, le ricevi di nuovo dagli altri ufficiali.
 
+## Prove (solo ufficiali)
+
+> **Non ancora disponibile**: è nascosto finché le funzioni del reclutamento (M12) non sono complete. Nulla è stato verificato nel gioco vero.
+
+Gli ufficiali e il Guild Master possono seguire un nuovo membro **in prova**. Il membro non vede nulla della prova in Accord; se la gilda ha un grado per le prove, lo mostra già il gioco.
+
+- **Inizia una prova**: dalla pagina **Prove** della scheda Ufficiali (una quarta pagina, dopo *Cronologia*) o dalla scheda del membro. Scegli il membro, la durata (**14 giorni** di base, da 1 a 60) e il primo giorno (oggi di base; al massimo 30 giorni fa o 14 avanti).
+- **La pagina** elenca le prove aperte (nome, grado, inizio, fine, giorni che mancano, numero di note; *2 prove aperte* quando due ufficiali ne hanno iniziata una ciascuno) e, con **Chiuse (90 giorni)**, quelle chiuse da poco. Le più vecchie restano nella scheda del membro.
+- **Clicca una prova** per vederla: **Proroga** di qualche giorno (la fine si sposta al massimo a 120 giorni dall'inizio), oppure chiudila con **Superata**, **Non superata** o **Annulla la prova**. Ogni chiusura chiede un secondo clic (**Conferma**). Una prova chiusa non si riapre: iniziane una nuova da un altro giorno.
+- **Superata** può aggiungere una **promozione alla tua coda** (l'interruttore sotto i pulsanti, spento all'inizio): il grado subito sopra il suo che tu puoi dare. Accord non promuove nessuno: lo fai tu nel gioco, e la coda lo spunta.
+- **Note**: ogni ufficiale scrive **una nota** per prova (*Scrivi la mia nota*), nella stessa casella e con gli stessi limiti delle [note degli ufficiali](#note-degli-ufficiali-solo-ufficiali); quelle degli altri si leggono soltanto, con autore ed età.
+- **Il giorno della fine**: il [[Centro azioni|Action-Center-it]] mostra *La prova di … è finita il …: decidi* finché un ufficiale non la chiude o la proroga, e arriva un avviso **una volta**, il giorno della fine (anche dopo un `/reload` o un altro accesso); una proroga ne dà uno nuovo alla nuova fine. Chi esce dalla gilda durante la prova compare come *… è uscito dalla gilda durante la prova* finché un ufficiale non la annulla.
+- **Per sempre**, come le note e la cronologia. Viaggiano come loro: **solo sul canale degli ufficiali**, mai con la gilda, mai in whisper a un membro, e solo quando il canale funziona (fino ad allora *Solo su questo computer finché il canale degli ufficiali non funziona*). Non sono nel tuo backup personale; *Cosa condivido* le conta soltanto. Se smetti di essere ufficiale, Accord le cancella dal tuo computer.
+
 ## La scheda Ufficiali (solo ufficiali)
 
 Gli ufficiali e il Guild Master hanno una scheda in più, **Ufficiali**, con tre pagine: **Inattivi**, **Coda** e **Cronologia**. I membri non vedono la scheda. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.

@@ -204,12 +204,23 @@ builders.otools = function(guid)
 	local notes = {}
 	for _, r in ipairs(own("onotes", guid)) do if r.text ~= "" then notes[#notes + 1] = r end end
 	if #notes > 0 then lines[#lines + 1] = L["SHARE_NOTES_WRITTEN"]:format(#notes) end
+	-- the trials and trial notes this officer wrote (M12.3, SPEC-16 §8): counts, never a text
+	local trials = {}
+	if ns.Trials and ns.Trials.Enabled() then
+		local nt, nn = 0, 0
+		for _, r in ipairs(own("trials", guid)) do
+			local kind = ns.Trials.KindOf(r)
+			if kind == "T" then nt = nt + 1 trials[#trials + 1] = r
+			elseif kind == "N" and r.text ~= "" then nn = nn + 1 trials[#trials + 1] = r end
+		end
+		if nt + nn > 0 then lines[#lines + 1] = L["SHARE_TRIALS_WRITTEN"]:format(nt, nn) end
+	end
 	for _, r in ipairs(cfg) do
 		if ns.Inactivity and ns.Inactivity.ValidConfig(r) then
 			lines[#lines + 1] = L["SHARE_TIERS"]:format(table.concat(r.tiers, " / "))
 		end
 	end
-	for _, list in ipairs({ set, cfg, notes }) do for _, r in ipairs(list) do recs[#recs + 1] = r end end
+	for _, list in ipairs({ set, cfg, notes, trials }) do for _, r in ipairs(list) do recs[#recs + 1] = r end end
 	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
 	if not (ns.Officer and ns.Officer.ChannelProven()) then lines[#lines + 1] = L["SHARE_OTOOLS_LOCAL"] end
 	return lines, recs

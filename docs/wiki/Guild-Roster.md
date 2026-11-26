@@ -74,6 +74,20 @@ Officers and the Guild Master see an **Officer notes** box on the member card: a
 - **Only officers.** Members never see the box and never receive the notes. They travel like the timeline: on the **officer channel only**, never with the guild, never by whisper to a member, and only after the addon has seen that channel work in the session; until then a note stays on the computer where it was written (*Only on this computer until the officer channel works*). They are never in an export, nor in your personal backup; *What I share* only counts the notes you wrote.
 - If you stop being an officer, with all your characters, Accord deletes the notes from your computer; promoted again, you receive them back from the other officers.
 
+## Trials (officers only)
+
+> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+
+Officers and the Guild Master can follow a new member **on trial**. The member sees nothing of it in Accord; if the guild has a rank for trials, the game already shows it.
+
+- **Start a trial**: from the **Trials** page of the Officers tab (a fourth page, after *Timeline*) or from the member card. Choose the member, the length (**14 days** by default, from 1 to 60) and the first day (today by default; at most 30 days back or 14 ahead).
+- **The page** lists the open trials (name, rank, start, end, days left, number of notes; *2 open trials* when two officers started one each) and, with **Closed (90 days)**, the ones closed recently. Older ones stay on the member card.
+- **Click a trial** to see it: **Extend** by some days (the end can move up to 120 days after the start), or close it with **Passed**, **Not passed** or **Cancel trial**. Each closing asks a second click (**Confirm**). A closed trial is never reopened: start a new one from another day.
+- **Passed** can add a **promotion to your queue** (the switch under the buttons, off at first): the nearest rank above theirs that you may give. Accord never promotes anybody: you do it in the game, and the queue ticks it.
+- **Notes**: every officer writes **one note** per trial (*Write my note*), in the same box and with the same limits as the [officer notes](#officer-notes-officers-only); the others' notes are read-only, with their author and age.
+- **The end day**: the [[Action Center|Action-Center]] shows *Trial of … ended on …: decide* until an officer closes or extends the trial, and a notice comes **once**, on the end day (also after a `/reload` or another login); an extension gives a new one on the new end day. A member who left the guild during the trial shows as *… left the guild during the trial* until an officer cancels it.
+- **Kept for ever**, like the notes and the timeline. They travel like them: **officer channel only**, never with the guild, never by whisper to a member, and only once the channel works (until then *Only on this computer until the officer channel works*). They are not in your personal backup; *What I share* only counts them. If you stop being an officer, Accord deletes them from your computer.
+
 ## The Officers tab (officers only)
 
 Officers and the Guild Master have one more tab, **Officers**, with three pages: **Inactive**, **Queue** and **Timeline**. Members do not see the tab. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
