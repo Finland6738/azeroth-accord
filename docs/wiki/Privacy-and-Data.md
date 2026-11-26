@@ -69,9 +69,15 @@ Accord counts, on your computer, the minutes your account is online per hour of 
 
 A [[rally|Events]] holds its kind, the meeting point **as the text you write**, the times and, from whoever answers, *coming* or *not coming*. The whole guild with Accord sees it, and it is removed 10 minutes after it ends. Accord **never reads your position** and sends no coordinates or map.
 
+## Guild handbook and loot choice
+
+> From `v0.11.0`.
+
+The pages of the [[guild handbook|Guild-Handbook]], written by officers and the ranks they choose, reach the whole guild with Accord, with the character who wrote them and when; so do the chosen writer ranks, the loot system and the loot addon. Earlier revisions of a page, your read marks and an unsaved draft stay on your computer and are never sent.
+
 ## Other addons
 
-Apart from that list (new in `v0.9.0`), from `v0.10.0` Accord looks for the raid and loot addons it knows **only on your own computer**, reads Finland Dragon Credit Points through its public interface when the officers chose it as the source of the season roster, and shares with the guild only that choice: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*. It never writes another addon's data or reads its saved files.
+Apart from that list (new in `v0.9.0`), from `v0.10.0` Accord looks for the raid and loot addons it knows **only on your own computer**, reads Finland Dragon Credit Points through its public interface when the officers chose it as the source of the season roster or (from `v0.11.0`) as the loot addon, and shares with the guild only those choices: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*. It never writes another addon's data or reads its saved files.
 
 ## What stays on your computer
 

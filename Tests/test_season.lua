@@ -401,7 +401,7 @@ end)
 
 describe("the switches", function()
 	describe("season off", function()
-		before_boot(setup(1, { season = false }))
+		before_boot(setup(1, { season = false, raid = false }))
 
 		it("has no view, no command, takes and sends nothing", function()
 			eq(A().Features.season, false); eq(A().Features.raid, false)
@@ -424,8 +424,8 @@ describe("the switches", function()
 		end)
 	end)
 
-	describe("season on, raid off (as shipped since M10.10)", function()
-		before_boot(setup(1, {}))
+	describe("season on, raid off", function()
+		before_boot(setup(1, { raid = false }))
 
 		it("shows the Season view and the source of the season roster, not the Raid view or the loot source", function()
 			eq(A().Features.season, true); eq(A().Features.raid, false)

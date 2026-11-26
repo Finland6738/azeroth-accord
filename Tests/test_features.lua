@@ -1,7 +1,7 @@
--- The feature switches (Core/Features.lua): with "raid" off, as every release ships it, nothing of M10.2 and M11.7 is
--- visible, no FDCP callback is registered and nothing of it is written or sent, even with FDCP loaded and a guild
--- choice of FDCP left over from a development build. The switches of M9 (actions, groups, census) are on since M9.10:
--- their features are there with the shipped code, and each switch still hides its own when a test turns it off.
+-- The feature switches (Core/Features.lua): with "raid" and "season" off nothing of M10.2 and M11.7 is visible, no FDCP
+-- callback is registered and nothing of it is written or sent, even with FDCP loaded and a guild choice of FDCP left
+-- over from a development build. The shipped code has every switch on (M9 since M9.10, M10 since M10.10, "raid" since
+-- M11.8): their features are there, and each switch still hides its own when a test turns it off.
 local function A() return AzerothAccord end
 
 local FOLDER, GLOBAL = "FinlandDragonCreditPoints", "FinlandDragonCreditPointsAPI"
@@ -32,10 +32,10 @@ end
 describe("the raid and season switches, off", function()
 	before_boot(function(M)
 		withFDCP(M)
-		M.features = { season = false }
+		M.features = { season = false, raid = false }
 	end)
 
-	it("is off in the shipped code", function()
+	it("is off when the switch says so", function()
 		eq(A().Features.raid, false)
 		falsy(A().Features.On("raid"))
 		falsy(A().Features.On("unknown"))
@@ -78,7 +78,7 @@ describe("the raid and season switches, off", function()
 		local f = fake()
 		boot(function(M)
 			withFDCP(M)
-			M.features = { season = false }
+			M.features = { season = false, raid = false }
 			FinlandDragonCreditPointsAPI = f.api
 		end)
 		leftover()
@@ -129,6 +129,8 @@ describe("the raid switch, on", function()
 end)
 
 describe("the raid switch, off, in demo mode", function()
+	before_boot(function(M) M.features = { raid = false } end)
+
 	it("shows no Raid view in the invented guild either", function()
 		Mock.Slash("/accord demo")
 		for _, view in ipairs(AzerothAccord.VIEWS) do Mock.Slash("/accord " .. view) end
@@ -144,17 +146,16 @@ describe("the switches of M9, as shipped (M9.10)", function()
 
 	local M9 = { { "actions", "inbox" }, { "groups", "groups" }, { "addons", "addons" } }
 
-	it("are on, and raid stays off", function()
+	it("are on", function()
 		for _, name in ipairs({ "actions", "groups", "census" }) do
 			eq(A().Features[name], true)
 			truthy(A().Features.On(name), name)
 		end
-		eq(A().Features.raid, false)
 		truthy(A().Store.IsActive("groups"))
 		truthy(A().Store.IsActive("addons"))
 	end)
 
-	it("show their views, commands and help lines, and no Raid", function()
+	it("show their views, commands and help lines", function()
 		Mock.Slash("/accord help")
 		local help = table.concat(Mock.PlainOutput(), "\n")
 		for _, pair in ipairs(M9) do
@@ -164,8 +165,6 @@ describe("the switches of M9, as shipped (M9.10)", function()
 			truthy(A().Shell.views[pair[1]].frame:IsVisible(), pair[1])
 			isNil(A().Shell.views[pair[1]].failed, pair[1])
 		end
-		falsy(help:find("/accord raid", 1, true))
-		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "raid") end
 		eq(#Mock.errors, 0)
 	end)
 
@@ -194,14 +193,13 @@ end)
 describe("the switch of M10, as shipped (M10.10)", function()
 	before_boot(withFDCP)
 
-	it("is on, and raid stays off", function()
+	it("is on", function()
 		eq(A().Features.season, true)
-		eq(A().Features.raid, false)
 		truthy(A().Features.On("season"))
 		for _, set in ipairs({ "guildcfg", "season", "raidev", "avail", "rally" }) do truthy(A().Store.IsActive(set), set) end
 	end)
 
-	it("shows its views, commands and help lines, and the sharing switch, and no Raid", function()
+	it("shows its views, commands and help lines, and the sharing switch", function()
 		Mock.Slash("/accord help")
 		local help = table.concat(Mock.PlainOutput(), "\n")
 		for _, view in ipairs({ "season", "events", "availability" }) do
@@ -211,14 +209,40 @@ describe("the switch of M10, as shipped (M10.10)", function()
 			truthy(A().Shell.views[view].frame:IsVisible(), view)
 			isNil(A().Shell.views[view].failed, view)
 		end
-		falsy(help:find("/accord raid", 1, true))
-		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "raid") end
 		truthy(A().SettingsModel.Visible("shareAvailability"))
 		local titles = {}
 		for _, section in ipairs(A().Diagnostics.Collect().sections) do titles[section.title] = true end
 		truthy(titles.Integrations); truthy(titles.FDCP)
-		isNil(A().RaidView.CardSection(A().Roster:ByGUID(BOB)))
 		eq(#Mock.errors, 0)
+	end)
+end)
+
+describe("the switch of M11, as shipped (M11.8)", function()
+	before_boot(withFDCP)
+
+	it("is on", function()
+		eq(A().Features.raid, true)
+		truthy(A().Features.On("raid"))
+		for _, set in ipairs({ "guildcfg", "handbook" }) do truthy(A().Store.IsActive(set), set) end
+	end)
+
+	it("shows the Handbook and Raid views, their commands and help lines, and the loot source", function()
+		Mock.Slash("/accord help")
+		local help = table.concat(Mock.PlainOutput(), "\n")
+		for _, view in ipairs({ "handbook", "raid" }) do
+			contains(help, "/accord " .. view)
+			Mock.Slash("/accord " .. view)
+			eq(A().Shell.selected, view)
+			truthy(A().Shell.views[view].frame:IsVisible(), view)
+			isNil(A().Shell.views[view].failed, view)
+		end
+		truthy(A().Integrations:SetSource("loot", "fdcp"))
+		eq(#Mock.errors, 0)
+	end)
+
+	it("remembers the Handbook view as the last one", function()
+		Mock.Slash("/accord handbook")
+		eq(A().Config:Get("char.ui.lastView"), "handbook")
 	end)
 end)
 

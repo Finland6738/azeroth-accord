@@ -509,7 +509,7 @@ describe("with FDCP as the source", function()
 end)
 
 describe("the availability map with the switch season off", function()
-	before_boot(setup(1, { season = false }))
+	before_boot(setup(1, { season = false, raid = false }))
 
 	it("counts nothing, takes and sends nothing, and shows nothing", function()
 		AV().AUTO = true

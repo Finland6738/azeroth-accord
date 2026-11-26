@@ -68,9 +68,15 @@ Accord conta, sul tuo computer, i minuti in cui il tuo account è online per ora
 
 Un [[raduno|Events-it]] contiene il tipo, il punto d'incontro **come testo che scrivi tu**, gli orari e, da chi risponde, *vengo* o *non vengo*. Lo vede tutta la gilda con Accord e si cancella 10 minuti dopo la fine. Accord **non legge mai la tua posizione** e non manda coordinate né mappe.
 
+## Manuale di gilda e scelta del loot
+
+> Dalla `v0.11.0`.
+
+Le pagine del [[manuale di gilda|Guild-Handbook-it]], scritte dagli ufficiali e dai gradi che scelgono, arrivano a tutta la gilda con Accord, con il personaggio che le ha scritte e quando; così anche i gradi scelti per scrivere, il sistema di loot e l'addon del loot. Le revisioni passate di una pagina, i tuoi segni di lettura e una bozza non salvata restano sul tuo computer e non vengono mai mandati.
+
 ## Altri addon
 
-A parte quell'elenco (novità della `v0.9.0`), dalla `v0.10.0` Accord cerca gli addon di raid e di loot che conosce **solo sul tuo computer**, legge Finland Dragon Credit Points dalla sua interfaccia pubblica quando gli ufficiali lo hanno scelto come fonte del roster della season, e condivide con la gilda solo quella scelta: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*. Non scrive mai i dati di un altro addon e non legge i suoi file salvati.
+A parte quell'elenco (novità della `v0.9.0`), dalla `v0.10.0` Accord cerca gli addon di raid e di loot che conosce **solo sul tuo computer**, legge Finland Dragon Credit Points dalla sua interfaccia pubblica quando gli ufficiali lo hanno scelto come fonte del roster della season o (dalla `v0.11.0`) come addon del loot, e condivide con la gilda solo quelle scelte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*. Non scrive mai i dati di un altro addon e non legge i suoi file salvati.
 
 ## Cosa resta sul tuo computer
 

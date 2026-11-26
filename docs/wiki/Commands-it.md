@@ -13,6 +13,8 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord season` | Apre la vista **Season**: il roster della season e la tua dichiarazione (vedi [[Roster della season|Season-Roster-it]]) *(M10.3, dalla `v0.10.0`)* |
 | `/accord events` | Apre la vista **Eventi**: gli eventi della gilda e la tua iscrizione nel calendario del gioco (vedi [[Eventi|Events-it]]) *(M10.5, dalla `v0.10.0`)* |
 | `/accord availability` | Apre la vista **Disponibilità**: quando la gilda gioca di solito (vedi [[Disponibilità|Availability-it]]) *(M10.8, dalla `v0.10.0`)* |
+| `/accord raid` | Apre la vista **Raid**: le fonti della gilda e ciò che FDCP pubblica (vedi [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]) *(M11.7, dalla `v0.11.0`)* |
+| `/accord handbook [pagina]` | Apre il **manuale di gilda**, su quella pagina o sull'ultima letta (vedi [[Manuale di gilda|Guild-Handbook-it]]) *(M11.3, dalla `v0.11.0`)* |
 | `/accord roster` | Apre la vista Roster |
 | `/accord professions` | Apre la vista Professioni su **chi può creare** (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) |
 | `/accord reputation` | Apre la vista Reputazione: i like di ogni giocatore e il pulsante Like, il tuo indice sociale, la mappa dei gruppi (ufficiali), *Qualcuno di nuovo* con cui giocare *(M4)* |

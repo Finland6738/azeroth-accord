@@ -20,7 +20,7 @@ local function guild(rank)
 end
 
 local function on(Mk) Mk.features = { season = true } guild(3) end
-local function off(Mk) Mk.features = { season = false } guild(3) end
+local function off(Mk) Mk.features = { season = false, raid = false } guild(3) end
 
 local function capture()
 	local out, T_ = {}, A().Transport

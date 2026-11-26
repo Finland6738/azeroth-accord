@@ -21,14 +21,14 @@ Le regole di integrazione del proprietario (2026-11-24, [M10](../roadmap/M10-cal
 
 ### 2.1 L'interruttore `raid`
 
-Tutto M11 è dietro l'interruttore **`raid`** di [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua), oggi **spento**; `raid` acceso accende anche `season` (`Features.IMPLIES`). In M11 `raid` copre:
+Tutto M11 è dietro l'interruttore **`raid`** di [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua), **acceso** da M11.8 (2026-11-26); `raid` acceso accende anche `season` (`Features.IMPLIES`). In M11 `raid` copre:
 
 - quello che copre già da M11.7: la vista *Raid*, `/accord raid`, la scelta della fonte `loot`, *Loot (FDCP)* nella scheda del membro, il riassunto delle regole di FDCP, le callback di FDCP per la fonte `loot`;
 - l'insieme `handbook` (M11.2): con `raid` spento non si scrive, non si accetta e non si manda (`feature = "raid"` nella definizione di `Net/Store.lua`), e il suo riepilogo a parte (§3.6) non entra nei `HELLO`;
 - i record `handbook` e `loot` di `guildcfg` (§3.3, §8.1): con `raid` spento si rifiutano (`owner`) come oggi, mentre `sources` e `target` restano accettati (sono di `season`);
 - la vista *Handbook* (M11.3, M11.4), `/accord handbook`, i modelli delle pagine predefinite (M11.5) e la pagina del loot (M11.6), con il loro avviso e la riga del Centro azioni (§3.5).
 
-M11.8 accende `raid` quando M11 è completa nel codice, per `v0.11.0`. Fino ad allora i test lo accendono e lo spengono, e `Tests/test_features.lua` e `Tests/test_handbook.lua` controllano che spento non si veda e non si mandi nulla. Come gli altri interruttori, i moduli chiedono `Features.On("raid")` quando agiscono.
+M11.8 ha acceso `raid`, con M11 completa nel codice, per `v0.11.0`; la prova in gioco ([checklist](../checklists/M11.md)) è ancora da fare. I test lo accendono e lo spengono, e `Tests/test_features.lua` e `Tests/test_handbook.lua` controllano che spento non si veda e non si mandi nulla. Come gli altri interruttori, i moduli chiedono `Features.On("raid")` quando agiscono.
 
 ### 2.2 File nuovi
 

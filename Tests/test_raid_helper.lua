@@ -716,7 +716,7 @@ describe("the Events view of an officer", function()
 end)
 
 describe("with the switch season off", function()
-	before_boot(setup(1, {}, { season = false }))
+	before_boot(setup(1, {}, { season = false, raid = false }))
 
 	it("imports, writes, accepts and shows nothing", function()
 		ready()

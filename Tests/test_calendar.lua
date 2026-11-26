@@ -353,7 +353,7 @@ describe("silence during a boss", function()
 end)
 
 describe("with the switch season off", function()
-	before_boot(setup(1, nil, { season = false }))
+	before_boot(setup(1, nil, { season = false, raid = false }))
 
 	it("never calls the calendar, takes and sends nothing, shows nothing", function()
 		Mock.Advance(61)

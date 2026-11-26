@@ -10,7 +10,7 @@
 
 Loot is documented, not computed. The loot page says which system the guild uses and names its addon. Accord detects that addon in every member's client and, for FDCP, reads what FDCP publishes. Release: `v0.11.0`.
 
-**Switched off until complete (2026-11-25).** M11.7 landed ahead of the milestone. It ships hidden behind the switch `raid` of `AzerothAccord/Core/Features.lua` (no **Raid** view or `/accord raid`, no *Loot* source, no *Loot (FDCP)* row). Since M10.3 the M10 features have their own switch, `season` (detection, the season roster's source and FDCP's season pool in the **Season** view), turned on by M10.10 for `v0.10.0`; `raid` on turns `season` on too. `raid` is turned on when M11 is complete.
+**Switched on (M11.8, 2026-11-26).** M11.7 landed ahead of the milestone, hidden behind the switch `raid` of `AzerothAccord/Core/Features.lua`, which then covered M11.2–M11.6 too. Since M10.3 the M10 features have their own switch, `season`, on since M10.10 for `v0.10.0`. M11.8 turned `raid` on (it turns `season` on too): M11 is complete in code and part of the next release, `v0.11.0`; the in-game checks are still open.
 
 **Exit criterion:** in game:
 - an officer edits the rules page, and a member who logs in later reads the new version marked as updated;
@@ -135,5 +135,6 @@ Notes:
 - Branch: `step/m11-8-check`
 - Scope: `docs/checklists/M11.md` and the README status. The owner releases `v0.11.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.11.0`.
+  - *Done in code (2026-11-26):* [the M11 checklist](../checklists/M11.md); the switch `raid` is on in `Core/Features.lua`; README and wiki describe M11 as part of the next release. The release preparation of the changelog and the tag are a separate step. Nothing of M11 has been checked in the real game.

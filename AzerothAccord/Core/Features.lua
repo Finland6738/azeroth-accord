@@ -11,7 +11,7 @@
 --   raid   the M11 features read from FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)", the
 --          choice of the loot source) and the guild handbook (M11.2-M11.6: the data set `handbook`, the Handbook view and
 --          `/accord handbook`). It builds on M10, so while it is on `season` is on too (Features.IMPLIES).
---          Switched on when M11 is complete (docs/roadmap/M11-loot-handbook.md).
+--          On since M11.8.
 --   actions  the Action Center, the notices, quiet hours and the login digest (M9.2-M9.5, SPEC-13): the view,
 --          `/accord inbox`, the line in the Compartment tooltip and the craft reminders. On since M9.10.
 --   groups   the guild group finder (M9.6-M9.8, SPEC-13 §6): the data set `groups`, the applications (GAPP), the
@@ -24,7 +24,7 @@
 local ADDON_NAME, ns = ...
 local ipairs = ipairs
 ns = ns or {}
-local Features = { season = true, raid = false, actions = true, groups = true, census = true }
+local Features = { season = true, raid = true, actions = true, groups = true, census = true }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

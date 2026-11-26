@@ -2,7 +2,7 @@
 
 *Italiano: [[Manuale di gilda|Guild-Handbook-it]]*
 
-> **Not in a release yet.** The handbook is in the code but switched off until milestone M11 is complete: there is no **Handbook** tab and no command. Reading (step M11.3), writing (step M11.4), the default pages (M11.5) and the loot page (M11.6) are done; the in-game check (M11.8) comes next. Nothing has been checked in the real game. What follows describes how it should work.
+> **From `v0.11.0`, the next release**, with the in-game checks pending: nothing has been checked in the real game. What follows describes how it should work.
 
 The handbook is a set of text pages your guild keeps in the game: information, rules, FAQ, how raids, the roster and the loot work. Officers (and the ranks officers choose) write them; **every member with Accord reads them**. Your computer keeps the pages it has received, so you can read them with nobody else online, as they were at the last sync.
 

@@ -594,7 +594,8 @@ describe("What I share: the panel shows the records last sent", function()
 			ids[#ids + 1] = r.id
 			truthy(r.to ~= "" and r.when ~= "")
 		end
-		deepEq(ids, { "accounts", "contacts", "recipes", "addons", "coplay", "bank", "bankreq", "likes", "hello", "absence" })
+		deepEq(ids, { "accounts", "contacts", "recipes", "addons", "coplay", "bank", "bankreq", "likes", "hello", "absence",
+			"season", "raidev", "avail", "rally" })
 		truthy(row("contacts").always)
 	end)
 
@@ -742,6 +743,7 @@ describe("What I share: the co-play switch", function()
 	it("a record of the coplay set with no switch row: the other rows have none, but the addon list has its own", function()
 		for _, r in ipairs(SM().Describe()) do
 			if r.id == "addons" then eq(r.switch, "shareAddons")
+			elseif r.id == "avail" then eq(r.switch, "shareAvailability")
 			elseif r.id ~= "coplay" then isNil(r.switch) end
 		end
 	end)

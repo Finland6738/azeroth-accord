@@ -2,7 +2,7 @@
 
 *English: [[Guild handbook|Guild-Handbook]]*
 
-> **Non ancora in un rilascio.** Il manuale è nel codice ma resta spento finché la milestone M11 non è completa: non ci sono la scheda **Manuale** né il comando. La lettura (passo M11.3), la scrittura (passo M11.4), le pagine predefinite (M11.5) e la pagina del loot (M11.6) sono fatte; segue la prova in gioco (M11.8). Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.11.0`, il prossimo rilascio**, con le prove nel gioco da fare: niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il manuale è un insieme di pagine di testo che la gilda tiene nel gioco: informazioni, regolamento, FAQ, come funzionano i raid, il roster e il loot. Le scrivono gli ufficiali (e i gradi che gli ufficiali scelgono); **le legge ogni membro con Accord**. Il tuo computer conserva le pagine ricevute, quindi le leggi anche senza nessun altro online, com'erano all'ultima sincronizzazione.
 
