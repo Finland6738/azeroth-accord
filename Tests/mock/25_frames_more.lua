@@ -34,6 +34,7 @@ function Widget:GetVerticalScroll() return self._vscroll or 0 end
 function Widget:GetVerticalScrollRange() return 0 end
 function Widget:SetJustifyV(v) self._justifyV = v end
 function Widget:SetWordWrap(v) self._wordWrap = v end
+function Widget:CanWordWrap() return self._wordWrap ~= false end   -- the client wraps by default
 function Widget:SetNonSpaceWrap(v) self._nonSpaceWrap = v end
 function Widget:RegisterForClicks(...) self._clicks = { ... } end
 function Widget:SetMotionScriptsWhileDisabled(v) self._motionDisabled = v end

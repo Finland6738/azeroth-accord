@@ -84,7 +84,8 @@ ICON_NAMES = ["chevron", "check", "cross", "dashed", "skull", "shield", "heal", 
               # M7-1: the rest of the sheet, one row of 16 each (mirrored in UI/Assets.lua)
               "info", "warn", "search", "filter", "copy", "trash", "edit", "calendar", "clock", "user", "users", "crown",
               "coin", "refresh", "download", "upload",
-              "bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left"]
+              "bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left",
+              "heart"]   # 2026-11-26: the Like button of the Reputation view
 
 
 def draw_icon(name):
@@ -240,6 +241,10 @@ def draw_icon(name):
     elif name == "arrow_left":
         d.line([pt(13, 8), pt(3.5, 8)], fill=255, width=w)
         d.line([pt(7.5, 4), pt(3.5, 8), pt(7.5, 12)], fill=255, width=w, joint="curve")
+    elif name == "heart":
+        d.ellipse([pt(1.6, 2.6), pt(8.4, 9.4)], fill=255)
+        d.ellipse([pt(7.6, 2.6), pt(14.4, 9.4)], fill=255)
+        d.polygon([pt(2.0, 7.4), pt(14.0, 7.4), pt(8.0, 14.2)], fill=255)
     return img.resize((CELL, CELL), Image.LANCZOS)
 
 

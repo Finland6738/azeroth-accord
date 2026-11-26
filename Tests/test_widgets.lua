@@ -1017,6 +1017,27 @@ describe("data table", function()
 		return t
 	end
 
+	it("fixed columns wider than the table shrink to fit, and the table clips its children (found in game, 2026-11-26)", function()
+		local cols = { { id = "name", title = "Name", flex = 1, text = function(d) return d.name end } }
+		for i = 1, 10 do cols[#cols + 1] = { id = "c" .. i, title = "C" .. i, width = 120, text = function() return "x" end } end
+		local host = CreateFrame("Frame")
+		host:SetSize(1000, 400)
+		local t = Widgets().DataTable(host, cols, {})
+		t:SetSize(1000, 400)
+		t:SetData(people(5))
+		t:Layout()
+		truthy(t:DoesClipChildren())
+		truthy(t.shrink < 1)
+		local last = t.pos[#t.pos]
+		truthy(last.x + last.w <= 1000, "the last column ends inside the table")
+		truthy(t.pos[1].w >= 60, "the flexible column keeps its minimum")
+		-- a wide table keeps the widths it asked for
+		t:SetSize(2000, 400)
+		t:Layout()
+		eq(t.shrink, 1)
+		eq(t.pos[2].w, 120)
+	end)
+
 	it("fills the visible rows only, from a pool, with the header outside the list", function()
 		local t = table_(100)
 		eq(#t.rows, 40)

@@ -41,6 +41,7 @@ function Widgets.DataTable(parent, columns, opts)
 	t.offset, t.rowH, t.headH = 0, rowH, headH
 	t.sortId, t.sortDesc = nil, false
 
+	if t.SetClipsChildren then t:SetClipsChildren(true) end   -- a header or a cell never shows outside the table
 	t.head = CreateFrame("Frame", nil, t)
 	t.head:SetHeight(headH)
 	t.head:SetPoint("TOPLEFT", t, "TOPLEFT", 0, 0)
@@ -69,20 +70,30 @@ function Widgets.DataTable(parent, columns, opts)
 	Theme.Fill(t.scroll.thumb, "border-strong")
 	t.scroll:Hide()
 
-	-- the column positions: the fixed ones keep their width, the flexible ones share what is left
+	-- the column positions: the fixed ones keep their width, the flexible ones share what is left. When the fixed widths do
+	-- not fit (a narrow window, many columns: found in game, 2026-11-26), every fixed column shrinks by the same share,
+	-- down to MIN_SHRINK of its width, each flexible one keeps FLEX_MIN, and the texts are cut with dots; what still does
+	-- not fit is clipped at the table's edge (never drawn outside the window).
+	local FLEX_MIN, MIN_SHRINK = 60, 0.45
 	local function widths()
 		local total = (t:GetWidth() or 0) > 50 and t:GetWidth() or 800
-		local fixed, flex = 0, 0
+		local fixed, flex, flexCount = 0, 0, 0
 		for _, c in ipairs(columns) do
-			if c.width then fixed = fixed + c.width else flex = flex + (c.flex or 1) end
+			if c.width then fixed = fixed + c.width else flex = flex + (c.flex or 1) flexCount = flexCount + 1 end
 		end
-		local free = max(total - fixed - 16, 0)
+		local avail = max(total - 16, 0)
+		local k = 1
+		if fixed > 0 and fixed + flexCount * FLEX_MIN > avail then
+			k = max(MIN_SHRINK, (avail - flexCount * FLEX_MIN) / fixed)
+		end
+		local free = max(avail - floor(fixed * k), flexCount * FLEX_MIN)
 		local out, x = {}, 8
 		for i, c in ipairs(columns) do
-			local w = c.width or (flex > 0 and floor(free * (c.flex or 1) / flex) or 0)
+			local w = c.width and floor(c.width * k) or (flex > 0 and max(FLEX_MIN, floor(free * (c.flex or 1) / flex)) or 0)
 			out[i] = { x = x, w = w }
 			x = x + w
 		end
+		t.shrink = k
 		return out
 	end
 

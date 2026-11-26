@@ -519,9 +519,11 @@ describe("assets table", function()
 		isNil(A.IconCoords("nothing"))
 	end)
 
-	it("lists forty distinct icons that fit the sheet; the last one sits in the third row", function()
+	it("lists forty-one distinct icons that fit the sheet; the last ones sit in the third row", function()
 		local A = AzerothAccord.Assets
-		eq(#A.icons, 40)
+		eq(#A.icons, 41)
+		local hl, _, ht = A.IconCoords("heart")   -- the Like button (2026-11-26)
+		near(hl, 8 / 16, 1e-9); near(ht, 2 / 16, 1e-9)
 		local seen = {}
 		for _, n in ipairs(A.icons) do falsy(seen[n], "duplicate " .. n); seen[n] = true end
 		local per = A.textures.icons.w / A.textures.icons.cell

@@ -29,6 +29,7 @@ View.DEFAULT_ROWS = 14
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.LIKE_CONFIRM = 8          -- seconds a first click on [Like] waits for the second one
+View.HEART_WIDTH, View.CONFIRM_WIDTH = 36, 100   -- the Like button: a heart, then "Confirm" while armed
 
 View.modes = {}                -- id -> { id, label, order, available, build, refresh, frame }
 View.mode = "likes"
@@ -209,11 +210,23 @@ local function newRow(area, i)
 	row.chars = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.chars:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
 	row.chars:SetWidth(110)
+	-- one line each: a long Forever name is cut with dots, never wrapped onto the next row (found in game, 2026-11-26)
+	for _, fs in ipairs({ row.name, row.chars }) do
+		if fs.SetWordWrap then fs:SetWordWrap(false) end
+		if fs.SetMaxLines then fs:SetMaxLines(1) end
+	end
 	row.total = Widgets.Text(row, "MonoMedium", "accent-text", "RIGHT")
 	row.total:SetPoint("LEFT", row.chars, "RIGHT", 6, 0)
 	row.total:SetWidth(50)
-	row.like = Widgets.Button(row, { text = L["REP_LIKE"], style = "secondary", width = 100, height = View.ROW_HEIGHT - 6,
+	-- the Like button is a heart (owner, 2026-11-26); armed, it says "Confirm" until the second click
+	row.like = Widgets.Button(row, { text = "", style = "secondary", width = View.HEART_WIDTH, height = View.ROW_HEIGHT - 6,
 		onClick = function(b) View:LikeClicked(b:GetParent().data.guid) end })
+	row.like.heart = row.like:CreateTexture(nil, "OVERLAY")
+	row.like.heart:SetTexture(ns.Assets.textures.icons.path)
+	row.like.heart:SetTexCoord(ns.Assets.IconCoords("heart"))
+	row.like.heart:SetSize(14, 14)
+	row.like.heart:SetPoint("CENTER", row.like, "CENTER", 0, 0)
+	Theme.Tint(row.like.heart, "accent")
 	row.like:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
 	Widgets.Tooltip.Attach(row.like, { L["REP_LIKE"], L["REP_LIKE_TIP"] }, "RIGHT")
 	row.state = Widgets.Text(row, "Small", "text-3", "LEFT")
@@ -235,7 +248,9 @@ local function fillRow(row, d)
 	row.total:SetText(tostring(d.total))
 	if d.state == "can" then
 		local armed = View:IsArmed(d.guid)
-		row.like:SetLabel(armed and L["REP_CONFIRM"] or L["REP_LIKE"])
+		row.like:SetLabel(armed and L["REP_CONFIRM"] or "")
+		row.like:SetWidth(armed and View.CONFIRM_WIDTH or View.HEART_WIDTH)
+		row.like.heart:SetShown(not armed)
 		row.like.armed = armed
 		row.like:Show()
 		row.state:Hide()
