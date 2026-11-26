@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-26
+
 ### Changed
 
 - M11.8: **the features of M11 are switched on** for the next release (`Core/Features.lua`: `raid`): the **Handbook** view and `/accord handbook` (the guild handbook with its reader, editor, revisions, writers by rank and default pages, M11.2-M11.5), the loot page with the choice of the guild's loot system and addon (M11.6), the **Raid** view, `/accord raid`, the loot source and *Loot (FDCP)* on the member card (M11.7), the data set `handbook` and the records `handbook` and `loot` of `guildcfg`. The entries of M11 below that say "behind the switch `raid`" were written before this. **Nothing of M11 is checked in the real game.**

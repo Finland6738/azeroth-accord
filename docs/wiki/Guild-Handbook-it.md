@@ -2,7 +2,7 @@
 
 *English: [[Guild handbook|Guild-Handbook]]*
 
-> **Dalla `v0.11.0`, il prossimo rilascio**, con le prove nel gioco da fare: niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.11.0`** (2026-11-26), con le prove nel gioco da fare: niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il manuale è un insieme di pagine di testo che la gilda tiene nel gioco: informazioni, regolamento, FAQ, come funzionano i raid, il roster e il loot. Le scrivono gli ufficiali (e i gradi che gli ufficiali scelgono); **le legge ogni membro con Accord**. Il tuo computer conserva le pagine ricevute, quindi le leggi anche senza nessun altro online, com'erano all'ultima sincronizzazione.
 

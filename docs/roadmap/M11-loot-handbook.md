@@ -137,4 +137,5 @@ Notes:
 - Done when:
   - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.11.0`.
+  - *Released (2026-11-26):* the owner tagged `v0.11.0` before the in-game checks and without waiting for the full tests and CI (ADR 0012 point 9, ADR 0020 update of 2026-11-25); this box stays open until the checks pass.
   - *Done in code (2026-11-26):* [the M11 checklist](../checklists/M11.md); the switch `raid` is on in `Core/Features.lua`; README and wiki describe M11 as part of the next release. The release preparation of the changelog and the tag are a separate step. Nothing of M11 has been checked in the real game.
