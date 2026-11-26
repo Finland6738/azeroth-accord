@@ -51,7 +51,7 @@ Config.defaults = {
 	account = {
 		schemaVersion = Config.SCHEMA_VERSION,
 		token = "",          -- the account token (SPEC-03 §1): 16 random bytes in Base64, created once, never changed
-		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, guildAt, seen, added, answered } }: Data/Accounts.lua
+		chars = {},          -- [realm] = { [guid] = { name, classID, level, guild, guildAt, guildSince, seen, added, answered } }: Data/Accounts.lua
 		mains = {},          -- [realm] = guid of the main the player chose (Data/Accounts.lua); default: the highest level
 		guilds = {},         -- [guildKey] = { ... }: one table per guild, Data/GuildKey.lua
 		settings = { notifyOfficer = true, notifyDecision = true,     -- plus discord (typed, optional): UI/SettingsModel.lua

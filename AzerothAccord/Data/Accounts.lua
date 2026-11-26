@@ -17,7 +17,7 @@
 --                alt") is a hint (ACC-05), shown as "declared in the note".
 --
 -- Alts outside the guild (SPEC-11 §2, M7.3): the local `chars` entry keeps `guild` (a guild key, or "" for no guild) with
---   `guildAt` (when it was read) and `seen`; the record lists, for characters outside the guild only, `guild` (the NAME,
+--   `guildAt` (when it was read), `guildSince` (since when it reads the same; local only) and `seen`; the record lists, for characters outside the guild only, `guild` (the NAME,
 --   or "" = no guild) and `seen` (the day of the last login with the addon). Old clients ignore both fields.
 --
 -- Group: { id, members = { { guid, name, realm, classID, classFile, level, inGuild, claimed, hint, isMain,
@@ -25,7 +25,8 @@
 --          main = guid, mainSource = "chosen"|"default"|"hint", token, conflict }.
 -- Main: the player's choice (Accounts:SetMain, saved per realm), else the highest level, then the character added first
 -- (the time played would need /played, which writes in the chat).
--- Bus: ACCOUNTS_UPDATED() after the groups are rebuilt; the own record goes through Store:Put like any other.
+-- Bus: CHARACTER_GUILD_CHANGED(guid, from, to) when a character's guild reads differently than before (M12.4);
+--   ACCOUNTS_UPDATED() after the groups are rebuilt; the own record goes through Store:Put like any other.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Accounts = {}
@@ -104,10 +105,19 @@ function Accounts:Register(info)
 	entry.name = info.name
 	entry.classID = tonumber(info.classID) or entry.classID
 	entry.level = tonumber(info.level) or entry.level
-	if info.guild ~= nil then entry.guild, entry.guildAt = info.guild, now() end
+	local before = entry.guild
+	if info.guild ~= nil then
+		-- since when this guild is read for the character (ONB-03, SPEC-16 §5.1): kept while it stays the same
+		if before ~= info.guild then entry.guildSince = now()
+		elseif entry.guildSince == nil then entry.guildSince = entry.guildAt end
+		entry.guild, entry.guildAt = info.guild, now()
+	end
 	entry.seen = now()
 	entry.answered = entry.seen
 	state.dirtyOwn = true
+	if info.guild ~= nil and before ~= nil and before ~= info.guild then
+		emit("CHARACTER_GUILD_CHANGED", info.guid, before, info.guild)
+	end
 	return entry
 end
 

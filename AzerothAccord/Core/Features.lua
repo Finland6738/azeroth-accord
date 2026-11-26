@@ -22,8 +22,8 @@
 --          in "What I share". Off: the list is not read, and nothing of it is written, accepted, sent or shown.
 --          On since M9.10.
 --   recruit the M12 features (docs/roadmap/M12-recruitment.md, SPEC-16): the recruitment text (M12.2: its button in the
---          Season view, its window and `/accord recruit`) and the steps that follow (trials, onboarding, mentors). It
---          turns on no other switch: each part asks `season`, `raid` or `actions` itself and says what is missing.
+--          Season view, its window and `/accord recruit`) and the steps that follow (trials, M12.3; the welcome checklist
+--          and `/accord welcome`, M12.4; mentors). It turns on no other switch: each part asks `season`, `raid` or `actions` itself and says what is missing.
 --          Off: nothing of it is shown, written, accepted or sent. Off until M12.6.
 local ADDON_NAME, ns = ...
 local ipairs = ipairs

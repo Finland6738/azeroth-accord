@@ -6,7 +6,8 @@
 -- the feature capabilities of SPEC-01 §5 are new.
 --
 -- Every name used here is in the Forever API dump (../WoW-Addons/docs/api.json) except C_TradeSkillUI.GetAllRecipeIDs
--- and GetFilteredRecipeIDs and GetGuildRosterLastOnline, marked [verify]. The M0 probe results are not in yet, so the
+-- and GetFilteredRecipeIDs, GetGuildRosterLastOnline and the guild event log (QueryGuildEventLog, GetNumGuildEvents,
+-- GetGuildEventInfo), marked [verify]. The M0 probe results are not in yet, so the
 -- APIs the spec marks [verify] (S2 club fields, S3 guild recipes, S4 own recipes, S5 OFFICER, S7 group GUIDs, S8
 -- BattleTag, S9 bank logs) all go through here and degrade to nil / false / "unknown" without an error.
 local ADDON_NAME, ns = ...
@@ -336,6 +337,35 @@ function Guild.RosterRow(index)
 		level = info.level, classID = info.classID, zone = info.zone, note = info.memberNote, officerNote = info.officerNote,
 		online = info.online, guid = info.guid, lastOnlineHours = info.lastOnlineHours, source = "club",
 	}
+end
+
+-- The guild's event log (SPEC-16 §5.1, ONB-01) [verify]: the global functions are not in the Forever dump (only the
+-- event GUILD_EVENT_LOG_UPDATE is). HasEventLog is false without them.
+Guild.MAX_EVENTS = 200
+function Guild.HasEventLog()
+	return type(Resolve("QueryGuildEventLog")) == "function" and type(Resolve("GetNumGuildEvents")) == "function"
+		and type(Resolve("GetGuildEventInfo")) == "function"
+end
+
+-- Asks the server for the log. true when the game accepted the call.
+function Guild.QueryEventLog()
+	if not Guild.HasEventLog() then return false end
+	local _, state = first("QueryGuildEventLog")
+	return state == AVAILABLE
+end
+
+-- The log as the client holds it: { { type = "join" | ..., name = the first name, hours = its age } }.
+function Guild.EventLog()
+	local out = {}
+	if not Guild.HasEventLog() then return out end
+	local n = tonumber((first("GetNumGuildEvents"))) or 0
+	for i = 1, min(n, Guild.MAX_EVENTS) do
+		local v = readable("GetGuildEventInfo", i)   -- type, player1, player2, rank, years, months, days, hours
+		if v and str(v[1]) then
+			out[#out + 1] = { type = v[1], name = str(v[2]), hours = Compat.LastOnlineHours(v[5], v[6], v[7], v[8]) }
+		end
+	end
+	return out
 end
 
 -- Every roster row (at most MAX_ROSTER).
@@ -1490,6 +1520,9 @@ local CAPS = {
 	{ "guild.GuildControlGetRankFlags", "guild", "C_GuildInfo.GuildControlGetRankFlags" },
 	{ "guild.GuildControlGetNumRanks", "guild", "GuildControlGetNumRanks", call = true },
 	{ "guild.GuildControlGetRankName", "guild", "GuildControlGetRankName" },
+	{ "guild.QueryGuildEventLog", "guild", "QueryGuildEventLog", note = "[verify] not in the dump" },
+	{ "guild.GetNumGuildEvents", "guild", "GetNumGuildEvents", note = "[verify] not in the dump" },
+	{ "guild.GetGuildEventInfo", "guild", "GetGuildEventInfo", note = "[verify] not in the dump" },
 	{ "guild.CanGuildPromote", "guild", "CanGuildPromote", call = true, note = "[verify]" },
 	{ "guild.CanGuildDemote", "guild", "CanGuildDemote", call = true, note = "[verify]" },
 	{ "guild.CanGuildRemove", "guild", "CanGuildRemove", call = true, note = "[verify]" },

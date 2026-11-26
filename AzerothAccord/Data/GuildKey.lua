@@ -115,8 +115,8 @@ end
 -- back. The notary's salts (the likes key of the guild: losing the only copy would let an old like be given twice,
 -- ADR 0007), this account's own likes memory (SPEC-07 LIKE-04), the bank table (the money history observed at the
 -- vault and which request notices were already shown, so a resend is not announced again) and, of the notices
--- (SPEC-13 §3), only what was already announced.
-GuildKey.KEEP_ON_CLEAR = { "salts", "likes", "bank", "notify" }
+-- (SPEC-13 §3), only what was already announced, and the welcome checklist (SPEC-16 §5: dismissed stays dismissed).
+GuildKey.KEEP_ON_CLEAR = { "salts", "likes", "bank", "notify", "onboarding" }
 
 -- A kept table of which only a part stays.
 GuildKey.TRIM_ON_CLEAR = { notify = function(t) return { seen = t.seen } end }

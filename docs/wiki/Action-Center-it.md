@@ -21,10 +21,29 @@ Non salva nulla di suo e non decide niente al posto tuo. Ogni riga viene letta d
 | *… vuole unirsi come …* | tu, come capo di un [[gruppo|Groups-it]] | la pagina **Il mio gruppo** di Gruppi | accetti o rifiuti, o il gruppo si chiude |
 | *Raduno PvP: …* e *Raduno nel mondo: …* *(dalla `v0.10.0`)* | tutti, finché il [[raduno|Events-it]] è aperto | la pagina **Raduni** di Eventi | il raduno finisce o viene chiuso |
 | *La prova di … è finita il …: decidi* e *… è uscito dalla gilda durante la prova* *(nascosto finché M12 non è completo)* | gli ufficiali e il Guild Master, dal giorno della fine | la pagina **Prove** della [[scheda Ufficiali|Guild-Roster-it]], su quella prova | un ufficiale chiude o proroga la prova |
+| *Lista di benvenuto: 2 di 4 fatte* *(nascosto finché M12 non è completo)* | tu, da nuovo membro | la [lista di benvenuto](#lista-di-benvenuto), in cima alla stessa pagina | tutte le voci sono fatte, premi **Chiudi lista**, o 30 giorni dopo l'ingresso |
 
 Un ufficiale che chiede qualcosa alla banca vede la richiesta due volte: da decidere, e come proprio promemoria.
 
 Una richiesta di creazione è solo un sussurro che invii tu (vedi [[Professioni e ricette|Professions-and-Recipes-it]]): l'addon non avvisa l'artigiano. La riga è un **promemoria tuo**, tenuto sul tuo computer e mai inviato a nessuno, al massimo 20. Resta anche se decidi di non inviare il sussurro: premi **Fatto** per toglierlo. Gli ordini visibili all'artigiano arrivano con una milestone successiva (M13).
+
+## Lista di benvenuto
+
+> *Nascosta finché M12 non è completo.* Niente di tutto questo è stato verificato nel gioco vero.
+
+Se sei appena entrato in gilda, in cima al Centro azioni compare la carta **Benvenuto** e una riga in chat te lo dice. Elenca fino a quattro cose da fare; ognuna **si spunta da sola** quando è fatta, e resta spuntata. Clicca una voce per andare dove si fa.
+
+| Voce | È fatta quando | Non compare quando | Il clic apre |
+|---|---|---|---|
+| *Leggi le informazioni e le regole della gilda* | hai letto le due pagine del [[manuale|Guild-Handbook-it]] (o quella che c'è) | la gilda non ne ha scritta nessuna | la prima pagina non letta |
+| *Scegli il tuo main* | hai scelto il main, o il tuo account ha un solo personaggio | | la carta del **personaggio principale** nelle [[Impostazioni|Settings-it]] |
+| *Aggiungi il tuo nome Discord* | il tuo nome Discord è salvato (o lo dà il gioco) | | la carta **Contatti** delle Impostazioni |
+| *Dichiarati per la season* | il tuo account è nel [[roster della season|Season-Roster-it]], anche come *Non so ancora* (con FDCP: un tuo personaggio è nel suo pool) | non c'è una season aperta, o la fonte è FDCP e non è caricato | la vista Season, o FDCP |
+
+- **Chi la riceve**: un personaggio entrato **dopo** che Accord vedeva già la gilda. L'addon lo sa quando ha visto il tuo personaggio cambiare gilda, o quando il registro della gilda del gioco mostra il tuo ingresso negli ultimi 14 giorni (non è ancora verificato che il gioco offra quel registro agli addon). Chi era già in gilda quando la gilda ha cominciato a usare Accord non la riceve, e nemmeno un alt di un account già in gilda. La carta può comparire dopo qualche minuto, quando il tuo computer ha ricevuto i dati della gilda.
+- **Chiudi lista** la chiude per sempre su quel personaggio. Sparisce anche da sola 30 giorni dopo l'ingresso, e dall'accesso successivo quando è tutto fatto.
+- `/accord welcome` apre la lista in ogni momento, a chiunque.
+- Resta **sul tuo computer**: non si manda nulla, e gli ufficiali non vedono che cosa hai spuntato.
 
 ## Ordine e colori
 

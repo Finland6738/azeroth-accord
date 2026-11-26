@@ -582,6 +582,9 @@ function DemoData.Build(now)
 		trial(59, 3, 20, 14, 10)
 		trial(58, 1, 40, 14, -26, 25)
 		D.recruit.trials = trials
+		-- The welcome checklist (SPEC-16 §5, §8) of the player as a new member, two items ticked; no chat line
+		D.onboarding = { [members[PLAYER_INDEX].guid] = { joined = now - 2 * DAY, how = "seen", known = true, notified = true,
+			done = { read = now - DAY, main = now - DAY } } }
 	end
 
 	-- The addon census (SPEC-13 §8): the lists of the members with the addon, outside D.sets: Core/Demo.lua puts them in

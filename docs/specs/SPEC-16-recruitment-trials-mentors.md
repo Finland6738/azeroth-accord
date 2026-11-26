@@ -51,7 +51,7 @@ Nessuna migrazione di schema: le chiavi nuove si aggiungono dove mancano, al pri
 | Chiave | Contenuto | Sezione |
 |---|---|---|
 | `GuildKey:Data().recruit` | `{ contact, extra, format }`: la riga del contatto e la riga in più scritte da questo ufficiale, l'ultimo formato scelto | §3.3 |
-| `GuildKey:Data().onboarding` | `{ [GUID] = { joined, how, done = { [voce] = ora }, dismissed, notified } }`: la lista dell'accoglienza di ogni personaggio dell'account in questa gilda | §5 |
+| `GuildKey:Data().onboarding` | `{ [GUID] = { joined, how, known, done = { [voce] = ora }, dismissed, notified, completed } }` o `{ none = true }`: la lista dell'accoglienza di ogni personaggio dell'account in questa gilda | §5 |
 
 Niente di questo si manda, ed entrambe le chiavi restano fuori dai backup personali (M7.5). Le prove (`trials`) e le offerte dei mentori (`mentor`) sono insiemi sincronizzati (§4.1, §6.1).
 
@@ -156,12 +156,14 @@ Solo **ufficiali e Guild Master** (`Officer.VISIBLE_TO.trials = "officers"`, la 
 La lista compare **solo sul client del nuovo membro** e solo se il client sa che il personaggio è entrato **dopo** che l'addon, nella gilda, vedeva già il roster: chi era in gilda quando la gilda ha installato Accord non la riceve, come la prima lettura della cronologia non "fa entrare" tutta la gilda (TL-02). Un personaggio è **nuovo** se vale ONB-01 e nessuna delle esclusioni ONB-02, ONB-03:
 
 - **ONB-01 L'ingresso è noto.** Uno dei due segni:
-  1. **visto da questo client** (`how = "seen"`): il client legge la gilda del personaggio (`AzerothAccordDB.chars[reame][GUID].guild`, aggiornata a ogni lettura da `Data/Accounts.lua`) e il valore tenuto era un'altra gilda o nessuna (`""`); l'ora dell'ingresso è l'ora della lettura. Vale per chi aveva Accord prima di entrare.
+  1. **visto da questo client** (`how = "seen"`): il client legge la gilda del personaggio (`AzerothAccordDB.chars[reame][GUID].guild`, aggiornata a ogni lettura da `Data/Accounts.lua`) e il valore tenuto era un'altra gilda o nessuna (`""`); l'ora dell'ingresso è l'ora della lettura. Vale per chi aveva Accord prima di entrare. Non vale se l'account aveva già i dati di quella gilda (creati più di `Onboarding.KNOWN_MARGIN` = 60 s prima): la conosceva, quindi non è un primo ingresso, e una lettura "nessuna gilda" fatta mentre il gioco non era pronto non fa passare per nuovo un vecchio membro.
   2. **dal registro della gilda** (`how = "log"`, **[verificare]**): il registro degli eventi della gilda del gioco (`QueryGuildEventLog`, poi `GetNumGuildEvents` e `GetGuildEventInfo` globali, che il dump di Forever `1.60.1` non elenca: c'è solo l'evento `GUILD_EVENT_LOG_UPDATE`; le funzioni con lo stesso nome del dump sono quelle di `C_Calendar`) ha un ingresso (`join`) del proprio personaggio negli ultimi `Onboarding.NEW_DAYS` = 14 giorni; l'ora dell'ingresso è adesso meno l'età dell'evento. Vale per chi installa Accord dopo essere entrato. Si legge una volta, 60 s dopo il primo accesso nella gilda senza una voce in `onboarding`; senza le funzioni il segno manca e resta solo il primo.
 - **ONB-02 L'addon c'era prima.** Il client tiene almeno un record di questa gilda scritto da un **altro account** con `time` precedente all'ingresso (la prova che un client di Accord della gilda vedeva il roster prima). Senza, il personaggio non è nuovo: è la gilda che comincia a usare Accord.
-- **ONB-03 Non è un alt.** Un altro personaggio dello stesso account (`AzerothAccordDB.chars`) era già in questa gilda prima dell'ingresso (la sua gilda letta è questa, con `guildAt` precedente): chi porta un alt nella gilda non è un membro nuovo.
+- **ONB-03 Non è un alt.** Un altro personaggio dello stesso account (`AzerothAccordDB.chars`) era già in questa gilda prima dell'ingresso (la sua gilda letta è questa, da prima: `guildSince`, l'ora da cui il client legge quella gilda per quel personaggio, aggiunta in M12.4 perché `guildAt` si aggiorna a ogni lettura; senza, `guildAt`): chi porta un alt nella gilda non è un membro nuovo.
 
-Il risultato si scrive una volta in `onboarding[GUID] = { joined, how }`; un personaggio senza i segni ha `onboarding[GUID] = { none = true }` e non si controlla più (cambiare gilda e tornare dà una voce nuova, perché la chiave è per gilda).
+Il segno si scrive una volta in `onboarding[GUID] = { joined, how }`; un personaggio senza i segni, o un alt (ONB-03), ha `onboarding[GUID] = { none = true }` e non si controlla più. La chiave è per gilda: ogni gilda ha la sua voce, e chi esce e rientra nella stessa tiene quella di prima.
+
+ONB-02 al momento dell'ingresso non si può ancora sapere: i record della gilda arrivano con la sincronizzazione, minuti dopo. La voce nasce quindi da confermare e il personaggio è **nuovo** dal primo record che la soddisfa (`known`, una volta per tutte): prima di allora non si vede nulla, e senza quel record la voce resta così fino alla scadenza.
 
 ### 5.2 Le voci
 
@@ -170,20 +172,27 @@ Quattro voci fisse, nell'ordine; ognuna **si spunta da sola** quando il dato c'�
 | Voce | Si spunta quando | Non si mostra se | Il clic apre |
 |---|---|---|---|
 | `read` *Read the guild info and rules* | l'account ha letto (`handbook.read`, SPEC-15 §5.4) la pagina `P:info` e la pagina `P:rules`, ciascuna se esiste ed è visibile | `raid` spento, o nessuna delle due pagine esiste o è visibile | il manuale sulla prima non letta |
-| `main` *Choose your main* | l'account ha un main **scelto** (`mainSource = "chosen"`, [SPEC-05](SPEC-05-roster-alts-contacts.md)), oppure ha un solo personaggio | — | la scelta del main nella scheda del proprio membro |
+| `main` *Choose your main* | l'account ha un main **scelto** (`Accounts:Main()` = `"chosen"`, [SPEC-05](SPEC-05-roster-alts-contacts.md)), oppure ha un solo personaggio | — | la carta *Main character* di *Settings* (la scheda del proprio membro non offre di scegliere il personaggio che è già il main di predefinito) |
 | `discord` *Add your Discord name* | il proprio record `contacts` ha un nome Discord, condiviso o letto dal gioco | — | la carta del nome Discord in *Settings* |
 | `season` *Declare for the season* | con la fonte Accord, l'account ha una dichiarazione nella season aperta (anche *Not sure yet*); con FDCP, `GetMember` di FDCP trova un personaggio dell'account nel pool (**[verificare]** sul client di un membro) | `season` spento, o nessuna season aperta (compare quando un ufficiale la apre), o con FDCP non caricato | la vista *Season*, o FDCP |
 
-Una voce spuntata resta spuntata (`done[voce]` = ora) anche se il dato poi cambia: la lista accoglie, non sorveglia. Quando tutte le voci mostrate sono spuntate la carta dice "All done. Welcome to <gilda>!" per il resto della sessione, poi non compare più.
+Una voce spuntata resta spuntata (`done[voce]` = ora) anche se il dato poi cambia: la lista accoglie, non sorveglia. Quando tutte le voci mostrate sono spuntate la carta dice "All done. Welcome to <gilda>!" per il resto della sessione (`completed`), poi non compare più.
 
 ### 5.3 Dove e per quanto
 
 - **La carta *Welcome*** in cima alla pagina *Inbox* del Centro azioni (sopra la carta del riepilogo, SPEC-13 §2.4), con le voci, il numero ("2 of 4 done") e *Dismiss*; e una riga del fornitore `welcome` (urgenza 1, "Welcome checklist: 2 of 4 done") che la apre. Senza l'interruttore `actions` la carta non c'è, e la lista si apre solo con `/accord welcome`.
 - **Una riga in chat**, una volta (`notified`), quando il personaggio risulta nuovo: "Welcome to <gilda>! Accord has a short checklist for new members: /accord welcome".
 - **Dismiss** la chiude per sempre per quel personaggio (`dismissed`, criterio di M12.4: si può chiudere); la lista sparisce comunque `Onboarding.SHOW_DAYS` = 30 giorni dopo l'ingresso.
-- **`/accord welcome`** apre la lista a chiunque, anche a chi non è nuovo o l'ha chiusa: senza voce in `onboarding` mostra le stesse voci con il loro stato, senza riga del Centro azioni.
+- **`/accord welcome`** apre la lista a chiunque, anche a chi non è nuovo o l'ha chiusa, in una finestra piccola con la stessa carta: senza voce in `onboarding` mostra le stesse voci con il loro stato, senza riga del Centro azioni e senza scrivere nulla.
+- La riga in chat esce dopo le ore di quiete (`Notify:WhenFree`). *Cancella i dati della gilda* (M6.1) tiene `onboarding`, così una lista chiusa resta chiusa.
 
-### 5.4 Solo su questo computer
+### 5.4 Come è fatta (M12.4)
+
+- `Data/Onboarding.lua` (`ns.Onboarding`) e `UI/Onboarding.lua` (`ns.OnboardingView`); `UI/Actions.lua` chiede alla vista la carta in cima all'*Inbox*; `UI/Settings.lua` ha `View:ShowCard("main" | "contacts")`.
+- `Data/Accounts.lua` emette `CHARACTER_GUILD_CHANGED(guid, da, a)` quando la gilda letta per un personaggio cambia: è il segno `seen`. Il registro si legge con `Compat.Guild.QueryEventLog` e, 10 s dopo, `Compat.Guild.EventLog`.
+- Tutto il deposito si guarda una volta per voce e per sessione (ONB-02); poi basta il record che arriva (`STORE_CHANGED`). Le voci si rileggono 0,5 s dopo gli eventi dei loro moduli.
+
+### 5.5 Solo su questo computer
 
 La lista non scrive record e non manda nulla: legge dati che il client ha già. Gli ufficiali **non** vedono l'avanzamento di un nuovo membro (SPEC-10 Q36): servirebbe un insieme nuovo con un messaggio per ogni voce, e la lista è un aiuto per chi entra, non un controllo. Chi vuole sapere se un nuovo membro ha scelto il main o dichiarato lo vede già nel roster e nella season.
 

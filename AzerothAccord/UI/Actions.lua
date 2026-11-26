@@ -3,7 +3,7 @@
 -- On top the chips of the providers (All, then one per provider present), under them the table: the mark of the urgency
 -- (err now, accent to do, text-3 reminder), what, the detail, who and since when. A click on a row opens the view that
 -- resolves it; Done shows only on a local reminder. Above the chips, the card of the login digest (M9.5, SPEC-13 §5.3,
--- Data/Digest.lua) when there is one. The page Notices (M9.3, SPEC-13 §3.3) lists the history of
+-- Data/Digest.lua) when there is one, and over it the Welcome card of a new member (UI/Onboarding.lua, M12.4). The page Notices (M9.3, SPEC-13 §3.3) lists the history of
 -- Data/Notify.lua, the newest first: All or Unread, Mark all read, Clear (two clicks); a click on a notice marks it read
 -- and opens its view, and the page's name carries the number of unread ones. Further pages register with View.AddPage.
 -- The tab is there only while the switch `actions` is on.
@@ -170,8 +170,11 @@ local function digestLine(card, i)
 	return row
 end
 
--- Fills the card and returns the room it takes above the chips (0 when there is none).
-local function refreshDigest(f)
+-- Fills the card, `top` below the top of the page, and returns the room it takes (0 when there is none).
+local function refreshDigest(f, top)
+	f.digest:ClearAllPoints()
+	f.digest:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
+	f.digest:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -top)
 	local rows = View.DigestRows()
 	for i, r in ipairs(rows) do
 		local row = digestLine(f.digest, i)
@@ -209,7 +212,9 @@ local function buildInbox(f, self)
 end
 
 local function refreshInbox(f, self)
-	placeInbox(f, refreshDigest(f))
+	-- the welcome checklist of a new member sits above the digest (M12.4, SPEC-16 §5.3)
+	local top = ns.OnboardingView and ns.OnboardingView:InboxCard(f) or 0
+	placeInbox(f, top + refreshDigest(f, top))
 	local chips, known = View.Chips(), false
 	for _, c in ipairs(chips) do if c.id == self.filter then known = true end end
 	if not known then self.filter = "all" end

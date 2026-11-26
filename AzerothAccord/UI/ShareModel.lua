@@ -280,6 +280,10 @@ define("absence", { set = "absence", build = builders.absence, title = "SHARE_AB
 define("officer", { build = builders.officer, title = "SHARE_OFFICER", to = "SHARE_TO_OFFICERS", when = "SHARE_WHEN_OFFICER", officersOnly = true })
 define("otools", { set = "timeline", build = builders.otools, title = "SHARE_OTOOLS", to = "SHARE_TO_OFFICER_CHANNEL", when = "SHARE_WHEN_OTOOLS", officersOnly = true })
 
+-- The welcome checklist (M12.4, SPEC-16 §8): listed to say that nothing of it is shared.
+define("welcome", { feature = "recruit", title = "SHARE_WELCOME", to = "SHARE_TO_LOCAL", when = "SHARE_WHEN_NEVER",
+	build = function() return { L["SHARE_WELCOME_TEXT"] }, {} end })
+
 -- Another data set (SPEC-11 §5): def = { build(guid, at) -> lines, records; title, to, when (locale keys); switch; order }.
 function Model.Add(id, def)
 	if type(id) ~= "string" or type(def) ~= "table" or type(def.build) ~= "function" then return false end

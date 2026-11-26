@@ -21,10 +21,29 @@ It keeps nothing of its own and decides nothing for you. Every line is read from
 | *… wants to join as …* | you, as the leader of a [[group|Groups]] | the **My group** page of Groups | you accept or decline, or the group closes |
 | *PvP rally: …* and *World rally: …* *(from `v0.10.0`)* | everybody, while the [[rally|Events]] is open | the **Rallies** page of Events | the rally ends or is closed |
 | *Trial of … ended on …: decide* and *… left the guild during the trial* *(hidden until M12 is complete)* | officers and the Guild Master, from the end day | the **Trials** page of the [[Officers tab|Guild-Roster]], on that trial | an officer closes or extends the trial |
+| *Welcome checklist: 2 of 4 done* *(hidden until M12 is complete)* | you, as a new member | the [welcome checklist](#welcome-checklist), on top of the same page | every item is done, you press **Dismiss**, or 30 days after you joined |
 
 An officer who asks the bank for something sees the request twice: to decide it, and as their own reminder.
 
 A craft request is only a whisper that you send yourself (see [[Professions and Recipes|Professions-and-Recipes]]): the crafter is not told by the addon. The line is **your own reminder**, kept on your computer and never sent to anybody, at most 20 of them. It is also kept if you decide not to send the whisper: press **Done** to remove it. Orders that the crafter sees come with a later milestone (M13).
+
+## Welcome checklist
+
+> *Hidden until M12 is complete.* Nothing of it has been checked in the real game.
+
+If you have just joined the guild, a **Welcome** card appears on top of the Action Center and a chat line tells you about it. It lists up to four things to do; each one **ticks itself** when done, and stays ticked. Click an item to go where you can do it.
+
+| Item | Done when | Not listed when | A click opens |
+|---|---|---|---|
+| *Read the guild info and rules* | you have read both pages of the [[handbook|Guild-Handbook]] (or the one that exists) | the guild has written neither | the first page you have not read |
+| *Choose your main* | you picked your main, or your account has one character | | the **Main character** card of [[Settings|Settings]] |
+| *Add your Discord name* | your Discord name is saved (or the game gives it) | | the **Contacts** card of Settings |
+| *Declare for the season* | your account is in the [[season roster|Season-Roster]], also as *Not sure yet* (with FDCP: one of your characters is in its pool) | no season is open, or FDCP is the source and is not loaded | the Season view, or FDCP |
+
+- **Who gets it**: a character that joined **after** Accord already saw the guild. The addon knows this when it saw your character change guild, or when the game's guild log shows you joined in the last 14 days (not yet checked that the game offers that log to addons). Whoever was already in the guild when it started using Accord does not get it, and neither does an alt of an account already in the guild. The card can take a few minutes to appear, until your computer has received the guild's data.
+- **Dismiss** closes it for good on that character. It also goes away by itself 30 days after you joined, and from the next login once everything is done.
+- `/accord welcome` opens the list at any time, for anyone.
+- It stays **on your computer**: nothing is sent, and officers do not see what you have ticked.
 
 ## Order and colours
 

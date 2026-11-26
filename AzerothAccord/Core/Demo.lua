@@ -143,6 +143,7 @@ local function fill(data, account, char)
 			data.sets[set] = data.sets[set] or {}
 			for id, rec in pairs(records) do data.sets[set][id] = rec end
 		end
+		guild.onboarding = data.onboarding   -- the welcome checklist of a new member (SPEC-16 §5), only here
 	end
 	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
 		data.sets.groups = data.groups.listings

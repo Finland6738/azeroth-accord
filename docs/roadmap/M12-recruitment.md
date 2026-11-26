@@ -40,7 +40,7 @@
   - declare for the season.
   Each item ticks itself when done.
 - Done when:
-  - [ ] The checklist appears only for members who joined after the addon saw the roster; it can be dismissed.
+  - [x] The checklist appears only for members who joined after the addon saw the roster; it can be dismissed.
 
 ### M12.5 — Mentors
 - Branch: `step/m12-5-mentors`

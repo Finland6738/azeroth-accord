@@ -12,6 +12,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord addons` | Opens the **Guild addons** view: which addons the guild's members use (see [[Guild addons|Guild-Addons]]) *(M9.9, from `v0.9.0`)* |
 | `/accord season` | Opens the **Season** view: the season roster and your declaration (see [[Season roster|Season-Roster]]) *(M10.3, from `v0.10.0`)* |
 | `/accord recruit` | Opens the **recruitment text** to copy and post yourself, officers only (see [[Season roster|Season-Roster]]) *(M12.2, hidden until M12 is complete)* |
+| `/accord welcome` | Opens the **welcome checklist** for new members (see [[Action Center|Action-Center]]) *(M12.4, hidden until M12 is complete)* |
 | `/accord events` | Opens the **Events** view: the guild's events and your sign-up on the game calendar (see [[Events|Events]]) *(M10.5, from `v0.10.0`)* |
 | `/accord availability` | Opens the **Availability** view: when the guild usually plays (see [[Availability|Availability]]) *(M10.8, from `v0.10.0`)* |
 | `/accord raid` | Opens the **Raid** view: the guild's sources and what FDCP publishes (see [[Raid and loot addons|Raid-and-Loot-Addons]]) *(M11.7, from `v0.11.0`)* |

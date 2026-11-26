@@ -41,6 +41,10 @@
 --                                                     another writer's edit of the same revision, or its row was dismissed.
 --   TRIALS_CHANGED(guid)                              Data/Trials.lua; a trial or a trial note arrived or was written (guid:
 --                                                     the character on trial; nil: several), M12.3.
+--   CHARACTER_GUILD_CHANGED(guid, from, to)           Data/Accounts.lua; the guild read for one of the account's characters
+--                                                     is not the one held before (guild keys, "" = none), M12.4.
+--   ONBOARDING_CHANGED()                              Data/Onboarding.lua; the welcome checklist appeared, was dismissed or
+--                                                     one of its items changed, M12.4.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

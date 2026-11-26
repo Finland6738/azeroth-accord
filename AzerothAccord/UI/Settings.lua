@@ -466,6 +466,24 @@ function View:ShowBackup()
 	return true
 end
 
+-- The Settings view of the panel, scrolled to the card "main" or "contacts" (an item of the welcome checklist, M12.4).
+function View:ShowCard(which)
+	if not (ns.Shell and ns.Shell:OpenView("settings")) then return false end
+	local f = self.frame
+	if not f then return true end
+	self:ShowPage(f, "settings")
+	refresh(f)
+	local target = which == "main" and f.mainCard or f.contactsCard
+	local y = 0
+	for _, card in ipairs(f.cards) do
+		if card == target then break end
+		y = y + card:GetHeight() + View.CARD_GAP
+	end
+	local range = max(0, (f.pageHeight or 0) - (f.scroll:GetHeight() or 0))
+	f.scroll:SetVerticalScroll(min(range, y))
+	return true
+end
+
 function View:Disarm(f)
 	if not f.clearArmed then return end
 	f.clearArmed = false
@@ -679,7 +697,7 @@ local function buildSettingsPage(holder, f)
 	f.scroll, f.page = scroll, page
 	f.cards = { buildLook(f, page), buildContacts(f, page), buildMain(f, page), buildAbsence(f, page), buildNotices(f, page), buildColumns(f, page),
 		buildData(f, page), buildBackup(f, page) }
-	f.lookCard = f.cards[1]
+	f.lookCard, f.contactsCard, f.mainCard = f.cards[1], f.cards[2], f.cards[3]
 	f.backupCard = f.cards[#f.cards]
 end
 
