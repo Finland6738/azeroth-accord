@@ -203,7 +203,7 @@ Ogni membro con l'addon vede tutte le pagine vive e non `tpl`, anche offline, da
 - `/accord handbook <slug>` apre la vista su una pagina; `/accord handbook` sull'ultima letta o sulla prima.
 - **Fatto in M11.3**: elenco, ricerca, segni, *Mark all as read*, il lettore con *Back*, il comando.
 - **Fatto in M11.4**: *New page* e *Writers* sotto l'elenco; le frecce sono sulla pagina **scelta**, al posto del suo segno; *Edit*, *Revisions* e *Delete* sono sotto il testo. Una pagina nuova va dopo l'ultima (`order` + 5). Spostare scrive di norma **una** revisione (della pagina o della vicina, con un `order` che la mette al suo posto); solo se gli `order` uguali non lasciano posto le pagine si rinumerano (`Handbook:MovePlan`). *Writers* è un menu dei gradi 1–9: quelli degli ufficiali si leggono ma non si tolgono.
-- **Fatto in M11.5**: *Create the default pages* al centro della vista vuota (§7). La parte fissa della pagina del loot arriva con M11.6.
+- **Fatto in M11.5**: *Create the default pages* al centro della vista vuota (§7). La parte fissa della pagina del loot è arrivata con M11.6 (§8).
 
 ### 5.3 Storia della navigazione
 
@@ -269,11 +269,11 @@ Un quarto record di `guildcfg`, scritto solo da ufficiali e Guild Master (NET-12
 | `addonFolder` | 1–64 byte, lettere, cifre, `_`, `-` e `.` | solo con `addon = other`: la cartella dell'addon, per il riconoscimento (§8.3) |
 | `url` | indirizzo CurseForge, 1–120 byte | solo con `addon = other` (§8.4) |
 
-Un record con altri campi o valori si rifiuta (`owner`). Senza record vale `none` e `none`. I nomi dei sistemi nell'interfaccia: *Rolls (MS/OS)*, *Soft reserve*, *Loot council*, *DKP*, *Credits*, *Other*; nessun sistema d'asta d'oro (GDKP, vietato su Forever secondo la nota del sondaggio, [M11](../roadmap/M11-loot-handbook.md#addons-on-wow-forever)), che si può scrivere solo come *Other* dalla gilda.
+Un record con altri campi o valori si rifiuta (`owner`). Senza record vale `none` e `none`; se però la fonte `loot` di `sources` è già `fdcp` (scelta fatta prima di M11.6) l'addon conta come FDCP, perché è la stessa scelta. Con `other` i tre campi sono tutti obbligatori. I nomi dei sistemi nell'interfaccia: *Rolls (MS/OS)*, *Soft reserve*, *Loot council*, *DKP*, *Credits*, *Other*; nessun sistema d'asta d'oro (GDKP, vietato su Forever secondo la nota del sondaggio, [M11](../roadmap/M11-loot-handbook.md#addons-on-wow-forever)), che si può scrivere solo come *Other* dalla gilda.
 
 **Qualunque addon di CurseForge** (risposta del proprietario a SPEC-10 Q30, 2026-11-26). Oltre agli addon di `KNOWN`, la gilda può scegliere come addon del loot qualunque addon di loot pubblicato su CurseForge, con `addon = other`: un ufficiale scrive il nome (`addonName`), la cartella (`addonFolder`) e l'indirizzo CurseForge (`url`). Per un addon così Accord fa solo il **livello 0**: lo stato su questo client (`Integrations:Detect` sulla cartella data) e chi lo ha caricato (§8.3). Il **livello 1**, la lettura dei suoi dati, resta per gli addon con un'API pubblica documentata e un provider nel codice di Accord, oggi solo FDCP (regole d'integrazione di [M10](../roadmap/M10-calendar-raids.md#integration-rules-owner-2026-11-24)); un addon che ne pubblica una si aggiunge a `KNOWN` con un passo suo.
 
-**Una sola fonte per dato.** La fonte `loot` di `sources` (`none` | `fdcp`, M10.2) dice da dove Accord legge i crediti e le regole; l'addon del loot dice che cosa usa la gilda. Da M11.6 si scelgono **insieme**, nella parte fissa della pagina del loot (la vista *Raid* mostra la scelta e rimanda lì): scegliere FDCP come addon scrive anche `sources.loot = fdcp`, scegliere un altro addon o nessuno scrive `sources.loot = none`, nella stessa operazione (due record, lo stesso clic). Un client che riceve `sources.loot = fdcp` con `loot.addon ≠ fdcp` (due ufficiali insieme) mostra l'addon e non legge FDCP. È la proposta di SPEC-10 Q30.
+**Una sola fonte per dato.** La fonte `loot` di `sources` (`none` | `fdcp`, M10.2) dice da dove Accord legge i crediti e le regole; l'addon del loot dice che cosa usa la gilda. Da M11.6 si scelgono **insieme**, nella parte fissa della pagina del loot (la vista *Raid* mostra la scelta e rimanda lì): scegliere FDCP come addon scrive anche `sources.loot = fdcp`, scegliere un altro addon o nessuno scrive `sources.loot = none`, nella stessa operazione (due record, lo stesso clic). Finché c'è un record `loot`, è lui a decidere la fonte (`Integrations:Source("loot")`): un client che riceve `sources.loot = fdcp` con `loot.addon ≠ fdcp` (due ufficiali insieme) mostra l'addon e non legge FDCP, e con `loot.addon = fdcp` lo legge. È la proposta di SPEC-10 Q30.
 
 ### 8.2 La parte fissa
 
@@ -286,7 +286,9 @@ Dall'alto:
 5. **FDCP rules** (§8.6), solo con `sources.loot = fdcp`.
 6. Senza addon scelto, solo il suggerimento di §8.5.
 
-Gli ufficiali vedono *Change* accanto a sistema e addon: un menu con i valori di §8.1, e per *Other* i campi del nome e dell'indirizzo. Il cambio è un clic su *Save* (nessuna conferma: si può sempre cambiare di nuovo).
+Gli ufficiali vedono *Change* accanto a sistema e addon (senza addon scelto: *Choose a loot addon*, accanto a *Choose FDCP*): un modulo con un menu dei valori di §8.1 e, per *Other*, il nome (del sistema, o dell'addon con cartella e indirizzo). Il cambio è un clic su *Save* (nessuna conferma: si può sempre cambiare di nuovo).
+
+**Fatto in M11.6** (`Data/Loot.lua`, `UI/LootPage.lua`). La parte fissa scorre insieme al testo. La vista *Raid* la ospita (pulsante *Loot page*) ogni volta che il personaggio non può leggere `P:loot`: cancellata, mai creata, o ancora un modello per un membro; altrimenti il pulsante apre la pagina del manuale.
 
 ### 8.3 Chi ha l'addon
 
@@ -301,7 +303,7 @@ La parte non scrive e non manda nulla: legge il censimento che c'è già.
 
 ### 8.4 L'indirizzo di download
 
-- Per un addon di `KNOWN` l'indirizzo è **dell'addon Accord**, non della gilda: un campo `url` nuovo di `Integrations.KNOWN` (la pagina pubblica del progetto: CurseForge, GitHub, Wago o WoWInterface), scritto e controllato nel codice. FDCP: `https://github.com/Finland6738/finland-dragon-credit-points/releases`. Un addon di `KNOWN` senza `url` confermato non mostra la casella.
+- Per un addon di `KNOWN` l'indirizzo è **dell'addon Accord**, non della gilda: un campo `url` nuovo di `Integrations.KNOWN` (la pagina pubblica del progetto: CurseForge, GitHub, Wago o WoWInterface), scritto e controllato nel codice. FDCP: `https://github.com/Finland6738/finland-dragon-credit-points/releases`; Gargul, RaidCore e TLC - Loot Council: la loro pagina di CurseForge (`/wow/addons/gargul`, `/raidcore`, `/tlc-loot-council`, trovate con una ricerca il 2026-11-26, da aprire in M11.8). Un addon di `KNOWN` senza `url` non mostra la casella. La cartella di TLC (`TLC`) è un'ipotesi non confermata.
 - Per `other` l'indirizzo lo scrive un ufficiale, e si accetta solo se comincia con `https://` e il nome del sito è uno di `Loot.URL_HOSTS` = `www.curseforge.com`, `curseforge.com`: **solo CurseForge** (risposta del proprietario a SPEC-10 Q32, 2026-11-26); altrimenti il record si rifiuta (`owner`), sia da chi scrive sia da chi riceve. Niente spazi, `|` o caratteri di controllo.
 - La casella è di **sola lettura** (come in *About*: si seleziona al clic e torna com'era se il giocatore ci scrive); il gioco non apre il browser. Sopra: "Copy this address into your browser. Install addons only from sources you trust."
 

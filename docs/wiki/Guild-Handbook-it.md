@@ -2,7 +2,7 @@
 
 *English: [[Guild handbook|Guild-Handbook]]*
 
-> **Non ancora in un rilascio.** Il manuale è nel codice ma resta spento finché la milestone M11 non è completa: non ci sono la scheda **Manuale** né il comando. La lettura (passo M11.3), la scrittura (passo M11.4) e le pagine predefinite (M11.5) sono fatte; segue la pagina del loot (M11.6). Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Non ancora in un rilascio.** Il manuale è nel codice ma resta spento finché la milestone M11 non è completa: non ci sono la scheda **Manuale** né il comando. La lettura (passo M11.3), la scrittura (passo M11.4), le pagine predefinite (M11.5) e la pagina del loot (M11.6) sono fatte; segue la prova in gioco (M11.8). Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il manuale è un insieme di pagine di testo che la gilda tiene nel gioco: informazioni, regolamento, FAQ, come funzionano i raid, il roster e il loot. Le scrivono gli ufficiali (e i gradi che gli ufficiali scelgono); **le legge ogni membro con Accord**. Il tuo computer conserva le pagine ricevute, quindi le leggi anche senza nessun altro online, com'erano all'ultima sincronizzazione.
 
@@ -15,6 +15,10 @@ Si apre con la scheda **Manuale** o con `/accord handbook`. `/accord handbook ru
 - **I collegamenti** nel testo aprono un'altra pagina, a volte su una sua intestazione; **Indietro** torna dove eri. Un collegamento grigio porta a una pagina che non c'è o non è pubblicata. Un collegamento alla season apre la vista [[Season|Season-Roster-it]].
 - **Indirizzi web**: un clic li mette in una casella, poi premi Ctrl+C. Il gioco non può aprire un browser.
 - **Ricerca**: scrivi almeno 2 caratteri nella casella di ricerca in alto a destra. Si cerca nei titoli e nelle righe delle pagine, senza badare a maiuscole e accenti; un clic su un risultato apre la pagina a quella riga.
+
+## La pagina del loot
+
+La pagina **Gestione del loot** mostra anche, sopra il testo, il sistema e l'addon del loot della gilda, chi ce l'ha, e le regole di FDCP quando l'addon è FDCP: vedi [[Addon di raid e di loot|Raid-and-Loot-Addons-it]].
 
 ## Pagine aggiornate
 

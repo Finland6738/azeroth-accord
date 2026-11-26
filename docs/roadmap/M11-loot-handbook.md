@@ -112,7 +112,9 @@ Notes:
   - the download address in a read-only box to copy;
   - with no addon chosen, the page shows nothing about addons and suggests FDCP, the family's loot addon.
 - Done when:
-  - [ ] Officers see who has the chosen addon; without an addon chosen, nothing is checked; the suggestion is a locale text, not guild data.
+  - [x] Officers see who has the chosen addon; without an addon chosen, nothing is checked; the suggestion is a locale text, not guild data.
+  - *Done (2026-11-26):* `Data/Loot.lua` (the `guildcfg` record `loot`, the addon and the loot source written together, the CurseForge-only address, who has the addon) and `UI/LootPage.lua` (the fixed part, in the Handbook view and, while the page cannot be read, in the Raid view); `Census:Without` and `:Unknown`; `Integrations.KNOWN` gains download pages and TLC - Loot Council (folder `TLC`, a guess to confirm in M11.8); the FDCP rules summary moved from the Raid view; all behind `raid`; `Tests/test_loot_page.lua`.
+- Real client: the fixed part's heights above the reader's text, the officers' form and its menu, the copy box, the folder names of the loot addons.
 
 ### M11.7 — FDCP reading
 - Branch: `step/m11-7-fdcp`

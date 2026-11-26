@@ -2,11 +2,11 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> **Partly from `v0.10.0`**: the detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2), in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) are in the code but switched off until milestone M11 is complete. Nothing has been checked in the real game. What follows describes how it should work.
+> **Partly from `v0.10.0`**: the detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2), in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, *Loot (FDCP)* on the member card (step M11.7) and the **loot page** with the choice of the guild's loot addon (step M11.6) are in the code but **hidden** until milestone M11 is complete. Nothing has been checked in the real game. What follows describes how it should work.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 
-- **One source for every datum.** The season roster (MS1, MS2, OS) with the lineup and the bench belongs to one addon for the whole guild, and so do the loot data (a member's credits and place in the loot queue, the loot rules). The **officers** choose that source once for the guild, and every member's Accord follows the same choice. Until they choose, the season roster is Accord's own and there is no loot source.
+- **One source for every datum.** The season roster (MS1, MS2, OS) with the lineup and the bench belongs to one addon for the whole guild, and so do the loot data (a member's credits and place in the loot queue, the loot rules). The **officers** choose once for the guild, and every member's Accord follows the same choice. Until they choose, the season roster is Accord's own and there is no loot addon.
 - **Read-only.** Accord never writes another addon's data, never reads its saved files, and never loads, enables or disables it.
 
 ## The addons Accord knows
@@ -14,7 +14,8 @@ Accord has **no loot engine and no attendance**. Your guild's raid and loot addo
 | Addon | Kind | What Accord does |
 |---|---|---|
 | **Finland Dragon Credit Points** (FDCP) | loot and raid roster | detects it; reads it through its public API (level 1) |
-| Gargul, RaidCore, WLC, Forever Loot Manager, NostalgiaForeverLC, RollForMe | loot | detects it (level 0) |
+| Gargul, RaidCore, TLC - Loot Council, WLC, Forever Loot Manager, NostalgiaForeverLC, RollForMe | loot | detects it (level 0) |
+| Any other loot addon on CurseForge | loot | detects it by the folder an officer writes (level 0) |
 
 The folder names of the addons other than FDCP come from their public pages and are confirmed in game before they are trusted. Guild-management addons that are not about loot or the raid roster are left out on purpose.
 
@@ -26,15 +27,30 @@ The folder names of the addons other than FDCP come from their public pages and 
 
 `/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which of these addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`): the [[Season|Season-Roster]] view shows it (and the Raid view, below).
 
+## The loot page
+
+The [[guild handbook|Guild-Handbook]] page **Loot management** shows, above the text the writers write, the guild's loot choice. Accord describes loot and never computes it.
+
+- **Loot system**: rolls (MS/OS), soft reserve, loot council, DKP, credits, or another with your own name.
+- **Loot addon**: one of the loot addons above, or **Other (from CurseForge)**: any loot addon published on CurseForge, with its name, its **folder** name (the folder in `Interface/AddOns`) and its CurseForge address. Only an `https://` address on curseforge.com is accepted.
+- **Officers and the Guild Master** change both with **Change** and **Save**. Choosing FDCP also makes Accord read FDCP's loot data; choosing another addon or none stops that. It is one choice.
+- **On this client**: loaded (with its version), not loaded, not installed, or *folder not confirmed* (Accord has not yet seen that folder name in game).
+- **Download**: the address, in a box to copy with Ctrl+C, when you do not have the addon loaded (writers always see it). Install addons only from sources you trust.
+- **Who has it**, from the [[Guild addons|Guild-Addons]] list: everybody sees how many of the members who share their list have it loaded, with the versions, and their own line. **Officers and the Guild Master** also see who has it, who lacks it, and how many share no list or do not use Accord (never counted as missing). If the list is switched off or nobody shares one, a line says so.
+- **With no addon chosen**, the page shows nothing about addons and nothing is checked. Writers see a suggestion for FDCP with its address, and officers **Choose FDCP** and **Choose a loot addon**.
+- **With FDCP**: your credits and place in the loot queue, and a **read-only summary of FDCP's loot rules**, read from FDCP every time and never copied into the page. **Open FDCP** opens its window.
+
+The search of the handbook also finds the names of the loot system and addon. While the loot page cannot be read (nobody created it, it was deleted, or it is still a template and you are not a writer), **Loot page** in the Raid view shows the same part there.
+
 ## The Raid view
 
 Open it with its tab or `/accord raid`.
 
-- **At the top, the guild's sources**: *Season roster* (Accord or FDCP) and *Loot* (None or FDCP). Officers and the Guild Master change them with a click, and the choice reaches every member with Accord. Members see the same choice, locked. **Open FDCP** opens FDCP's own window while FDCP is loaded on your computer.
+- **At the top**: the *Season roster* source (Accord or FDCP), which officers and the Guild Master change with a click and members see locked, and the guild's loot addon with the **Loot page** button. **Open FDCP** opens FDCP's own window while FDCP is loaded on your computer.
 - **FDCP's state**: its version and where its data comes from on your computer, or why there is nothing: FDCP not installed or switched off, a version of its interface this Accord does not know, FDCP still reading the guild roster, or no season data yet.
 - **Season roster**: the season and its pool, one line per main with class, role, MS1, MS2 and OS, and *trial* or *inactive*.
 - **Lineup and bench**: the raid night open in FDCP, with who is in the raid and who is on the bench.
-- **Loot**: your own credits and place in the loot queue, and a **read-only summary of FDCP's loot rules** (preset, priority, credits at the start, how items are awarded, the cost by item quality, the response multipliers, late joiners, the bench). The rules are changed in FDCP, never in Accord. The guild's loot page of the handbook will show the same summary beside its text (M11).
+- **Loot**: with FDCP, your own credits and place in the loot queue. The summary of FDCP's loot rules (preset, priority, credits at the start, how items are awarded, the cost by item quality, the response multipliers, late joiners, the bench) is on the loot page. The rules are changed in FDCP, never in Accord.
 
 - **Raid and loot addons in the guild**, at the bottom: for each addon of the table above, what Accord found on your computer (loaded, switched off, installed or not installed, its version, level 0 or 1, and whether its folder name is confirmed yet) and, from the [[Guild addons|Guild-Addons]] list, how many members who share their addon list have it loaded, out of how many, with the versions. **Officers and the Guild Master** also see who has it, with the version and the characters; everybody else sees the counts and their own entry. If the addon list is switched off, nobody shares a list yet, or you do not share yours, a line says so.
 

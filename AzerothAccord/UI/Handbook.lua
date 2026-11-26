@@ -7,8 +7,9 @@
 --        reader cannot open is grey text; a web address opens the copy box (the game opens no browser).
 -- Read   a page that stays open for READ_DELAY seconds is marked read (Data/Handbook.lua), never by passing through.
 -- Every member reads every published page from what this client holds, with or without anybody else online. What a
--- writer gets on top of this (the editor, the revisions, New page, Writers: M11.4) is UI/HandbookEditor.lua; the loot
--- page's fixed part (M11.6) comes later. This file writes no page.
+-- writer gets on top of this (the editor, the revisions, New page, Writers: M11.4) is UI/HandbookEditor.lua; the fixed
+-- part above the loot page's text (M11.6) is UI/LootPage.lua, and the search finds the loot system's and addon's names
+-- there. This file writes no page.
 -- Everything is behind the switch "raid" (Core/Features.lua): off, there is no tab and no command.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -84,7 +85,28 @@ function View.Results(rows)
 	for i, row in ipairs(rows) do pages[i] = row.rec end
 	local byId = {}
 	for _, row in ipairs(rows) do byId[row.id] = row end
-	return ns.HandbookText.Search(View.search, pages, function(part) return (View.Resolve(part, byId)) end)
+	local results = ns.HandbookText.Search(View.search, pages, function(part) return (View.Resolve(part, byId)) end)
+	if results then View.SearchLoot(results, byId) end
+	return results
+end
+
+-- The fixed part of the loot page (SPEC-15 §4.3): the names of the system and of the addon.
+function View.SearchLoot(results, byId)
+	local P = ns.LootPage
+	local row = P and ns.Loot and byId[ns.Loot.PAGE]
+	if not row then return end
+	local g, addon = ns.Loot:Get(), ns.Loot:Addon()
+	local names = {}
+	if g.system ~= "none" then names[#names + 1] = P.SystemName(g.system, g.systemName) end
+	if addon then names[#names + 1] = addon.name end
+	local fold = ns.HandbookText.Fold
+	local wanted = fold((View.search:gsub("^%s+", ""):gsub("%s+$", "")))
+	for _, name in ipairs(names) do
+		if fold(name):find(wanted, 1, true) then
+			results[#results + 1] = { id = row.id, title = row.title, text = name }
+			return
+		end
+	end
 end
 
 function View.Meta(rec)
@@ -246,7 +268,13 @@ end
 -- Puts the blocks one under the other, at the height the game gives each.
 local function placeBlocks(f)
 	local width = f.textWidth or View.WIDTH
-	local y = 0
+	local top = f.fixed or 0          -- the loot page's fixed part
+	local y = top
+	f.placedFixed = top
+	if f.blank then
+		f.blank:ClearAllPoints()
+		f.blank:SetPoint("TOPLEFT", f.text.page, "TOPLEFT", 0, -top)
+	end
 	for i = 1, f.shown or 0 do
 		local h = f.blocks[i]
 		local block = h.block
@@ -260,14 +288,17 @@ local function placeBlocks(f)
 		h.y = y
 		y = y + height
 	end
-	f.text:SetContentHeight(y + 8)
+	f.text:SetContentHeight(y + ((f.shown or 0) == 0 and 28 or 8))   -- room for "empty page"
 end
 
 local function drawText(f, rec)
 	local width = f.text:GetWidth() or 0
 	if width <= 0 then width = View.WIDTH end
 	local key = table.concat({ rec.id, rec.rev, rec.time, View.version, floor(width) }, "|")
-	if f.textKey == key then return end
+	if f.textKey == key then
+		if f.placedFixed ~= (f.fixed or 0) then placeBlocks(f) end
+		return
+	end
 	local same = f.textId == rec.id
 	f.textKey, f.textId, f.textWidth = key, rec.id, width
 	f.text.page:SetWidth(width)
@@ -334,6 +365,7 @@ local function drawReader(f, row)
 	local meta = View.Meta(rec)
 	if rec.tpl then meta = meta .. " · " .. L["HANDBOOK_TEMPLATE_NOTE"] end
 	f.meta:SetText(meta)
+	f.fixed = ns.LootPage and ns.LootPage.Attach(f, rec) or 0
 	drawText(f, rec)
 end
 
@@ -563,6 +595,10 @@ if ns.addon then
 			badges()
 		end)
 		ns.Bus:On("HANDBOOK_READ", function() View:Changed() badges() end)
+		-- the loot page's fixed part
+		for _, event in ipairs({ "LOOT_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED" }) do
+			ns.Bus:On(event, function() View:Changed() end)
+		end
 		ns.Bus:On("ROLE_CHANGED", function() View:Changed() badges() end)
 		ns.Bus:On("ROSTER_UPDATED", function() View:Changed() badges() end)
 		ns.Bus:On("GUILD_CHANGED", function()

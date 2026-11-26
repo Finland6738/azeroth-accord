@@ -102,6 +102,8 @@ Da M10.2 ([ADR 0022](../adr/0022-integrations-with-raid-and-loot-addons.md)). Sc
 | `raid` | `accord` / `fdcp` | roster della season (MS1, MS2, OS), formazione e panchina; predefinito `accord` |
 | `loot` | `none` / `fdcp` | crediti e posto in coda di un membro, riassunto delle regole del loot; predefinito `none` (Accord non ha un motore del loot) |
 
+Da M11.6 la fonte `loot` si sceglie insieme all'addon del loot, nel record `loot` di `guildcfg` (`system`, `systemName`, `addon`, `addonName`, `addonFolder`, `url` su CurseForge; [SPEC-15 §8.1](SPEC-15-guild-handbook-loot.md#81-il-record-loot-di-guildcfg)), che finché esiste decide la fonte.
+
 Dietro l'interruttore `season` (M10.3; prima `raid`): con `raid` spento solo la fonte `raid` si sceglie. Lo scrivono solo ufficiali e Guild Master; si accetta solo se il mittente è un ufficiale (NET-12); l'autore può aver perso il grado dopo (`authorAny`). Un record con un id diverso da `sources` e `target` o con un valore non valido si rifiuta (`owner`). Senza record valgono i predefiniti. Nessuna scadenza: vale finché un ufficiale non lo cambia.
 
 ## 9. Strumenti per ufficiali (`timeline`, `absence`, `onotes`, `ocfg`)

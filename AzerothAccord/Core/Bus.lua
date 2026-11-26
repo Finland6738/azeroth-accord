@@ -33,6 +33,8 @@
 --   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).
+--   LOOT_CHANGED()                                    Data/Loot.lua; the loot system or addon, the census or the guild
+--                                                     changed
 --   HANDBOOK_CHANGED(id)                              Data/Handbook.lua; a handbook page arrived, was written or deleted
 --                                                     (nil: several), M11.2.
 --   HANDBOOK_CONFLICT(id)                             Data/Handbook.lua; this account's edit of a page was replaced by

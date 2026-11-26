@@ -76,6 +76,7 @@ Data\Census.lua
 Data\Handbook.lua
 Data\HandbookText.lua
 Data\HandbookDefaults.lua
+Data\Loot.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua
@@ -127,6 +128,7 @@ UI\Groups.lua
 UI\GuildAddons.lua
 UI\Handbook.lua
 UI\HandbookEditor.lua
+UI\LootPage.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

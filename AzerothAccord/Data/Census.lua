@@ -459,6 +459,47 @@ function Census:Who(folder)
 	return out
 end
 
+-- The accounts that share their list and do not have `folder`, as far as this character may see it (the rule of :Who):
+-- { { account, name, own }, ... } by name. The own account is left out when this character has the addon loaded.
+function Census:Without(folder)
+	if not Census.Enabled() or type(folder) ~= "string" then return {} end
+	local d = data()
+	local me = ownGUID()
+	local mine = me and accountOf(me)
+	local all = Census.CanSeeNames()
+	local users, out = d.users[folder] or {}, {}
+	for key, guid in pairs(d.keys) do
+		if not users[key] and (all or key == mine) and not (key == mine and loadedHere()[folder]) then
+			local main = ns.Accounts and ns.Accounts:MainOf(guid)
+			out[#out + 1] = { account = key, name = (main and rosterName(main.guid)) or rosterName(guid) or "?",
+				own = key == mine }
+		end
+	end
+	sort(out, function(a, b)
+		local x, y = a.name:lower(), b.name:lower()
+		if x ~= y then return x < y end
+		return tostring(a.account) < tostring(b.account)
+	end)
+	return out
+end
+
+-- How many accounts of the guild share no list (or do not use Accord, whose characters each count alone).
+function Census:Unknown()
+	if not Census.Enabled() then return 0 end
+	local d = data()
+	local seen, n = {}, 0
+	for _, e in ipairs(ns.Roster and ns.Roster:Members() or {}) do
+		if e.guid and not e.notInGuild then
+			local key = accountOf(e.guid)
+			if not seen[key] then
+				seen[key] = true
+				if not d.keys[key] then n = n + 1 end
+			end
+		end
+	end
+	return n
+end
+
 -- How many accounts use `folder`, and out of how many that share.
 function Census:Count(folder)
 	if not Census.Enabled() then return 0, 0 end

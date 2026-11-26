@@ -21,6 +21,8 @@
 --                  loot = "none" | "fdcp"     a member's credits and queue place, the loot rules summary
 --                Without a record: raid "accord", loot "none" (Integrations.DEFAULTS). Bus: SOURCES_CHANGED() when the record
 --                changed, locally or from an officer, or the guild changed.
+--                The loot source and the loot addon are one choice (M11.6, Data/Loot.lua): while the record "loot" is held,
+--                it decides the loot source ("fdcp" only when the addon is FDCP).
 -- Providers      Integrations:Provider(datum) gives the module that answers for the chosen source: Data/FDCP.lua for
 --                "fdcp", Integrations.OWN for Accord's own season roster (Data/Season.lua fills it, M10.3), nil
 --                for loot "none" (Accord has no loot engine, SPEC-10 Q6). Every provider has `id` and Level().
@@ -41,10 +43,14 @@ local type, ipairs, pairs, tostring, concat = type, ipairs, pairs, tostring, tab
 
 -- kind: "loot", "raid" (the raid roster) or "both". confirmed: the folder name is known for sure (see above). name: the
 -- addon's own name, as the Raid view shows it (a proper name: not translated).
+-- url: the addon's public page, shown to copy on the loot page (M11.6, SPEC-15 §8.4); none while it is not known.
 Integrations.KNOWN = {
-	{ id = "fdcp", folder = "FinlandDragonCreditPoints", kind = "both", confirmed = true, name = "Finland Dragon Credit Points (FDCP)" },
-	{ id = "gargul", folder = "Gargul", kind = "loot", name = "Gargul" },
-	{ id = "raidcore", folder = "RaidCore", kind = "loot", name = "RaidCore" },
+	{ id = "fdcp", folder = "FinlandDragonCreditPoints", kind = "both", confirmed = true, name = "Finland Dragon Credit Points (FDCP)",
+		url = "https://github.com/Finland6738/finland-dragon-credit-points/releases" },
+	{ id = "gargul", folder = "Gargul", kind = "loot", name = "Gargul", url = "https://www.curseforge.com/wow/addons/gargul" },
+	{ id = "raidcore", folder = "RaidCore", kind = "loot", name = "RaidCore", url = "https://www.curseforge.com/wow/addons/raidcore" },
+	{ id = "tlc", folder = "TLC", kind = "loot", name = "TLC - Loot Council",
+		url = "https://www.curseforge.com/wow/addons/tlc-loot-council" },
 	{ id = "wlc", folder = "WLC", kind = "loot", name = "WLC" },
 	{ id = "foreverlootmanager", folder = "ForeverLootManager", kind = "loot", name = "Forever Loot Manager" },
 	{ id = "nostalgiaforeverlc", folder = "NostalgiaForeverLC", kind = "loot", name = "NostalgiaForeverLC" },
@@ -147,13 +153,17 @@ Integrations.ValidChoice = valid
 
 -- The owner rule of the set `guildcfg` (Net/Store.lua): the record "sources", with a valid choice for every datum, the
 -- record "target", the target composition (Data/Composition.lua, M10.4), or (with "raid" on) the record "handbook", the
--- ranks that write the handbook (Data/Handbook.lua, M11.2).
+-- ranks that write the handbook (Data/Handbook.lua, M11.2), and the record "loot" (Data/Loot.lua, M11.6).
 function Integrations.ValidRecord(rec)
 	if type(rec) ~= "table" then return false end
 	if ns.Composition and rec.id == ns.Composition.ID then return ns.Composition.ValidTarget(rec) end
 	-- the ranks that write the handbook (SPEC-15 §3.3): an M11 record, refused while the switch "raid" is off
 	if ns.Handbook and rec.id == ns.Handbook.WRITERS_ID then
 		return ns.Features ~= nil and ns.Features.On("raid") and ns.Handbook.ValidWriters(rec)
+	end
+	-- the loot system and addon (SPEC-15 §8.1): an M11 record too
+	if ns.Loot and rec.id == ns.Loot.ID then
+		return ns.Features ~= nil and ns.Features.On("raid") and ns.Loot.ValidRecord(rec)
 	end
 	if rec.id ~= Integrations.SOURCES_ID then return false end
 	for _, datum in ipairs(Integrations.DATA) do
@@ -172,6 +182,10 @@ end
 -- The source chosen for `datum` ("raid" | "loot").
 function Integrations:Source(datum)
 	if not Integrations.CHOICES[datum] then return nil end
+	if datum == "loot" and ns.Loot then
+		local loot = ns.Loot:Record()
+		if loot then return loot.addon == "fdcp" and "fdcp" or "none" end
+	end
 	local rec = self:SourcesRecord()
 	if rec then return rec[datum] end
 	return Integrations.DEFAULTS[datum]
@@ -198,8 +212,10 @@ function Integrations:SetSource(datum, value)
 	if datum == "loot" and not ns.Features.On("raid") then return false, "off" end
 	if not self:CanChoose() then return false, "officer" end
 	if not valid(datum, value) then return false, "choice" end
+	local held = self:SourcesRecord()
 	local fields = {}
-	for _, d in ipairs(Integrations.DATA) do fields[d] = self:Source(d) end
+	for _, d in ipairs(Integrations.DATA) do fields[d] = held and held[d] or Integrations.DEFAULTS[d] end
+	if datum ~= "loot" then fields.loot = self:Source("loot") end   -- the loot record decides it (M11.6)
 	if fields[datum] == value then return true end
 	fields[datum] = value
 	local rec, why = ns.Store:Put(Integrations.SET, Integrations.SOURCES_ID, fields)

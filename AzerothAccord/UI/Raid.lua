@@ -1,18 +1,20 @@
 -- Raid view: the guild's sources for the raid and loot data, and what FDCP publishes when the officers chose it (M11.7;
 -- M10 integration rules; ADR 0022). Lua 5.1.
 --
--- At the top, the two sources of the guild (Data/Integrations.lua): "Season roster" (Accord | FDCP) and "Loot" (None |
--- FDCP), two Widgets.Segmented that only officers can change (members see them locked), and "Open FDCP" while FDCP is
--- loaded on this client (level 0 or 1). Below, a list of lines, read only from FDCP's public API (Data/FDCP.lua):
+-- At the top, the source of the season roster (Data/Integrations.lua): "Season roster" (Accord | FDCP), a
+-- Widgets.Segmented that only officers can change (members see it locked); under it the guild's loot addon, which is
+-- chosen on the handbook's loot page (M11.6): "Loot page" opens it, or, while that page cannot be read (never written,
+-- deleted, or still a template for a member), shows its fixed part (UI/LootPage.lua) here in place of the list. "Open
+-- FDCP" while FDCP is loaded on this client (level 0 or 1). Below, a list of lines, read only from FDCP's public API
+-- (Data/FDCP.lua):
 --   * FDCP's state: version and where its data comes from (an officer's ledger, or the table an officer sent to a member),
 --     or why there is nothing (FDCP missing, switched off, an API version Accord does not know, not ready, no data yet);
 --   * Season roster: the season and its pool, one line per main (class, role, MS1, MS2, OS, trial or inactive); a member's
 --     client has no MS2 or OS, and the view says so instead of showing them empty;
 --   * Lineup and bench: the open night of FDCP (raid and bench names only); a member's client has none, and the view says
 --     the lineup is on officers' clients;
---   * Loot: the player's own credits and place, and FDCP's rules as a read-only summary. On a member's client they are the
---     Patto preset's defaults (FDCP keeps the guild's rules on officers' clients), and the view says so. The guild's
---     loot page of the handbook (M11.6) will show the same summary beside it.
+--   * Loot: the player's own credits and place; FDCP's rules are on the handbook's loot page (M11.6), beside its text.
+--     View.RulesLines draws them there.
 --   * Raid and loot addons in the guild (M10.2): per known addon of Data/Integrations.lua, its detection on this client
 --     (status, version, level, folder name confirmed or not) and, from the addon census (Data/Census.lua, through
 --     Integrations:Holders), how many members who share their list have it loaded, out of how many, with the versions.
@@ -40,7 +42,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min, concat = type, ipairs, pairs, tostring, math.floor, math.max, math.min, table.concat
 
 View.ROW_HEIGHT = 20
-View.HEADER = 84            -- the two source selectors
+View.HEADER = 84            -- the source selector and the loot row
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.NAMES = 40             -- names written in a raid or bench line before "and N more"
@@ -112,6 +114,8 @@ function View.Model()
 	local m = { raid = I and I:Source("raid") or "accord", loot = I and I:Source("loot") or "none",
 		canChoose = I ~= nil and I:CanChoose() }
 	m.usesFDCP = m.raid == "fdcp" or m.loot == "fdcp"
+	local addon = on() and ns.Loot and ns.Loot:Addon()
+	m.addonName = addon and addon.name or nil
 	m.fdcp = I and I:State("fdcp") or nil
 	if m.usesFDCP and m.fdcp and m.fdcp.level == 1 and F then
 		m.ready = F.Ready()
@@ -119,7 +123,6 @@ function View.Model()
 			m.source, m.version, m.season = F.Source(), F.Version(), F.Season()
 			if m.raid == "fdcp" then m.pool, m.night = F.Pool(), F.Night() end
 			if m.loot == "fdcp" then
-				m.rules = F.Rules()
 				local me = ns.Compat and ns.Compat.Player.Name()
 				m.mine = me and F.Credits(me) or nil
 			end
@@ -227,6 +230,7 @@ local function rulesLines(out, r)
 	end
 	out[#out + 1] = { text = L["RULES_READONLY"], muted = true }
 end
+View.RulesLines = rulesLines      -- the loot page's fixed part (UI/LootPage.lua)
 
 -- "This client: loaded 7.1 · detection only (level 0) · folder name not confirmed in game yet"
 local function hereText(st)
@@ -348,7 +352,7 @@ function View.Lines(m)
 	-- the loot
 	add(L["RAID_LOOT"], "heading")
 	if m.loot ~= "fdcp" then
-		add(L["LOOT_NONE"], "muted")
+		add(m.addonName and L["RAID_LOOT_ADDON"]:format(m.addonName) or L["LOOT_NONE"], "muted")
 	elseif why then
 		add(L["RAID_FDCP_UNAVAILABLE"], "muted")
 	else
@@ -359,7 +363,7 @@ function View.Lines(m)
 		else
 			add(L["LOOT_MINE_NONE"], "muted")
 		end
-		if m.rules then rulesLines(out, m.rules) else add(L["RULES_NONE"], "muted") end
+		add(L["RAID_LOOT_RULES"], "muted")
 	end
 
 	-- the raid and loot addons in the guild
@@ -411,8 +415,16 @@ function View:Build(f)
 	self.frame = f
 	f.raidSeg, f.raidLabel = selector(f, L["SOURCE_RAID"], "raid",
 		{ { id = "accord", text = L["SOURCE_ACCORD"] }, { id = "fdcp", text = L["SOURCE_FDCP"] } }, 0)
-	f.lootSeg, f.lootLabel = selector(f, L["SOURCE_LOOT"], "loot",
-		{ { id = "none", text = L["SOURCE_NONE"] }, { id = "fdcp", text = L["SOURCE_FDCP"] } }, -40)
+	f.lootLabel = Widgets.Text(f, "BodyMedium", "text-2", "LEFT")
+	f.lootLabel:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -48)
+	f.lootLabel:SetText(L["SOURCE_LOOT"])
+	f.lootPage = Widgets.Button(f, { text = L["RAID_LOOT_PAGE"], style = "secondary", height = 28,
+		onClick = function() View:ToggleLoot() end })
+	f.lootPage:SetPoint("TOPLEFT", f, "TOPLEFT", 130, -40)
+	f.lootName = Widgets.Text(f, "Body", "text-1", "LEFT")
+	f.lootName:SetPoint("LEFT", f.lootPage, "RIGHT", 10, 0)
+	f.lootName:SetWordWrap(false)
+	f.lootName:SetWidth(200)
 	f.open = Widgets.Button(f, { text = L["FDCP_OPEN"], style = "secondary", height = 28, onClick = function() ns.FDCP.Open() end })
 	f.open:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.who = Widgets.Text(f, "Small", "text-3", "RIGHT")
@@ -441,13 +453,17 @@ function View:Redraw()
 	self.model = m
 	self.painting = true
 	f.raidSeg:Select(m.raid)
-	f.lootSeg:Select(m.loot)
 	self.painting = false
 	f.raidSeg:SetEnabled(m.canChoose)
-	f.lootSeg:SetEnabled(m.canChoose)
 	f.who:SetText(m.canChoose and L["SOURCE_OFFICERS_YOU"] or L["SOURCE_OFFICERS"])
 	local st = m.fdcp
 	f.open:SetShown(st ~= nil and st.level ~= nil)
+	f.lootName:SetText(m.addonName or L["LOOT_NOT_SET"])
+	if View.LootReadable() then self.lootShown = false end
+	f.lootPage:SetLabel(L[self.lootShown and "RAID_LOOT_BACK" or "RAID_LOOT_PAGE"])
+	f.list:SetShown(not self.lootShown)
+	if f.lootPane then f.lootPane:SetShown(self.lootShown == true) end
+	if self.lootShown then self:DrawLoot(f) end
 	local lines = View.Lines(m)
 	self.shown = lines
 	local list = f.list
@@ -474,6 +490,41 @@ function View:Redraw()
 		fs:Show()
 	end
 	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+end
+
+-- true when this character can read the handbook's loot page: then the loot page opens there.
+function View.LootReadable()
+	local H = ns.HandbookView
+	if not (H and ns.Loot) then return false end
+	return select(2, H.Rows())[ns.Loot.PAGE] ~= nil
+end
+
+-- "Loot page": the handbook's, or its fixed part here, so the choice is never out of reach (SPEC-15 §8).
+function View:ToggleLoot()
+	if View.LootReadable() then
+		ns.HandbookView:Open(ns.Loot.PAGE)
+		return
+	end
+	self.lootShown = not self.lootShown
+	if not self.lootShown and self.frame and self.frame.loot then self.frame.loot.form = nil end
+	self:Redraw()
+end
+
+function View:DrawLoot(f)
+	if not f.lootPane then
+		local pane = ns.HandbookView.Scroller(f)
+		pane:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.HEADER)
+		pane:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+		f.lootPane = pane
+		f.loot = ns.LootPage.Create(pane.page, function() View:Redraw() end)
+		f.loot:SetPoint("TOPLEFT", pane.page, "TOPLEFT", 0, 0)
+	end
+	f.lootPane:Show()
+	local width = f.lootPane:GetWidth() or 0
+	if width <= 0 then width = ns.LootPage.WIDTH end
+	f.lootPane.page:SetWidth(width)
+	local height = f.loot:Update(ns.LootPage.Model(), width)
+	f.lootPane:SetContentHeight(height + 8)
 end
 
 function View:Scroll(delta)
@@ -512,7 +563,8 @@ if ns.addon then
 			View:Changed()
 			if ns.MemberCard and ns.MemberCard.Refresh then ns.MemberCard:Refresh() end
 		end
-		for _, event in ipairs({ "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED", "CENSUS_CHANGED" }) do
+		for _, event in ipairs({ "SOURCES_CHANGED", "INTEGRATIONS_CHANGED", "FDCP_CHANGED", "ROLE_CHANGED", "CENSUS_CHANGED",
+			"HANDBOOK_CHANGED" }) do
 			ns.Bus:On(event, changed)
 		end
 	end
