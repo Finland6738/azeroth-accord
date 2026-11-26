@@ -138,6 +138,12 @@ local function fill(data, account, char)
 	if data.addons and ns.Features and ns.Features.On("census") then   -- the addon census (SPEC-13 §8)
 		data.sets.addons = data.addons
 	end
+	if data.recruit and ns.Features and ns.Features.On("recruit") then   -- the recruitment text (SPEC-16 §3)
+		for set, records in pairs(data.recruit) do
+			data.sets[set] = data.sets[set] or {}
+			for id, rec in pairs(records) do data.sets[set][id] = rec end
+		end
+	end
 	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
 		data.sets.groups = data.groups.listings
 		char.groups = { guild = data.key, next = 1, apps = { [data.groups.own] = data.groups.apps }, mine = {} }

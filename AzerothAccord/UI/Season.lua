@@ -13,6 +13,7 @@
 -- role the raiders by MS1, what MS2 would add, the gaps against the officers' target composition, then "Not sure yet" and
 -- unknown roles apart, and the accounts without a declaration in a list of their own, never as a gap. Officers set the
 -- target (with either source) and export the shown declarations (UI/ExportBox.lua, SPEC-14 §4.6).
+-- With the switch "recruit" (M12.2, SPEC-16 §3.1), officers also get "Recruitment text" beside the counts (UI/Recruit.lua).
 -- At the end, "Raid and loot addons in the guild" (M10.2): the same lines as the Raid view (UI/Raid.lua).
 --
 -- View.Model(n) reads everything now; View.Lines(model) is a plain function of it (tested offline); the frames only draw.
@@ -108,6 +109,7 @@ function View.Model(n)
 		m.noMS2 = m.raid == "fdcp" and m.source == "SNAPSHOT"
 	end
 	m.canExport = ns.Export.Allowed() and m.rows ~= nil and #m.rows > 0
+	m.canRecruit = ns.Recruit ~= nil and ns.Recruit:CanSee()
 	if ns.RaidView and ns.RaidView.AddonsModel then ns.RaidView.AddonsModel(m) end
 	return m
 end
@@ -356,6 +358,10 @@ function View:Build(f)
 
 	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28, onClick = function() View:Export() end })
 
+	-- officers: the recruitment text (M12.2)
+	f.recruit = Widgets.Button(f, { text = L["RECRUIT_BUTTON"], style = "secondary", width = 170, height = 28,
+		onClick = function() if ns.RecruitView then ns.RecruitView:Open() end end })
+
 	-- officers: the target composition
 	f.target = CreateFrame("Frame", nil, f)
 	f.target:SetHeight(32)
@@ -546,7 +552,14 @@ function View:Redraw()
 	f.export:SetShown(m.canExport)
 	f.export:ClearAllPoints()
 	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, y)
-	if officer or m.canExport then y = y - 40 end
+	f.recruit:SetShown(m.canRecruit)
+	f.recruit:ClearAllPoints()
+	if m.canExport then
+		f.recruit:SetPoint("TOPRIGHT", f.export, "TOPLEFT", -8, 0)
+	else
+		f.recruit:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, y)
+	end
+	if officer or m.canExport or m.canRecruit then y = y - 40 end
 	f.target:SetShown(m.canSetTarget)
 	if m.canSetTarget then
 		f.target:ClearAllPoints()

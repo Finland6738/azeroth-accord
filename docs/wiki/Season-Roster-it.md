@@ -41,6 +41,19 @@ Gli ufficiali e il Guild Master scelgono la dimensione del raid (10, 20, 25 o 40
 
 Gli ufficiali e il Guild Master premono **Esporta** per avere le dichiarazioni della season mostrata in **CSV** (per un foglio di calcolo) o come testo per **Discord** (quelli lunghi sono divisi in più messaggi). Il testo è già selezionato: premi Ctrl+C. Esce dal gioco, come dice l'avviso sopra. Chi non ha dichiarato non è nell'esportazione.
 
+## Testo di reclutamento
+
+> **Non ancora disponibile**: resta nascosto finché le funzioni di reclutamento (M12) non sono complete. Niente di questa parte è stato controllato nel gioco vero.
+
+Gli ufficiali e il Guild Master premono **Testo di reclutamento** nella vista Season, oppure scrivono `/accord recruit`, e ottengono un annuncio costruito con ciò che la gilda ha già:
+
+- il nome della gilda, la fazione e il reame;
+- una descrizione: il primo paragrafo sotto la prima intestazione della pagina **Informazioni sulla gilda** del manuale (vedi [[Manuale di gilda|Guild-Handbook-it]]), quando chi scrive il manuale ha salvato la pagina;
+- **Cerchiamo**: i ruoli che mancano secondo MS1 rispetto alla composizione obiettivo, dal roster della season di Accord o dal pool di FDCP. Quello che MS2 coprirebbe si cerca comunque;
+- una **riga in più** che puoi scrivere (per esempio gli orari dei raid) e un **contatto**: *Sussurra a <il tuo personaggio>*, oppure un testo tuo. Queste due righe restano sul tuo computer.
+
+Scegli **Riga di chat** (una sola riga di al massimo 255 byte: si accorcia prima la descrizione, poi la riga in più) o **Discord** (più righe, al massimo 1900 caratteri). Il testo è selezionato: premi **Ctrl+C** e pubblicalo tu. **Accord non lo pubblica mai**, in nessun canale. La finestra dice perché una parte manca (nessuna season aperta, nessuna composizione obiettivo, nessuna mancanza, nessun paragrafo in *Informazioni sulla gilda*) e riscrive il testo quando cambiano la season, l'obiettivo, la fonte o la pagina.
+
 ## Le regole
 
 - **Solo la tua voce.** Ogni raider scrive solo la propria dichiarazione. Nessuno scrive o cambia quella di un altro, ufficiali compresi; una dichiarazione falsificata per un altro giocatore è rifiutata da ogni Accord.

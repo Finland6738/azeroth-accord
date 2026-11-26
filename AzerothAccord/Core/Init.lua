@@ -49,6 +49,8 @@ ACC.commands = {
 		handler = function(self, input)
 			if ns.HandbookView then return ns.HandbookView.Command(input) end
 		end },
+	{ name = "recruit", feature = "recruit", help = L["HELP_RECRUIT"],
+		handler = function() if ns.RecruitView then ns.RecruitView.Command() end end },
 	{ name = "addons", feature = "census", help = L["HELP_ADDONS"], handler = viewCommand("addons") },
 	{ name = "settings", help = L["HELP_SETTINGS"], handler = viewCommand("settings") },
 	{ name = "away", help = L["HELP_AWAY"], handler = function(self, input) if ns.Absence then ns.Absence.Command(input) end end },

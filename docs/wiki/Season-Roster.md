@@ -41,6 +41,19 @@ Officers and the Guild Master choose the raid size (10, 20, 25 or 40), write how
 
 Officers and the Guild Master press **Export** to get the declarations of the shown season as **CSV** (for a spreadsheet) or as text for **Discord** (long ones are split into messages). The text is selected: press Ctrl+C. It leaves the game, as the warning above it says. Members without a declaration are not in the export.
 
+## Recruitment text
+
+> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+
+Officers and the Guild Master press **Recruitment text** in the Season view, or type `/accord recruit`, and get an advert built from what the guild already has:
+
+- the guild's name, faction and realm;
+- a description: the first paragraph under the first heading of the handbook's **Guild info** page (see [[Guild handbook|Guild-Handbook]]), once a writer has saved the page;
+- **Looking for**: the roles missing by MS1 against the target composition, from Accord's season roster or FDCP's pool. What MS2 would cover is still looked for;
+- an **extra line** you may write (for example the raid times) and a **contact**: *Whisper <your character>*, or your own text. These two lines stay on your computer.
+
+Choose **Chat line** (one line of at most 255 bytes: the description is shortened first, then the extra line) or **Discord** (several lines, at most 1900 characters). The text is selected: press **Ctrl+C** and post it yourself. **Accord never posts it**, in any channel. The window says why a part is missing (no open season, no target composition, no gaps, no *Guild info* paragraph) and writes the text again when the season, the target, the source or the page change.
+
 ## The rules
 
 - **Only your own entry.** Each raider writes only their own declaration. Nobody writes or changes someone else's, officers included; a declaration forged for another player is refused by every Accord.

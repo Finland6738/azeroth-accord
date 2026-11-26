@@ -15,6 +15,7 @@
 --   sets                         [set] = { [id] = record }: the records of the guild (accounts, contacts, recipes, coplay,
 --                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
+--   recruit                      the records of the recruitment text, by set (switch "recruit")
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -515,6 +516,48 @@ function DemoData.Build(now)
 		apps[online[6].name] = { r = "t", c = "I know the place", l = 60, at = now - 6 * 60, guid = online[6].guid }
 		apps[online[7].name] = { r = "h", l = 58, at = now - 2 * 60, guid = online[7].guid }
 		D.groups = { listings = listings, own = own.id, apps = apps }
+	end
+
+	-- The recruitment text (SPEC-16 §3, §8), outside D.sets: Core/Demo.lua puts them in place only while the switch
+	-- `recruit` is on. An open season, a target composition it misses two roles of, and the handbook's Guild info page.
+	do
+		-- role -> class -> tree: the classes of Data/Specs.lua that can fill it
+		local PICKS = {
+			tank = { WARRIOR = "PROTECTION", PALADIN = "PROTECTION", DRUID = "FERAL" },
+			healer = { PRIEST = "HOLY", PALADIN = "HOLY", SHAMAN = "RESTORATION", DRUID = "RESTORATION" },
+			melee = { ROGUE = "COMBAT", WARRIOR = "FURY", SHAMAN = "ENHANCEMENT" },
+			ranged = { MAGE = "FROST", HUNTER = "MARKSMANSHIP", WARLOCK = "DESTRUCTION" },
+		}
+		local officer, opened = members[1], now - 20 * DAY
+		local season = { ["S:1"] = { id = "S:1", author = officer.guid, rev = 1, time = opened, kind = "season", n = 1,
+			name = "First season", start = dayOf(opened), opened = opened } }
+		local taken = {}   -- one declaration per account (SEA-05)
+		for _, acc in ipairs(accounts) do
+			for k = 2, #acc.members do taken[acc.members[k]] = true end
+		end
+		local function declare(role, count)
+			for i, m in ipairs(members) do
+				local spec = PICKS[role][m.classFile]
+				if count > 0 and spec and not taken[i] and i ~= PLAYER_INDEX then
+					taken[i], count = true, count - 1
+					local id, first = "E:1:" .. m.guid, opened + i * HOUR
+					season[id] = { id = id, author = m.guid, rev = 1, time = first, kind = "entry", n = 1, class = m.classFile,
+						ms1 = { spec = spec, role = role }, unsure = false, first = first }
+				end
+			end
+		end
+		declare("tank", 1)
+		declare("healer", 2)
+		declare("melee", 2)
+		declare("ranged", 3)
+		D.recruit = {
+			season = season,
+			guildcfg = { target = { id = "target", author = officer.guid, rev = 1, time = opened, size = 10, tank = 2, healer = 3,
+				melee = 2, ranged = 3 } },
+			handbook = { ["P:info"] = { id = "P:info", author = officer.guid, rev = 1, time = now - 10 * DAY, title = "Guild info",
+				order = 10, body = "# About us\nA relaxed guild that raids twice a week and helps new players with their first "
+					.. "dungeons.\n\n# Schedule\nWednesday and Sunday, from 21:00." } },
+		}
 	end
 
 	-- The addon census (SPEC-13 §8): the lists of the members with the addon, outside D.sets: Core/Demo.lua puts them in

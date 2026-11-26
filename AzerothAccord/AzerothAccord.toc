@@ -77,6 +77,7 @@ Data\Handbook.lua
 Data\HandbookText.lua
 Data\HandbookDefaults.lua
 Data\Loot.lua
+Data\Recruit.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua
@@ -113,6 +114,7 @@ UI\BankLog.lua
 UI\BankRequests.lua
 UI\Raid.lua
 UI\Season.lua
+UI\Recruit.lua
 UI\RaidHelperBox.lua
 UI\Rallies.lua
 UI\Events.lua

@@ -18,7 +18,7 @@
 - Spec: SPEC-16
 - Scope: a recruitment text built from the season roster gaps (M10) and a short guild description from the handbook (M11). It is shown in a selectable box, for chat or Discord. The addon never posts it by itself.
 - Done when:
-  - [ ] The text changes when the gaps change; nothing is sent to any channel.
+  - [x] The text changes when the gaps change; nothing is sent to any channel.
 
 ### M12.3 — Trials
 - Branch: `step/m12-3-trials`
