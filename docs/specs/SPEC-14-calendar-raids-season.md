@@ -39,7 +39,7 @@ Da M10.3 M10 ha un interruttore suo, `season`, in [`Core/Features.lua`](../../Az
 | `Data/Composition.lua` | composizione obiettivo, conteggi del roster della season (§4.5, §7.1); formazione e panchina (§7.2) | M10.4, M10.7 |
 | `UI/Events.lua` | la vista *Events*: elenco, dettaglio, iscrizione, importazione, composizione | M10.5–M10.7 |
 | `Data/Availability.lua`, `UI/Availability.lua` | la mappa della disponibilità (§8) | M10.8 |
-| `Data/Rallies.lua` | i raduni (§9), mostrati nella vista *Events* e nel Centro azioni | M10.9 |
+| `Data/Rallies.lua`, `UI/Rallies.lua` | i raduni (§9): una pagina della vista *Events*, un avviso e il Centro azioni | M10.9 |
 
 La vista **Raid** di M11.7 (`UI/Raid.lua`) resta il posto della scelta delle fonti e della lettura di FDCP; *Season* ed *Events* la affiancano. `Config.VIEWS` aggiunge `season`, `events`, `availability`. Comandi: `/accord season`, `/accord events`, `/accord availability` (con l'interruttore spento rispondono come un comando sconosciuto).
 
@@ -320,11 +320,15 @@ Decisa dal proprietario come proposto in SPEC-10 Q23 (2026-11-25): condivisione 
 
 Una chiamata veloce: "PvP at the crossroads in 15 minutes", con le risposte **coming** / **not coming**.
 
-- **L'insieme `rally`**, **volatile** e **solo di prima mano** come `groups` ([SPEC-13 §6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)): fuori dai riepiloghi della sincronizzazione, mai ritrasmesso da un ufficiale. Record `<GUID>:<n>` del chiamante: `kind` = `pvp` | `world`, `text` (il punto d'incontro **in parole**, 1–60 caratteri), `start` (da adesso a 2 ore), `until` (`start` + da 15 minuti a 2 ore). Risposte: record `<id del raduno>:<GUID>` del giocatore che risponde, con `answer` = `yes` | `no`. Chi arriva dopo chiede i raduni aperti con un `GASK` dello stesso tipo di M9.6 (`k = "rally"`).
-- **Scade da solo**: ogni client lo chiude a `until` e lo cancella 10 minuti dopo, senza bisogno di un messaggio; il chiamante può chiuderlo prima.
-- **Nessuna coordinata**: Accord non legge mai la posizione del giocatore (nessuna chiamata a `C_Map.GetPlayerMapPosition` o simili) e non manda mai coordinate né mappe; il punto d'incontro è solo il testo che il chiamante scrive.
-- Chi può: ogni membro con l'addon (SPEC-10 Q24); un raduno aperto per personaggio, al massimo 4 all'ora; solo il chiamante lo cambia o lo chiude.
-- Un avviso (modulo `rally` di [SPEC-13 §3.2](SPEC-13-action-center-notices.md#32-moduli-tipi-e-interruttori), acceso di default solo come riga in chat) e una riga nel Centro azioni finché è aperto; si rispetta il silenzio di §10 e le ore di quiete.
+- **L'insieme `rally`**, **volatile** e **solo di prima mano** come `groups` ([SPEC-13 §6.2](SPEC-13-action-center-notices.md#62-linsieme-groups)): fuori dai riepiloghi della sincronizzazione, mai ritrasmesso da un ufficiale, 384 byte per record. Due tipi di record:
+  - raduno, id `<GUID>:<n>` del chiamante: `kind` = `pvp` | `world`, `text` (il punto d'incontro **in parole**, 1–60 byte, senza `|` né caratteri di controllo), `created` (ora della chiamata, al massimo 5 minuti avanti rispetto a chi riceve), `start` (`created` + da 0 a 2 ore), `ends` (`start` + da 15 minuti a 2 ore; non `until`, parola riservata di Lua), `closed` = `true` dopo la chiusura;
+  - risposta, id `<id del raduno>:<GUID>` del personaggio che risponde: `answer` = `yes` | `no`, `ends` (la fine del raduno al momento della risposta, per la conservazione quando il raduno non c'è), al massimo 20 revisioni.
+- Un record **non accetta nessun altro campo**: coordinate e mappe sono rifiutate (`owner`). Accord non legge mai la posizione del giocatore (nessuna chiamata a `C_Map.GetPlayerMapPosition` o simili): il punto d'incontro è solo il testo che il chiamante scrive.
+- **Scade da solo**: ogni client lo considera finito a `ends` e lo cancella 10 minuti dopo (10 minuti dopo la chiusura se chiuso prima), con le sue risposte, senza bisogno di un messaggio. Se il chiamante lo allunga, le risposte restano con lui. Un raduno non si chiude al logout.
+- Chi può: ogni membro con l'addon (SPEC-10 Q24); un raduno aperto per personaggio (chiamarne un altro chiude il precedente), al massimo 4 all'ora; solo il chiamante lo cambia (al massimo una modifica ogni 10 secondi; l'inizio resta entro 2 ore da `created`) o lo chiude; nessuna moderazione degli ufficiali. Nessuno risponde al proprio raduno. I limiti valgono anche **in chi riceve**: conta solo il raduno aperto più nuovo di un chiamante, e il quinto in un'ora si ignora.
+- **Chi arriva dopo** chiede con il messaggio **`RASK`** (`GUILD`, `NORMAL`, `h` = impronte di 4 byte di raduni e risposte già noti, `a` = `true` per avere anche le risposte). Ogni client risponde in whisper con un `REC` con ciò che è suo e non è in `h`: il proprio raduno aperto e, solo con `a`, le proprie risposte ai raduni aperti. Due domande, ognuna al più una ogni 10 minuti (una gestita ogni 5 minuti per mittente): 30–60 s dopo il primo `HELLO` di un accesso, se l'avviso è acceso, **senza** risposte (rispondono solo i chiamanti); quando si apre la pagina *Rallies*, **con** le risposte. È un messaggio suo e non il `GASK` di M9.6 con `k = "rally"` come previsto: un client `v0.9.0` non conosce `k` e risponderebbe con i suoi annunci di gruppo. Il raduno di chi è offline non arriva (solo prima mano).
+- Un avviso (modulo `rally`, tipo `called`, livello `alert`, di [SPEC-13 §3.2](SPEC-13-action-center-notices.md#32-moduli-tipi-e-interruttori), di default solo come riga in chat), una volta per raduno e mai al proprio account, e una riga nel Centro azioni (urgenza 2) finché è aperto; entrambi dietro anche l'interruttore `actions`. Si rispettano il silenzio di §10 e le ore di quiete.
+- La vista: la pagina **Rallies** della vista *Events* (`UI/Rallies.lua`): modulo della chiamata, elenco, *Coming* / *Not coming*, chi ha risposto. I propri raduni e risposte sono in *What I share*.
 
 ## 10. Silenzio durante i boss
 
@@ -345,6 +349,8 @@ Stima per una gilda di 50 client (lo scenario di [SPEC-02 §4](SPEC-02-network-p
 
 La stima dei 20 B/min non regge: ogni mappa nuova o cambiata fa richiedere tutto il gruppo del suo autore (account, contatti, addon e mappa). La riduzione fatta è la pubblicazione al più settimanale (§8.2). Nel primo scambio la media supera il limite di 450 B/min e il client più carico i 2 KB/min: il proprietario lo ha **accettato** (2026-11-26, [SPEC-10](SPEC-10-risks-open-questions.md) Q26, rischio R17): nel primo scambio la media può arrivare a circa 550 B/min e il client più carico al picco misurato; a gilda allineata restano i limiti di 450 B/min e 2 KB/min.
 
+**Misurato in M10.9** (`Tests/test_rallies.lua`, 50 client, rete con 1% di perdite): in 45 minuti con 9 raduni (uno ogni 5 minuti, più di quanto ci si aspetti in una serata), 146 risposte, accessi e uscite, la media per client passa da **46 a 71 B/min** (+25) e il client più carico da 89 a 197 B/min; il confronto è con una gilda senza altre scritture, non con lo scenario di SPEC-02 §4. In una finestra di 60 s: 48 risposte costano circa 5,4 KB inviati in tutta la gilda (circa 115 byte l'una), l'apertura della pagina con quelle 48 risposte altrettanto, mentre la domanda dopo un accesso (rispondono solo i chiamanti) non si distingue dal traffico di una gilda ferma. Nello scenario di M10.8, con la sequenza casuale di accessi separata da quella della rete (seed 42), la domanda dopo l'accesso senza raduni non cambia le medie in modo misurabile (367 contro 367 e 554 contro 548 B/min); il simulatore la manda solo con l'opzione `rallies`, così i numeri di M10.8 restano quelli sopra. Il budget di SPEC-09 §7 e la condivisione della disponibilità non cambiano; i raduni si sommano al primo scambio di R17.
+
 ## 12. Test per passo
 
 | Passo | File | Casi |
@@ -355,7 +361,7 @@ La stima dei 20 B/min non regge: ogni mappa nuova o cambiata fa richiedere tutto
 | M10.6 | `Tests/test_raid_helper.lua` | campioni JSON e CSV con nomi inventati; ogni stato; campi sconosciuti ignorati; testo rotto, troppo lungo o troppo profondo rifiutato; abbinamento per nome Discord tra alt; abbinamento a mano ricordato; nomi non abbinati mai mandati; chiamate al calendario con e senza permesso, una risposta già data non cambiata |
 | M10.7 | `Tests/test_composition.lua` | solo ufficiali scrivono la composizione; ogni membro vede dove è; proposta di MS2; con FDCP come fonte nessuna composizione si scrive |
 | M10.8 | `Tests/test_availability.lua` | solo minuti online; 8 settimane; livelli; interruttore spento ritira; nessun dato di presenza ai raid in nessun record |
-| M10.9 | `Tests/test_rallies.lua` | scadenza da soli; nessuna coordinata nei messaggi; limiti per personaggio; volatile e solo prima mano |
+| M10.9 | `Tests/test_rallies.lua` | scadenza da soli, anche tra client; nessuna coordinata nei messaggi e nessuna lettura della posizione; limiti per personaggio e in chi riceve; volatile e solo prima mano; `RASK` dopo l'accesso e dalla pagina; avviso, Centro azioni, vista; silenzio durante un boss; traffico; interruttore spento |
 
 ## 13. Cosa resta da verificare nel client
 

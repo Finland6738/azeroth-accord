@@ -60,6 +60,7 @@ local SAME = {
 	VIEW_SEASON = true, SEASON_FIELD_TANK = true, SEASON_COUNT = true, SEASON_ROLE_TANK = true, SEASON_ROLE_HEALER = true, SEASON_PICK = true, SEASON_MS1 = true, SEASON_MS2 = true, SEASON_OS = true, SHARE_SEASON_LINE = true,   -- M10.3
 	VIEW_RAID = true, SOURCE_LOOT = true, SOURCE_ACCORD = true, SOURCE_FDCP = true, FDCP_STATUS = true, RAID_SEASON_LINE = true, RAID_MS1 = true, RAID_MS2 = true, RAID_OS = true, ROLE_TANK = true, ROLE_HEALER = true, ROLE_DAMAGER = true, RAID_LOOT = true, RULES_PRESET = true, RULES_COST = true, FDCP_PRESET_PATTO = true, CARD_FDCP = true,
 	INTEG_ADDON = true, INTEG_KIND_LOOT = true, INTEG_VERSION_N = true,
+	RALLY_KIND_PVP = true,   -- M10.9
 }
 
 describe("the two locale tables", function()

@@ -59,6 +59,7 @@ Config.defaults = {
 				bank = { chat = true, toast = false, sound = false, off = {} },
 				groups = { chat = true, toast = true, sound = false, off = { match = true } },
 				digest = { chat = true, toast = false, sound = false, off = {} },
+				rally = { chat = true, toast = false, sound = false, off = {} },   -- a new rally (M10.9)
 			},
 			quiet = { on = false, from = 23, to = 8, instances = true },   -- quiet hours, local time (SPEC-13 §4)
 			theme = "nebula", effects = true, animations = true, font = "addon",   -- the look (M6.10), UI/Theme.lua
@@ -124,7 +125,7 @@ Config.rules = {
 }
 
 -- The switches of account.settings.notify.<module>: three outputs and `off`, the kinds switched off.
-for _, module in ipairs({ "bank", "groups", "digest" }) do
+for _, module in ipairs({ "bank", "groups", "digest", "rally" }) do
 	local path = "account.settings.notify." .. module
 	Config.rules[path] = { type = "table" }
 	for _, output in ipairs({ "chat", "toast", "sound" }) do Config.rules[path .. "." .. output] = { type = "boolean" } end

@@ -70,6 +70,7 @@ Data\OfficerOps.lua
 Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
+Data\Rallies.lua
 Data\GameFinder.lua
 Data\Census.lua
 Data\Export.lua
@@ -109,6 +110,7 @@ UI\BankRequests.lua
 UI\Raid.lua
 UI\Season.lua
 UI\RaidHelperBox.lua
+UI\Rallies.lua
 UI\Events.lua
 UI\Availability.lua
 UI\TimelineCard.lua

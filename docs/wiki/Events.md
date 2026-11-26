@@ -8,7 +8,7 @@ The game calendar is the guild's shared ground for events. Accord **does not kee
 
 ## The Events view
 
-Open it with its tab or `/accord events`.
+Open it with its tab or `/accord events`. It has two pages: **Events**, described here, and [**Rallies**](#pvp-and-world-rallies).
 
 - **The event picker**: the guild's events of the game calendar from 7 days ago to 14 days ahead, **whoever created them** (an officer, the game's own window, another addon). Choosing one reads everybody's answers from the calendar.
 - **Your answer**: choose your **role** and press **Sign up**, **Tentative** or **Decline**. Accord writes the answer into the game calendar and says when it is saved. An answer you give in the game's calendar window shows in Accord too.
@@ -65,10 +65,24 @@ When the officers chose **FDCP** for the season roster and the line-up, Accord h
 
 Only when your client has **no usable calendar** (the game gives no event list within a minute), officers and the Guild Master can create an event in Accord: a title, the date and time (`YYYY-MM-DD HH:MM`) and the raid size. Members answer it in Accord. These events are always marked **Not in the game calendar**, also for members whose game has a calendar, and the game, FDCP and the other addons do not see them. When FDCP is the guild's source, the event says that **answers given there do not count for FDCP**, which reads sign-ups from the game calendar only.
 
+## PvP and world rallies
+
+A **rally** is a quick call to the guild: "PvP at the crossroads in 15 minutes". Open the **Rallies** page of the Events view.
+
+- **Calling one**: choose **PvP** or **World**, write the **meeting point in words** (at most 60 characters), choose when it starts (now to 2 hours) and how long it lasts (15 minutes to 2 hours), and press **Call a rally**. Any member with the addon may call one. You have **one open rally** at a time (a new one closes the older) and can call **at most 4 in an hour**.
+- **Changing it**: only the caller can, with **Change** (the start stays within 2 hours of the first call) and **Close**. Officers cannot change or remove somebody else's rally.
+- **Answering**: choose the rally and press **Coming** or **Not coming**. Everybody who has Accord sees who answered what. You can change your mind.
+- **It ends by itself**: at its end time it shows as ended on every client, and 10 minutes later it is removed with its answers. Nobody has to do anything.
+- **Notice**: a new rally gives a chat line (the [[Action Center|Action-Center]] lets you change that, and keeps one line per open rally). Notices follow the quiet hours.
+- Logging in later, you receive the open rallies of the callers who are online; who answered arrives when you open the Rallies page. A rally whose caller is offline cannot be sent to you.
+
+**No position is ever shared.** Accord does not read where your character is and sends no coordinates and no map: the meeting point is only the text the caller writes. During a boss fight a rally or an answer waits until the fight is over.
+
 ## What is shared
 
 - Your answer to a calendar event is **in the game calendar**, as if you had answered in the game.
 - Your **role** for an event, and your answers to events kept only in Accord, reach the whole guild like the other guild data, and are listed in *What I share* (see [[Privacy and Data|Privacy-and-Data]]). They are removed 2 days after the event.
 - A **line-up** (who is in the raid and who is on the bench) is written by officers, reaches the guild and is removed 2 days after the event. It is a plan, not a record of who came.
+- A **rally** and your answers to rallies reach the whole guild, are listed in *What I share* and are removed 10 minutes after the rally ends. They hold no position.
 - Accord never answers for somebody else, and it records **no attendance**: nothing says who was at a raid.
 - During a boss fight Accord sends nothing but its short urgent messages, as FDCP does.

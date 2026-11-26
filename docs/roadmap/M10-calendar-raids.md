@@ -155,8 +155,9 @@ So M10 and M11 follow these rules:
 - Branch: `step/m10-9-rallies`
 - Spec: SPEC-14
 - Scope: a quick call with a meeting point in text and a start time, answered with "coming" or "not coming". Exact positions are never shared.
+  - *Done (2026-11-26):* `Data/Rallies.lua` (the data set `rally`, short-lived and first hand like `groups`: rallies and answers; one open per character and 4 an hour, on the caller and on every receiver; expiry decided by each client; the message `RASK`; the notice `rally.called` and the Action Center provider), `UI/Rallies.lua` (the **Rallies** page of the **Events** view), the own records in *What I share*, `Tests/test_rallies.lua`. Traffic (SPEC-14 §11): about 25 B/min per client more in a worst case of 9 rallies in 45 minutes. The M10.8 limits are unchanged.
 - Done when:
-  - [ ] A rally expires by itself; no coordinates are sent.
+  - [x] A rally expires by itself; no coordinates are sent.
 
 ### M10.10 — In-game check and release
 - Branch: `step/m10-10-check`

@@ -137,6 +137,7 @@ Un modulo pubblica con `Notify:Post(module, kind, n)`, `n = { key, level, text, 
 | `groups.answer` (M9.7) | `alert` | candidato: accettato o rifiutato | chat, toast | `notify.groups.off.answer` |
 | `groups.match` (M9.7) | `normal` | chiunque: un annuncio nuovo che va bene per lui (§6.10) | **spento** | `notify.groups.off.match` (predefinito `true`) |
 | `groups.game` (M9.8) | `alert` | capo: c'è da togliere l'annuncio nel gioco (§7.2) | chat, toast | nessuno |
+| `rally.called` (M10.9, interruttore `season`) | `alert` | tutti tranne chi chiama: un raduno nuovo ([SPEC-14 §9](SPEC-14-calendar-raids-season.md#9-raduni-pvp-e-nel-mondo-m109)) | chat | `notify.rally.off.called` |
 | `officer.back` | `quiet` | ufficiali: un'assenza finita | — | — |
 | `likes.received` | `quiet` | chi riceve un like (solo il numero) | — | — |
 | `digest` | `normal` | il riepilogo (§5) | chat | `notify.digest.chat` |

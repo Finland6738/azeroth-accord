@@ -8,7 +8,7 @@ Il calendario del gioco è il terreno comune della gilda per gli eventi. Accord 
 
 ## La vista Eventi
 
-Aprila con la sua scheda o con `/accord events`.
+Aprila con la sua scheda o con `/accord events`. Ha due pagine: **Eventi**, descritta qui, e [**Raduni**](#raduni-pvp-e-nel-mondo).
 
 - **La scelta dell'evento**: gli eventi della gilda nel calendario del gioco da 7 giorni fa a 14 giorni avanti, **chiunque li abbia creati** (un ufficiale, la finestra del gioco, un altro addon). Sceglierne uno legge dal calendario le risposte di tutti.
 - **La tua risposta**: scegli il tuo **ruolo** e premi **Iscriviti**, **Forse** o **Rifiuta**. Accord scrive la risposta nel calendario del gioco e ti dice quando è salvata. Anche una risposta data nella finestra del calendario del gioco compare in Accord.
@@ -65,10 +65,24 @@ Quando gli ufficiali hanno scelto **FDCP** per il roster della season e la forma
 
 Solo quando il tuo client **non ha un calendario usabile** (il gioco non manda l'elenco degli eventi entro un minuto), gli ufficiali e il Guild Master possono creare un evento in Accord: un titolo, la data e l'ora (`AAAA-MM-GG HH:MM`) e la dimensione del raid. I membri rispondono in Accord. Questi eventi sono sempre segnati **Non nel calendario del gioco**, anche per i membri il cui gioco ha il calendario, e il gioco, FDCP e gli altri addon non li vedono. Quando FDCP è la fonte della gilda, l'evento dice che **le risposte date lì non contano per FDCP**, che legge le iscrizioni solo dal calendario del gioco.
 
+## Raduni PvP e nel mondo
+
+Un **raduno** è una chiamata veloce alla gilda: "PvP al crocevia tra 15 minuti". Apri la pagina **Raduni** della vista Eventi.
+
+- **Chiamarne uno**: scegli **PvP** o **Mondo**, scrivi il **punto d'incontro a parole** (al massimo 60 caratteri), scegli quando inizia (da subito a 2 ore) e quanto dura (da 15 minuti a 2 ore) e premi **Chiama il raduno**. Può farlo ogni membro con l'addon. Hai **un raduno aperto** alla volta (uno nuovo chiude il precedente) e puoi chiamarne **al massimo 4 in un'ora**.
+- **Cambiarlo**: può solo chi l'ha chiamato, con **Modifica** (l'inizio resta entro 2 ore dalla prima chiamata) e **Chiudi**. Gli ufficiali non possono cambiare né togliere il raduno di un altro.
+- **Rispondere**: scegli il raduno e premi **Vengo** o **Non vengo**. Chiunque abbia Accord vede chi ha risposto che cosa. Puoi cambiare idea.
+- **Finisce da solo**: alla sua ora di fine risulta finito su ogni client e 10 minuti dopo si cancella con le risposte. Nessuno deve fare niente.
+- **Avviso**: un raduno nuovo dà una riga in chat (il [[Centro azioni|Action-Center-it]] permette di cambiarlo e tiene una riga per ogni raduno aperto). Gli avvisi seguono le ore di quiete.
+- Se accedi più tardi, ricevi i raduni aperti di chi li ha chiamati ed è online; chi ha risposto arriva quando apri la pagina Raduni. Il raduno di chi è offline non ti può arrivare.
+
+**Nessuna posizione viene mai condivisa.** Accord non legge dove si trova il tuo personaggio e non manda coordinate né mappe: il punto d'incontro è solo il testo scritto da chi chiama. Durante un combattimento contro un boss un raduno o una risposta aspettano la fine.
+
 ## Che cosa si condivide
 
 - La tua risposta a un evento del calendario è **nel calendario del gioco**, come se avessi risposto nel gioco.
 - Il tuo **ruolo** per un evento, e le risposte agli eventi tenuti solo in Accord, arrivano a tutta la gilda come gli altri dati di gilda e sono elencati in *Cosa condivido* (vedi [[Privacy e dati|Privacy-and-Data-it]]). Si cancellano 2 giorni dopo l'evento.
 - Una **composizione** (chi è nel raid e chi in panchina) la scrivono gli ufficiali, arriva alla gilda e si cancella 2 giorni dopo l'evento. È un piano, non un registro di chi c'era.
+- Un **raduno** e le tue risposte ai raduni arrivano a tutta la gilda, sono elencati in *Cosa condivido* e si cancellano 10 minuti dopo la fine del raduno. Non contengono posizioni.
 - Accord non risponde mai al posto di qualcun altro e non registra **nessuna presenza**: niente dice chi c'era a un raid.
 - Durante un combattimento contro un boss Accord non manda nulla tranne i suoi brevi messaggi urgenti, come fa FDCP.

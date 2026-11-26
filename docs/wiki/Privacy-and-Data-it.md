@@ -62,6 +62,12 @@ La **composizione** di un raid scritta da un ufficiale (chi è nel raid, chi in 
 
 Accord conta, sul tuo computer, i minuti in cui il tuo account è online per ora della settimana nelle ultime 8 settimane, e nient'altro: nessun luogo, nessuna attività, nessun raid e nessuna presenza. La gilda riceve, per ogni ora, uno di quattro livelli e il numero di settimane misurate, tenuti 30 giorni. Tutti vedono quanti membri sono online in ogni ora; **chi** sono Accord lo mostra solo agli ufficiali e al Guild Master, e a te la tua voce (è una regola dell'interfaccia: le mappe arrivano a tutta la gilda). **Condividi quando gioco di solito** è acceso di default; spento, la tua mappa si ritira e non si manda più niente, mentre la tua continua a contare sul tuo computer. Vedi [[Disponibilità|Availability-it]].
 
+## Raduni PvP e nel mondo
+
+> Arriva con la `v0.10.0`.
+
+Un [[raduno|Events-it]] contiene il tipo, il punto d'incontro **come testo che scrivi tu**, gli orari e, da chi risponde, *vengo* o *non vengo*. Lo vede tutta la gilda con Accord e si cancella 10 minuti dopo la fine. Accord **non legge mai la tua posizione** e non manda coordinate né mappe.
+
 ## Altri addon
 
 A parte quell'elenco (novità della `v0.9.0`), l'addon rilasciato non cerca altri addon e non legge niente da loro. Un rilascio successivo (milestone M10 e M11) cercherà gli addon di raid e di loot che conosce **solo sul tuo computer** e condividerà con la gilda solo la scelta degli ufficiali di quale è la fonte: vedi *[[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*.

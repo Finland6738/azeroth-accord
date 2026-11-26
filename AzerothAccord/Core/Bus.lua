@@ -29,6 +29,7 @@
 --                                                     of one event changed ("c<eventID>" or "f<GUID>:<n>"), M10.5.
 --   AVAILABILITY_CHANGED()                            Data/Availability.lua; the guild's availability map or the own one may
 --                                                     have changed, collected for a second (M10.8).
+--   RALLY_CHANGED(id)                                 Data/Rallies.lua; a rally, or an answer to it, changed (nil: several)
 --   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).

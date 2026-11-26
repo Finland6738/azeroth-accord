@@ -50,7 +50,8 @@ Transport.LOCKDOWN_RECHECK = 1    -- seconds to wait after the client refused a 
 Transport.SAVED_MAX_AGE = 86400   -- a saved message older than this (server time) is not sent again
 -- type -> { count, seconds }; DIGEST: at most one every 2 s, the others wait in the queue with their key (SPEC-11 §6.4)
 -- GASK (the group finder's question of who comes later, SPEC-13 §6.7): at most one every 10 minutes
-Transport.RATE = { HELLO = { 1, 300 }, BHELLO = { 1, 300 }, OHELLO = { 1, 300 }, DIGEST = { 1, 2 }, GASK = { 1, 600 } }
+Transport.RATE = { HELLO = { 1, 300 }, BHELLO = { 1, 300 }, OHELLO = { 1, 300 }, DIGEST = { 1, 2 }, GASK = { 1, 600 },
+	RASK = { 2, 600 } }   -- RASK: the rallies' question, with the answers or without (SPEC-14 §9)
 Transport.FLOOD = { 262144, 60 }  -- decoded bytes a sender may make this client decode per window of seconds
 Transport.QUARANTINE = 600        -- seconds every message of a flooding sender is dropped before decoding
 
@@ -60,7 +61,7 @@ local RANK = { ALERT = 1, NORMAL = 2, BULK = 3 }
 -- Default priority per message type; types the table does not list go NORMAL.
 Transport.PRIORITY = {
 	REQ = "ALERT", VOTE = "ALERT", SALT = "ALERT", LEDGER = "ALERT", GAPP = "ALERT",
-	HELLO = "NORMAL", GASK = "NORMAL", BHELLO = "NORMAL", OHELLO = "NORMAL", REC = "NORMAL", DIGEST = "NORMAL",
+	HELLO = "NORMAL", GASK = "NORMAL", RASK = "NORMAL", BHELLO = "NORMAL", OHELLO = "NORMAL", REC = "NORMAL", DIGEST = "NORMAL",
 }
 
 -- Retail codes; the client's own Enum.SendAddonMessageResult wins when it exists (M0 S5 reads the real values).

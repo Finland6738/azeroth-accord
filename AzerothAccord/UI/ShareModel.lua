@@ -393,6 +393,29 @@ Model.Add("avail", { set = "avail", feature = "season", build = builders.avail, 
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_AVAIL", switch = "shareAvailability", switchLabel = "SHARE_AVAIL_SWITCH",
 	switchTip = "SHARE_AVAIL_SWITCH_TIP", offNote = "SHARE_AVAIL_OFF_NOTE" })
 
+-- the own rallies and answers (M10.9, SPEC-14 §9): short-lived, gone 10 minutes after the rally ends
+builders.rally = function(guid)
+	local lines, recs = {}, {}
+	local R = ns.Rallies
+	for _, rec in ipairs(own("rally", guid)) do
+		local kind = R and R.KindOf(rec)
+		if kind == "rally" then
+			lines[#lines + 1] = L["SHARE_RALLY_CALL"]:format(L["RALLY_ROW_" .. rec.kind:upper()]:format(rec.text), R.Clock(rec.start),
+				R.Clock(rec.ends)) .. (rec.closed and (" " .. L["SHARE_RALLY_CLOSED"]) or "")
+			recs[#recs + 1] = rec
+		elseif kind == "answer" then
+			local _, id = R.KindOf(rec)
+			local rally = S():Get("rally", id)
+			lines[#lines + 1] = L["RALLY_MINE_" .. rec.answer:upper()] .. (rally and (" (" .. rally.text .. ")") or "")
+			recs[#recs + 1] = rec
+		end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("rally", { set = "rally", feature = "season", build = builders.rally, title = "SHARE_RALLY",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_RALLY" })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

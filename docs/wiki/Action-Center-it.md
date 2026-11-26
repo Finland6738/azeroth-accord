@@ -19,6 +19,7 @@ Non salva nulla di suo e non decide niente al posto tuo. Ogni riga viene letta d
 | *Rientro di … (assente fino al …)* | ufficiali e Guild Master, dal giorno del rientro ai tre giorni dopo | la pagina **Inattivi** | tre giorni dopo il rientro |
 | *La tua assenza finisce il …* | tu, nei tre giorni prima della fine | la card **Assenza** delle [[Impostazioni|Settings-it]] | dopo il rientro |
 | *… vuole unirsi come …* | tu, come capo di un [[gruppo|Groups-it]] | la pagina **Il mio gruppo** di Gruppi | accetti o rifiuti, o il gruppo si chiude |
+| *Raduno PvP: …* e *Raduno nel mondo: …* *(arriva con la `v0.10.0`)* | tutti, finché il [[raduno|Events-it]] è aperto | la pagina **Raduni** di Eventi | il raduno finisce o viene chiuso |
 
 Un ufficiale che chiede qualcosa alla banca vede la richiesta due volte: da decidere, e come proprio promemoria.
 
@@ -34,7 +35,7 @@ Ogni riga ha un pallino colorato per l'urgenza:
 
 Prima le più urgenti; a parità, ciò che aspetta da più tempo. Il numero sulla scheda conta le righe **Adesso** e **Da fare**, e il tooltip dell'addon nel Compartimento AddOn dice *Centro azioni: N da fare*.
 
-I filtri in alto mostrano **Tutto** o un solo tipo: *Gruppi*, *Banca*, *Creazioni*, *Ufficiali e assenze*. Quando un tipo ha più di 50 righe, un'ultima riga dice *e altre N*; l'elenco ne tiene al massimo 200. Se non c'è nulla dice *Non c'è niente in attesa.*
+I filtri in alto mostrano **Tutto** o un solo tipo: *Gruppi*, *Banca*, *Creazioni*, *Ufficiali e assenze* (e *Raduni*, dalla `v0.10.0`). Quando un tipo ha più di 50 righe, un'ultima riga dice *e altre N*; l'elenco ne tiene al massimo 200. Se non c'è nulla dice *Non c'è niente in attesa.*
 
 ## Avvisi
 
@@ -56,6 +57,7 @@ La seconda pagina del Centro azioni, **Avvisi**, è la cronologia di ciò che l'
 | *… vuole unirsi come …* | il capo di un [[gruppo|Groups-it]] | una riga in chat e un riquadro a schermo |
 | *… ti ha accettato* / *ha rifiutato la tua candidatura* | chi si è candidato | una riga in chat e un riquadro a schermo |
 | *Nuovo gruppo: …* | tu, per un gruppo adatto ai tuoi filtri | **spento** (solo qui) |
+| *… chiama un raduno PvP alle …* (o nel mondo) *(arriva con la `v0.10.0`)* | tutti tranne chi chiama | una riga in chat |
 
 ### Chat, schermo o suono
 

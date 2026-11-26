@@ -569,6 +569,7 @@ end
 -- Opens the view on an event (the row of the Action Center).
 function View:Open(key)
 	if ns.Shell and not ns.Shell:OpenView("events") then return false end
+	self:ShowPage("events")
 	self:Choose(key)
 	return true
 end
@@ -900,8 +901,45 @@ function View:Changed()
 	if not scheduled then self.refreshTimer = nil self:Redraw() end
 end
 
+---------------------------------------------------------------------------------------------------------------------
+-- The two pages of the view: the events (above) and the rallies (UI/Rallies.lua, M10.9)
+---------------------------------------------------------------------------------------------------------------------
+View.PAGER_HEIGHT = 44
+View.pageId = "events"
+
+function View:ShowPage(id)
+	if id ~= "events" and id ~= "rallies" then return false end
+	self.pageId = id
+	local f = self.root
+	if not f then return true end
+	local holder = f.holders[id]
+	if not holder then
+		holder = CreateFrame("Frame", nil, f)
+		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.PAGER_HEIGHT)
+		holder:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+		holder:Hide()   -- built hidden, so showing it runs the page's OnShow
+		f.holders[id] = holder
+		if id == "events" then self:Build(holder) else ns.RalliesView:Build(holder) end
+	end
+	for pid, other in pairs(f.holders) do
+		if pid ~= id then other:Hide() end
+	end
+	holder:Show()
+	f.pager:Select(id)
+	return true
+end
+
+function View:BuildPages(f)
+	self.root = f
+	f.holders = {}
+	f.pager = Widgets.Segmented(f, { { id = "events", text = L["EVENTS_PAGE_EVENTS"] }, { id = "rallies", text = L["EVENTS_PAGE_RALLIES"] } },
+		function(id) if id ~= View.pageId then View:ShowPage(id) end end)
+	f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	self:ShowPage(self.pageId)
+end
+
 if ns.Shell then
-	ns.Shell:RegisterView("events", { label = L["VIEW_EVENTS"], order = 46, visible = on, build = function(f) View:Build(f) end })
+	ns.Shell:RegisterView("events", { label = L["VIEW_EVENTS"], order = 46, visible = on, build = function(f) View:BuildPages(f) end })
 end
 
 if ns.addon then

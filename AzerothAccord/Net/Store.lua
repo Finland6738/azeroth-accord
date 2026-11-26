@@ -319,6 +319,14 @@ Store.SETS = {
 		owner = function(rec, s) return ns.Availability ~= nil and ns.Availability.ValidRecord(rec, s) end,
 		expires = function(rec, t) return ns.Availability ~= nil and ns.Availability.Expired(rec, t) end,   -- 30 days
 	},
+	rally = {      -- PvP and world rallies (Data/Rallies.lua, M10.9, SPEC-14 §9): "<caller GUID>:<n>" a rally,
+		feature = "season",                       -- "<rally id>:<GUID>" an answer to one
+		maxBytes = 384,
+		volatile = true,                          -- short-lived: never in a summary, never pushed or asked for
+		firstHandOnly = true,                     -- only the author's account sends it; an officer cannot relay it
+		owner = function(rec) return ns.Rallies ~= nil and ns.Rallies.ValidRecord(rec) end,
+		expires = function(rec, t) return ns.Rallies ~= nil and ns.Rallies.Expired(rec, t) end,
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -329,7 +337,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
