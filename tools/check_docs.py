@@ -61,6 +61,11 @@ def check_links(md_files, problems):
                 problems.append(f"{path}: broken link -> {target}")
 
 
+def prose(text):
+    """`text` without its code blocks and code spans: a [[link]] shown there is an example, not a wiki link."""
+    return re.sub(r"`[^`\n]*`", "", re.sub(r"```.*?```", "", text, flags=re.S))
+
+
 def check_wiki(problems):
     folder = os.path.join(ROOT, "docs", "wiki")
     if not os.path.isdir(folder):
@@ -75,7 +80,7 @@ def check_wiki(problems):
         if page not in listed:
             problems.append(f"docs/wiki/{page}.md is not listed in docs/wiki/_Sidebar.md")
     for page in sorted(pages):
-        text = read(f"docs/wiki/{page}.md").decode("utf-8")
+        text = prose(read(f"docs/wiki/{page}.md").decode("utf-8"))
         refs = WIKI_LINK.findall(text) + re.findall(r"\]\(([A-Za-z0-9-]+)(?:#[^)]*)?\)", text)
         for ref in refs:
             if ref.split("#")[0] not in pages:
@@ -99,6 +104,7 @@ def twin_problems(texts):
                 problems.append(f"docs/wiki/{page}.md has no English page {page[:-3]}.md")
                 continue
             body = "\n".join(l for l in texts[page].splitlines() if not l.startswith("*English:"))
+            body = prose(body)
             for m in WIKI_REF.finditer(body):
                 ref = (m.group(1) or m.group(2)).split("#")[0]
                 if not ref.endswith("-it"):

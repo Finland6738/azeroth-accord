@@ -125,6 +125,7 @@ UI\GroupsModel.lua
 UI\Groups.lua
 UI\GuildAddons.lua
 UI\Handbook.lua
+UI\HandbookEditor.lua
 UI\SettingsModel.lua
 UI\Settings.lua
 UI\ShareModel.lua

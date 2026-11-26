@@ -34,9 +34,10 @@ M11.8 accende `raid` quando M11 è completa nel codice, per `v0.11.0`. Fino ad a
 
 | File | Contenuto | Passo |
 |---|---|---|
-| `Data/Handbook.lua` | l'insieme `handbook`, gli scrittori, le revisioni locali, i conflitti, il segno "letto" | M11.2 |
+| `Data/Handbook.lua` | l'insieme `handbook`, gli scrittori, le revisioni locali, i conflitti, il segno "letto"; i limiti prima del salvataggio, l'ordine, la bozza | M11.2, M11.4 |
 | `Data/HandbookText.lua` | il lettore del testo (§4): blocchi, collegamenti, ricerca, pulizia | M11.3 |
-| `UI/Handbook.lua` | la vista *Handbook*: elenco, lettore, ricerca, editor, revisioni | M11.3, M11.4 |
+| `UI/Handbook.lua` | la vista *Handbook*: elenco, lettore, ricerca | M11.3 |
+| `UI/HandbookEditor.lua` | quello che vede in più uno scrittore: editor, anteprima, revisioni, pagine eliminate, *New page*, *Writers*, frecce | M11.4 |
 | `Data/HandbookDefaults.lua` | i modelli delle pagine predefinite e la loro semina una volta (§7) | M11.5 |
 | `Data/Loot.lua` | il record `loot` di `guildcfg`, chi ha l'addon scelto, l'indirizzo di download (§8) | M11.6 |
 | `UI/LootPage.lua` | la parte fissa della pagina del loot nel lettore (§8) | M11.6 |
@@ -122,7 +123,7 @@ Come è fatto (M11.2): la definizione dell'insieme in `Net/Store.lua` ha tre reg
 
 1. mette la propria versione tra le revisioni locali, segnata `lost`, così non si perde;
 2. manda `HANDBOOK_CONFLICT(id)`, un avviso (modulo `handbook`, tipo `conflict`, livello `alert` di [SPEC-13 §3.2](SPEC-13-action-center-notices.md#32-moduli-tipi-e-interruttori)): "Your edit of <titolo> was replaced by <nome>'s edit of the same revision. Your text is kept in the page's revisions on this computer.";
-3. aggiunge una riga nel Centro azioni (fornitore `handbook`, urgenza 2) che apre l'editor sulla pagina con la propria versione accanto, finché lo scrittore non sceglie *Restore* (una revisione nuova) o *Dismiss*.
+3. aggiunge una riga nel Centro azioni (fornitore `handbook`, urgenza 2) che apre le **revisioni** della pagina (§6) sulla propria versione persa, finché lo scrittore non sceglie *Restore* (una revisione nuova) o *Dismiss*.
 
 Solo l'autore della perdente è avvisato; il vincitore e i lettori no. Se il client dell'autore era offline quando è arrivata la vincitrice, il confronto si fa quando arriva (la propria versione è ancora in `revs` o nel record tenuto).
 
@@ -200,7 +201,9 @@ Ogni membro con l'addon vede tutte le pagine vive e non `tpl`, anche offline, da
 - **Senza pagine**: "No handbook pages yet." per i membri; per gli scrittori anche *Create the default pages* (§7.1), finché la semina non è avvenuta.
 - **La pagina del loot** (`P:loot`) ha sopra il testo la parte fissa di §8.
 - `/accord handbook <slug>` apre la vista su una pagina; `/accord handbook` sull'ultima letta o sulla prima.
-- **Fatto in M11.3**: elenco, ricerca, segni, *Mark all as read*, il lettore con *Back*, il comando. *New page*, *Writers*, le frecce, *Edit*, *Revisions* e *Delete* arrivano con l'editor (M11.4), *Create the default pages* con M11.5, la parte fissa della pagina del loot con M11.6.
+- **Fatto in M11.3**: elenco, ricerca, segni, *Mark all as read*, il lettore con *Back*, il comando.
+- **Fatto in M11.4**: *New page* e *Writers* sotto l'elenco; le frecce sono sulla pagina **scelta**, al posto del suo segno; *Edit*, *Revisions* e *Delete* sono sotto il testo. Una pagina nuova va dopo l'ultima (`order` + 5). Spostare scrive di norma **una** revisione (della pagina o della vicina, con un `order` che la mette al suo posto); solo se gli `order` uguali non lasciano posto le pagine si rinumerano (`Handbook:MovePlan`). *Writers* è un menu dei gradi 1–9: quelli degli ufficiali si leggono ma non si tolgono.
+- *Create the default pages* arriva con M11.5, la parte fissa della pagina del loot con M11.6.
 
 ### 5.3 Storia della navigazione
 
@@ -212,12 +215,12 @@ Una pagina è **aggiornata** quando la sua `rev` è più alta di `handbook.read[
 
 ## 6. L'editor (M11.4)
 
-Solo per gli scrittori (`Handbook.IsWriter`), dentro la vista *Handbook*:
+Solo per gli scrittori (`Handbook.IsWriter`), dentro la vista *Handbook* (`UI/HandbookEditor.lua`, M11.4). L'editor prende tutta la vista finché è aperto; chi smette di essere scrittore lo perde subito (la bozza resta).
 
-- **Titolo** (una riga, `TITLE_MAX`) e **testo** (casella a più righe che scorre, `EditBox` con `SetMultiLine` e `SetMaxBytes(BODY_MAX + 1)`, così il limite si vede ma la casella non taglia in silenzio un testo incollato più lungo).
-- **Lunghezza contro il limite**, sempre visibile e dopo la pulizia di §4.4: "3 120 / 4 000 bytes", e il totale del manuale "21 400 / 32 000". Oltre il limite il numero diventa del colore di errore e **Save** è spento, con il motivo ("Too long by 120 bytes").
+- **Titolo** (una riga) e **testo** (casella a più righe che scorre, `EditBox` con `SetMultiLine`). Le caselle **non** hanno `SetMaxBytes` né `SetMaxLetters`: taglierebbero in silenzio un testo incollato, anche uno che dopo la pulizia ci sta (un link a un oggetto è molto più lungo del suo nome). Il limite si vede dal conteggio e da **Save** spento.
+- **Lunghezza contro il limite**, sempre visibile e dopo la pulizia di §4.4: "3 120 / 4 000 bytes", e il totale del manuale "21 400 / 32 000". Oltre il limite il numero diventa del colore di errore e **Save** è spento, con il motivo ("Too long by 120 bytes"). Spengono **Save** anche il titolo vuoto o oltre `TITLE_MAX`, il totale del manuale e le 20 pagine (`Handbook:Check`).
 - **Preview**: un pulsante alterna la casella e l'anteprima del lettore (§4.2), con i collegamenti a pagine mancanti segnati.
-- **Save** scrive la revisione (§3.5 per la modifica sopra una revisione cambiata). **Cancel** chiede conferma se il testo è cambiato. La **bozza** si tiene in `handbook.draft` a ogni cambio (una sola, per account): se il gioco si chiude, all'apertura dell'editor sulla stessa pagina c'è *Restore draft*.
+- **Save** scrive la revisione (§3.5 per la modifica sopra una revisione cambiata; anche una cancellazione arrivata nel frattempo si mostra così). Senza modifiche non scrive nulla, salvo pubblicare un modello. **Keep mine** scrive sopra la revisione mostrata: se ne arriva un'altra prima del clic, si mostra quella. **Cancel** chiede conferma (un secondo clic) se il testo è cambiato. La **bozza** si tiene in `handbook.draft` a ogni cambio (una sola, per account; id `new` per una pagina nuova): se il gioco si chiude, all'apertura dell'editor sulla stessa pagina c'è *Restore draft*; una bozza offerta e non ripresa resta anche se si annulla una modifica fatta nel frattempo.
 - **Revisions**: l'elenco delle revisioni viste da questo client (§3.5): numero, autore, data, lunghezza, *lost* per quelle perse in un conflitto. Scegliendone una si vede l'anteprima; **Restore** la scrive come **revisione nuova** (`rev` = quella tenuta + 1), mai riportando indietro il numero: tutti i client la ricevono come una modifica qualsiasi.
 - Una pagina cancellata non compare nell'elenco, ma se il client ne ha le revisioni gli scrittori la trovano in *Deleted pages* (in fondo all'elenco), con *Restore*.
 - L'editor non si apre in combattimento; il salvataggio è sempre un clic.
@@ -363,7 +366,7 @@ Il sondaggio è nel file della milestone ([M11, Addons on WoW Forever](../roadma
 Nella prova di M11.8 (`docs/checklists/M11.md`):
 
 - SimpleHTML con i caratteri dell'addon, i collegamenti cliccabili e lo scorrimento di una pagina lunga;
-- la casella a più righe con 4000 byte, l'incolla di un testo lungo e `SetMaxBytes`;
+- la casella a più righe con 4000 byte, l'incolla di un testo lungo (nessun taglio) e il cursore che resta visibile scorrendo;
 - che un link a un oggetto incollato nell'editor diventi `[Nome]` al salvataggio;
 - una pagina di 4000 byte che arriva intera a un membro (circa 11 parti) durante una serata normale, e senza rifiuti per limite di velocità con FDCP caricato;
 - il criterio di uscita: un ufficiale cambia il regolamento, un membro che entra dopo lo vede segnato come aggiornato;

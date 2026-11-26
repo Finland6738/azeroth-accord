@@ -20,6 +20,9 @@
 --            client of the losing author, when its own version is replaced by another author's of the same revision,
 --            keeps its text as a `lost` revision, emits HANDBOOK_CONFLICT(id), posts the notice `handbook` / `conflict`
 --            and shows an Action Center row until Restore (a new revision) or Dismiss. Nobody else is told.
+-- Editor     (M11.4, SPEC-15 §6) Check says what stops a save before it is tried, Move changes the order of the list
+--            (one revision, rarely more), Deleted lists the deleted pages this client can restore, and one draft per account
+--            is kept in GuildKey:Data().handbook.draft { id, base, title, body, at }; it never travels.
 -- Read marks (M11.3, SPEC-15 §5.4) GuildKey:Data().handbook.read[id], per account: the revision last read. A page is
 --            updated while its revision is higher and another account wrote it; the reader marks it read.
 -- Switch     Core/Features.lua "raid": off, nothing is written, accepted or sent, and nothing is shown.
@@ -31,7 +34,8 @@ local Handbook = {}
 ns.Handbook, ns.modules = Handbook, ns.modules or {}
 ns.modules.Handbook = Handbook
 
-local type, pairs, ipairs, tostring, floor, sort, remove = type, pairs, ipairs, tostring, math.floor, table.sort, table.remove
+local type, pairs, ipairs, tostring, tonumber, floor, sort, remove = type, pairs, ipairs, tostring, tonumber, math.floor,
+	table.sort, table.remove
 
 Handbook.FEATURE = "raid"
 Handbook.SET = "handbook"
@@ -48,6 +52,9 @@ Handbook.WRITERS_ID = "handbook"  -- the record of `guildcfg` with the chosen ra
 Handbook.RANKS_MAX = 9
 Handbook.RANK_NAME_MAX = 32
 Handbook.SEEDED_ID = "seeded"
+Handbook.NEW_DRAFT = "new"        -- the draft of a page that has no id yet
+Handbook.NEW_ORDER = 10           -- the order of the first page; a new one goes ORDER_STEP after the last
+Handbook.ORDER_STEP = 5
 
 local HOUR = 3600
 
@@ -226,6 +233,13 @@ function Handbook:Get(id)
 	return store():Get(Handbook.SET, id)
 end
 
+-- The order of the list: `order`, then the title, then the id.
+local function before(a, b)
+	if a.order ~= b.order then return a.order < b.order end
+	if a.title ~= b.title then return a.title < b.title end
+	return a.id < b.id
+end
+
 -- The live pages in their order (`order`, then the title, then the id), the templates only with `templates`. The second
 -- result is the number of pages left out over MAX_PAGES (SPEC-15 §3.2), the third those pages, in the same order.
 function Handbook:Pages(templates)
@@ -234,11 +248,7 @@ function Handbook:Pages(templates)
 	for _, rec in pairs(records()) do
 		if live(rec) then out[#out + 1] = rec end
 	end
-	sort(out, function(a, b)
-		if a.order ~= b.order then return a.order < b.order end
-		if a.title ~= b.title then return a.title < b.title end
-		return a.id < b.id
-	end)
+	sort(out, before)
 	local over = {}
 	while #out > Handbook.MAX_PAGES do
 		table.insert(over, 1, remove(out))
@@ -260,6 +270,51 @@ function Handbook:Usage(except)
 		end
 	end
 	return pages, bytes
+end
+
+-- The deleted pages this client holds a revision of, by title: { { id, title } }.
+function Handbook:Deleted()
+	local out = {}
+	if not ready() then return out end
+	local data = ns.GuildKey:Data()
+	local revs = data and data.handbook and data.handbook.revs or {}
+	for id, rec in pairs(records()) do
+		local list = Handbook.SlugOf(id) and rec.del == true and revs[id]
+		if type(list) == "table" and list[1] then
+			local newest = list[1]
+			for _, r in ipairs(list) do if (r.rev or 0) > (newest.rev or 0) then newest = r end end
+			out[#out + 1] = { id = id, title = newest.title or Handbook.SlugOf(id) }
+		end
+	end
+	sort(out, function(a, b)
+		if a.title ~= b.title then return a.title < b.title end
+		return a.id < b.id
+	end)
+	return out
+end
+
+-- The order a new page gets: after the last one.
+function Handbook:NextOrder()
+	local pages = self:Pages(true)
+	local last = pages[#pages]
+	if not last then return Handbook.NEW_ORDER end
+	local order = last.order + Handbook.ORDER_STEP
+	return order > Handbook.ORDER_MAX and Handbook.ORDER_MAX or order
+end
+
+-- What stops a save of the page `id` (nil: a new page) with this cleaned title and body, before it is tried:
+-- { title, body, total (bytes the save would leave), reason, over }. `reason` is nil, "title_empty", "title", "body",
+-- "total" (each with `over` = the bytes too many) or "pages".
+function Handbook:Check(id, title, body)
+	local pages, bytes = self:Usage(id)
+	local out = { title = #title, body = #body, total = bytes + #body }
+	local held = id and ready() and store():Get(Handbook.SET, id)
+	if title == "" then out.reason = "title_empty"
+	elseif out.title > Handbook.TITLE_MAX then out.reason, out.over = "title", out.title - Handbook.TITLE_MAX
+	elseif out.body > Handbook.BODY_MAX then out.reason, out.over = "body", out.body - Handbook.BODY_MAX
+	elseif out.total > Handbook.TOTAL_MAX then out.reason, out.over = "total", out.total - Handbook.TOTAL_MAX
+	elseif not live(held) and pages >= Handbook.MAX_PAGES then out.reason = "pages" end
+	return out
 end
 
 -- A free page id for a title: the letters without accents, spaces as "-", a number when the slug is taken.
@@ -504,6 +559,82 @@ function Handbook:Discard(id, title, body, base)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The order of the list (SPEC-15 §5.2)
+---------------------------------------------------------------------------------------------------------------------
+-- An order that puts `rec` between `prev` and `next` (either may be nil), the middle of those that do; or nil.
+local function orderBetween(rec, prev, nxt)
+	local fits = {}
+	for o = 1, Handbook.ORDER_MAX do
+		local moved = { id = rec.id, title = rec.title, order = o }
+		if (not prev or before(prev, moved)) and (not nxt or before(moved, nxt)) then fits[#fits + 1] = o end
+	end
+	return fits[floor((#fits + 1) / 2)]
+end
+
+-- The writes that move page `id` one place up (step -1) or down (1): { { rec, order } }, usually one: the page's, or
+-- the neighbour's; when neither fits (equal orders), the pages are numbered anew. nil when it cannot move.
+function Handbook:MovePlan(id, step)
+	local pages = self:Pages(true)
+	local at
+	for i, rec in ipairs(pages) do if rec.id == id then at = i end end
+	local to = at and at + step
+	if not (to and pages[to] and (step == 1 or step == -1)) then return nil end
+	local moved, other = pages[at], pages[to]
+	pages[at], pages[to] = other, moved
+	for _, pick in ipairs({ { moved, to }, { other, at } }) do
+		local order = orderBetween(pick[1], pages[pick[2] - 1], pages[pick[2] + 1])
+		if order then return { { pick[1], order } } end
+	end
+	local gap = floor(Handbook.ORDER_MAX / (#pages + 1))
+	local plan = {}
+	for i, rec in ipairs(pages) do
+		if rec.order ~= i * gap then plan[#plan + 1] = { rec, i * gap } end
+	end
+	return plan
+end
+
+-- Moves the page in the list: each changed page is written as a new revision. Returns true, or false and a reason of
+-- Save ("id" when it cannot move that way).
+function Handbook:Move(id, step)
+	if not ready() then return false, "off" end
+	if not self:CanWrite() then return false, "writer" end
+	local plan = self:MovePlan(id, step)
+	if not plan then return false, "id" end
+	if #recent(ownGUID(), now()) + #plan > Handbook.WRITES_PER_HOUR then return false, "rate" end
+	for _, w in ipairs(plan) do
+		local rec = w[1]
+		local ok, why = self:Save(rec.id, { title = rec.title, body = rec.body, order = w[2], tpl = rec.tpl },
+			{ base = rec.rev })
+		if not ok then return false, why end
+	end
+	return true
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The draft (SPEC-15 §6): one per account, never sent
+---------------------------------------------------------------------------------------------------------------------
+-- The draft of the page `id` (NEW_DRAFT: a new page), or nil.
+function Handbook:Draft(id)
+	local hb = ready() and localData()
+	local d = hb and hb.draft
+	if type(d) == "table" and d.id == id and type(d.title) == "string" and type(d.body) == "string" then return d end
+	return nil
+end
+
+-- Keeps the editor's text as it is typed (not cleaned); it takes the place of any other draft.
+function Handbook:SaveDraft(id, base, title, body)
+	local hb = ready() and localData()
+	if not hb then return false end
+	hb.draft = { id = id, base = base, title = title, body = body, at = now() }
+	return true
+end
+
+function Handbook:ClearDraft(id)
+	local hb = ready() and localData()
+	if hb and type(hb.draft) == "table" and hb.draft.id == id then hb.draft = nil end
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Conflicts (SPEC-15 §3.5)
 ---------------------------------------------------------------------------------------------------------------------
 local function nameOf(guid)
@@ -543,12 +674,16 @@ function Handbook:Dismiss(id, rev)
 	emit("HANDBOOK_CONFLICT", id)
 end
 
--- Restore: the revision `rev` of the page (a past one, lost or not) written as a new revision.
-function Handbook:Restore(id, rev, time)
+-- Restore: the revision `rev` of the page (a past one, lost or not) written as a new revision; `time` and `author`
+-- tell apart two of the same number.
+function Handbook:Restore(id, rev, time, author)
 	if not ready() then return nil, "off" end
 	local pick
 	for _, r in ipairs(self:Revisions(id)) do
-		if not r.current and r.rev == rev and (time == nil or r.time == time) then pick = r break end
+		if not r.current and r.rev == rev and (time == nil or r.time == time) and (author == nil or r.author == author) then
+			pick = r
+			break
+		end
 	end
 	if not pick then return nil, "revision" end
 	local held = store():Get(Handbook.SET, id)
@@ -571,8 +706,11 @@ function Handbook:Conflict(mine, winner)
 	end
 end
 
-local function openView(id)
-	if ns.HandbookView and ns.HandbookView.Open then ns.HandbookView:Open(id) end
+-- Opens the handbook on a page; with `rev`, on its revisions (the writer's lost text, M11.4).
+local function openView(id, rev)
+	local view = ns.HandbookView
+	if not view then return end
+	if rev and view.OpenConflict then view:OpenConflict(id, rev) elseif view.Open then view:Open(id) end
 end
 
 -- The Action Center rows: for a writer one per lost revision waiting for a choice (urgency 2); for everybody one for the
@@ -584,7 +722,7 @@ function Handbook:ActionRows()
 			rows[#rows + 1] = { key = c.id .. ":" .. tostring(c.rev), urgency = 2, time = c.time, mark = tostring(c.rev),
 				who = nameOf(c.winner), title = ns.L["HANDBOOK_ROW_CONFLICT"]:format(c.page or "?"),
 				detail = ns.L["HANDBOOK_ROW_CONFLICT_DETAIL"]:format(nameOf(c.winner)),
-				open = function() openView(c.id) end }
+				open = function() openView(c.id, c.rev) end }
 		end
 	end
 	local updated = self:Updated()
@@ -618,8 +756,9 @@ end
 if ns.Notify then
 	ns.Notify:Register("handbook", { label = "ACT_PROVIDER_HANDBOOK", order = 27, feature = "raid",
 		open = function(entry)
-			local id = type(entry.key) == "string" and entry.key:match("^conflict#(P:[^#]+)#") or nil
-			if ns.HandbookView and ns.HandbookView.Open then ns.HandbookView:Open(id) end
+			local key = type(entry.key) == "string" and entry.key or ""
+			local id, rev = key:match("^conflict#(P:[^#]+)#(%d+)$")
+			openView(id, tonumber(rev))
 		end, kinds = {
 			{ id = "conflict", level = "alert", off = "SET_NOTICE_HANDBOOK_CONFLICT", group = "HANDBOOK_NOTICE_CONFLICTS" },
 		} })

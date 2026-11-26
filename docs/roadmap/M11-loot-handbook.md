@@ -88,7 +88,9 @@ Notes:
 - Spec: SPEC-15
 - Scope: multi-line editing with a preview, the length shown against the limit, and a list of past revisions with "restore".
 - Done when:
-  - [ ] An edit that would exceed the limit cannot be saved; restore creates a new revision.
+  - [x] An edit that would exceed the limit cannot be saved; restore creates a new revision.
+  - *Done (2026-11-26):* `UI/HandbookEditor.lua`: the editor (title, multi-line text, length after cleaning against the limits, preview, one draft, *Keep mine* / *Discard mine* over a page saved meanwhile), the revisions with *Restore* and *Dismiss*, deleted pages, *New page*, *Writers*, the arrows and *Delete*, all for writers only and behind `raid`; `Handbook:Check`, `Move`, `Deleted` and the draft in `Data/Handbook.lua`; `Tests/test_handbook_editor.lua`.
+- Real client: the multi-line box with 4000 bytes, a long paste, an item link pasted and saved as its name, the cursor following in the scrolling box, the arrows and the writers menu.
 
 ### M11.5 — Default pages
 - Branch: `step/m11-5-default-pages`

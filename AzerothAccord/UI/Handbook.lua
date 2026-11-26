@@ -6,8 +6,9 @@
 --        per block (Data/HandbookText.lua), so the reader knows where each heading and line is. A link to a page the
 --        reader cannot open is grey text; a web address opens the copy box (the game opens no browser).
 -- Read   a page that stays open for READ_DELAY seconds is marked read (Data/Handbook.lua), never by passing through.
--- Every member reads every published page from what this client holds, with or without anybody else online. The editor
--- (M11.4), the default pages (M11.5) and the loot page's fixed part (M11.6) come later. Nothing here writes a page.
+-- Every member reads every published page from what this client holds, with or without anybody else online. What a
+-- writer gets on top of this (the editor, the revisions, New page, Writers: M11.4) is UI/HandbookEditor.lua; the default
+-- pages (M11.5) and the loot page's fixed part (M11.6) come later. This file writes no page.
 -- Everything is behind the switch "raid" (Core/Features.lua): off, there is no tab and no command.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -128,6 +129,7 @@ local MARKS = {
 	updated = { key = "HANDBOOK_UPDATED", token = "accent-text" },
 	template = { key = "HANDBOOK_TEMPLATE", token = "warn" },
 	over = { key = "HANDBOOK_OVER", token = "err" },
+	deleted = { key = "HANDBOOK_DELETED", token = "err" },
 }
 
 local function listRow(f, i)
@@ -148,7 +150,8 @@ local function listRow(f, i)
 	b.sub:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -26)
 	b.sub:SetWordWrap(false)
 	b:SetScript("OnClick", function(self)
-		if self.id then View:Show(self.id, { line = self.line }) end
+		if not self.id then return end
+		if self.deleted then View:OpenRevisions(self.id) else View:Show(self.id, { line = self.line }) end
 	end)
 	f.rows[i] = b
 	return b
@@ -158,6 +161,9 @@ local function drawList(f, rows)
 	local results = View.Results(rows)
 	View.results = results
 	local items = results or rows
+	local editor = ns.HandbookEditor
+	if editor and not results then items = editor:ListItems(rows) end
+	local selected = View.revisions and View.revisions.id or View.selected
 	local height = results and View.RESULT_HEIGHT or View.ROW_HEIGHT
 	for i, item in ipairs(items) do
 		local b = listRow(f, i)
@@ -165,7 +171,7 @@ local function drawList(f, rows)
 		b:SetPoint("TOPLEFT", f.list.page, "TOPLEFT", 0, -(i - 1) * height)
 		b:SetPoint("TOPRIGHT", f.list.page, "TOPRIGHT", 0, -(i - 1) * height)
 		b:SetHeight(height)
-		b.id, b.line = item.id, results and item.line or nil
+		b.id, b.line, b.deleted = item.id, results and item.line or nil, item.deleted
 		local mark = not results and item.mark and MARKS[item.mark]
 		b.mark:SetText(mark and L[mark.key] or "")
 		if mark then Theme.Text(b.mark, mark.token) end
@@ -173,8 +179,10 @@ local function drawList(f, rows)
 		b.label:SetText(item.heading and (item.title .. " · " .. item.heading) or item.title)
 		b.sub:SetText(results and item.text or "")
 		b.sub:SetShown(results ~= nil)
-		b.selected:SetShown(not results and item.id == View.selected)
+		Theme.Text(b.label, item.header and "accent-text" or "text-1")
+		b.selected:SetShown(not results and item.id ~= nil and item.id == selected)
 		b:Show()
+		if editor then editor:Row(f, b, item, results ~= nil) end
 	end
 	for i = #items + 1, #f.rows do f.rows[i]:Hide() end
 	local note = ""
@@ -227,7 +235,8 @@ local function blockFrame(f, i)
 	if h.SetHyperlinksEnabled then h:SetHyperlinksEnabled(true) end
 	h:SetScript("OnHyperlinkClick", function(self, link)
 		local n = type(link) == "string" and tonumber(link:match("^acc:(%d+)$"))
-		if n and self.links and self.links[n] then View:Follow(self.links[n]) end
+		if not (n and self.links and self.links[n]) then return end
+		if f.follow then f.follow(self.links[n]) else View:Follow(self.links[n]) end
 	end)
 	f.blocks[i] = h
 	Theme.Call(h, paintBlock)
@@ -281,7 +290,7 @@ local function drawText(f, rec)
 	placeBlocks(f)
 	-- the game knows the height of a new text only once it has laid it out
 	ns.Compat.After(0, function()
-		if View.frame == f and f.textKey == key then placeBlocks(f) end
+		if f.textKey == key then placeBlocks(f) end
 	end)
 end
 
@@ -306,6 +315,10 @@ function View:ApplyAnchor()
 		end
 	end
 end
+
+-- The editor and the revisions draw their previews with the reader's parts. A `pane` is a table with `text` (a
+-- Scroller), `blocks` = {}, `blank` (shown for an empty text) and optionally `follow(target)` for its links.
+View.Scroller, View.DrawText = scroller, drawText
 
 local function drawReader(f, row)
 	f.reader:SetShown(row ~= nil)
@@ -335,7 +348,8 @@ end
 -- Starts the clock of the open page when it is updated; the same page and revision keep their clock.
 function View:Watch()
 	local f = self.frame
-	local rec = f and f:IsVisible() and self.selected and enabled() and book():Get(self.selected)
+	local rec = f and f:IsVisible() and not (self.editor or self.revisions) and self.selected and enabled()
+		and book():Get(self.selected)
 	if not (rec and book():IsUpdated(rec)) then return self:StopReading() end
 	local id, key = rec.id, rec.id .. "#" .. rec.rev
 	if self.timerKey == key then return end
@@ -356,10 +370,12 @@ local function layout(f)
 	local list = (width > 0 and width < View.NARROW) and View.LIST_NARROW or View.LIST_WIDTH
 	f.list:ClearAllPoints()
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.list:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 40)
+	f.list:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, f.listBottom or 40)
 	f.list:SetWidth(list)
 	f.list.page:SetWidth(list)
+	f.listWidth = list
 end
+View.Layout = layout
 
 function View:Redraw()
 	local f = self.frame
@@ -371,8 +387,11 @@ function View:Redraw()
 		local last = hb and hb.last
 		self.selected = (last and byId[last] and last) or (rows[1] and rows[1].id) or nil
 	end
-	local empty = #rows == 0
-	f.empty:SetShown(empty)
+	local editor = ns.HandbookEditor
+	-- the editor takes the whole view while it is open
+	if editor and editor:Cover(f) then return self:Watch() end
+	local empty = #rows == 0 and not (editor and #editor:ListItems(rows) > 0)
+	f.empty:SetShown(#rows == 0 and not self.revisions)
 	f.list:SetShown(not empty)
 	f.markAll:SetShown(not empty)
 	f.markAll:SetEnabled(#book():Updated() > 0)
@@ -382,6 +401,7 @@ function View:Redraw()
 		drawList(f, rows)
 		drawReader(f, byId[self.selected])
 	end
+	if editor then editor:Decorate(f, byId[self.selected]) end
 	self:Watch()
 end
 
@@ -405,7 +425,7 @@ function View:Show(id, opts)
 	else
 		self.history = {}
 	end
-	self.selected = id
+	self.selected, self.revisions = id, nil
 	self.anchor = (opts.heading or opts.line) and { id = id, heading = opts.heading, line = opts.line } or nil
 	remember(id)
 	if f then
@@ -548,6 +568,7 @@ if ns.addon then
 		ns.Bus:On("GUILD_CHANGED", function()
 			View:StopReading()
 			View.selected, View.anchor, View.history, View.search = nil, nil, {}, ""
+			View.editor, View.revisions, View.deleting = nil, nil, nil
 			View.version = View.version + 1
 			View:Changed()
 		end)
