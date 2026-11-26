@@ -1614,3 +1614,11 @@ L["SHARE_AVAIL_OFF_NOTE"] = "Off: nothing of when you play is sent. Your own map
 L["SHARE_AVAIL_NAMES"] = "Everybody sees how many are online per hour; who they are, only officers and the Guild Master."
 L["SHARE_AVAIL_LINE"] = "Hours of the week usually online: %d; online at least once: %d; weeks measured: %d"
 L["SHARE_AVAIL_WITHDRAWN"] = "Withdrawn: the guild no longer has it."
+
+-- The guild handbook (M11.2, SPEC-15 §3.5): the notice and the Action Center row of a lost edit
+L["ACT_PROVIDER_HANDBOOK"] = "Handbook"
+L["SET_NOTICE_HANDBOOK_CONFLICT"] = "My handbook edit was replaced"
+L["HANDBOOK_NOTICE_CONFLICT"] = "Your edit of %s was replaced by %s's edit of the same revision. Your text is kept in the page's revisions on this computer."
+L["HANDBOOK_NOTICE_CONFLICTS"] = "%d of your handbook edits were replaced"
+L["HANDBOOK_ROW_CONFLICT"] = "Your edit of %s was replaced"
+L["HANDBOOK_ROW_CONFLICT_DETAIL"] = "%s saved the same revision later. Restore yours or dismiss."

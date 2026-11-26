@@ -145,11 +145,16 @@ local function valid(datum, value)
 end
 Integrations.ValidChoice = valid
 
--- The owner rule of the set `guildcfg` (Net/Store.lua): the record "sources", with a valid choice for every datum, or
--- the record "target", the target composition (Data/Composition.lua, M10.4).
+-- The owner rule of the set `guildcfg` (Net/Store.lua): the record "sources", with a valid choice for every datum, the
+-- record "target", the target composition (Data/Composition.lua, M10.4), or (with "raid" on) the record "handbook", the
+-- ranks that write the handbook (Data/Handbook.lua, M11.2).
 function Integrations.ValidRecord(rec)
 	if type(rec) ~= "table" then return false end
 	if ns.Composition and rec.id == ns.Composition.ID then return ns.Composition.ValidTarget(rec) end
+	-- the ranks that write the handbook (SPEC-15 §3.3): an M11 record, refused while the switch "raid" is off
+	if ns.Handbook and rec.id == ns.Handbook.WRITERS_ID then
+		return ns.Features ~= nil and ns.Features.On("raid") and ns.Handbook.ValidWriters(rec)
+	end
 	if rec.id ~= Integrations.SOURCES_ID then return false end
 	for _, datum in ipairs(Integrations.DATA) do
 		if not valid(datum, rec[datum]) then return false end

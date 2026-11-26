@@ -67,7 +67,8 @@ Notes:
   - only ranks the guild chooses can write (officers by default);
   - pages are synced on `GUILD`, and long bodies are sent in parts.
 - Done when:
-  - [ ] A page from a non-writer is refused; two edits of the same revision keep the newer and flag the conflict to its author.
+  - [x] A page from a non-writer is refused; two edits of the same revision keep the newer and flag the conflict to its author.
+  - *Done (2026-11-26):* `Data/Handbook.lua` (the data set `handbook`, writers by rank from the `guildcfg` record `handbook`, the limits of Q29 as constants, the past revisions kept locally, conflicts with a notice and an Action Center row for the losing author); `Net/Store.lua` gains the set's `writer`, `rate`, `replaced` and `keepDeleted` rules; `Net/Sync.lua` the handbook's own summary (`hb`, `hbb`), no whisper push, requests answered once on GUILD, long pages alone in BULK. The simulator measure of SPEC-15 §3.7 needed the 10-minute wait before the first request (`Sync.HB_REQ_AFTER`). All behind `raid`; `Tests/test_handbook.lua`.
 
 ### M11.3 — Reader
 - Branch: `step/m11-3-reader`

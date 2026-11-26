@@ -1603,3 +1603,11 @@ L["SHARE_AVAIL_OFF_NOTE"] = "Spento: non viene mandato nulla di quando giochi. L
 L["SHARE_AVAIL_NAMES"] = "Tutti vedono quanti sono online per ora; chi sono, solo gli ufficiali e il Guild Master."
 L["SHARE_AVAIL_LINE"] = "Ore della settimana di solito online: %d; online almeno una volta: %d; settimane misurate: %d"
 L["SHARE_AVAIL_WITHDRAWN"] = "Ritirata: la gilda non l'ha più."
+
+-- Il manuale di gilda (M11.2, SPEC-15 §3.5): l'avviso e la riga del Centro azioni di una modifica persa
+L["ACT_PROVIDER_HANDBOOK"] = "Manuale"
+L["SET_NOTICE_HANDBOOK_CONFLICT"] = "La mia modifica al manuale è stata sostituita"
+L["HANDBOOK_NOTICE_CONFLICT"] = "La tua modifica di %s è stata sostituita da quella di %s della stessa revisione. Il tuo testo resta tra le revisioni della pagina su questo computer."
+L["HANDBOOK_NOTICE_CONFLICTS"] = "%d tue modifiche al manuale sono state sostituite"
+L["HANDBOOK_ROW_CONFLICT"] = "La tua modifica di %s è stata sostituita"
+L["HANDBOOK_ROW_CONFLICT_DETAIL"] = "%s ha salvato la stessa revisione dopo. Ripristina la tua o ignora."

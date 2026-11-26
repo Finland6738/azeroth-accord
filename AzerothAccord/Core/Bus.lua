@@ -33,6 +33,10 @@
 --   FDCP_CHANGED(event)                               Data/FDCP.lua; FDCP's public API said its data changed (READY,
 --                                                     SEASON_CHANGED, POOL_CHANGED, CREDITS_CHANGED, NIGHT_CHANGED or
 --                                                     RULES_CHANGED), while the guild uses FDCP as a source (M11.7).
+--   HANDBOOK_CHANGED(id)                              Data/Handbook.lua; a handbook page arrived, was written or deleted
+--                                                     (nil: several), M11.2.
+--   HANDBOOK_CONFLICT(id)                             Data/Handbook.lua; this account's edit of a page was replaced by
+--                                                     another writer's edit of the same revision, or its row was dismissed.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

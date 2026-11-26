@@ -73,6 +73,7 @@ Data\Groups.lua
 Data\Rallies.lua
 Data\GameFinder.lua
 Data\Census.lua
+Data\Handbook.lua
 Data\Export.lua
 Data\Demo.lua
 Core\Demo.lua

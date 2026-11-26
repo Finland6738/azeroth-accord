@@ -44,6 +44,13 @@
 -- The availability map (`avail`, SPEC-14 §8.2) is an ordinary set (first hand, officer relay, saved): one small record per
 -- character, the 168 levels of when its account is online, or its withdrawal.
 --
+-- The guild handbook (`handbook`, SPEC-15 §3) is an ordinary set (first hand, officer relay, saved) with three rules of
+-- its own: only a writer (Data/Handbook.lua: the Guild Master, the officers and the ranks the officers chose) passes a page
+-- first hand (`writer`, HBK-01: refused as "authority"); a receiver takes at most Handbook.WRITES_PER_HOUR new revisions
+-- of an author an hour (`rate`, HBK-05); and the record a revision replaces is handed to its module first (`replaced`), so
+-- the client keeps its past revisions and sees a conflict (SPEC-15 §3.5). A deleted page stays for ever (`keepDeleted`).
+-- Its records are summarised apart (`summary = "handbook"`) and never pushed (Net/Sync.lua).
+--
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
@@ -172,6 +179,13 @@ function Store.IsExtraSummary(set)
 	return def ~= nil and def.summary == "extra"
 end
 
+-- The summary a set's records go to apart from the older sets: "extra" (the addon census), "handbook" (the guild
+-- handbook, SPEC-15 §3.6) or nil (the summary per author).
+function Store.SummaryKind(set)
+	local def = Store.SETS[set]
+	return def ~= nil and def.summary or nil
+end
+
 -- true when `set` is one of the officer tools' sets (SPEC-12 §1.2): its records are never sent on GUILD and are summarised
 -- by group, not by author.
 -- true when `set` is short-lived (SPEC-13 GRP-03): its records are written and sent like the others, but never counted in a
@@ -241,12 +255,24 @@ Store.SETS = {
 		transition = function(held, rec) return ns.BankRequests.Transition(held, rec) end,   -- the content of a request never changes
 		expires = function(rec, t) return closedBankRequest(rec) and (rec.time or 0) < t - 60 * DAY end,
 	},
-	guildcfg = {   -- guild settings of officers: "sources" { raid, loot } (Data/Integrations.lua), "target" (Data/Composition.lua)
-		feature = "season",                       -- Core/Features.lua (M10; also on with "raid"): off, neither written, accepted nor sent
-		maxBytes = 256,
+	guildcfg = {   -- guild settings of officers: "sources" { raid, loot } (Data/Integrations.lua), "target" (Data/Composition.lua),
+		feature = "season",                       -- "handbook" the writers' ranks (Data/Handbook.lua, only with "raid")
+		maxBytes = 768,                           -- Core/Features.lua (M10; also on with "raid"): off, neither written, accepted nor sent
 		authority = function() return true end,   -- written and passed on only by officers (NET-12)
 		authorAny = true,                         -- the choice stays valid after its officer left or was demoted
 		owner = function(rec) return ns.Integrations ~= nil and ns.Integrations.ValidRecord(rec) end,
+	},
+	handbook = {   -- the guild handbook (Data/Handbook.lua, M11.2, SPEC-15 §3): "P:<slug>" a page, "seeded" the default pages' seeding
+		feature = "raid",                         -- Core/Features.lua: with the switch off, neither written, accepted nor sent
+		maxBytes = 6144,
+		summary = "handbook",                     -- its own entries in the summaries, never pushed by WHISPER (SPEC-15 §3.6)
+		keepDeleted = true,                       -- a deleted page stays a `del` record for ever: it does not come back (§7.2)
+		aloneOver = 1024,                         -- a page bigger than this travels alone in its REC (§3.6 point 3)
+		bulk = true,                              -- its REC go as BULK
+		writer = function(rec, member) return ns.Handbook ~= nil and ns.Handbook.IsWriter(member) end,   -- HBK-01
+		rate = function(rec) return ns.Handbook ~= nil and ns.Handbook.Within(rec) end,                  -- HBK-05
+		replaced = function(held, rec, origin) if ns.Handbook then ns.Handbook.Replaced(held, rec, origin) end end,
+		owner = function(rec) if not ns.Handbook then return false end return ns.Handbook.ValidRecord(rec) end,   -- HBK-02
 	},
 	timeline = {   -- the roster changes an officer observed (Data/Timeline.lua, M8.2): id = "<observer GUID>:<day>:<part>", { observer, day, ev }
 		maxBytes = 8192,
@@ -337,7 +363,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
@@ -411,6 +437,7 @@ function Store:Put(set, id, fields)
 	rec.rev = (old and old.rev or 0) + 1
 	if ns.Config and ns.Config.EstimateSize(rec) > def.maxBytes then return nil, "size" end
 	if def.owner and not def.owner(rec, self) then return nil, "owner" end
+	if def.replaced and old then def.replaced(old, rec, "local") end
 	records[id] = rec
 	stats.written = stats.written + 1
 	emit("STORE_CHANGED", set, id, "local")
@@ -486,6 +513,12 @@ function Store:Check(set, rec, ctx)
 		-- that only travels first hand (the group finder, GRP-02) takes no relay, not even from an officer
 		return false, "relay"
 	end
+	-- a set with writers (the handbook, HBK-01): first hand, the author must be a writer in this client's roster now; an
+	-- officer's relay of somebody else's record stays valid after its author lost the rank (authorAny)
+	if def.writer and firstHand then
+		local author = self:MemberByGUID(rec.author)
+		if not (author and def.writer(rec, author)) then return false, "authority" end
+	end
 
 	if def.observation then
 		if rec.observer ~= rec.author or type(rec.pairs) ~= "table" then return false, "observer" end
@@ -534,6 +567,8 @@ function Store:Accept(set, rec, ctx)
 		return false, cmp == 0 and "same" or "older"
 	end
 	if def.expires and def.expires(rec, now()) then return reject("expired") end
+	if def.rate and not def.rate(rec) then return reject("rate") end
+	if def.replaced and held then def.replaced(held, rec, "remote") end
 	records[rec.id] = copy(rec)
 	stats.accepted = stats.accepted + 1
 	emit("STORE_CHANGED", set, rec.id, "remote")
@@ -581,7 +616,7 @@ function Store:Prune()
 			for id, rec in pairs(records) do
 				local gone = type(rec) ~= "table"
 					or (def.expires and def.expires(rec, t))
-					or (rec.del == true and (rec.time or 0) < t - 60 * DAY)
+					or (rec.del == true and not def.keepDeleted and (rec.time or 0) < t - 60 * DAY)
 				if gone then
 					records[id] = nil
 					removed = removed + 1
