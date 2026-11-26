@@ -17,6 +17,7 @@ Ideas not yet planned, and what stays out of the addon. Every idea of the first 
 | Officer tools | [M8](M8-officer-tools.md) |
 | Kudos with a reason | [M14](M14-board-polls.md) |
 | Mentors for new members | [M12](M12-recruitment.md) |
+| Guild quests | [M16](M16-quests.md) (owner, 2026-11-26); later, not in M16: objective progress, who already completed a quest, attunement quests, a login digest line for quests in common |
 
 ## Not planned
 

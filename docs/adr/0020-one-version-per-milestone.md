@@ -29,3 +29,7 @@ The owner changed points 1 and 5:
 - The first release is **`v0.8.0`**, tagged before any in-game check; `v0.1.0` to `v0.7.0` are not tagged. The open checks stay open and what they find is fixed in `v0.8.<F>` releases.
 - From M9 on, `v0.N.0` is released after each completed milestone; these milestone tags have the owner's standing approval. Any other tag is asked first, and development steps still create none.
 - A release carries no half-finished feature: what a later milestone left in the code is switched off in `AzerothAccord/Core/Features.lua` until that milestone is complete.
+
+## Update (2026-11-26)
+
+The owner added milestone **M16** (guild quests, [M16](../roadmap/M16-quests.md)) after M15. Point 3 now reads "up to M16": M15 is released as `v0.15.0`, M16 as `v0.16.0`, and `v1.0.0` follows M16, whose last step runs the full release check.

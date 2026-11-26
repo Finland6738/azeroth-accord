@@ -7,7 +7,7 @@
 - quizzes;
 - Secret Santa.
 
-Help requests, first planned here, are a listing type of the guild group finder in M9.6 (2026-11-24). No gambling and no gold stakes. Each feature can be switched off by the guild and by the player. After M15 comes the release of `v1.0.0`.
+Help requests, first planned here, are a listing type of the guild group finder in M9.6 (2026-11-24). No gambling and no gold stakes. Each feature can be switched off by the guild and by the player. After M15 comes [M16](M16-quests.md), the guild quests the owner added on 2026-11-26, and then `v1.0.0`.
 
 **Exit criterion:** in game, a rare sighting reaches only members who opted in, and a weekly bingo card ticks itself from game events.
 
@@ -47,13 +47,13 @@ Help requests, first planned here, are a listing type of the guild group finder 
 - Done when:
   - [ ] Only the drawn giver learns their recipient; the draw cannot be repeated to fish for a name.
 
-### M15.6 — In-game check, `v0.15.0` and `v1.0.0`
+### M15.6 — In-game check and `v0.15.0`
 - Branch: `step/m15-6-release`
 - Scope:
   - `docs/checklists/M15.md`;
-  - the full release check of `docs/checklists/release.md`, rerun over everything;
-  - the wiki and both READMEs complete.
+  - the wiki and both READMEs up to date.
+
+  The full release check and `v1.0.0` moved to M16.6 (2026-11-26).
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.15.0`.
-  - [ ] The full release check passes and the owner tags `v1.0.0`.

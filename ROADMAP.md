@@ -21,9 +21,10 @@ This page is the short version and the rules every step follows. **The developme
 | **[M12 – Recruitment](docs/roadmap/M12-recruitment.md)** | `step/m12-…` | Recruitment text from the season gaps, trials, onboarding, mentors | a trial ends in the Action Center; `v0.12.0` |
 | **[M13 – Economy](docs/roadmap/M13-economy.md)** | `step/m13-…` | Craft orders with states, material demand, wishlist, buy and sell board, guild goals | an order goes from request to delivered; `v0.13.0` |
 | **[M14 – Board and polls](docs/roadmap/M14-board-polls.md)** | `step/m14-…` | Board, MOTD history, polls with one vote per account, kudos with a reason | the same poll totals on every client; `v0.14.0` |
-| **[M15 – Community](docs/roadmap/M15-community.md)** | `step/m15-…` | Opt-in rare sightings, guild legacy, bingo and bounties, quiz, Secret Santa | `v0.15.0`, then `v1.0.0` |
+| **[M15 – Community](docs/roadmap/M15-community.md)** | `step/m15-…` | Opt-in rare sightings, guild legacy, bingo and bounties, quiz, Secret Santa | `v0.15.0` |
+| **[M16 – Quests](docs/roadmap/M16-quests.md)** | `step/m16-…` | The quests active in every guild character's log, online and offline, one row per quest with its ideal level range; who has it, with Whisper and Invite (owner, 2026-11-26) | a quest accepted by a member shows in another member's Quest tab and goes when completed; `v0.16.0`, then `v1.0.0` |
 
-**Versions** ([ADR 0020](docs/adr/0020-one-version-per-milestone.md)): every milestone N is released as `v0.N.0`; the first release is `v0.8.0` (2026-11-25, before the in-game checks, M1–M8; `v0.1.0`–`v0.7.0` are not tagged), and from M9 on each completed milestone is released (`v0.9.0`, 2026-11-25; `v0.10.0`, 2026-11-26); fixes raise only the last number (`v0.6.1`, `v0.6.2`); `v1.0.0` comes when every milestone up to M15 is done. Ideas not planned and what stays out: [backlog](docs/roadmap/V2-backlog.md).
+**Versions** ([ADR 0020](docs/adr/0020-one-version-per-milestone.md)): every milestone N is released as `v0.N.0`; the first release is `v0.8.0` (2026-11-25, before the in-game checks, M1–M8; `v0.1.0`–`v0.7.0` are not tagged), and from M9 on each completed milestone is released (`v0.9.0`, 2026-11-25; `v0.10.0`, 2026-11-26); fixes raise only the last number (`v0.6.1`, `v0.6.2`); `v1.0.0` comes when every milestone up to M16 is done. Ideas not planned and what stays out: [backlog](docs/roadmap/V2-backlog.md).
 
 ## Rules for every step
 

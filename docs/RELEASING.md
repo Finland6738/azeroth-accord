@@ -18,9 +18,9 @@ How a version of Azeroth Accord is built and published. The workflow is [release
 | `v0.6.0` | end of M6 (not tagged: part of `v0.8.0`) | [the release check](checklists/release.md) |
 | `v0.7.0` | end of M7 (not tagged: part of `v0.8.0`) | [M7](checklists/M7.md) |
 | `v0.8.0` | end of M8: **the first release**, tagged before the checks (2026-11-25) | [M8](checklists/M8.md), and the earlier ones |
-| `v0.9.0` … `v0.15.0` | end of M9 … M15 ([the plan](roadmap/README.md)) | the milestone's own checklist, written in its last step |
+| `v0.9.0` … `v0.16.0` | end of M9 … M16 ([the plan](roadmap/README.md)) | the milestone's own checklist, written in its last step |
 | `v0.<N>.<F>` | the F-th fix release of milestone N (`v0.6.1`, `v0.6.2`, …) | the checks the fix touches |
-| `v1.0.0` | when every planned milestone, up to M15, is done | [the release check](checklists/release.md), run again over everything |
+| `v1.0.0` | when every planned milestone, up to M16, is done | [the release check](checklists/release.md), run again over everything |
 
 Every milestone is released as `v0.<milestone>.0`, and its fixes raise only the last number ([ADR 0020](adr/0020-one-version-per-milestone.md)). The checks are cumulative: the one of a later version repeats nothing of an earlier one, so run them in order, or all together on one build.
 

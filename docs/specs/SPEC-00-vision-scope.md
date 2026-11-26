@@ -34,7 +34,7 @@ La finestra della Gilda di WoW Forever è scarna: un elenco di nomi, gradi e not
 | Banca | foto per scheda, ricerca, registri, donazioni, richieste di prelievo/deposito/donazione con approvazione degli ufficiali | M5 |
 | Rilascio | impostazioni, inglese e italiano, pacchetto, wiki (anche in italiano), l'aspetto di Finland Dragon Credit Points, la pagina Informazioni con i crediti | M6 |
 
-### Seconda parte: M7–M15 (da `v0.7.0` a `v0.15.0`, poi `v1.0.0`)
+### Seconda parte: M7–M16 (da `v0.7.0` a `v0.16.0`, poi `v1.0.0`)
 
 | Area | Contenuto | Milestone |
 |---|---|---|
@@ -47,6 +47,7 @@ La finestra della Gilda di WoW Forever è scarna: un elenco di nomi, gradi e not
 | Economia | ordini di crafting con stati, materiali, lista dei desideri, bacheca compro/vendo con doppia conferma manuale, obiettivi di gilda | M13 |
 | Bacheca e sondaggi | annunci, storico del MOTD, sondaggi con un voto per account, like con motivo | M14 |
 | Comunità | avvistamenti di rari, storia della gilda, bingo e taglie, quiz, Secret Santa; tutto facoltativo, niente azzardo | M15 |
+| Missioni della gilda | le missioni attive nei diari di tutti i personaggi della gilda, online e offline, una riga per missione con il livello ideale; chi ce l'ha, con Sussurra e Invita (proprietario, 2026-11-26) | M16 |
 
 Ogni milestone rilascia `v0.<milestone>.0`; le correzioni alzano l'ultimo numero; `v1.0.0` arriva quando tutte le milestone sono finite ([ADR 0020](../adr/0020-one-version-per-milestone.md)). Idee non pianificate e cosa resta fuori: [docs/roadmap/V2-backlog.md](../roadmap/V2-backlog.md).
 
