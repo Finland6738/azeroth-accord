@@ -28,14 +28,14 @@ local function lower(s) return type(s) == "string" and s:lower() or "" end
 -- likes and the social index with M4.
 ---------------------------------------------------------------------------------------------------------------------
 Model.COLUMNS = {
-	{ id = "name", label = "COL_NAME", width = 130, always = true },
+	{ id = "name", label = "COL_NAME", width = 170, always = true },
 	{ id = "level", label = "COL_LEVEL", width = 40 },
 	{ id = "class", label = "COL_CLASS", width = 90 },
 	{ id = "rank", label = "COL_RANK", width = 90 },
-	{ id = "zone", label = "COL_ZONE", width = 120 },
-	{ id = "lastOnline", label = "COL_LAST_ONLINE", width = 85 },
-	{ id = "prof1", label = "COL_PROF1", width = 130 },
-	{ id = "prof2", label = "COL_PROF2", width = 130 },
+	{ id = "zone", label = "COL_ZONE", width = 150 },
+	{ id = "lastOnline", label = "COL_LAST_ONLINE", width = 100 },
+	{ id = "prof1", label = "COL_PROF1", width = 160 },
+	{ id = "prof2", label = "COL_PROF2", width = 160 },
 	{ id = "likes", label = "COL_LIKES", width = 50, available = function() return ns.Likes ~= nil end },
 	{ id = "social", label = "COL_SOCIAL", width = 60,   -- only where SPEC-10 Q3 lets the player see others' index (M4.5)
 		available = function() return ns.Social ~= nil and ns.Social.ColumnVisible ~= nil and ns.Social:ColumnVisible() == true end },

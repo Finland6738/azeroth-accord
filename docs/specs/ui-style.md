@@ -81,7 +81,7 @@ i badge (richieste della banca) stanno sul titolo della scheda.
 | Cornice | finestra propria come FDCP §6: **barra del titolo di 52 pt** (logo, "AZEROTH ACCORD" in Orbitron, stato della sincronizzazione, Pop in, chiudi), raggio 12, ombra, mobile, Esc | la finestra Gilda **vestita del tema** finché la linguetta Accord è aperta (M6.18, sotto): cornice tematica con raggio 12 e ombra, il nome della gilda al posto del titolo, la croce del tema, le linguette come tessere; il pannello riempie l'area dei contenuti di `CommunitiesFrame` |
 | Schede | barra delle schede da 44 pt sotto il titolo, con l'indicatore da 2 pt | la stessa barra delle schede, in cima al pannello |
 | Ricerca globale | a destra della barra delle schede | uguale |
-| Dimensione | 920 × 600 predefinita, minimo 720 × 460, ridimensionabile (confermata in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
+| Dimensione | 1280 × 720 predefinita dal 2026-11-26 (era 920 × 600, troppo stretta per il Roster nel gioco), mai più larga dello schermo; minimo 720 × 460, ridimensionabile (confermata in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
 | Ricordo | posizione e dimensione per personaggio | nessuno |
 
 **La finestra Gilda nel tema (M6.18, `UI/GuildSkin.lua`).** Il proprietario ha chiesto che tutto ciò che il giocatore vede

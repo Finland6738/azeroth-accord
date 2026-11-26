@@ -48,6 +48,6 @@ Il pannello ha tre temi, scelti in **Impostazioni → Aspetto** (vedi [[Impostaz
 
 - la **barra del titolo** in alto: il logo tondo di Accord, **AZEROTH ACCORD**, sotto lo stato della sincronizzazione, **Riaggancia** e il pulsante di chiusura. **Riaggancia** si vede mentre la finestra della gilda è aperta sulla tua gilda: rimette il pannello nella finestra della gilda e chiude questa. (L'addon non apre mai da solo la finestra della gilda del gioco.)
 - sotto, le stesse **schede** e la stessa casella **Cerca** della finestra della gilda;
-- trascina la barra del titolo per spostare la finestra e il segno nell'angolo in basso a destra per ridimensionarla. Si apre a 920 × 600 e non si può rimpicciolire sotto 720 × 460; ricorda posizione e dimensione per ogni personaggio. Esc la chiude.
+- trascina la barra del titolo per spostare la finestra e il segno nell'angolo in basso a destra per ridimensionarla. Si apre a 1280 × 720 (meno su uno schermo più piccolo) e non si può rimpicciolire sotto 720 × 460; ricorda posizione e dimensione per ogni personaggio. Esc la chiude.
 
 Cliccare la scheda Accord della finestra della gilda mentre questa finestra è aperta sposta il pannello lì e chiude la finestra, così il pannello non è mai in due posti. Vedi [[Comandi|Commands-it]].

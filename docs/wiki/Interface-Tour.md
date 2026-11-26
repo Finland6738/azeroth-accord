@@ -48,6 +48,6 @@ The panel comes in three themes, chosen in **Settings → Appearance** (see [[Se
 
 - the **title bar** at the top: the round Accord logo, **AZEROTH ACCORD**, the sync state under it, **Pop in** and the close button. **Pop in** shows while the guild window is open on your guild: it puts the panel back into the guild window and closes this one. (The addon never opens the game's guild window by itself.)
 - under it, the same **tabs** and **Search** box as in the guild window;
-- drag the title bar to move the window, and the small mark in the bottom-right corner to resize it. It opens at 920 × 600 and cannot be made smaller than 720 × 460; it remembers its place and size for each character. Esc closes it.
+- drag the title bar to move the window, and the small mark in the bottom-right corner to resize it. It opens at 1280 × 720 (smaller on a smaller screen) and cannot be made smaller than 720 × 460; it remembers its place and size for each character. Esc closes it.
 
 Clicking the Accord tab of the guild window while this window is open moves the panel there and closes the window, so the panel is never in two places. See [[Commands|Commands]].

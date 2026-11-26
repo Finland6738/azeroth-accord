@@ -15,7 +15,9 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, tonumber, min, max = type, tonumber, math.min, math.max
 
 Window.NAME = "AzerothAccordWindow"
-Window.WIDTH, Window.HEIGHT = 920, 600
+-- 1280 × 720 since 2026-11-26 (920 × 600 was too narrow for the Roster in game); never wider than the screen
+Window.WIDTH, Window.HEIGHT = 1280, 720
+Window.SIZE_VERSION = 2       -- a size saved before the new default (no `v`) is not reused once
 Window.MIN_WIDTH, Window.MIN_HEIGHT = 720, 460
 Window.MAX_WIDTH, Window.MAX_HEIGHT = 1600, 1000
 Window.TITLE_BAR = 52
@@ -32,7 +34,7 @@ end
 local function saveSize(f)
 	local w, h = f:GetWidth(), f:GetHeight()
 	if type(w) == "number" and type(h) == "number" and config() then
-		config():Set("char.ui.windowSize", { w = w, h = h })
+		config():Set("char.ui.windowSize", { w = w, h = h, v = Window.SIZE_VERSION })
 	end
 end
 
@@ -46,7 +48,14 @@ end
 local function place(f)
 	local pos = config() and config():Get("char.ui.windowPos")
 	local size = config() and config():Get("char.ui.windowSize")
-	f:SetSize(Window.ClampSize(size and size.w, size and size.h))
+	if size and size.v ~= Window.SIZE_VERSION then size = nil end   -- saved with the old, smaller default
+	local w, h = Window.ClampSize(size and size.w, size and size.h)
+	local sw, sh = UIParent and UIParent:GetWidth(), UIParent and UIParent:GetHeight()
+	if not size and type(sw) == "number" and sw > 0 then   -- the default fits the screen
+		w = max(Window.MIN_WIDTH, min(w, sw - 40))
+		if type(sh) == "number" and sh > 0 then h = max(Window.MIN_HEIGHT, min(h, sh - 80)) end
+	end
+	f:SetSize(w, h)
 	f:ClearAllPoints()
 	if pos then f:SetPoint(pos.point, UIParent, pos.relPoint or pos.point, pos.x, pos.y)
 	else f:SetPoint("CENTER", UIParent, "CENTER", 0, 0) end

@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Profession levels always "1"** (found in game, 2026-11-26): WoW Forever's guild data gives rank 1 for every profession. A rank of 1 or less from the guild data is no longer shown as a level. The real level comes from the member's own client: the levels in the shared `recipes` records (published when they open their profession window), and for the player's own characters `GetProfessionInfo`, which always wins. Without either, only the profession's name shows (`Roster.MergeRanks`).
+- **The Accord window was too narrow** (found in game, 2026-11-26): it now opens at **1280 × 720** (never wider than the screen), and the Roster's name, zone, last-online and profession columns are wider. A size saved with the old 920 × 600 default is not reused, once.
+
 - **Tables wider than the window** (found in game, 2026-11-26): the Roster's last column titles were drawn outside the Accord window. When the fixed columns do not fit, they now shrink by the same share (down to 45 %), flexible columns keep 60 points, and texts are cut with dots. The table clips whatever still does not fit at its edge (`UI/Widgets/DataTable.lua`).
 - **Likes list** (found in game, 2026-11-26): long names wrapped onto the next row, and now stay on one line cut with dots. The **Like** button is now a heart, as the owner asked; it reads "Confirm?" while it waits for the second click. The icon sheet gains a `heart` (`tools/make_media.py`, `Media/icons.tga`).
 

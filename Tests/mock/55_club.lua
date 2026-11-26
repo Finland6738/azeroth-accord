@@ -8,6 +8,7 @@
 -- Members come from the guild mock (Tests/mock/50_guild.lua): Mock.guild.Roster(). Whether the server FILLS the fields
 -- Accord hopes for is the open question of M0 check S2, so it is a switch (kept across Mock.Reload):
 --   Mock.club.fill = { professions = false, discord = false, guid = true, bnet = false }
+--   Mock.club.fill.rankOne = true   every profession rank is 1 (what WoW Forever's server gives, found in game 2026-11-26)
 --   Mock.club.friendRequests   member ids passed to SendBattleTagFriendRequest
 local Mock, H = ...
 local W = Mock.world
@@ -61,7 +62,8 @@ function C_Club.GetMemberInfo(clubId, memberId)
 		for i = 1, 2 do
 			local p = m.professions[i]
 			if p then
-				info["profession" .. i .. "ID"], info["profession" .. i .. "Name"], info["profession" .. i .. "Rank"] = p.id, p.name, p.rank
+				info["profession" .. i .. "ID"], info["profession" .. i .. "Name"], info["profession" .. i .. "Rank"] = p.id, p.name,
+					fill.rankOne and 1 or p.rank
 			end
 		end
 	end

@@ -105,6 +105,22 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Build
 ---------------------------------------------------------------------------------------------------------------------
+-- The real levels of `known` (the guild data's professions, whose rank may be missing) from `levels` (the member's own
+-- client: shared records, or the player's own skill lines), matched by skill line id, else by name. Only a missing rank is
+-- filled, unless `force` (the player's own skill lines are always the latest).
+function Roster.MergeRanks(known, levels, force)
+	for _, p in ipairs(known) do
+		for _, q in ipairs(levels or {}) do
+			local same = (p.id ~= nil and p.id == q.id)
+				or (type(p.name) == "string" and type(q.name) == "string" and lower(p.name) == lower(q.name))
+			if same and type(q.rank) == "number" and q.rank > 0 and (force or p.rank == nil) then
+				p.rank, p.maxRank, p.rankSource = q.rank, q.maxRank, q.source
+				break
+			end
+		end
+	end
+end
+
 -- Rebuilds the list from the client now. Returns the number of members.
 function Roster:Build()
 	local C = compat()
@@ -140,13 +156,17 @@ function Roster:Build()
 		if info then
 			e.clubMemberId, e.bnetAccountId = info.memberId, info.bnetAccountId
 			for _, p in ipairs(C.Club.Professions(info)) do
-				e.professions[#e.professions + 1] = { id = p.id, name = p.name, rank = p.rank, source = "native" }
+				-- WoW Forever's guild data gives rank 1 for everybody (found in game, 2026-11-26): a rank of 1 or less is
+				-- not a level, the profession is known and its level comes from the member's own client, if shared
+				local rank = (type(p.rank) == "number" and p.rank > 1) and p.rank or nil
+				e.professions[#e.professions + 1] = { id = p.id, name = p.name, rank = rank, source = "native" }
 			end
 			local discord = C.Club.Discord(info)
 			if discord then e.discord, e.discordSource = discord, "native" discordCount = discordCount + 1 end
 		end
 		if #e.professions > 0 then
 			nativeCount = nativeCount + 1
+			if e.guid and shared[e.guid] then Roster.MergeRanks(e.professions, shared[e.guid]) end
 		elseif e.guid and shared[e.guid] then
 			e.professions = shared[e.guid]
 			sharedCount = sharedCount + 1
@@ -165,10 +185,12 @@ function Roster:Build()
 
 	-- the player's own professions are always known natively
 	local me = myGUID and byGUID[myGUID]
-	if me and #me.professions == 0 then
+	if me then
+		local own = {}
 		for _, p in ipairs(C.TradeSkill.OwnProfessions()) do
-			me.professions[#me.professions + 1] = { id = p.skillLine, name = p.name, rank = p.rank, maxRank = p.maxRank, source = "own" }
+			own[#own + 1] = { id = p.skillLine, name = p.name, rank = p.rank, maxRank = p.maxRank, source = "own" }
 		end
+		if #me.professions == 0 then me.professions = own else Roster.MergeRanks(me.professions, own, true) end
 	end
 	if me and me.hasAddon == nil then me.hasAddon = true end
 

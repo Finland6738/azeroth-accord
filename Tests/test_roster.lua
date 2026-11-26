@@ -93,6 +93,22 @@ describe("merging the sources", function()
 		eq(R():ByGUID(BOB).professions[1].source, "native")
 	end)
 
+	it("a guild rank of 1 is no level (WoW Forever, 2026-11-26): the shared level fills it, else none is shown", function()
+		fill{ professions = true, rankOne = true }
+		AzerothAccord.Store:Records("recipes")[BOB .. ":171"] = { id = BOB .. ":171", author = BOB, rev = 1, time = GetServerTime(),
+			char = BOB, skillLine = 171, name = "Alchemy", rank = 120, maxRank = 300 }
+		R():Build()
+		local bob = R():ByGUID(BOB)
+		local alchemy
+		for _, p in ipairs(bob.professions) do if p.id == 171 then alchemy = p end end
+		notNil(alchemy)
+		eq(alchemy.source, "native"); eq(alchemy.rank, 120); eq(alchemy.rankSource, "shared")
+		for _, p in ipairs(bob.professions) do
+			if p.id ~= 171 then isNil(p.rank, "no level rather than a wrong 1") end
+		end
+		fill{ rankOne = false }
+	end)
+
 	it("keeps at most two shared professions per character", function()
 		fill{ professions = false }
 		for i, line in ipairs({ 171, 164, 202 }) do
