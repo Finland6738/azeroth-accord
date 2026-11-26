@@ -22,7 +22,7 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M15** | [M15-community.md](M15-community.md) | Opt-in community features; v1.0.0 | 6 | final check and full release check |
 | — | [V2-backlog.md](V2-backlog.md) | Where the first ideas went, what is not planned, what stays out | — | — |
 
-**Releases.** The first is `v0.8.0` (2026-11-25), covering M1 to M8, tagged before the in-game checks by the owner's decision; `v0.1.0` to `v0.7.0` are not tagged. From M9 on, `v0.<N>.0` follows each completed milestone, with the unfinished pieces of later ones hidden ([RELEASING](../RELEASING.md)). M10.2 and M11.7 are done in code and switched off until M10 and M11 are complete.
+**Releases.** The first is `v0.8.0` (2026-11-25), covering M1 to M8, tagged before the in-game checks by the owner's decision; `v0.1.0` to `v0.7.0` are not tagged. From M9 on, `v0.<N>.0` follows each completed milestone, with the unfinished pieces of later ones hidden ([RELEASING](../RELEASING.md)). M10 is complete in code (its switch is on since M10.10, in-game check pending); M11.7 is done in code and switched off until M11 is complete.
 
 ## Order and dependencies
 

@@ -2,7 +2,7 @@
 
 *Italiano: [[Eventi|Events-it]]*
 
-> **Arrives with `v0.10.0`.** The Events view is in the code and switched off until milestone M10 is complete; no released version has it, `v0.9.0` included. Nothing on this page has been checked in the real game. What follows describes how it will work.
+> **From `v0.10.0`**, the next release: it is complete in the code and not published yet; no earlier version has it. Nothing on this page has been checked in the real game. What follows describes how it should work.
 
 The game calendar is the guild's shared ground for events. Accord **does not keep its own copy** of the calendar: it reads the guild's events from the game calendar and writes your answer **into the game calendar itself**. So the game, Finland Dragon Credit Points (FDCP) and the other addons all see the same answer, wherever you gave it.
 

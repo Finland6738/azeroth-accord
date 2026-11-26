@@ -10,7 +10,7 @@
 
 Release: `v0.10.0`.
 
-**Switched off until complete (2026-11-25).** M10 has its own switch, `season`, in `AzerothAccord/Core/Features.lua` (split from `raid` in M10.3, so that M10 can ship as `v0.10.0` before M11 is done). It covers M10.2 (detection, the choice of the season roster's source, the data set `guildcfg`), M10.3 (the data set `season`, the **Season** view, `/accord season`) and the steps that follow. Off, nothing of it is detected, shown, written, accepted or sent, as in `v0.9.0`. M10.10 turns it on. The M11 features read from FDCP (the **Raid** view, `/accord raid`, the *Loot* source, *Loot (FDCP)* on the member card) stay behind `raid` until M11 is complete; `raid` on turns `season` on too.
+**Switched off until complete (2026-11-25).** M10 has its own switch, `season`, in `AzerothAccord/Core/Features.lua` (split from `raid` in M10.3, so that M10 can ship as `v0.10.0` before M11 is done). It covers M10.2 (detection, the choice of the season roster's source, the data set `guildcfg`), M10.3 (the data set `season`, the **Season** view, `/accord season`) and the steps that follow. Off, nothing of it is detected, shown, written, accepted or sent, as in `v0.9.0`. M10.10 turned it on (2026-11-26). The M11 features read from FDCP (the **Raid** view, `/accord raid`, the *Loot* source, *Loot (FDCP)* on the member card) stay behind `raid` until M11 is complete; `raid` on turns `season` on too.
 
 **Exit criterion:** in game:
 - three members declare MS1, MS2 and OS for the season, and an officer sees the role counts and the gaps;
@@ -163,5 +163,6 @@ So M10 and M11 follow these rules:
 - Branch: `step/m10-10-check`
 - Scope: `docs/checklists/M10.md` (with a guild that has FDCP and one without, and a Raid-Helper event imported) and the README status. Turn the switch `season` on (`raid` stays off until M11). The owner releases `v0.10.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.10.0`.
+  - *Done in code (2026-11-26):* [the M10 checklist](../checklists/M10.md); the switch `season` is on in `Core/Features.lua` (`raid` stays off until M11); README and wiki describe M10 as part of the next release. The release preparation of the changelog is a separate step. Nothing of M10 has been checked in the game.

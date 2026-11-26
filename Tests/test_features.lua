@@ -29,8 +29,11 @@ local function leftover()
 	records.sources = { id = "sources", author = OFF, rev = 1, time = GetServerTime(), raid = "fdcp", loot = "fdcp" }
 end
 
-describe("the raid switch, off", function()
-	before_boot(withFDCP)
+describe("the raid and season switches, off", function()
+	before_boot(function(M)
+		withFDCP(M)
+		M.features = { season = false }
+	end)
 
 	it("is off in the shipped code", function()
 		eq(A().Features.raid, false)
@@ -75,6 +78,7 @@ describe("the raid switch, off", function()
 		local f = fake()
 		boot(function(M)
 			withFDCP(M)
+			M.features = { season = false }
 			FinlandDragonCreditPointsAPI = f.api
 		end)
 		leftover()
@@ -148,7 +152,6 @@ describe("the switches of M9, as shipped (M9.10)", function()
 		eq(A().Features.raid, false)
 		truthy(A().Store.IsActive("groups"))
 		truthy(A().Store.IsActive("addons"))
-		falsy(A().Store.IsActive("guildcfg"))
 	end)
 
 	it("show their views, commands and help lines, and no Raid", function()
@@ -185,7 +188,37 @@ describe("the switches of M9, as shipped (M9.10)", function()
 		local titles = {}
 		for _, section in ipairs(A().Diagnostics.Collect().sections) do titles[section.title] = true end
 		for _, title in ipairs({ "Actions", "Notify", "Digest", "Groups", "Game finder", "Census" }) do truthy(titles[title], title) end
-		falsy(titles.Integrations); falsy(titles.FDCP)
+	end)
+end)
+
+describe("the switch of M10, as shipped (M10.10)", function()
+	before_boot(withFDCP)
+
+	it("is on, and raid stays off", function()
+		eq(A().Features.season, true)
+		eq(A().Features.raid, false)
+		truthy(A().Features.On("season"))
+		for _, set in ipairs({ "guildcfg", "season", "raidev", "avail", "rally" }) do truthy(A().Store.IsActive(set), set) end
+	end)
+
+	it("shows its views, commands and help lines, and the sharing switch, and no Raid", function()
+		Mock.Slash("/accord help")
+		local help = table.concat(Mock.PlainOutput(), "\n")
+		for _, view in ipairs({ "season", "events", "availability" }) do
+			contains(help, "/accord " .. view)
+			Mock.Slash("/accord " .. view)
+			eq(A().Shell.selected, view)
+			truthy(A().Shell.views[view].frame:IsVisible(), view)
+			isNil(A().Shell.views[view].failed, view)
+		end
+		falsy(help:find("/accord raid", 1, true))
+		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "raid") end
+		truthy(A().SettingsModel.Visible("shareAvailability"))
+		local titles = {}
+		for _, section in ipairs(A().Diagnostics.Collect().sections) do titles[section.title] = true end
+		truthy(titles.Integrations); truthy(titles.FDCP)
+		isNil(A().RaidView.CardSection(A().Roster:ByGUID(BOB)))
+		eq(#Mock.errors, 0)
 	end)
 end)
 

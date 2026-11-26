@@ -2,7 +2,7 @@
 
 *English: [[Season roster|Season-Roster]]*
 
-> **Arriva con `v0.10.0`.** Il roster della season è nel codice e resta spento finché la milestone M10 non è completa; nessuna versione rilasciata lo ha, `v0.9.0` compresa. Niente di questa pagina è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
+> **Dalla `v0.10.0`**, il prossimo rilascio: è completo nel codice e non ancora pubblicato; nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il roster della season **non è un'iscrizione e non è un registro delle presenze**. Dice che cosa gioca ogni raider per tutta la season, perché il loot segue la specializzazione dichiarata:
 

@@ -359,7 +359,7 @@ describe("with FDCP as the source", function()
 end)
 
 describe("with the switch season off", function()
-	before_boot(setup(1, {}, {}))
+	before_boot(setup(1, {}, { season = false }))
 
 	it("writes, accepts and shows nothing", function()
 		ready()

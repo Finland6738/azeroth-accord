@@ -78,8 +78,8 @@ Every card says **who receives** the data, **when it goes out** and **what it co
 | Recipes | each profession: name, rank and the number of recipes |
 | Time played together | the last 7 days: how many pairs and minutes per day. The pairs name your guildmates, not only you |
 | Loaded addons *(from `v0.9.0`)* | how many addons your list holds and the first five, with the switch **Share my addon list**; the list reaches the whole guild, and Accord shows who uses an addon only to officers ([[Guild addons|Guild-Addons]]) |
-| When you usually play *(arrives with `v0.10.0`)* | how many hours of the week your map holds and over how many weeks, with the switch **Share when I usually play** ([[Availability|Availability]]) |
-| Rallies and answers *(arrives with `v0.10.0`)* | your open or just ended [[rallies|Events]] and your answers; removed 10 minutes after the rally ends |
+| When you usually play *(from `v0.10.0`)* | how many hours of the week your map holds and over how many weeks, with the switch **Share when I usually play** ([[Availability|Availability]]) |
+| Rallies and answers *(from `v0.10.0`)* | your open or just ended [[rallies|Events]] and your answers; removed 10 minutes after the rally ends |
 | Guild bank snapshots | the tabs you read (name, number of items), the money and the logs |
 | Your bank requests | your latest 5 requests and their status |
 | Likes | how many likes your account has given (kept only on this computer) |

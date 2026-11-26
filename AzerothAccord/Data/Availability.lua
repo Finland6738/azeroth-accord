@@ -26,7 +26,7 @@
 --                   of the interface: the records reach the whole guild. :Map() holds no name; :Who() applies it.
 -- With FDCP         while FDCP is the source of the season roster, :Declared() gives an officer the days FDCP's members
 --                   declared (its public API, `avail`): a declaration, never mixed with the measured counts.
--- Switch: Features.On("season") (Core/Features.lua), off until M10.10. Off: nothing is counted, written, accepted or
+-- Switch: Features.On("season") (Core/Features.lua), on since M10.10. Off: nothing is counted, written, accepted or
 -- sent. Demo mode publishes nothing.
 -- Bus: AVAILABILITY_CHANGED() when the guild's map or the own one may have changed, collected for EMIT_DELAY seconds.
 local ADDON_NAME, ns = ...

@@ -43,13 +43,13 @@ Accord shares with your guild the **list of the addons this character has loaded
 
 ## Season roster
 
-> Arrives with `v0.10.0`.
+> From `v0.10.0`.
 
 When you declare for a raid season (MS1, MS2, OS, a note, or *Not sure yet*), the declaration reaches the whole guild, and it is listed in *What I share*. Only your own account can write it. The current season and the 3 before it are kept; older ones are removed. See [[Season roster|Season-Roster]].
 
 ## Events
 
-> Arrives with `v0.10.0`.
+> From `v0.10.0`.
 
 When you sign up to a guild event from Accord, your answer goes into the **game calendar**, as if you had answered in the game. The **role** you choose for the event, which the game calendar cannot hold, reaches the whole guild and is listed in *What I share*; so are your answers to events kept only in Accord (when a client has no game calendar). Only your own account can write them, and they are removed 2 days after the event. Accord records no attendance. See [[Events|Events]].
 
@@ -59,19 +59,19 @@ A raid **line-up** written by an officer (who is in the raid, who is on the benc
 
 ## When you usually play
 
-> Arrives with `v0.10.0`.
+> From `v0.10.0`.
 
 Accord counts, on your computer, the minutes your account is online per hour of the week over the last 8 weeks, and nothing else: no place, no activity, no raid and no attendance. The guild receives, per hour, one of four levels and the number of weeks measured, kept for 30 days. Everybody sees how many members are online in each hour; **who** they are Accord shows only to officers and the Guild Master, and to you your own entry (a rule of the interface: the maps reach the whole guild). **Share when I usually play** is on by default; off, your map is withdrawn and nothing more is sent, while your own keeps counting on your computer. See [[Availability|Availability]].
 
 ## PvP and world rallies
 
-> Arrives with `v0.10.0`.
+> From `v0.10.0`.
 
 A [[rally|Events]] holds its kind, the meeting point **as the text you write**, the times and, from whoever answers, *coming* or *not coming*. The whole guild with Accord sees it, and it is removed 10 minutes after it ends. Accord **never reads your position** and sends no coordinates or map.
 
 ## Other addons
 
-Apart from that list (new in `v0.9.0`), the released addon does not look for other addons and reads nothing from them. A later release (milestones M10 and M11) will look for the raid and loot addons it knows **only on your own computer** and share with the guild only the officers' choice of which one is the source: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*.
+Apart from that list (new in `v0.9.0`), from `v0.10.0` Accord looks for the raid and loot addons it knows **only on your own computer**, reads Finland Dragon Credit Points through its public interface when the officers chose it as the source of the season roster, and shares with the guild only that choice: see *[[Raid and loot addons|Raid-and-Loot-Addons]]*. It never writes another addon's data or reads its saved files.
 
 ## What stays on your computer
 

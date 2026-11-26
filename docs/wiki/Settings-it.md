@@ -78,8 +78,8 @@ Ogni card dice **chi lo riceve**, **quando parte** e **cosa contiene adesso**, c
 | Ricette | ogni professione: nome, grado e numero di ricette |
 | Tempo giocato insieme | gli ultimi 7 giorni: quante coppie e quanti minuti per giorno. Le coppie nominano i tuoi compagni, non solo te |
 | Addon caricati *(dalla `v0.9.0`)* | quanti addon ha il tuo elenco e i primi cinque, con l'interruttore **Condividi l'elenco dei miei addon**; l'elenco arriva a tutta la gilda, e Accord mostra chi usa un addon solo agli ufficiali ([[Addon della gilda|Guild-Addons-it]]) |
-| Quando giochi di solito *(arriva con la `v0.10.0`)* | quante ore della settimana ha la tua mappa e su quante settimane, con l'interruttore **Condividi quando gioco di solito** ([[Disponibilità|Availability-it]]) |
-| Raduni e risposte *(arriva con la `v0.10.0`)* | i tuoi [[raduni|Events-it]] aperti o appena finiti e le tue risposte; si cancellano 10 minuti dopo la fine del raduno |
+| Quando giochi di solito *(dalla `v0.10.0`)* | quante ore della settimana ha la tua mappa e su quante settimane, con l'interruttore **Condividi quando gioco di solito** ([[Disponibilità|Availability-it]]) |
+| Raduni e risposte *(dalla `v0.10.0`)* | i tuoi [[raduni|Events-it]] aperti o appena finiti e le tue risposte; si cancellano 10 minuti dopo la fine del raduno |
 | Foto della banca di gilda | le schede lette (nome, numero di oggetti), il denaro e i registri |
 | Le tue richieste alla banca | le tue ultime 5 richieste e il loro stato |
 | Like | quanti like ha dato il tuo account (tenuto solo su questo computer) |

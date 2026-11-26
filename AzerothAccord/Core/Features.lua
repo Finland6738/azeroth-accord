@@ -7,7 +7,7 @@
 --          the guild's choice of the source of the season roster (M10.2, the data set `guildcfg`), the seasons and the
 --          declarations (M10.3, the data set `season`, the Season view and `/accord season`), and the steps of M10 that
 --          follow (the last one the rallies, M10.9, the data set `rally`). Off: nothing of it is detected, shown, written,
---          accepted or sent. Turned on by M10.10 for v0.10.0.
+--          accepted or sent. On since M10.10.
 --   raid   the M11 features read from FDCP (M11.7: the Raid view, `/accord raid`, the member card's "Loot (FDCP)", the
 --          choice of the loot source). It builds on M10, so while it is on `season` is on too (Features.IMPLIES).
 --          Switched on when M11 is complete (docs/roadmap/M11-loot-handbook.md).
@@ -23,7 +23,7 @@
 local ADDON_NAME, ns = ...
 local ipairs = ipairs
 ns = ns or {}
-local Features = { season = false, raid = false, actions = true, groups = true, census = true }
+local Features = { season = true, raid = false, actions = true, groups = true, census = true }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

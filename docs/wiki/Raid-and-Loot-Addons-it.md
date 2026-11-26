@@ -2,7 +2,7 @@
 
 *English: [[Raid and loot addons|Raid-and-Loot-Addons]]*
 
-> **Non ancora in un rilascio.** Niente di questa pagina è disponibile in una versione rilasciata, `v0.9.0` compresa. Il riconoscimento degli altri addon, la scelta della fonte del roster della season e la sezione *Addon di raid e di loot nella gilda* (passo M10.2) **arrivano con la `v0.10.0`**, nella vista [[Season|Season-Roster-it]]. La vista **Raid**, `/accord raid`, la fonte *Loot* e *Loot (FDCP)* nella scheda del membro (passo M11.7) arrivano quando la milestone M11 è completa. Tutto è nel codice, spento fino ad allora. Niente è stato provato nel gioco vero. Quello che segue descrive come funzionerà.
+> **In parte dalla `v0.10.0`**, il prossimo rilascio, non ancora pubblicato: il riconoscimento degli altri addon, la scelta della fonte del roster della season e la sezione *Addon di raid e di loot nella gilda* (passo M10.2), nella vista [[Season|Season-Roster-it]]. La vista **Raid**, `/accord raid`, la fonte *Loot* e *Loot (FDCP)* nella scheda del membro (passo M11.7) sono nel codice ma spente finché la milestone M11 non è completa. Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Accord **non ha un motore del loot né le presenze**. Quei dati li tengono gli addon di raid e di loot della tua gilda, e Accord lavora **con** loro, mai contro:
 
@@ -24,7 +24,7 @@ I nomi delle cartelle degli addon diversi da FDCP vengono dalle loro pagine pubb
 - **Livello 1, lettura.** Accord legge ciò che l'addon pubblica per gli altri addon. Solo FDCP pubblica un'interfaccia del genere (`FinlandDragonCreditPointsAPI`), e Accord la legge solo quando la sua versione è una che Accord conosce (la versione 1). Con un'altra versione Accord torna al livello 0 e niente si rompe: aggiorna Accord.
 - Non c'è un livello 2: Accord non manda mai niente a un altro addon.
 
-`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer e una sezione **FDCP** con lo stato delle notifiche (senza nomi). Quali di questi addon hanno gli *altri* membri viene dall'elenco [[Addon della gilda|Guild-Addons-it]] (`v0.9.0`): la vista Raid lo mostra (sotto).
+`/accord debug` ha una sezione **Integrations** con ciò che è stato trovato sul tuo computer e una sezione **FDCP** con lo stato delle notifiche (senza nomi). Quali di questi addon hanno gli *altri* membri viene dall'elenco [[Addon della gilda|Guild-Addons-it]] (`v0.9.0`): lo mostra la vista [[Season|Season-Roster-it]] (e la vista Raid, sotto).
 
 ## La vista Raid
 

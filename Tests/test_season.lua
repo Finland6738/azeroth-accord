@@ -54,7 +54,7 @@ end
 
 local WARRIOR = { ms1 = { spec = "PROTECTION", role = "tank" }, ms2 = { spec = "FURY", role = "melee" }, note = "Mon and Wed" }
 
--- These tests turn the switch "season" on (it is off in releases until M10.10).
+-- These tests turn the switch "season" on (on in releases since M10.10).
 describe("opening a season", function()
 	before_boot(setup(1))
 
@@ -400,8 +400,8 @@ describe("the Season view", function()
 end)
 
 describe("the switches", function()
-	describe("season off (as shipped)", function()
-		before_boot(setup(1, {}))
+	describe("season off", function()
+		before_boot(setup(1, { season = false }))
 
 		it("has no view, no command, takes and sends nothing", function()
 			eq(A().Features.season, false); eq(A().Features.raid, false)
@@ -424,10 +424,11 @@ describe("the switches", function()
 		end)
 	end)
 
-	describe("season on, raid off (M10 released before M11)", function()
-		before_boot(setup(1, { season = true }))
+	describe("season on, raid off (as shipped since M10.10)", function()
+		before_boot(setup(1, {}))
 
 		it("shows the Season view and the source of the season roster, not the Raid view or the loot source", function()
+			eq(A().Features.season, true); eq(A().Features.raid, false)
 			truthy(A().Features.On("season")); falsy(A().Features.On("raid"))
 			truthy(S().IsActive("season")); truthy(S().IsActive("guildcfg"))
 			truthy(A().Shell:OpenView("season"))
@@ -444,7 +445,7 @@ describe("the switches", function()
 	end)
 
 	describe("raid on", function()
-		before_boot(setup(1, { raid = true }))
+		before_boot(setup(1, { season = false, raid = true }))
 
 		it("turns season on with it", function()
 			eq(A().Features.season, false)

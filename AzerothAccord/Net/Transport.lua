@@ -296,7 +296,7 @@ end
 function Transport:IsReadOnly() return state.readOnly end
 
 -- SPEC-14 §10 (M10.5): during a boss encounter (ENCOUNTER_START to ENCOUNTER_END, or while the client says one is in
--- progress) NORMAL and BULK messages wait in the queue; only ALERT ones go. Behind the switch "season" until M10.10.
+-- progress) NORMAL and BULK messages wait in the queue; only ALERT ones go. Behind the switch "season" (on since M10.10).
 function Transport.BossSilence()
 	if not (ns.Features and ns.Features.On("season")) then return false end
 	return compat().EncounterInProgress() and true or false

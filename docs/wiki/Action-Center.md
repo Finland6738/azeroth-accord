@@ -19,7 +19,7 @@ It keeps nothing of its own and decides nothing for you. Every line is read from
 | *… is back (away until …)* | officers and the Guild Master, from the return day to three days after | the **Inactive** page | three days after the return |
 | *Your absence ends on …* | you, within three days of the end | the **Absence** card of [[Settings|Settings]] | after the return |
 | *… wants to join as …* | you, as the leader of a [[group|Groups]] | the **My group** page of Groups | you accept or decline, or the group closes |
-| *PvP rally: …* and *World rally: …* *(arrives with `v0.10.0`)* | everybody, while the [[rally|Events]] is open | the **Rallies** page of Events | the rally ends or is closed |
+| *PvP rally: …* and *World rally: …* *(from `v0.10.0`)* | everybody, while the [[rally|Events]] is open | the **Rallies** page of Events | the rally ends or is closed |
 
 An officer who asks the bank for something sees the request twice: to decide it, and as their own reminder.
 
@@ -57,7 +57,7 @@ The second page of the Action Center, **Notices**, is the history of what the ad
 | *… wants to join as …* | the leader of a [[group|Groups]] | a chat line and an on-screen box |
 | *… accepted you* / *declined your application* | the applicant | a chat line and an on-screen box |
 | *New group: …* | you, for a group that fits your filters | **off** (here only) |
-| *… calls a PvP rally at …* (or a world rally) *(arrives with `v0.10.0`)* | everybody but the caller | a chat line |
+| *… calls a PvP rally at …* (or a world rally) *(from `v0.10.0`)* | everybody but the caller | a chat line |
 
 ### Chat, screen or sound
 

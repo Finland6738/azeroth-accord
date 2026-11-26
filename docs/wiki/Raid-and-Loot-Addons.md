@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> **Not in a release yet.** Nothing on this page is available in a released version, `v0.9.0` included. The detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2) **arrive with `v0.10.0`**, in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) arrive when milestone M11 is complete. All of it is in the code, switched off until then. Nothing has been checked in the real game. What follows describes how it will work.
+> **Partly from `v0.10.0`**, the next release, not published yet: the detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2), in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) are in the code but switched off until milestone M11 is complete. Nothing has been checked in the real game. What follows describes how it should work.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 
@@ -24,7 +24,7 @@ The folder names of the addons other than FDCP come from their public pages and 
 - **Level 1, reading.** Accord reads what the addon publishes for other addons. Only FDCP publishes such an interface (`FinlandDragonCreditPointsAPI`), and Accord reads it only when its version is one Accord knows (version 1). With another version Accord goes back to level 0 and nothing breaks: update Accord.
 - There is no level 2: Accord never sends anything to another addon.
 
-`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which of these addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`): the Raid view shows it (below).
+`/accord debug` has an **Integrations** section with what was found on your computer and an **FDCP** section with the state of the notifications (no names). Which of these addons the *other* members have comes from the [[Guild addons|Guild-Addons]] list (`v0.9.0`): the [[Season|Season-Roster]] view shows it (and the Raid view, below).
 
 ## The Raid view
 
