@@ -166,3 +166,4 @@ So M10 and M11 follow these rules:
   - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.10.0`.
   - *Done in code (2026-11-26):* [the M10 checklist](../checklists/M10.md); the switch `season` is on in `Core/Features.lua` (`raid` stays off until M11); README and wiki describe M10 as part of the next release. The release preparation of the changelog is a separate step. Nothing of M10 has been checked in the game.
+- Note: the owner tagged `v0.10.0` on 2026-11-26 **before** the in-game checks and without waiting for the full tests and CI (ADR 0012 point 9; the switch `raid`, the Raid view reading FDCP of M11.7, stays off until M11). The second box stays unticked because the checks are still open.

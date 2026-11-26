@@ -2,7 +2,7 @@
 
 *English: [[Guild addons|Guild-Addons]]*
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. La condivisione del tuo elenco è accesa di default (vedi più sotto come spegnerla). Nulla di questa pagina è stato verificato nel gioco vero.
+> **Novità della `v0.9.0`**. La condivisione del tuo elenco è accesa di default (vedi più sotto come spegnerla). Nulla di questa pagina è stato verificato nel gioco vero.
 
 La scheda **Addon della gilda** mostra quali addon usano i membri della gilda, con il conteggio di ciascuno. Si apre con la sua scheda o con `/accord addons`.
 

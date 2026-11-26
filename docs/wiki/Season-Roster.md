@@ -2,7 +2,7 @@
 
 *Italiano: [[Roster della season|Season-Roster-it]]*
 
-> **From `v0.10.0`**, the next release: it is complete in the code and not published yet; no earlier version has it. Nothing on this page has been checked in the real game. What follows describes how it should work.
+> **From `v0.10.0`**: no earlier version has it. Nothing on this page has been checked in the real game. What follows describes how it should work.
 
 The season roster is **not a sign-up and not an attendance register**. It says what each raider plays for the whole season, because loot follows the declared spec:
 

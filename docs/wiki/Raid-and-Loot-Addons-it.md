@@ -2,7 +2,7 @@
 
 *English: [[Raid and loot addons|Raid-and-Loot-Addons]]*
 
-> **In parte dalla `v0.10.0`**, il prossimo rilascio, non ancora pubblicato: il riconoscimento degli altri addon, la scelta della fonte del roster della season e la sezione *Addon di raid e di loot nella gilda* (passo M10.2), nella vista [[Season|Season-Roster-it]]. La vista **Raid**, `/accord raid`, la fonte *Loot* e *Loot (FDCP)* nella scheda del membro (passo M11.7) sono nel codice ma spente finché la milestone M11 non è completa. Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **In parte dalla `v0.10.0`**: il riconoscimento degli altri addon, la scelta della fonte del roster della season e la sezione *Addon di raid e di loot nella gilda* (passo M10.2), nella vista [[Season|Season-Roster-it]]. La vista **Raid**, `/accord raid`, la fonte *Loot* e *Loot (FDCP)* nella scheda del membro (passo M11.7) sono nel codice ma spente finché la milestone M11 non è completa. Niente è stato provato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Accord **non ha un motore del loot né le presenze**. Quei dati li tengono gli addon di raid e di loot della tua gilda, e Accord lavora **con** loro, mai contro:
 

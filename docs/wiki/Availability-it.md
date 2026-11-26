@@ -2,7 +2,7 @@
 
 *English: [[Availability|Availability]]*
 
-> **Dalla `v0.10.0`**, il prossimo rilascio: è completo nel codice e non ancora pubblicato; nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.10.0`**: nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 La mappa della disponibilità risponde a una domanda: **quando giocano di solito i membri della gilda?** Aiuta a scegliere giorno e ora di un raid o di un evento.
 

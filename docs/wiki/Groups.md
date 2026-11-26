@@ -2,7 +2,7 @@
 
 *Italiano: [[Gruppi|Groups-it]]*
 
-> **New in `v0.9.0`**, the next release. Nothing on this page has been checked in the real game; in particular the invitation sent by the addon, also inside an instance.
+> **New in `v0.9.0`**. Nothing on this page has been checked in the real game; in particular the invitation sent by the addon, also inside an instance.
 
 The **Groups** tab is the game's premade groups panel, **for your guild only**: a leader posts a group, guild members apply with a role, the leader accepts them and they are invited. Open it with its tab or with `/accord groups`. Nobody outside the guild sees a group, and only members who use the addon take part.
 

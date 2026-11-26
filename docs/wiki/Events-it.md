@@ -2,7 +2,7 @@
 
 *English: [[Events|Events]]*
 
-> **Dalla `v0.10.0`**, il prossimo rilascio: è completo nel codice e non ancora pubblicato; nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.10.0`**: nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il calendario del gioco è il terreno comune della gilda per gli eventi. Accord **non tiene una copia sua** del calendario: legge gli eventi della gilda dal calendario del gioco e scrive la tua risposta **nel calendario del gioco stesso**. Così il gioco, Finland Dragon Credit Points (FDCP) e gli altri addon vedono tutti la stessa risposta, dovunque tu l'abbia data.
 

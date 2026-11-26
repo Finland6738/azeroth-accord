@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-26
+
 ### Documentation
 
 - M10.10: `docs/checklists/M10.md`, the in-game check of M10 for the owner (upgrade from `v0.9.0`, tabs, addon detection, season roster, game calendar, Raid-Helper import and calendar writes, bench and composition, availability and rallies, boss silence, FDCP as the source, traffic, with the exit criterion and the unverified API questions); README and wiki describe M10 as part of the next release.

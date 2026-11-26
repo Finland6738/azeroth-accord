@@ -34,7 +34,7 @@ Entrambi sono **sempre condivisi con la tua gilda**, così i compagni possono ra
 
 Dalla `v0.9.0` questa carta ha anche **Condividi l'elenco dei miei addon** (acceso di default), lo stesso interruttore della pagina *Cosa condivido*: vedi [[Addon della gilda|Guild-Addons-it]].
 
-Dalla `v0.10.0` (non ancora pubblicata) ha anche **Condividi quando gioco di solito** (acceso di default): vedi [[Disponibilità|Availability-it]].
+Dalla `v0.10.0` ha anche **Condividi quando gioco di solito** (acceso di default): vedi [[Disponibilità|Availability-it]].
 
 ## Personaggio principale
 

@@ -2,7 +2,7 @@
 
 *Italiano: [[Disponibilità|Availability-it]]*
 
-> **From `v0.10.0`**, the next release: it is complete in the code and not published yet; no earlier version has it. Nothing on this page has been checked in the real game. What follows describes how it should work.
+> **From `v0.10.0`**: no earlier version has it. Nothing on this page has been checked in the real game. What follows describes how it should work.
 
 The availability map answers one question: **when do the guild's members usually play?** It helps to choose the day and hour of a raid or an event.
 

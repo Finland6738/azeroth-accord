@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon della gilda|Guild-Addons-it]]*
 
-> **New in `v0.9.0`**, the next release. Sharing your list is on by default ([Switching sharing off](#switching-sharing-off)). Nothing on this page has been checked in the real game.
+> **New in `v0.9.0`**. Sharing your list is on by default ([Switching sharing off](#switching-sharing-off)). Nothing on this page has been checked in the real game.
 
 The **Guild addons** tab shows which addons the members of your guild use, with a count for each. Open it with its tab or with `/accord addons`.
 

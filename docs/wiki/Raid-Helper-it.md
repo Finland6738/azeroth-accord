@@ -2,7 +2,7 @@
 
 *English: [[Raid-Helper events|Raid-Helper]]*
 
-> **Dalla `v0.10.0`**, il prossimo rilascio: è completo nel codice e non ancora pubblicato; nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero, e l'esportazione di Raid-Helper non è ancora stata provata con un evento reale. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.10.0`**: nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero, e l'esportazione di Raid-Helper non è ancora stata provata con un evento reale. Quello che segue descrive come dovrebbe funzionare.
 
 Molte gilde raccolgono le iscrizioni ai raid con il bot **Raid-Helper** su Discord. Accord può portare nel gioco un evento di questo tipo: un ufficiale copia l'esportazione dell'evento e la incolla. Accord **non contatta mai Discord né Raid-Helper**: un addon non ha accesso a internet, e dal tuo computer non parte niente verso di loro.
 

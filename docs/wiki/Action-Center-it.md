@@ -2,7 +2,7 @@
 
 *English: [[Action Center|Action-Center]]*
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla di questa pagina è stato verificato nel gioco vero.
+> **Novità della `v0.9.0`**. Nulla di questa pagina è stato verificato nel gioco vero.
 
 Il **Centro azioni** è un solo elenco delle cose che **ti aspettano**: non serve guardare ogni vista per trovarle. Si apre con la sua scheda, la prima del pannello Accord, o con `/accord inbox`.
 
@@ -39,7 +39,7 @@ I filtri in alto mostrano **Tutto** o un solo tipo: *Gruppi*, *Banca*, *Creazion
 
 ## Avvisi
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla degli avvisi è stato verificato nel gioco vero; in particolare quali suoni offre il gioco.
+> **Novità della `v0.9.0`**. Nulla degli avvisi è stato verificato nel gioco vero; in particolare quali suoni offre il gioco.
 
 La seconda pagina del Centro azioni, **Avvisi**, è la cronologia di ciò che l'addon ti ha detto, dal più recente. Il nome della pagina mostra quanti non ne hai **letti**: *Avvisi (3)*.
 
@@ -78,7 +78,7 @@ I due interruttori per le richieste nuove e per le decisioni sono quelli di prim
 
 ## Ore di quiete
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla delle ore di quiete è stato verificato nel gioco vero.
+> **Novità della `v0.9.0`**. Nulla delle ore di quiete è stato verificato nel gioco vero.
 
 Un avviso **aspetta** invece di comparire in chat, sullo schermo o con un suono:
 
@@ -92,7 +92,7 @@ Quando nulla li trattiene più, gli avvisi in attesa escono **una volta sola, ne
 
 ## Riepilogo all'accesso
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla del riepilogo all'accesso è stato verificato nel gioco vero.
+> **Novità della `v0.9.0`**. Nulla del riepilogo all'accesso è stato verificato nel gioco vero.
 
 Pochi secondi dopo l'**accesso** (non dopo un `/reload`), l'addon dice che cosa è cambiato **dall'ultima sessione** in questa gilda:
 

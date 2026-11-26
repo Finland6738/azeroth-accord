@@ -2,7 +2,7 @@
 
 *English: [[Season roster|Season-Roster]]*
 
-> **Dalla `v0.10.0`**, il prossimo rilascio: è completo nel codice e non ancora pubblicato; nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
+> **Dalla `v0.10.0`**: nessuna versione precedente lo contiene. Niente di questa pagina è stato controllato nel gioco vero. Quello che segue descrive come dovrebbe funzionare.
 
 Il roster della season **non è un'iscrizione e non è un registro delle presenze**. Dice che cosa gioca ogni raider per tutta la season, perché il loot segue la specializzazione dichiarata:
 

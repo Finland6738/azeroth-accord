@@ -2,7 +2,7 @@
 
 *Italiano: [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]*
 
-> **Partly from `v0.10.0`**, the next release, not published yet: the detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2), in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) are in the code but switched off until milestone M11 is complete. Nothing has been checked in the real game. What follows describes how it should work.
+> **Partly from `v0.10.0`**: the detection of other addons, the choice of the season roster's source and the section *Raid and loot addons in the guild* (step M10.2), in the [[Season|Season-Roster]] view. The **Raid** view, `/accord raid`, the *Loot* source and *Loot (FDCP)* on the member card (step M11.7) are in the code but switched off until milestone M11 is complete. Nothing has been checked in the real game. What follows describes how it should work.
 
 Accord has **no loot engine and no attendance**. Your guild's raid and loot addons keep that data, and Accord works **with** them, never against them:
 

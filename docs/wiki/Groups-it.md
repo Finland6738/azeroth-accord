@@ -2,7 +2,7 @@
 
 *English: [[Groups|Groups]]*
 
-> **Novità della `v0.9.0`**, il prossimo rilascio. Nulla di questa pagina è stato verificato nel gioco vero; in particolare l'invito mandato dall'addon, anche dentro un'istanza.
+> **Novità della `v0.9.0`**. Nulla di questa pagina è stato verificato nel gioco vero; in particolare l'invito mandato dall'addon, anche dentro un'istanza.
 
 La scheda **Gruppi** è il pannello dei gruppi predefiniti del gioco, **solo per la tua gilda**: un capo pubblica un gruppo, i membri si candidano con un ruolo, il capo li accetta e vengono invitati. Si apre con la sua scheda o con `/accord groups`. Nessuno fuori dalla gilda vede un gruppo, e partecipano solo i membri che usano l'addon.
 

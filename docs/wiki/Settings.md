@@ -34,7 +34,7 @@ Both are **always shared with your guild**, so guildmates can reach you: there i
 
 From `v0.9.0` this card also has **Share my addon list** (on by default), the same switch as on the *What I share* page: see [[Guild addons|Guild-Addons]].
 
-From `v0.10.0` (not released yet) it also has **Share when I usually play** (on by default): see [[Availability|Availability]].
+From `v0.10.0` it also has **Share when I usually play** (on by default): see [[Availability|Availability]].
 
 ## Main character
 
