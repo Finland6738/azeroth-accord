@@ -182,7 +182,32 @@ describe("the frame", function()
 		end
 	end
 
-	it("a click on a row opens the card beside the table and makes room for it", function()
+	it("in the Accord window the card opens in a detail window of its own beside it: the table keeps its width (owner, 2026-11-27)", function()
+		open()
+		rowOf("Bob"):Click()
+		truthy(Card():IsShown())
+		truthy(Card().detached)
+		eq(V().inset, 0, "the table is not narrowed")
+		eq(Card().frame:GetWidth(), Card().DETACHED_WIDTH)
+		local point, relative, relPoint, x = Card().frame:GetPoint(1)
+		eq(point, "TOPLEFT"); eq(relative, AzerothAccord.Window.frame); eq(relPoint, "TOPRIGHT"); eq(x, Card().GAP)
+		truthy(Card().frame.close:IsShown()); falsy(Card().frame.back:IsShown())
+		Card().frame.close:Click()
+		falsy(Card():IsShown())
+	end)
+
+	it("without room on the right of the screen the detail window opens on the left", function()
+		open()
+		local win = AzerothAccord.Window.frame
+		win.GetRight = function() return UIParent:GetWidth() - 20 end
+		rowOf("Bob"):Click()
+		local point, relative, relPoint = Card().frame:GetPoint(1)
+		eq(point, "TOPRIGHT"); eq(relative, win); eq(relPoint, "TOPLEFT")
+		win.GetRight = nil
+	end)
+
+	it("a click on a row opens the card beside the table and makes room for it (the guild window's panel)", function()
+		Card().DETACH = false
 		open()
 		V().frame:SetWidth(900)
 		falsy(Card():IsShown())
@@ -197,6 +222,7 @@ describe("the frame", function()
 		local _, _, _, x = V().frame.table:GetPoint(2)
 		eq(x, -(Card().WIDTH + 8))
 		truthy(Card().frame.close:IsShown()); falsy(Card().frame.back:IsShown())
+		Card().DETACH = true
 	end)
 
 	it("draws the sections and the lines, reusing the same frames for the next member", function()
@@ -258,6 +284,7 @@ describe("the frame", function()
 	end)
 
 	it("is over the table in a narrow panel, with a Back button", function()
+		Card().DETACH = false
 		open()
 		V().frame:SetWidth(600)
 		rowOf("Bob"):Click()
@@ -268,6 +295,7 @@ describe("the frame", function()
 		eq(relative, V().frame.toolbar)
 		Card().frame.back:Click()
 		falsy(Card():IsShown())
+		Card().DETACH = true
 	end)
 
 	it("a click on another character of the account opens its card and selects it", function()

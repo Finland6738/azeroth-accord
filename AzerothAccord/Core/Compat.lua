@@ -194,10 +194,13 @@ function Guild.InGuild()
 	return guildClubId() ~= nil   -- the fallback: a guild club exists
 end
 
+-- The guild's name: GetGuildInfo("player"), else the guild club's name. On WoW Forever GetGuildInfo answered without a
+-- name while the guild club was there (found in game, 2026-11-27: "guild key known: no" with 63 members read from the
+-- club), so the club is asked whenever GetGuildInfo gives no name, not only when the function is missing.
 function Guild.GuildName()
-	local name, state = first("GetGuildInfo", "player")
+	local name = first("GetGuildInfo", "player")
 	if str(name) then return name end
-	local clubId = state ~= AVAILABLE and guildClubId() or nil
+	local clubId = guildClubId()
 	if clubId then
 		local info = first("C_Club.GetClubInfo", clubId)
 		if type(info) == "table" and str(info.name) then return info.name end

@@ -1,6 +1,8 @@
 -- MemberCard: the card of the selected member (SPEC-05 §2). Lua 5.1.
--- A click on a row of the Roster table (Bus: ROSTER_SELECT) opens the card: to the right of the table in a wide panel,
--- over the table in a narrow one (the guild tab), with a Back button there.
+-- A click on a row of the Roster table (Bus: ROSTER_SELECT) opens the card. In the Accord window it is a detail window of
+-- its own beside the window (owner, 2026-11-27: the table keeps its whole width), on the right, or on the left when the
+-- screen has no room; in the guild window's panel it goes to the right of the table in a wide panel, over the table in a
+-- narrow one, with a Back button there.
 --
 -- Card.Describe(entry) is a plain function of the roster entry, the account groups and the notes permission, so the
 -- content is covered by offline tests; the frame only draws what it returns:
@@ -22,6 +24,9 @@ local L, Widgets, Theme, Assets, Model = ns.L, ns.Widgets, ns.Theme, ns.Assets, 
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
 Card.WIDTH = 290
+Card.DETACHED_WIDTH = 340  -- the detail window beside the Accord window
+Card.DETACH = true         -- in the Accord window the card is a window of its own (the tests switch it off for the panel)
+Card.GAP = 8
 Card.WIDE = 760            -- a panel at least this wide has room for the card beside the table
 Card.PAD = 16
 Card.INNER = 12            -- padding inside a section card
@@ -426,9 +431,30 @@ end
 function Card:Place()
 	local f, v = self.frame, ns.RosterView and ns.RosterView.frame
 	if not f or not v then return end
+	local host = ns.Shell and ns.Shell.host
+	local win = ns.Window and ns.Window.frame
+	self.detached = Card.DETACH and host ~= nil and host.mode == "window" and win ~= nil and win:IsShown() == true
+	f:ClearAllPoints()
+	if self.detached then
+		-- a detail window of its own, beside the Accord window, as tall as it; it follows the window when it moves
+		self.narrow = false
+		f:SetWidth(Card.DETACHED_WIDTH)
+		local right, screen = win:GetRight(), UIParent and UIParent:GetWidth()
+		local room = not (type(right) == "number" and type(screen) == "number" and screen > 0)
+			or right + Card.GAP + Card.DETACHED_WIDTH <= screen
+		if room then
+			f:SetPoint("TOPLEFT", win, "TOPRIGHT", Card.GAP, 0)
+			f:SetPoint("BOTTOMLEFT", win, "BOTTOMRIGHT", Card.GAP, 0)
+		else
+			f:SetPoint("TOPRIGHT", win, "TOPLEFT", -Card.GAP, 0)
+			f:SetPoint("BOTTOMRIGHT", win, "BOTTOMLEFT", -Card.GAP, 0)
+		end
+		if f.SetFrameStrata and win.GetFrameStrata then f:SetFrameStrata(win:GetFrameStrata()) end
+		f:SetFrameLevel((win:GetFrameLevel() or 1) + 5)
+		return
+	end
 	local width = v:GetWidth() or 0
 	self.narrow = width > 0 and width < Card.WIDE
-	f:ClearAllPoints()
 	if self.narrow then
 		f:SetPoint("TOPLEFT", v.toolbar, "BOTTOMLEFT", 0, -8)
 		f:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", 0, 0)
@@ -441,7 +467,7 @@ function Card:Place()
 end
 
 function Card:Inset()
-	if self.frame and self.frame:IsShown() and not self.narrow then return Card.WIDTH + 8 end
+	if self.frame and self.frame:IsShown() and not self.narrow and not self.detached then return Card.WIDTH + 8 end
 	return 0
 end
 

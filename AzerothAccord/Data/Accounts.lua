@@ -124,10 +124,17 @@ end
 -- The character that is logged in now, added to the account's list. Its guild is read every time (SPEC-11 §2.1): the guild
 -- key, "" when the game says it is in no guild, and unchanged while it is in a guild whose name has not arrived yet.
 function Accounts:RegisterSelf()
+	local entry, why = self:RegisterSelfNow()
+	state.lastRegister = entry and "ok" or tostring(why)   -- /accord debug says why the own list stays empty
+	return entry, why
+end
+
+function Accounts:RegisterSelfNow()
 	local C = compat()
 	if not C then return nil, "compat" end
 	local guid, name = C.Player.GUID(), C.Player.Name()
-	if not guid or not name then return nil, "player" end
+	if not guid then return nil, "no GUID from the game" end
+	if not name then return nil, "no name from the game" end
 	local guild = ns.GuildKey and ns.GuildKey:Current() or nil
 	if guild == nil and not C.Guild.InGuild() then guild = "" end
 	return self:Register{ guid = guid, name = name, realm = C.Player.Realm(), classID = C.Player.ClassID(), level = C.Player.Level(),
@@ -634,6 +641,7 @@ function Accounts:DebugLines()
 		("Accounts: %d group(s), %d with several characters, %d claimed outside the guild, %d from notes"):format(#groups, multi, claimed, hints),
 		("  own list: %d character(s); published %d, unchanged %d; dropped as stale %d%s"):format(own, state.stats.published,
 			state.stats.skipped, state.pruned, state.proved and "" or " (never: no proof the client answers for other characters)"),
+		("  own character: %s"):format(state.lastRegister and ("last registration " .. state.lastRegister) or "not registered yet"),
 	}
 end
 

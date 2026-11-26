@@ -81,6 +81,20 @@ describe("Resolve and Call", function()
 end)
 
 describe("guild helpers", function()
+	it("takes the guild's name from the guild club when GetGuildInfo gives none (WoW Forever, 2026-11-27)", function()
+		local C = compat()
+		Mock.guild.Set{ name = "Test Guild", myRank = 0 }
+		local real = GetGuildInfo
+		local club = C_Club.GetClubInfo
+		C_Club.GetClubInfo = function(id) local info = club(id) if info then info.name = "Test Guild" end return info end
+		GetGuildInfo = function() return nil end
+		local name = C.Guild.GuildName()
+		local key = AzerothAccord.GuildKey.Compute()
+		GetGuildInfo, C_Club.GetClubInfo = real, club
+		eq(name, "Test Guild")
+		notNil(key, "the guild key is known, so the guild's data can be saved and shared")
+	end)
+
 	it("reads guild, rank and roster from the classic API", function()
 		local C = compat()
 		Mock.guild.Set{ name = "Test Guild", myRank = 0, members = { { name = "Bob", level = 40, rank = 2, online = false,

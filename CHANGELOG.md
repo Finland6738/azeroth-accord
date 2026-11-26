@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **The member card no longer narrows the table** (owner, 2026-11-27). In the Accord window a click on a member opens the card as a **detail window of its own**, 340 points wide and as tall as the Accord window. It sits on the window's right, or on its left when the screen has no room, and follows the window when it moves. The table keeps its whole width. The guild window's panel keeps the card beside or over the table (`UI/MemberCard.lua`, wiki *Guild Roster*).
+
 - **Own profession levels read from the skill lines** (owner, 2026-11-27): the player's own professions now come with their **skill level**, as the game's Skills panel shows it ("Skinning 150/225"). They are read from `C_SkillInfo.GetNumSkillLines` / `GetSkillLineInfo` (primary professions only, not weapon skills or languages), falling back to `GetProfessions` / `GetProfessionInfo`. The roster updates on `SKILL_LINES_CHANGED`, so a level-up shows at once (`Compat.TradeSkill.OwnProfessions`).
 
 - **Profession levels always "1"** (found in game, 2026-11-26): WoW Forever's guild data gives rank 1 for every profession. A rank of 1 or less from the guild data is no longer shown as a level. The real level comes from the member's own client: the levels in the shared `recipes` records (published when they open their profession window), and for the player's own characters `GetProfessionInfo`, which always wins. Without either, only the profession's name shows (`Roster.MergeRanks`).
