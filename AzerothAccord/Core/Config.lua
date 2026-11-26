@@ -333,14 +333,20 @@ end
 -- 16 random bytes. The client's Lua has no secure random source: the seed mixes the server time with the sub-second
 -- clock and the profiler clock, so two accounts that log in at the same second still differ. The token only has to be
 -- unique inside a guild (SPEC-03 §1); nothing secret is derived from it.
+-- WoW Forever's Lua has NO math.randomseed (the client seeds math.random itself): calling it stopped Config:Load on a
+-- first install and nothing of the addon started (found in game on v0.11.0). The seed is used only where the function
+-- exists, and is also added to every byte, so the clock still separates two accounts when the client seeds.
 function Config.RandomBytes(n)
 	local seed = now()
 	local fine = (type(debugprofilestop) == "function" and debugprofilestop() or 0) + (type(GetTime) == "function" and GetTime() or 0) * 1000
 	seed = (seed % 1000000) * 1000 + floor(fine % 1000000)
-	math.randomseed(seed)
-	for _ = 1, 10 do math.random() end
+	local reseed = math.randomseed
+	if type(reseed) == "function" then
+		reseed(seed)
+		for _ = 1, 10 do math.random() end
+	end
 	local out = {}
-	for i = 1, n do out[i] = char(math.random(0, 255)) end
+	for i = 1, n do out[i] = char((math.random(0, 255) + floor(seed / 256 ^ ((i - 1) % 4))) % 256) end
 	return concat(out)
 end
 

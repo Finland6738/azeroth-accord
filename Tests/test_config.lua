@@ -31,6 +31,14 @@ describe("defaults", function()
 		eq(AzerothAccordDB.token, token)
 	end)
 
+	it("works without math.randomseed, which WoW Forever's Lua lacks (v0.11.0 stopped there)", function()
+		isNil(math.randomseed)
+		local a, b = config().RandomBytes(16), config().RandomBytes(16)
+		eq(#a, 16); eq(#b, 16)
+		truthy(a ~= b)
+		truthy(AzerothAccordDB.token and #AzerothAccordDB.token == 24)
+	end)
+
 	it("the pure-Lua Base64 matches the standard", function()
 		local B = config().Base64
 		eq(B(""), "")

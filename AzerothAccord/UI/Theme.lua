@@ -325,13 +325,21 @@ function Theme.SetupFonts(source)
 	return fallbacks
 end
 
-function Theme.Font(id) return Theme.fontObjects[id] or Theme.fontObjects.Body end
+-- The font objects exist before the first text: normally CONFIG_LOADED builds them, but a text made before (or after a
+-- failed load) would have no font, and the client refuses SetText on a FontString without one ("Font not set").
+local function ensureFonts()
+	if next(Theme.fontObjects) == nil then Theme.SetupFonts() end
+end
+Theme.EnsureFonts = ensureFonts
+
+function Theme.Font(id) ensureFonts() return Theme.fontObjects[id] or Theme.fontObjects.Body end
 function Theme.FontName(id) return "AzerothAccordFont" .. id end
 
 -- A FontString of `parent` in font `id` and colour `token` (registered).
 function Theme.NewText(parent, id, token, layer)
 	local fs = parent:CreateFontString(nil, layer or "OVERLAY")
-	if Theme.fontObjects[id] then fs:SetFontObject(Theme.fontObjects[id]) end
+	ensureFonts()
+	fs:SetFontObject(Theme.fontObjects[id] or Theme.fontObjects.Body)
 	Theme.Text(fs, token or "text-1")
 	return fs
 end

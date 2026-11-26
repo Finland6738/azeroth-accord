@@ -47,7 +47,7 @@ local function populate()
 			battleTag = "Player" .. i .. "#" .. (1000 + i), discord = "discord_user_" .. i }
 	end
 	local recipes = S():Records("recipes")
-	math.randomseed(7)
+	Mock.randomseed(7)
 	for i = 1, USERS do
 		for _, line in ipairs({ 171, 164 }) do
 			local ids, id = {}, 1000

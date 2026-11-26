@@ -11,6 +11,12 @@
 local Mock, H = ...
 local W = Mock.world
 
+-- WoW Forever's Lua has no math.randomseed (found in game on v0.11.0: Config:Load stopped on it). The addon must work
+-- without it, so the mock removes it too; tests and the simulator that want a fixed sequence use Mock.randomseed.
+rawset(_G, "__plainRandomseed", rawget(_G, "__plainRandomseed") or math.randomseed)
+Mock.randomseed = rawget(_G, "__plainRandomseed")
+math.randomseed = nil
+
 -- The client's xpcall forwards extra arguments (plain Lua 5.1 drops them); AceAddon's safecall relies on it.
 local plainXpcall = xpcall
 function xpcall(f, handler, ...)

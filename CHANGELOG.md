@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- **Accord did not start on WoW Forever** (found in game on `v0.11.0`): the client's Lua has no `math.randomseed`. On a first install, `Config:Load` called it to create the account token and stopped. Then nothing started: no `/accord`, no Accord tab, no options panel. The texts made at login then failed with "Font not set". The token's random bytes now use `math.randomseed` only where it exists, and the theme builds its fonts before the first text if they are missing. The offline mock now lacks `math.randomseed` too, like the client (`Tests/mock/00_core.lua`), with new tests in `test_config` and `test_theme`.
+
 ### Added
 
 - M12.5: **mentors** (behind the switch `recruit`, off until M12.6: nothing of it is visible yet; [SPEC-16 §6](docs/specs/SPEC-16-recruitment-trials-mentors.md#6-i-mentori-m125)): a member offers to mentor new members with one click (off by default, one per account, topics and a short note) and leaves the list at any time; the new data set `mentor`; a **Mentors** mode in the Reputation view, for everybody, with a topic filter and **Whisper**; a row with its switch in *What I share*. Officers and the Guild Master also see **suggested mentors** for new members (an open trial, or joined in the last 30 days) on the Trials page and the member card, from the time played together; only members who offered are suggested, nothing about a pair is saved or sent, and nobody is told. In the simulator, offers changing while the availability maps are first exchanged go a little over the peak accepted for that exchange, within the bounds the owner then accepted ([SPEC-10 Q39](docs/specs/SPEC-10-risks-open-questions.md)).

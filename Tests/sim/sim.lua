@@ -464,7 +464,8 @@ function Sim.new(opts)
 	}, Sim)
 	for _, i in ipairs(opts.officers or {}) do sim.officer[i] = true end
 	sim.realmKey = sim.realm:gsub("[%s%-']", "")
-	math.randomseed(opts.seed or 1)
+	local seedRandom = math.randomseed or rawget(_G, "__plainRandomseed")   -- the mock removes math.randomseed (Tests/mock/00_core.lua)
+	seedRandom(opts.seed or 1)
 	for i = 1, sim.size do sim.clients[i] = bootClient(sim, i, opts) end
 	if opts.loginWithin then
 		sim.pendingLogins = {}

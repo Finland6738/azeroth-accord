@@ -381,6 +381,16 @@ describe("fonts", function()
 		Th().Apply("accord")
 		near((fs:GetTextColor()), 0xD9 / 255, 1e-6)
 	end)
+
+	it("a text made before the fonts were built still gets a font (the client refuses SetText without one)", function()
+		local saved = Th().fontObjects
+		Th().fontObjects = {}
+		local fs = Th().NewText(CreateFrame("Frame"), "Body")
+		notNil(fs._fontObject)
+		eq(fs._fontObject, Th().fontObjects.Body)
+		eq(Th().fontStatus.Body, "addon")
+		Th().fontObjects = saved
+	end)
 end)
 
 describe("pixels and shapes", function()
