@@ -6,7 +6,7 @@ La `CommunitiesFrame` ha sulla destra le tab Chat, Roster, Guild Benefits e Guil
 
 | ID | Requisito |
 |---|---|
-| GT-01 | La tab è un pulsante dell'addon, figlio della `CommunitiesFrame`, ancorato sotto l'ultima tab visibile di Blizzard, con lo stesso aspetto e un tooltip "Azeroth Accord". |
+| GT-01 | La tab è un pulsante dell'addon, figlio della `CommunitiesFrame`, ancorato sotto la tab di Blizzard **più in basso come la disegna la finestra**, alla **stessa distanza misurata** tra le loro (su Forever l'ordine delle chiavi non è quello a schermo: correzione del 2026-11-26), con la **cornice delle tab del gioco** (`CommunitiesFrameTabTemplate`) e il logo di Accord dentro, e un tooltip "Azeroth Accord". |
 | GT-02 | Compare solo quando il club selezionato è la gilda (`C_Club.GetGuildClubId()`), e si nasconde nella modalità ridotta della finestra. |
 | GT-03 | Il clic mostra il pannello Accord sopra l'area dei contenuti e segna la tab come selezionata; il clic su una tab di Blizzard nasconde il pannello (osservato con `hooksecurefunc` / `HookScript`). |
 | GT-04 | L'addon non chiama `SetDisplayMode` e non sostituisce funzioni di Blizzard. |

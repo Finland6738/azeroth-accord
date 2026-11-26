@@ -75,8 +75,10 @@ end
 -- The tiles of the side tabs
 ---------------------------------------------------------------------------------------------------------------------
 -- A themed tile behind `tab` (a frame child of `cf`, below the tab): fill + ring, the accent ring and the raised fill while
--- the tab is the checked one, a stronger ring under the mouse.
-local function newTile(cf, tab, own)
+-- the tab is the checked one, a stronger ring under the mouse. `own`: the Accord tab (its checked state always counts).
+-- `always`: shown all the time (the Accord tab without the game's frame); otherwise only while the skin is on, like the
+-- tiles of Blizzard's tabs (the Accord tab with the game's frame, owner 2026-11-26).
+local function newTile(cf, tab, own, always)
 	-- the Accord tab's tile is a child of the tab (it hides with it); a Blizzard tab's is a child of the window
 	local parent = own and tab or cf
 	local tile = CreateFrame("Frame", nil, parent)
@@ -90,7 +92,7 @@ local function newTile(cf, tab, own)
 	tile.glow = Theme.Glow(tile, "glow_s", "accent", { layer = "BACKGROUND", alpha = 0.35 })
 	tile.glow:SetPoint("CENTER", tile, "CENTER", 0, 0)
 	tile.glow:SetSize(GuildSkin.TILE + 28, GuildSkin.TILE + 28)
-	tile.tab, tile.own = tab, own and true or false
+	tile.tab, tile.own, tile.always = tab, own and true or false, always and true or false
 	function tile:Paint()
 		local ok, c = call(self.tab, "GetChecked")
 		local checked = ok and c and true or false
@@ -102,7 +104,7 @@ local function newTile(cf, tab, own)
 		Theme.GlowShow(self.glow, checked)
 	end
 	function tile:Update()
-		if not self.own then
+		if not self.always then
 			local ok, shown = call(self.tab, "IsShown")
 			self:SetShown(GuildSkin.active == true and ok and shown == true)
 		end
@@ -112,7 +114,7 @@ local function newTile(cf, tab, own)
 		tab:HookScript("OnEnter", function() tile.hot = true tile:Paint() end)
 		tab:HookScript("OnLeave", function() tile.hot = false tile:Paint() end)
 		tab:HookScript("OnClick", function() tile:Paint() if ns.Compat and ns.Compat.After then ns.Compat.After(0, function() tile:Paint() end) end end)
-		if not own then
+		if not always then
 			tab:HookScript("OnShow", function() tile:Update() end)
 			tab:HookScript("OnHide", function() tile:Update() end)
 		end
@@ -122,11 +124,11 @@ local function newTile(cf, tab, own)
 end
 
 -- The tile of `tab`, made on first use (also used by the Accord tab itself, which is always themed).
-function GuildSkin.TileFor(cf, tab, own)
+function GuildSkin.TileFor(cf, tab, own, always)
 	GuildSkin.tiles = GuildSkin.tiles or {}
 	local tile = GuildSkin.tiles[tab]
 	if not tile then
-		local ok, made = pcall(newTile, cf, tab, own)
+		local ok, made = pcall(newTile, cf, tab, own, always)
 		if not ok then return nil end
 		tile = made
 		GuildSkin.tiles[tab] = tile
@@ -219,7 +221,7 @@ function GuildSkin.Apply(cf, tabs, own)
 		-- the icon of a Blizzard tab stays; every other texture of the tab (its background, border, glow) goes
 		local keep = tab.Icon or tab.icon
 		fadeRegions(tab, keep)
-		local tile = GuildSkin.TileFor(cf, tab)
+		local tile = GuildSkin.TileFor(cf, tab, tab == own)
 		if tile then found = found + 1 end
 	end
 	skin.title:SetText(guildName(cf))

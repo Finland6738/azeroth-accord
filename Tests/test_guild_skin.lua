@@ -58,9 +58,8 @@ describe("the guild window skin (M6.18)", function()
 	it("the selected tab has the accent ring: Accord's while the panel is open, a Blizzard one after it", function()
 		Mock.communities.Open()
 		local accent, border = A().Theme.Color("accent"), A().Theme.Color("border")
-		local own = Skin().tiles[Tab().tab]
-		eq((own.ring:GetVertexColor()), border, "unselected")
 		Tab().tab:Click()
+		local own = Skin().tiles[Tab().tab]   -- with the game's frame the tile comes with the skin (owner, 2026-11-26)
 		eq((own.ring:GetVertexColor()), accent)
 		local roster = Skin().tiles[CommunitiesFrame.RosterTab]
 		roster.tab:SetChecked(true)   -- Blizzard keeps its own tab checked under our panel

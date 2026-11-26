@@ -1,7 +1,9 @@
 -- GuildTab: the Accord tab in Blizzard's guild window, CommunitiesFrame (SPEC-04 §1, ADR 0003). Lua 5.1.
 --
---   GT-01  our own button, a child of CommunitiesFrame, under the last visible Blizzard tab, a plain button in the addon's
---          look (a themed tile, UI/GuildSkin.lua) and the tooltip "Azeroth Accord";
+--   GT-01  our own button, a child of CommunitiesFrame, under the LOWEST visible Blizzard tab as the window draws them, at
+--          the same distance as theirs (measured; on Forever the tabs are not stacked in the order of their keys, and
+--          a tab placed by key order covered the fourth one: owner, 2026-11-26), with the game's tab frame
+--          (CommunitiesFrameTabTemplate) around the Accord logo and the tooltip "Azeroth Accord";
 --   GT-02  shown only while the selected community is the guild and the window is not minimized;
 --   GT-03  a click shows the Accord panel over the content area and checks our tab; a click on a Blizzard tab hides the
 --          panel (observed with HookScript), as do a change of display mode or club and closing the window;
@@ -26,8 +28,9 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pcall, tostring = type, ipairs, pcall, tostring
 
 GuildTab.TAB_KEYS = { "ChatTab", "RosterTab", "GuildBenefitsTab", "GuildInfoTab" }
--- The tab is a plain button: its look is the addon's own tile (UI/GuildSkin.lua), not Blizzard's tab template (M6.18).
-GuildTab.TEMPLATES = { "" }
+-- The tab has the game's tab frame with the Accord logo inside (owner, 2026-11-26; M6.18 had the addon's own tile, which
+-- stays as the fallback when the client does not know the template).
+GuildTab.TEMPLATES = { "CommunitiesFrameTabTemplate", "" }
 GuildTab.TAB_NAME, GuildTab.PANEL_NAME = "AzerothAccordGuildTab", "AzerothAccordGuildPanel"
 GuildTab.GAP = 20                -- vertical space between our tab and the last Blizzard tab, like theirs
 GuildTab.LEVEL_ABOVE = 20        -- the panel sits this many frame levels above the guild window
@@ -53,24 +56,72 @@ function GuildTab.BlizzardTabs(cf)
 	return tabs
 end
 
--- The lowest visible Blizzard tab, or nil. Blizzard stacks its tabs in this order, so the last visible one in the list
--- is the lowest (positions are not read: they are not known before the window is drawn).
-local function lastVisibleTab(cf)
-	local last
-	for _, tab in ipairs(GuildTab.BlizzardTabs(cf)) do
-		local ok, shown = call(tab, "IsShown")
-		if ok and shown then last = tab end
+-- The visible Blizzard side tabs: the known keys, plus any other check button of the window that stands outside its right
+-- edge (a side tab this client has and the keys do not name). Never our own tab.
+local function visibleTabs(cf)
+	local list, seen = {}, {}
+	local function add(tab)
+		if tab and not seen[tab] and tab ~= GuildTab.tab then
+			local ok, shown = call(tab, "IsShown")
+			if ok and shown then list[#list + 1] = tab end
+			seen[tab] = true
+		end
 	end
-	return last
+	for _, tab in ipairs(GuildTab.BlizzardTabs(cf)) do add(tab) end
+	local okR, right = call(cf, "GetRight")
+	if okR and type(right) == "number" and type(cf.GetChildren) == "function" then
+		for _, child in ipairs({ cf:GetChildren() }) do
+			local okT, kind = call(child, "GetObjectType")
+			local okL, left = call(child, "GetLeft")
+			if okT and kind == "CheckButton" and okL and type(left) == "number" and left >= right - 4 then add(child) end
+		end
+	end
+	return list
+end
+
+local function edges(tab)
+	local okT, top = call(tab, "GetTop")
+	local okB, bottom = call(tab, "GetBottom")
+	if okT and okB and type(top) == "number" and type(bottom) == "number" then return top, bottom end
+end
+
+-- The lowest visible tab and the space Blizzard leaves between its tabs. With real positions (the window is drawn) the
+-- lowest is the one with the smallest bottom and the gap is the one measured between two neighbours; without them (not
+-- drawn yet, or every tab reports the same place) the last visible one in key order and GAP.
+function GuildTab.Lowest(cf)
+	local tabs = visibleTabs(cf)
+	if #tabs == 0 then return nil, GuildTab.GAP, "none" end
+	local measured, distinct = {}, false
+	for _, tab in ipairs(tabs) do
+		local top, bottom = edges(tab)
+		if not top then measured = nil break end
+		measured[#measured + 1] = { tab = tab, top = top, bottom = bottom }
+		if measured[1] and bottom ~= measured[1].bottom then distinct = true end
+	end
+	if not (measured and distinct) then return tabs[#tabs], GuildTab.GAP, "order" end
+	table.sort(measured, function(a, b) return a.bottom > b.bottom end)   -- top to bottom
+	local gap
+	for i = 2, #measured do
+		local d = measured[i - 1].bottom - measured[i].top
+		if d >= 0 and d < 80 then gap = gap and math.min(gap, d) or d end
+	end
+	return measured[#measured].tab, gap or GuildTab.GAP, "measured"
 end
 
 function GuildTab:Anchor()
 	local tab, cf = self.tab, frame()
 	if not (tab and cf) then return end
-	local last = lastVisibleTab(cf)
+	local last, gap, how = GuildTab.Lowest(cf)
+	self.anchorHow = how
 	tab:ClearAllPoints()
-	if last then tab:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -GuildTab.GAP)
+	if last then tab:SetPoint("TOPLEFT", last, "BOTTOMLEFT", 0, -gap)
 	else tab:SetPoint("TOPLEFT", cf, "TOPRIGHT", 0, -36) end
+end
+
+-- Positions are known only once the window is drawn: anchor now, and again on the next frame.
+function GuildTab:AnchorSoon()
+	self:Anchor()
+	if ns.Compat and ns.Compat.After then ns.Compat.After(0, function() GuildTab:Anchor() end) end
 end
 
 local function guildSelected(cf)
@@ -113,7 +164,7 @@ function GuildTab:ShowPanel()
 	if not self.panel then return false end
 	self.panel:Show()
 	self.tab:SetChecked(true)
-	pcall(ns.GuildSkin.Apply, frame(), GuildTab.BlizzardTabs(frame()), self.tab)   -- the window in the theme (M6.18)
+	pcall(ns.GuildSkin.Apply, frame(), GuildTab.SkinnedTabs(), self.tab)   -- the window in the theme (M6.18)
 	ns.Shell:Attach(self.host)
 	return true
 end
@@ -121,7 +172,14 @@ end
 function GuildTab:HidePanel()
 	if self.tab then self.tab:SetChecked(false) end
 	if self.panel and self.panel:IsShown() then self.panel:Hide() end
-	if ns.GuildSkin.IsActive() then pcall(ns.GuildSkin.Revert, GuildTab.BlizzardTabs(frame())) end
+	if ns.GuildSkin.IsActive() then pcall(ns.GuildSkin.Revert, GuildTab.SkinnedTabs()) end
+end
+
+-- The tabs the theme draws as tiles while the panel is open: Blizzard's, and ours too when it has the game's frame.
+function GuildTab.SkinnedTabs()
+	local tabs = GuildTab.BlizzardTabs(frame())
+	if GuildTab.tab and GuildTab.template ~= "" then tabs[#tabs + 1] = GuildTab.tab end
+	return tabs
 end
 
 function GuildTab:IsPanelShown() return self.panel ~= nil and self.panel:IsShown() end
@@ -160,16 +218,21 @@ end
 local function buildTab(cf)
 	local tab, template = createTab(cf)
 	GuildTab.template = template
-	tab:SetSize(36, 36)
+	local okW, width = call(tab, "GetWidth")
+	if template == "" or not (okW and type(width) == "number" and width > 0) then tab:SetSize(36, 36) end
 	local icon = tab.Icon or tab.icon
 	if not (icon and icon.SetTexture) then
 		icon = tab:CreateTexture(nil, "ARTWORK")
 		icon:SetPoint("TOPLEFT", tab, "TOPLEFT", 4, -4)
 		icon:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -4, 4)
+		if template ~= "" then tab.Icon = icon end   -- the skin keeps a tab's Icon while it hides the rest of its art
 	end
-	icon:SetTexture(ns.Assets.logos.logo_64.path)   -- the addon's logo (SPEC-10 Q2)
-	if icon.SetMaskTexture then icon:SetMaskTexture(ns.Assets.textures.circle.path) end
-	ns.GuildSkin.TileFor(cf, tab, true)   -- the tab's themed tile: always, it is the addon's own button
+	if template == "" then
+		-- no game frame: the logo in a circle on the addon's own tile (M6.18)
+		if icon.SetMaskTexture then icon:SetMaskTexture(ns.Assets.textures.circle.path) end
+		ns.GuildSkin.TileFor(cf, tab, true, true)
+	end
+	icon:SetTexture(ns.Assets.logos.logo_64.path)   -- the addon's logo (SPEC-10 Q2), inside the game's frame
 	tab.accordIcon = icon
 	tab.tooltip = L["ADDON_TITLE"]
 	Widgets.Tooltip.Attach(tab, function() return { L["ADDON_TITLE"], L["TAB_TOOLTIP"] } end, "RIGHT")
@@ -201,8 +264,8 @@ end
 local function hook(cf)
 	for _, tab in ipairs(GuildTab.BlizzardTabs(cf)) do
 		tab:HookScript("OnClick", function() GuildTab:HidePanel() end)
-		tab:HookScript("OnShow", function() GuildTab:Anchor() end)
-		tab:HookScript("OnHide", function() GuildTab:Anchor() end)
+		tab:HookScript("OnShow", function() GuildTab:AnchorSoon() end)
+		tab:HookScript("OnHide", function() GuildTab:AnchorSoon() end)
 	end
 	if type(cf.SetDisplayMode) == "function" then
 		hooksecurefunc(cf, "SetDisplayMode", function() GuildTab:HidePanel() GuildTab:UpdateVisibility() end)
@@ -210,7 +273,7 @@ local function hook(cf)
 	if type(cf.SelectClub) == "function" then
 		hooksecurefunc(cf, "SelectClub", function() GuildTab:UpdateVisibility() end)
 	end
-	cf:HookScript("OnShow", function() GuildTab:Anchor() GuildTab:UpdateVisibility() end)
+	cf:HookScript("OnShow", function() GuildTab:AnchorSoon() GuildTab:UpdateVisibility() end)
 	cf:HookScript("OnHide", function() GuildTab:HidePanel() updatePopIn() end)
 end
 
@@ -237,7 +300,7 @@ function GuildTab:Attach()
 		if geterrorhandler then geterrorhandler()(err) end
 		return false
 	end
-	self:Anchor()
+	self:AnchorSoon()
 	self:UpdateVisibility()
 	if self.badgeCount then self:SetBadge(self.badgeCount) end
 	setFeature("available", "attached with template " .. (GuildTab.template ~= "" and GuildTab.template or "none"))
@@ -245,8 +308,24 @@ function GuildTab:Attach()
 end
 
 function GuildTab:DebugLines()
-	return { ("Guild tab: %s%s"):format(self.tab and "attached" or "not attached",
+	local lines = { ("Guild tab: %s%s"):format(self.tab and "attached" or "not attached",
 		self.tab and (", " .. (self.tab:IsShown() and "visible" or "hidden") .. (self:IsPanelShown() and ", panel open" or "")) or "") }
+	local cf = frame()
+	if self.tab and cf then
+		-- where each side tab is: the owner reads these lines in game when the tab is not where it should be
+		local parts = {}
+		for _, tab in ipairs(visibleTabs(cf)) do
+			local top, bottom = edges(tab)
+			local key = "?"
+			for _, k in ipairs(GuildTab.TAB_KEYS) do if cf[k] == tab then key = k end end
+			parts[#parts + 1] = top and ("%s %.0f-%.0f"):format(key, top, bottom) or (key .. " not drawn")
+		end
+		local last, gap = GuildTab.Lowest(cf)
+		lines[#lines + 1] = ("  side tabs: %s; under %s, gap %.0f (%s); template %s"):format(table.concat(parts, ", "),
+			last and (function() for _, k in ipairs(GuildTab.TAB_KEYS) do if cf[k] == last then return k end end return "another tab" end)() or "none",
+			gap, self.anchorHow or "?", GuildTab.template ~= "" and GuildTab.template or "none")
+	end
+	return lines
 end
 
 if ns.addon then

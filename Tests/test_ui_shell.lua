@@ -203,11 +203,41 @@ describe("GT-05: a changed guild window", function()
 		eq(#Mock.errors, 0)
 	end)
 
-	it("the Accord tab is a plain button in the addon's look, not Blizzard's tab template (M6.18)", function()
+	it("the Accord tab has the game's tab frame with the Accord logo inside (owner, 2026-11-26)", function()
 		Mock.communities.Open()
 		notNil(Tab().tab)
-		eq(Tab().template, "")
+		eq(Tab().template, "CommunitiesFrameTabTemplate")
+		eq(Tab().tab.accordIcon:GetTexture(), AzerothAccord.Assets.logos.logo_64.path)
+		isNil(A().GuildSkin.tiles and A().GuildSkin.tiles[Tab().tab], "no own tile: the game's frame is the look")
+		local skinned = Tab().SkinnedTabs()
+		eq(skinned[#skinned], Tab().tab, "while the panel is open it is drawn like the Blizzard tabs")
+	end)
+
+	it("without the template it falls back to the addon's own tile (M6.18)", function()
+		local saved = Tab().TEMPLATES
+		Tab().TEMPLATES = { "" }   -- what is left when the client refuses the template (CreateFrame raises)
+		Mock.communities.Open()
+		Tab().TEMPLATES = saved
+		notNil(Tab().tab)
 		notNil(A().GuildSkin.tiles[Tab().tab])
+	end)
+
+	it("sits under the LOWEST tab as drawn, at the measured distance, not under the last key (Forever)", function()
+		Mock.communities.Open()
+		local cf = CommunitiesFrame
+		-- drawn order on Forever: Chat, Roster, Info, Benefits (Benefits is the lowest although its key comes before Info)
+		local place = { ChatTab = 400, RosterTab = 338, GuildInfoTab = 276, GuildBenefitsTab = 214 }
+		for key, top in pairs(place) do
+			local tab = cf[key]
+			tab.GetTop = function() return top end
+			tab.GetBottom = function() return top - 36 end
+		end
+		Tab():Anchor()
+		local point, relative, relPoint, _, y = Tab().tab:GetPoint(1)
+		eq(point, "TOPLEFT"); eq(relative, cf.GuildBenefitsTab); eq(relPoint, "BOTTOMLEFT")
+		eq(y, -26, "the gap Blizzard leaves between its tabs (62 - 36)")
+		Mock.Slash("/accord debug")
+		contains(text(), "under GuildBenefitsTab, gap 26 (measured)")
 	end)
 end)
 

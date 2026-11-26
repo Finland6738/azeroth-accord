@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **The Accord tab covered the fourth tab of the guild window** (found in game, 2026-11-26). On Forever the side tabs are not stacked in the order of their keys, so "under the last visible tab" put Accord on top of one of them. The tab now goes under the lowest tab as the window draws them, at the distance measured between Blizzard's tabs, and anchors again once the window is drawn. `/accord debug` lists the side tabs' positions and the anchor. The owner also asked for the **game's tab frame with the Accord logo inside** (`CommunitiesFrameTabTemplate`); the addon's own tile stays as the fallback (ADR 0003, SPEC-04 GT-01).
+
 - **Accord did not start on WoW Forever** (found in game on `v0.11.0`): the client's Lua has no `math.randomseed`. On a first install, `Config:Load` called it to create the account token and stopped. Then nothing started: no `/accord`, no Accord tab, no options panel. The texts made at login then failed with "Font not set". The token's random bytes now use `math.randomseed` only where it exists, and the theme builds its fonts before the first text if they are missing. The offline mock now lacks `math.randomseed` too, like the client (`Tests/mock/00_core.lua`), with new tests in `test_config` and `test_theme`.
 
 ### Added
