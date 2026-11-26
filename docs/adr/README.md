@@ -33,3 +33,4 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0023](0023-officer-tools-observe-and-suggest-officer-data-stays-among-officers.md) | Officer tools observe and suggest; officer data stays among officers | accepted |
 | [0024](0024-guild-group-finder-short-lived-listings-private-game-listing.md) | Guild group finder: short-lived listings outside the sync summary; the game's finder only private and on the leader's click | accepted |
 | [0025](0025-guild-handbook-pages-shared-on-guild-revisions-local.md) | Guild handbook: pages written by chosen ranks, shared once on GUILD, past revisions kept locally | accepted |
+| [0026](0026-recruitment-copied-by-hand-trials-among-officers-mentors-opt-in.md) | Recruitment copied by hand, trials among officers, onboarding local, mentors opt in | accepted |

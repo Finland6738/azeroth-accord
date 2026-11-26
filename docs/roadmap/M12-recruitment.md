@@ -11,7 +11,7 @@
 - Branch: `step/m12-1-spec`
 - Scope: write a new SPEC-16 ("Reclutamento, prove e mentori"), in Italian.
 - Done when:
-  - [ ] SPEC-16 is linked from the spec index; `tools/check_docs.py` passes.
+  - [x] SPEC-16 is linked from the spec index; `tools/check_docs.py` passes.
 
 ### M12.2 — Recruitment text
 - Branch: `step/m12-2-recruitment`

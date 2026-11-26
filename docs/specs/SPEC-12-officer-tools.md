@@ -38,6 +38,7 @@ Regole di fiducia (in aggiunta a [SPEC-02 §6](SPEC-02-network-protocol.md#6-fid
 - **OFF-02** Un ufficiale accetta un record di questi insiemi solo se il **mittente** è ufficiale nel proprio roster; l'autore deve essere stato ufficiale quando l'ha scritto ma non serve che lo sia ancora (`authorAny = true`: la storia osservata, una nota e la scelta delle fasce restano valide dopo la retrocessione del loro autore). Unica eccezione: un `absence` `:self` si accetta anche di prima mano, da un mittente dell'account del personaggio (NET-10), solo in `WHISPER`.
 - **OFF-03** La regola del proprietario di ogni insieme controlla forma e campi (§2.2, §3.3, §3.4, §5.1); un record che non la rispetta si rifiuta (`owner`).
 - Un client precedente ignora un insieme che non conosce (SPEC-02 §6): non tiene questi record e non li conta come rifiutati.
+- Da M12 un quinto insieme con le stesse regole, `trials` (le prove dei nuovi membri e le note degli ufficiali su di esse, [SPEC-16 §4](SPEC-16-recruitment-trials-mentors.md#4-le-prove-m123)), con un gruppo `trials` nel riepilogo `m` (§1.5) e la cancellazione di OFF-10 (§1.6).
 
 ### 1.3 Dove viaggiano
 
