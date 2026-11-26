@@ -27,21 +27,24 @@ Loot is documented, not computed. The loot page says which system the guild uses
 
 ## Addons on WoW Forever
 
-The loot and raid-roster addons that run on Forever, from a survey of their public pages on 2026-11-24 (CurseForge, GitHub, Wago, wowcalc.net, timesaver.gg, guildmanager.app). Guild-management addons are left out on purpose (M10 integration rule 6). None of it has been checked in the game; M11.1 checks the list again and M10.2 confirms the folder names in game.
+The loot and raid-roster addons that run on Forever. First survey on 2026-11-24 (CurseForge, GitHub, Wago, wowcalc.net, timesaver.gg, guildmanager.app); **checked again in M11.1 on 2026-11-26** from the public CurseForge and GitHub pages. Guild-management addons are left out on purpose (M10 integration rule 6). None of it has been checked in the game; the folder names are confirmed in game in M11.8 (as M10.2 planned), and only FDCP's is confirmed now.
 
-| Addon | Kind | Loot system | Public API or exchange | Plan in Accord |
-|---|---|---|---|---|
-| **Finland Dragon Credit Points (FDCP)** | loot and raid (same owner) | credits: fewest credits wins, then the roll; council | none yet; Accord asks for a read-only versioned API (SPEC-10 Q10) | level 0 now; level 1 when FDCP publishes the API: season roster, lineup and bench, a member's credits and queue place, the rules summary |
-| **Gargul** | loot | soft reserve, rolls and plus-ones, TMB or DFT wishlists, GDKP | imports from softres.it and TMB; no documented API found | level 0 |
-| **RaidCore** | loot | soft reserve, loot council (from RCLootCouncil Classic) | JSON exports for its own website | level 0 |
-| **WLC** | loot | loot council with votes | CSV and TMB-style export | level 0 |
-| **Forever Loot Manager** | loot | DKP, open-bid auctions | CSV export, also of attendance | level 0 |
-| **NostalgiaForeverLC** | loot (alpha) | hard and soft reserve, raid leader hands out | text import and export, softres.it CSV | level 0 |
-| **RollForMe** | loot | +1 / MS / OS rolls, soft reserve, DKP, council | not known (the page did not load) | level 0, if M11.1 confirms it |
+| Addon | Kind | Loot system | On Forever (2026-11-26) | Folder name | Public API or exchange | Plan in Accord |
+|---|---|---|---|---|---|---|
+| **Finland Dragon Credit Points (FDCP)** | loot and raid (same owner) | credits: fewest credits wins, then the roll; council | yes | `FinlandDragonCreditPoints` (confirmed) | **yes**: `FinlandDragonCreditPointsAPI`, `API_VERSION` 1 (FDCP M8-1, 2026-11-24) | level 1: season roster, lineup and bench, a member's credits and queue place, the rules summary (M11.7 done; SPEC-15 §9) |
+| **Gargul** | loot | rolls and plus-ones, soft reserve (softres.it), TMB or DFT wishlists, boosted rolls, GDKP | yes: a Forever file of 2026-11-24 (v8.1.1-forever) | `Gargul` (the repository has `Gargul.toc`; not confirmed in game) | imports from softres.it and TMB; no documented API for other addons | level 0 |
+| **RaidCore** | loot | soft reserve, loot council (adapted from RCLootCouncil Classic), rolls | yes: Interface 16001, file of 2026-10-26 (1.0.8) | `RaidCore` (not confirmed) | JSON export and import for its own website; no API; it can switch Gargul off on a character | level 0 |
+| **TLC - Loot Council** (new in M11.1) | loot | loot council, rolls MS/OS/transmog, soft reserve (softres.it CSV), priority lists, plus-ones, BiS lists | yes: "built and tested" for Forever, 1.60.1, file of 2026-11-19 (0.9.21) | not stated (`/tlc`); M11.6 adds it to `Integrations.KNOWN` unconfirmed | `/tlc export` and `/tlc sync` between officers; no API. It also keeps attendance, which Accord never reads | level 0 |
+| **WLC** | loot | loot council with votes | not found again on 2026-11-26 | `WLC` (not confirmed) | CSV and TMB-style export | level 0, kept in `KNOWN` until M11.8 |
+| **Forever Loot Manager** | loot | DKP, open-bid auctions | not found again on 2026-11-26 | `ForeverLootManager` (not confirmed) | CSV export, also of attendance | level 0, kept in `KNOWN` until M11.8 |
+| **NostalgiaForeverLC** | loot (alpha) | hard and soft reserve, raid leader hands out | not found again on 2026-11-26 | `NostalgiaForeverLC` (not confirmed) | text import and export, softres.it CSV | level 0, kept in `KNOWN` until M11.8 |
+| **RollForMe** | loot | +1 / MS / OS rolls, soft reserve, DKP, council | not found again on 2026-11-26 | `RollForMe` (not confirmed) | not known | level 0, kept in `KNOWN` until M11.8 |
 
 Notes:
-- **RCLootCouncil** had no Forever file at the time of the survey; RaidCore says standalone RCLootCouncil clients do not get its council requests.
-- **GDKP:** Blizzard stated that GDKP is not allowed in WoW Forever, at least in North America and Europe (reported by guildmanager.app, not checked at the source). Accord's templates and texts never propose it.
+- **No public API** for other addons was found on any of these pages except FDCP's: every other addon stays at level 0 (ADR 0022 point 3).
+- **Not on Forever** (no Forever file on their pages on 2026-11-26): RCLootCouncil (RaidCore says standalone RCLootCouncil clients do not get its council requests), the Gargul Loot Council Extension (Classic TBC only), MeltdownLC (MoP Classic only), LootReserve (no Forever flavor among the versions shown).
+- Loot *windows* and loot *browsers* for Forever (Loot Forever, XLoot, AutoLooter, Forever Loot Finder, WoWForeverLoot…) are not loot-distribution addons and are left out.
+- **GDKP:** Blizzard stated that GDKP is not allowed in WoW Forever, at least in North America and Europe (reported by guildmanager.app, not checked at the source). Accord's templates and texts never propose it (SPEC-15 §8.1).
 
 ### M11.1 — Specification
 - Branch: `step/m11-1-spec`
@@ -53,7 +56,8 @@ Notes:
 
   It updates the survey above (which addons run on Forever then, their folder names, whether any has gained a public API). It records which data FDCP's API would give to a member's client and which only to an officer's.
 - Done when:
-  - [ ] SPEC-15 is linked from the spec index; SPEC-10 Q6 stays answered and Q10 is updated; `tools/check_docs.py` passes.
+  - [x] SPEC-15 is linked from the spec index; SPEC-10 Q6 stays answered and Q10 is updated; `tools/check_docs.py` passes.
+  - *Done (2026-11-26):* [SPEC-15](../specs/SPEC-15-guild-handbook-loot.md) covers the data set `handbook` (pages as records with the page revision, writers by rank chosen in `guildcfg`, limits, trust rules HBK-01…HBK-06, conflicts flagged to the losing author, past revisions kept locally), the sync (its own summary entry, no whisper pushes, pages sent once on `GUILD` for everybody waiting, in AceComm parts) and its traffic against SPEC-09 §7; the reader and the editor; the default pages, seeded once by a writer's click; the loot page (`guildcfg` record `loot`, chosen together with the loot source, who has the addon from the census, the download address, the FDCP suggestion as a locale text for writers) and what moves from the Raid view when M11.6 exists; what FDCP's API gives a member's client and an officer's (SPEC-15 §9); what `raid` covers in M11. New [ADR 0025](../adr/0025-guild-handbook-pages-shared-on-guild-revisions-local.md); SPEC-10 Q27–Q33 (applied as proposed until the owner answers) and R18; the survey above checked again.
 
 ### M11.2 — Handbook data
 - Branch: `step/m11-2-handbook-data`

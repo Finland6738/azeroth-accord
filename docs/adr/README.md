@@ -32,3 +32,4 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0022](0022-integrations-with-raid-and-loot-addons.md) | Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared | accepted (updated in M10.1: the game calendar, the season roster, Raid-Helper) |
 | [0023](0023-officer-tools-observe-and-suggest-officer-data-stays-among-officers.md) | Officer tools observe and suggest; officer data stays among officers | accepted |
 | [0024](0024-guild-group-finder-short-lived-listings-private-game-listing.md) | Guild group finder: short-lived listings outside the sync summary; the game's finder only private and on the leader's click | accepted |
+| [0025](0025-guild-handbook-pages-shared-on-guild-revisions-local.md) | Guild handbook: pages written by chosen ranks, shared once on GUILD, past revisions kept locally | accepted |
