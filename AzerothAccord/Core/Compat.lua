@@ -788,8 +788,27 @@ end
 
 -- The player's own professions: { { index, name, skillLine, rank, maxRank }, ... } from GetProfessions and
 -- GetProfessionInfo; an empty list when the client gives nothing.
+-- The primary professions' skill line ids (the skill lines also hold weapons, languages, armour...).
+TradeSkill.PRIMARY_LINES = { [164] = true, [165] = true, [171] = true, [182] = true, [186] = true, [197] = true,
+	[202] = true, [333] = true, [393] = true, [755] = true, [773] = true }
+
+-- The own primary professions with their SKILL LEVEL, as the game's Skills panel shows it ("Skinning 150/225"): read from
+-- the skill lines (C_SkillInfo, in the Forever dump), which is how a Classic client knows them (owner, 2026-11-26: the
+-- level, never a count). Falls back to GetProfessions / GetProfessionInfo when the skill lines give nothing.
 function TradeSkill.OwnProfessions()
 	local out = {}
+	local count = first("C_SkillInfo.GetNumSkillLines")
+	if type(count) == "number" and count > 0 then
+		for i = 1, math.min(count, 200) do
+			local line = first("C_SkillInfo.GetSkillLineInfo", i)
+			if type(line) == "table" and not line.isHeader and TradeSkill.PRIMARY_LINES[num(line.skillID) or -1] and str(line.name) then
+				out[#out + 1] = { name = line.name, rank = num(line.rank), maxRank = num(line.maxRank), skillLine = line.skillID,
+					source = "skills" }
+				if #out == 2 then break end
+			end
+		end
+		if #out > 0 then return out end
+	end
 	local indexes = all("GetProfessions")
 	if not indexes then return out end
 	for i = 1, 2 do

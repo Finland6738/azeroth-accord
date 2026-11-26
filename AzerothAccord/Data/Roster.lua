@@ -30,7 +30,7 @@ local type, pairs, ipairs, tostring = type, pairs, ipairs, tostring
 
 Roster.REQUEST_MIN = 15      -- seconds between two C_GuildInfo.GuildRoster() calls (ROS-03)
 Roster.REBUILD_DELAY = 1     -- seconds a rebuild waits after the last change while a view is watching
-Roster.EVENTS = { "GUILD_ROSTER_UPDATE", "PLAYER_GUILD_UPDATE" }
+Roster.EVENTS = { "GUILD_ROSTER_UPDATE", "PLAYER_GUILD_UPDATE", "SKILL_LINES_CHANGED" }   -- a skill level up shows at once
 
 local state = {
 	list = {}, byGUID = {}, byName = {}, dirty = true, watchers = 0, timer = nil, lastRequest = nil,

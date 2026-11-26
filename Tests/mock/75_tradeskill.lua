@@ -12,6 +12,8 @@
 --   Mock.tradeskill.guildEnabled = false               what IsGuildTradeSkillsEnabled answers
 --   Mock.tradeskill.guildRecipes = { [guid] = { [skillLine] = { 2330, ... } } }   what the directory answers
 --   Mock.tradeskill.AddAllRecipeIDs()                  adds C_TradeSkillUI.GetAllRecipeIDs (absent by default)
+--   Mock.tradeskill.skillLines = true                  C_SkillInfo lists the own professions among other skill lines
+--                                                      (a header, a weapon skill), as WoW Forever's Skills panel does
 local Mock, H = ...
 local W = Mock.world
 
@@ -30,6 +32,20 @@ function GetProfessionInfo(index)
 	if not p then return nil end
 	return p.name, 134400 + index, p.rank or 1, p.maxRank or 300, 1, 0, p.skillLine, 0, -1, 0
 end
+
+C_SkillInfo = {}
+local function skillLines()
+	if not ts.skillLines then return {} end
+	local lines = { { skillID = 0, name = "Professions", isHeader = true, rank = 0, maxRank = 0 } }
+	for _, p in ipairs(ts.own) do
+		lines[#lines + 1] = { skillID = p.skillLine, name = p.name, isHeader = false, rank = p.rank or 1, maxRank = p.maxRank or 300 }
+	end
+	lines[#lines + 1] = { skillID = 0, name = "Weapon Skills", isHeader = true, rank = 0, maxRank = 0 }
+	lines[#lines + 1] = { skillID = 45, name = "Bows", isHeader = false, rank = 180, maxRank = 185 }
+	return lines
+end
+function C_SkillInfo.GetNumSkillLines() return #skillLines() end
+function C_SkillInfo.GetSkillLineInfo(i) return skillLines()[i] end
 
 C_TradeSkillUI = {}
 function C_TradeSkillUI.IsGuildTradeSkillsEnabled() return ts.guildEnabled == true end

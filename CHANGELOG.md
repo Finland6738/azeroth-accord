@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Own profession levels read from the skill lines** (owner, 2026-11-27): the player's own professions now come with their **skill level**, as the game's Skills panel shows it ("Skinning 150/225"). They are read from `C_SkillInfo.GetNumSkillLines` / `GetSkillLineInfo` (primary professions only, not weapon skills or languages), falling back to `GetProfessions` / `GetProfessionInfo`. The roster updates on `SKILL_LINES_CHANGED`, so a level-up shows at once (`Compat.TradeSkill.OwnProfessions`).
+
 - **Profession levels always "1"** (found in game, 2026-11-26): WoW Forever's guild data gives rank 1 for every profession. A rank of 1 or less from the guild data is no longer shown as a level. The real level comes from the member's own client: the levels in the shared `recipes` records (published when they open their profession window), and for the player's own characters `GetProfessionInfo`, which always wins. Without either, only the profession's name shows (`Roster.MergeRanks`).
 - **The Accord window was too narrow** (found in game, 2026-11-26): it now opens at **1280 × 720** (never wider than the screen), and the Roster's name, zone, last-online and profession columns are wider. A size saved with the old 920 × 600 default is not reused, once.
 

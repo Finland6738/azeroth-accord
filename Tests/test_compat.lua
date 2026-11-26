@@ -362,6 +362,17 @@ describe("trade skills [verify S3, S4]", function()
 		})
 	end)
 
+	it("reads the own skill LEVELS from the skill lines (WoW Forever's Skills panel), not the other skills", function()
+		own()
+		Mock.tradeskill.skillLines = true
+		local got = compat().TradeSkill.OwnProfessions()
+		Mock.tradeskill.skillLines = nil
+		deepEq(got, {
+			{ name = "Alchemy", rank = 250, maxRank = 300, skillLine = 171, source = "skills" },
+			{ name = "Herbalism", rank = 300, maxRank = 300, skillLine = 182, source = "skills" },
+		})
+	end)
+
 	it("recipe ids need GetAllRecipeIDs, which is not in the dump", function()
 		own()
 		Mock.tradeskill.open = 1
