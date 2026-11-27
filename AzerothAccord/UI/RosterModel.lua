@@ -30,17 +30,18 @@ local function lower(s) return type(s) == "string" and s:lower() or "" end
 Model.COLUMNS = {
 	{ id = "name", label = "COL_NAME", width = 170, always = true },
 	{ id = "level", label = "COL_LEVEL", width = 40 },
-	{ id = "class", label = "COL_CLASS", width = 90 },
-	{ id = "rank", label = "COL_RANK", width = 90 },
-	{ id = "zone", label = "COL_ZONE", width = 150 },
-	{ id = "lastOnline", label = "COL_LAST_ONLINE", width = 100 },
-	{ id = "prof1", label = "COL_PROF1", width = 160 },
-	{ id = "prof2", label = "COL_PROF2", width = 160 },
-	{ id = "likes", label = "COL_LIKES", width = 50, available = function() return ns.Likes ~= nil end },
+	-- widths tuned on the owner's screenshot (2026-11-27): rank and zone were cut, class and likes had room to spare
+	{ id = "class", label = "COL_CLASS", width = 80 },
+	{ id = "rank", label = "COL_RANK", width = 115 },
+	{ id = "zone", label = "COL_ZONE", width = 175 },
+	{ id = "lastOnline", label = "COL_LAST_ONLINE", width = 95 },
+	{ id = "prof1", label = "COL_PROF1", width = 165 },
+	{ id = "prof2", label = "COL_PROF2", width = 165 },
+	{ id = "likes", label = "COL_LIKES", width = 45, available = function() return ns.Likes ~= nil end },
 	-- the BattleTag of the member's account, as its own client shares it (owner, 2026-11-27: it replaces the Contacts and
 	-- Social columns; the social index stays on the Reputation view and the member card)
-	{ id = "battleTag", label = "COL_BATTLETAG", width = 150, available = function() return ns.Contacts ~= nil end },
-	{ id = "addon", label = "COL_ADDON", width = 55 },
+	{ id = "battleTag", label = "COL_BATTLETAG", width = 140, available = function() return ns.Contacts ~= nil end },
+	{ id = "addon", label = "COL_ADDON", width = 70 },
 }
 Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "battleTag", "addon" }
 
@@ -111,7 +112,11 @@ function Model.Cell(id, e)
 		if not p then return "", "muted" end
 		return Model.ProfessionText(p), p.source == "shared" and "muted" or nil
 	elseif id == "addon" then
-		if e.hasAddon then return e.addonVersion or L["YES"], "green" end
+		-- a development build says "@project-version@": "yes" then, like a member whose version is not known
+		if e.hasAddon then
+			local v = e.addonVersion
+			return (type(v) == "string" and v ~= "" and v:sub(1, 1) ~= "@") and v or L["YES"], "green"
+		end
 		return "", "muted"
 	elseif id == "battleTag" then
 		return Model.BattleTagOf(e) or "", nil
@@ -541,7 +546,19 @@ function Model:Load()
 	local C = ns.Config
 	if not C then return end
 	local cols = C:Get("char.ui.columns")
-	if type(cols) == "table" and #cols > 0 then self:SetColumns(cols) end
+	if type(cols) == "table" and #cols > 0 then
+		-- a choice saved before the BattleTag column (2026-11-27) still names Contacts or Social, which it replaced
+		local had, old = false, false
+		for _, id in ipairs(cols) do
+			if id == "battleTag" then had = true elseif id == "contacts" or id == "social" then old = true end
+		end
+		if old and not had then
+			local copy = { unpack(cols) }
+			copy[#copy + 1] = "battleTag"
+			cols = copy
+		end
+		self:SetColumns(cols)
+	end
 	local sort = C:Get("char.ui.sort")
 	if type(sort) == "table" and byId[sort.key] then self.sort = { key = sort.key, desc = sort.desc == true } end
 	self.grouped = C:Get("char.ui.grouped") == true

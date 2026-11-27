@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **Roster column widths** (owner, 2026-11-27, from the in-game screenshot): rank 90 → 115 and zone 150 → 175 points (both were cut), class 80, last online 95, professions 165, likes 45, BattleTag 140, Addon 70. A column choice saved before the BattleTag column (it named Contacts or Social) now gets the BattleTag column. The Addon column says "yes" for a development build instead of "@project-version@".
+
 - **Roster: a BattleTag column instead of Contacts and Social** (owner, 2026-11-27). The Roster shows each member's **BattleTag**: the player's own from the game, another's as that member's Accord shares it. The *Contacts* and *Social* columns left the table; the social index stays on the Reputation view and the member card. The Accord window opens **100 points wider**, at 1380 × 720 (a size saved with the older default is not reused, once).
 
 ### Fixed

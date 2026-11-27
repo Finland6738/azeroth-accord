@@ -98,6 +98,23 @@ describe("columns", function()
 		eq(again.sort.key, "level"); eq(again.sort.desc, true); eq(again.grouped, true)
 	end)
 
+	it("a column choice saved before the BattleTag column gets it in place of Contacts / Social (2026-11-27)", function()
+		A().Config:Set("char.ui.columns", { "name", "level", "zone", "contacts", "addon" })
+		local m = M().new()
+		m:Load()
+		truthy(m:HasColumn("battleTag"))
+		falsy(m:HasColumn("contacts"))
+		A().Config:Set("char.ui.columns", { "name", "level" })
+		local n = M().new()
+		n:Load()
+		falsy(n:HasColumn("battleTag"), "a newer choice without it stays as the player made it")
+	end)
+
+	it("the Addon column says yes for a development build (@project-version@)", function()
+		eq((M().Cell("addon", { hasAddon = true, addonVersion = "@project-version@" })), "yes")
+		eq((M().Cell("addon", { hasAddon = true, addonVersion = "v0.11.1" })), "v0.11.1")
+	end)
+
 	it("ignores damaged saved choices", function()
 		A().Config.db.char.ui.columns = { 1, "x" }
 		A().Config.db.char.ui.sort = { key = "bogus" }
