@@ -41,6 +41,7 @@ ACC.commands = {
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
 	{ name = "market", feature = "econ", help = L["HELP_MARKET"], handler = viewCommand("market") },
+	{ name = "goals", feature = "econ", help = L["HELP_GOALS"], handler = viewCommand("goals") },
 	{ name = "shopping", feature = "econ", help = L["HELP_SHOPPING"],
 		handler = function() if ns.ShoppingView then ns.ShoppingView:Open() end end },
 	{ name = "groups", feature = "groups", help = L["HELP_GROUPS"], handler = viewCommand("groups") },

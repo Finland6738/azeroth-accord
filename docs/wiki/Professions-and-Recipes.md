@@ -85,7 +85,7 @@ Below your list are the guild's wishes, by item, with who is online first. *I ha
 
 The *Demand* chip adds up the materials the open [craft orders](#craft-orders) need (requested, accepted or in progress), one row per material, with how many the guild bank showed at its last visit and how many you own (*Yours*). Point at a row to see which orders ask for it. It changes by itself when an order is ready or closed.
 
-The addon asks the game for a recipe's materials and never guesses them. If a line says some materials are unknown, open that profession once with any of your characters. Guild goals will join the demand when they arrive.
+The addon asks the game for a recipe's materials and never guesses them. If a line says some materials are unknown, open that profession once with any of your characters. What the open [[guild goals|Guild-Bank]] in items still miss counts too.
 
 ## Shopping list
 

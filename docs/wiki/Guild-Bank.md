@@ -77,3 +77,19 @@ In the **Requests** mode of the Bank view you can:
 - When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.
 - When the money log shows a gold deposit by the requester (any of their characters) after the request, of at least the tip, the row says *Looks paid*. One deposit counts for one tip, the oldest request first; several small deposits are not added up. It is only a hint: check it yourself. The addon records nothing about the payment; after you mark the request as fulfilled, the hint is in its tooltip in *Requests* (*Show closed ones too*). The bank log gives rounded times, so an old deposit read late may not be recognised.
 - You get one chat line when a new request arrives; the requester gets one when you approve, reject or fulfil it. Notices are never repeated after a reload, and the first time the addon runs it does not announce the requests that already exist. From `v0.9.0` these notices are part of the notices of the [[Action Center|Action-Center]].
+
+## Guild goals
+
+> **Coming with milestone M13, hidden until M13 is complete** (the check of M13.11): the released addon does not show any of this yet, and nothing below has been tried in the real game.
+
+**Goals** is a page of **Economy** (`/accord goals`): collective targets in materials or gold, such as "500 linen for the guild bags". Officers and the Guild Master press **New goal**: items (a pasted link, a number, or the name of an item your game knows) or gold, how many, for how many days (30 unless you say otherwise, 180 at most), a title and a note. A guild can have at most 5 open goals. **Edit** changes the title, the note and moves the end later (never earlier); what is collected and the target do not change. **Cancel goal** asks for a second click (**Confirm**).
+
+- The **progress** is never typed by anybody: every addon adds up the **deposits** in the guild bank logs between the first and the last day of the goal. Withdrawals and repairs are not subtracted: a goal counts what the guild gave.
+- The logs reach Accord only when a member with the addon opens the bank. The page says how old the newest log is, and mutes the bar after 7 days. The game's log times are rounded, so a deposit on the first or last day may fall outside.
+- If your rank cannot see some bank tabs, your numbers can be **lower** than an officer's: the page says from how many tabs it counted.
+- The game keeps short logs: in a busy bank, old deposits can drop out before an addon reads them. Open the bank now and then.
+- A goal **closes** when it is reached (everybody gets one notice) or after its last day. *Closed* shows the goals of the last 90 days. Your addon remembers a goal it saw reached even if the entries leave the logs.
+- Click a goal to see its first three contributors (the characters of a player together) and its note. Every column title sorts the list.
+- What open goals in items still miss is part of the [[material demand|Professions-and-Recipes]].
+
+Accord never moves gold or items: you deposit by hand, in the game's bank.

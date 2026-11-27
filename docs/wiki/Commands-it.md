@@ -11,6 +11,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord groups` | Apre la vista **Gruppi**, il cercagruppi della gilda (vedi [[Gruppi|Groups-it]]) *(M9.7, dalla `v0.9.0`)* |
 | `/accord market` | Apre la vista **Mercato** con gli ordini di crafting, la lista dei desideri, la domanda di materiali e la bacheca compro/vendo (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) *(M13.2: nascosta finché M13 non è completa; fino ad allora risponde come un comando sconosciuto)* |
 | `/accord shopping` | Apre la tua **lista della spesa** nella vista Professioni (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) *(M13.4: nascosta finché M13 non è completa; fino ad allora risponde come un comando sconosciuto)* |
+| `/accord goals` | Apre la pagina **Obiettivi** di Economia: i traguardi della gilda in materiali o in oro (vedi [[Banca di gilda|Guild-Bank-it]]) *(M13.9: nascosta finché M13 non è completa; fino ad allora risponde come un comando sconosciuto)* |
 | `/accord addons` | Apre la vista **Addon della gilda**: quali addon usano i membri (vedi [[Addon della gilda|Guild-Addons-it]]) *(M9.9, dalla `v0.9.0`)* |
 | `/accord season` | Apre la vista **Season**: il roster della season e la tua dichiarazione (vedi [[Roster della season|Season-Roster-it]]) *(M10.3, dalla `v0.10.0`)* |
 | `/accord recruit` | Apre il **testo di reclutamento** da copiare e pubblicare a mano, solo ufficiali (vedi [[Roster della season|Season-Roster-it]]) *(M12.2, dalla `v0.12.0`)* |

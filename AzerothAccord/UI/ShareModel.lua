@@ -543,6 +543,27 @@ end
 Model.Add("board", { set = "board", feature = "econ", build = builders.board, title = "SHARE_BOARD",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_BOARD" })
 
+-- the goals this officer set (M13.9, SPEC-17 §11): the records as they were last sent
+builders.goals = function(guid)
+	local lines, recs = {}, own("goals", guid)
+	local esc, day = ns.Contacts and ns.Contacts.Escape or tostring, ns.Orders and ns.Orders.DayText
+	for _, rec in ipairs(recs) do
+		local what
+		if rec.kind == "gold" then what = ns.BankView.MoneyText(rec.target)
+		else
+			local name = ns.Wishlist and ns.Wishlist.ItemName(rec.item) or tostring(rec.item)
+			what = L["ORD_ITEM"]:format(rec.target, esc(name))
+		end
+		lines[#lines + 1] = L["SHARE_GOAL_LINE"]:format(esc(rec.title), what, day(rec.start), day(rec.ends),
+			L["SHARE_GOAL_" .. rec.state:upper()])
+		if rec.note then lines[#lines + 1] = L["SHARE_ORDER_NOTE"]:format(esc(rec.note)) end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("goals", { set = "goals", feature = "econ", officersOnly = true, build = builders.goals, title = "SHARE_GOALS",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_GOALS" })
+
 -- the inventory counts and the shopping list (M13.4, SPEC-17 §11): listed to say that they stay on this computer
 Model.Add("inventory", { feature = "econ", title = "SHARE_INVENTORY", to = "SHARE_TO_LOCAL", when = "SHARE_WHEN_NEVER",
 	build = function() return { L["SHARE_INVENTORY_TEXT"] }, {} end })

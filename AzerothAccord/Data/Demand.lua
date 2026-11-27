@@ -3,7 +3,7 @@
 -- closes (delivered, cancelled, declined, expired, a side that left the guild).
 --   * open orders (requested, accepted, in progress): the materials of the recipe (Data/Reagents.lua) times the order's
 --     count, intermediates not broken down. An order that is ready needs nothing any more.
---   * open item goals (Data/Goals.lua, M13.9): what is missing to the target, through
+--   * open item goals (Data/Goals.lua): what is missing to the target, through
 --     Goals:Demand(t) -> { { id, item, missing, title } }.
 --
 --   Demand:Compute(t) -> { rows = { { item, need, orders = { { id, need, row } }, goals = { { id, need, title } },
@@ -57,7 +57,7 @@ function Demand:Compute(t)
 			end
 		end
 	end
-	local goals = ns.Goals or (ns.addon and ns.addon.Goals)   -- M13.9
+	local goals = ns.Goals
 	for _, goal in ipairs(goals and goals.Demand and goals:Demand(t) or {}) do
 		if (goal.missing or 0) > 0 then
 			local e = entry(goal.item)

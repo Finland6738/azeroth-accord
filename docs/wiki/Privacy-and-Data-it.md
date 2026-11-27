@@ -59,6 +59,12 @@ I tuoi **annunci** (vendo o compro, l'oggetto, quanti, il prezzo scritto a parol
 
 La tua **lista della spesa** e i **conteggi** di borse, banca e posta (e quelli dei tuoi alt, letti quando ognuno gioca su questo computer) restano **solo su questo computer**: non si mandano mai, non entrano in un backup né in un'esportazione, e *Cancella i dati della gilda* non li tocca. Solo **Chiedi alla gilda** (i materiali mancanti, nella tua lista dei desideri) e **Chiedi alla banca** (una richiesta alla banca con un materiale mancante) fanno uscire qualcosa, e solo ciò che manca. I prezzi d'asta si leggono da Auctionator, se lo usi, quando la pagina si disegna, e non si salvano né si mandano.
 
+## Gli obiettivi di gilda
+
+> In arrivo con la milestone M13, nascosti finché M13 non è completa.
+
+Un **obiettivo di gilda** (che cosa si raccoglie, il traguardo, le date, il titolo e la nota), scritto da un ufficiale, si manda alla tua gilda e lo vedono tutti; si cancella 90 giorni dopo la fine o l'annullamento. L'avanzamento e i contributori li calcola ogni addon dai registri della banca che ha già: su di te non si manda nulla di nuovo. Quali obiettivi il tuo addon ha visto raggiunti resta sul tuo computer.
+
 ## L'elenco dei tuoi addon
 
 > Dalla `v0.9.0`.

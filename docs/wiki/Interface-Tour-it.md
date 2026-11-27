@@ -34,7 +34,7 @@ Il pannello ha **due livelli di navigazione**, uguali nella finestra della gilda
 | Spade | **Raid** | [[Season|Season-Roster-it]], [[Eventi|Events-it]], [[Raid|Raid-and-Loot-Addons-it]], [[Disponibilità|Availability-it]] |
 | Aggiungi gruppo | **Gruppi** | [[Cercagruppi, Pubblica un gruppo, Il mio gruppo|Groups-it]], Raduni |
 | Attrezzi | **Professioni** | [[Ricette|Professions-and-Recipes-it]] (e più avanti Ordini e Lista della spesa) |
-| Banca | **Economia** | [[Banca|Guild-Bank-it]] (e più avanti il Mercato) |
+| Banca | **Economia** | [[Banca|Guild-Bank-it]] (e, quando M13 sarà completa, il Mercato e gli Obiettivi) |
 | Festa | **Community** | [[Manuale|Guild-Handbook-it]] |
 | Scudo | **Ufficiali** (solo ufficiali) | Inattivi, Coda, Cronologia, Prove ([[Roster di gilda|Guild-Roster-it]]) |
 | Ingranaggio, in fondo | **Impostazioni** | [[Generali|Settings-it]], Cosa condivido, [[Info|About-it]] |

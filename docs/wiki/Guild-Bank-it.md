@@ -77,3 +77,19 @@ Nella modalità **Richieste** della vista Banca puoi:
 - Quando il registro della banca mostra il movimento corrispondente (chi ha chiesto ha tolto l'oggetto, o l'ha depositato, o l'oro), la riga dice *Sembra consegnata*; la segni comunque tu, perché la consegna resta manuale.
 - Quando il registro del denaro mostra un deposito d'oro di chi ha chiesto (un suo personaggio qualsiasi), dopo la richiesta, di almeno la mancia, la riga dice *Sembra pagata*. Un deposito vale per una sola mancia, dalla richiesta più vecchia; più depositi piccoli non si sommano. È solo un indizio: controlla tu. L'addon non registra nulla sul pagamento; dopo che segni la richiesta come consegnata, l'indizio è nel suo suggerimento in *Richieste* (*Mostra anche le chiuse*). Il registro della banca dà orari arrotondati, quindi un deposito vecchio letto tardi può non essere riconosciuto.
 - Ricevi una riga in chat quando arriva una nuova richiesta; chi ha chiesto ne riceve una quando approvi, rifiuti o consegni. Gli avvisi non si ripetono mai dopo un ricaricamento, e la prima volta che l'addon gira non annuncia le richieste che esistono già. Dalla `v0.9.0` questi avvisi fanno parte degli avvisi del [[Centro azioni|Action-Center-it]].
+
+## Gli obiettivi di gilda
+
+> **In arrivo con la milestone M13, nascosti finché M13 non è completa** (la prova di M13.11): l'addon rilasciato non mostra ancora nulla di questo, e niente di quanto segue è stato provato nel gioco vero.
+
+**Obiettivi** è una pagina di **Economia** (`/accord goals`): traguardi comuni in materiali o in oro, come "500 di lino per le borse di gilda". Gli ufficiali e il Gran Maestro premono **Nuovo obiettivo**: oggetti (un link incollato, un numero o il nome di un oggetto che il gioco conosce) oppure oro, quanto, per quanti giorni (30 se non dici altro, al massimo 180), un titolo e una nota. Una gilda può avere al massimo 5 obiettivi aperti. **Modifica** cambia il titolo, la nota e sposta la fine più avanti (mai prima); che cosa si raccoglie e il traguardo non cambiano. **Annulla obiettivo** chiede un secondo clic (**Conferma**).
+
+- L'**avanzamento** non lo scrive nessuno: ogni addon somma i **depositi** nei registri della banca di gilda tra il primo e l'ultimo giorno dell'obiettivo. Prelievi e riparazioni non si sottraggono: un obiettivo conta quanto la gilda ha dato.
+- I registri arrivano ad Accord solo quando un membro con l'addon apre la banca. La pagina dice quanto è vecchio il registro più recente e attenua la barra dopo 7 giorni. Le ore dei registri del gioco sono arrotondate: un deposito del primo o dell'ultimo giorno può restare fuori.
+- Se il tuo grado non vede alcune schede della banca, i tuoi numeri possono essere **più bassi** di quelli di un ufficiale: la pagina dice da quante schede ha contato.
+- Il gioco tiene registri corti: in una banca molto usata i depositi vecchi possono uscirne prima che un addon li legga. Apri la banca ogni tanto.
+- Un obiettivo si **chiude** quando è raggiunto (tutti ricevono un avviso, uno solo) o dopo l'ultimo giorno. *Chiusi* mostra quelli degli ultimi 90 giorni. Il tuo addon si ricorda un obiettivo che ha visto raggiunto anche se le voci escono dai registri.
+- Clicca un obiettivo per vedere i primi tre contributori (i personaggi di un giocatore insieme) e la nota. Il titolo di ogni colonna ordina l'elenco.
+- Quanto manca agli obiettivi aperti in oggetti fa parte della [[domanda di materiali|Professions-and-Recipes-it]].
+
+Accord non sposta mai oro né oggetti: i depositi li fai tu a mano, nella banca del gioco.

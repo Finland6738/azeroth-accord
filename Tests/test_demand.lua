@@ -194,12 +194,13 @@ describe("the demand (SPEC-17 §4.1)", function()
 
 	it("adds what is missing to the open goals", function()
 		order(ANN, BOB, POTION, 1)
-		A().Goals = { Demand = function() return { { id = "G:1", item = HERB, missing = 40, title = "Herbs" },
-			{ id = "G:2", item = ROOT, missing = 0, title = "Done" } } end }
+		local original = A().Goals.Demand
+		A().Goals.Demand = function() return { { id = "G:1", item = HERB, missing = 40, title = "Herbs" },
+			{ id = "G:2", item = ROOT, missing = 0, title = "Done" } } end
 		local d = D():Compute()
 		deepEq(needs(), { [HERB] = 41, [VIAL] = 1 })
 		eq(d.rows[1].goals[1].title, "Herbs")
-		A().Goals = nil
+		A().Goals.Demand = original
 	end)
 
 	it("says what the guild bank shows, with its age", function()

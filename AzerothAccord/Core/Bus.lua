@@ -62,6 +62,9 @@
 --   BOARD_CHANGED(id)                                 Data/Board.lua; a post of the buy and sell board or an answer to it
 --                                                     arrived or was written (id: the post; nil: several, or an author was
 --                                                     hidden or shown again), M13.5.
+--   GOALS_CHANGED(id)                                 Data/Goals.lua; a guild goal arrived or was written (id), or the
+--                                                     progress of the goals may have changed (nil, 1 s after the bank
+--                                                     changed), M13.9.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

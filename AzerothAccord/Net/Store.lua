@@ -447,6 +447,16 @@ Store.SETS = {
 		rate = function(rec) return ns.Board ~= nil and ns.Board.Within(rec) end,
 		expires = function(rec, t) return ns.Board ~= nil and ns.Board.Expired(rec, t) end,             -- 7 days after
 	},
+	goals = {      -- the guild goals (Data/Goals.lua, M13.9, SPEC-17 §7): "G:<n>", one per goal; the progress is never written
+		feature = "econ",
+		maxBytes = 448,
+		summary = "econ",
+		authority = function() return true end,    -- written and passed on only by officers (NET-12)
+		authorAny = true,                          -- a goal stays valid after its officer was demoted
+		owner = function(rec) if not ns.Goals then return false end return ns.Goals.ValidRecord(rec) end,
+		transition = function(held, rec) return ns.Goals.Transition(held, rec) end,                     -- "locked"
+		expires = function(rec, t) return ns.Goals ~= nil and ns.Goals.Expired(rec, t) end,             -- 90 days after
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -457,7 +467,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor", "orders", "wish", "board" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor", "orders", "wish", "board", "goals" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

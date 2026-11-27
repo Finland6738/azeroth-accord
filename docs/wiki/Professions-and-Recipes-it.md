@@ -85,7 +85,7 @@ Sotto la tua lista ci sono i desideri della gilda, per oggetto, con chi è onlin
 
 Il chip *Domanda* somma i materiali che servono agli [ordini di crafting](#gli-ordini-di-crafting) aperti (richiesti, accettati o in lavorazione), una riga per materiale, con quanti ne mostrava la banca di gilda all'ultima visita e quanti ne hai tu (*Tuoi*). Passa su una riga per vedere quali ordini lo chiedono. Cambia da sola quando un ordine è pronto o chiuso.
 
-L'addon chiede al gioco i materiali di una ricetta e non li inventa mai. Se una riga dice che alcuni materiali sono sconosciuti, apri una volta quella professione con un tuo personaggio. Gli obiettivi di gilda entreranno nella domanda quando arriveranno.
+L'addon chiede al gioco i materiali di una ricetta e non li inventa mai. Se una riga dice che alcuni materiali sono sconosciuti, apri una volta quella professione con un tuo personaggio. Conta anche quanto manca agli [[obiettivi di gilda|Guild-Bank-it]] aperti in oggetti.
 
 ## La lista della spesa
 

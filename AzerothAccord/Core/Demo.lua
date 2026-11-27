@@ -150,6 +150,7 @@ local function fill(data, account, char)
 		data.sets.orders = data.orders
 		data.sets.wish = data.wish                   -- the wishlists (SPEC-17 §11)
 		data.sets.board = data.board                 -- the buy and sell board (SPEC-17 §11)
+		data.sets.goals = data.goals                 -- the guild goals (SPEC-17 §11)
 		account.reagents = data.reagents             -- invented materials, in the copy only
 		account.shopping = data.shopping             -- the shopping list and an invented inventory (M13.4), in the copy only
 		local C, inv = compat(), data.inventory

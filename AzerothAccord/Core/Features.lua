@@ -30,7 +30,7 @@
 --   econ   the M13 features (docs/roadmap/M13-economy.md, SPEC-17, ADR 0028): the craft orders (M13.2: the data set
 --          `orders` and its summary `ec`, the Market view and `/accord market`, the New order window behind Request craft,
 --          the Action Center rows, the notices, the row of "What I share") and the steps that follow (wishlist, shopping
---          list, board, goals). It turns on no other switch; the rows of the Action Center also need `actions`.
+--          list, board, guild goals: the set `goals`, its page and `/accord goals`). It turns on no other switch; the rows of the Action Center also need `actions`.
 --          Off: nothing of it is shown, written, accepted or sent, and Request craft is the whisper of M3. Off until M13.11.
 --   memberRecipes  one member's own recipe list in the Professions view (SPEC-06 §2.1). Off since 2026-11-27 (owner): a
 --          click on a member's profession shows the guild's recipes of that profession instead, and a crafter's row

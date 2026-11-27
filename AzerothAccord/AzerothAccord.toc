@@ -79,6 +79,7 @@ Data\Wishlist.lua
 Data\Shopping.lua
 Data\Demand.lua
 Data\Board.lua
+Data\Goals.lua
 Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
@@ -131,6 +132,7 @@ UI\Wishlist.lua
 UI\Demand.lua
 UI\Shopping.lua
 UI\Board.lua
+UI\Goals.lua
 UI\Raid.lua
 UI\Season.lua
 UI\Recruit.lua

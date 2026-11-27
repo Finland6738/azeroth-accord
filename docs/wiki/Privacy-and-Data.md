@@ -60,6 +60,12 @@ Your **posts** (selling or buying, the item, how many, your price as text, your 
 
 Your **shopping list** and the **counts** of your bags, bank and mail (and those of your alts, read when each of them plays on this computer) stay **on this computer only**: they are never sent, never in a backup or an export, and *Clear guild data* leaves them. Only **Ask the guild** (the missing materials, into your wishlist) and **Ask the bank** (one bank request with a missing material) let anything out, and only what is missing. Auction prices are read from Auctionator, if you use it, when the page is drawn, and never saved or sent.
 
+## Guild goals
+
+> Coming with milestone M13, hidden until M13 is complete.
+
+A **guild goal** (what is collected, the target, the dates, the title and the note), written by an officer, is sent to your guild, and everybody sees it; it is deleted 90 days after its end or its cancellation. The progress and the contributors are computed by each addon from the guild bank logs it already has: nothing new about you is sent. Which goals your addon saw reached stays on your computer.
+
 ## Your addon list
 
 > From `v0.9.0`.

@@ -44,7 +44,8 @@ Config.LIMITS = {
 -- The views of the panel (UI/Shell.lua). char.ui.lastView holds one of them, or "view:page" for a page of a view that
 -- has pages (M13.7: "officers:queue", "settings:about").
 Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "market", "groups", "season", "events", "availability", "raid",
-	"handbook", "addons", "settings", "officers", "mentors", "orders", "shopping", "rallies" }
+	"handbook", "addons", "settings", "officers", "mentors", "orders", "shopping", "rallies",
+	"goals" }
 
 -- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
 Config.THEMES = { "nebula", "aurora", "accord" }

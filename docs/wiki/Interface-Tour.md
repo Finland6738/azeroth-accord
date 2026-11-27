@@ -34,7 +34,7 @@ The panel has **two levels of navigation**, the same in the guild window and in 
 | Swords | **Raid** | [[Season|Season-Roster]], [[Events|Events]], [[Raid|Raid-and-Loot-Addons]], [[Availability|Availability]] |
 | Group add | **Groups** | [[Group finder, Post a group, My group|Groups]], Rallies |
 | Construction | **Professions** | [[Recipes|Professions-and-Recipes]] (and later Orders and the Shopping list) |
-| Bank building | **Economy** | [[Bank|Guild-Bank]] (and later the Market) |
+| Bank building | **Economy** | [[Bank|Guild-Bank]] (and, when M13 is complete, the Market and the Goals) |
 | Celebration | **Community** | [[Handbook|Guild-Handbook]] |
 | Shield | **Officers** (officers only) | Inactive, Queue, Timeline, Trials ([[Guild Roster|Guild-Roster]]) |
 | Gear, at the bottom | **Settings** | [[General|Settings]], What I share, [[Info|About]] |

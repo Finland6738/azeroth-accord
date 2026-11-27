@@ -680,7 +680,7 @@ una vista con pagine proprie le dà alla shell (`pages`, `showPage`, `page`, `pa
   dove ci sono tutte le icone; senza "Altro" una scheda della riga sarebbe irraggiungibile).
 - **Le pagine della mappa** come sono oggi: Home = Centro azioni, Avvisi; Gilda = Roster, Reputazione, Mentori, Addon della
   gilda; Raid = Season, Eventi, Raid, Disponibilità; Gruppi = Cercagruppi, Pubblica un gruppo, Il mio gruppo, Raduni;
-  Professioni = Ricette, Ordini, Lista della spesa; Economia = Banca, Mercato; Community = Manuale; Ufficiali = Inattivi,
+  Professioni = Ricette, Ordini, Lista della spesa; Economia = Banca, Mercato, Obiettivi (M13.9); Community = Manuale; Ufficiali = Inattivi,
   Coda, Cronologia, Prove; Impostazioni = Generali, Cosa condivido, Info. *Adattamenti*: le tre pagine della vista Gruppi di
   M9 sono tre schede (la mappa dice "Cercagruppi": M18 lo sostituisce); i Raduni lasciano la vista Eventi, i Mentori la
   Reputazione, gli Ordini il Mercato e la Lista della spesa la vista Professioni: ora sono viste a sé. Gli Avvisi restano

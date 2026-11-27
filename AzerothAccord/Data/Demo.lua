@@ -351,6 +351,10 @@ function DemoData.Build(now)
 		sets.bank[id] = { id = id, author = author.guid, rev = 1, time = now - 4 * HOUR, kind = "log", tab = tab, rank = tab > 0 and author.rankIndex or nil,
 			restricted = restricted, e = table.concat(entries, ";"), n = #entries }
 	end
+	-- linen given for the guild goal (M13.9)
+	for _, g in ipairs({ { 7, 60, 4 }, { 12, 80, 9 }, { 3, 40, 15 } }) do
+		logItems[2][#logItems[2] + 1] = format("deposit,%s,2589,%d,%d", members[g[1]].name, g[2], now - g[3] * DAY)
+	end
 	logRecord(0, reader, logMoney)
 	logRecord(1, reader, logItems[1])
 	logRecord(2, reader, logItems[2])
@@ -586,6 +590,20 @@ function DemoData.Build(now)
 		answer(post(12, 1, 9, "wts", 118, 10, "5s each"), 18, 4, "want")
 		post(18, 1, 45, "wtb", 2447, 60, nil, "Any amount helps")
 		D.board = board
+
+		-- Two guild goals (SPEC-17 §11), counted from the demo's bank logs: linen still open, gold reached.
+		local goals, officer = {}, members[1]
+		local function goal(n, daysAgo, daysLeft, fields)
+			local t = now - daysAgo * DAY
+			local rec = { id = "G:" .. (floor(t) + n), author = officer.guid, rev = 1, time = t, start = dayOf(t),
+				ends = dayOf(now + daysLeft * DAY), state = "open" }
+			for k, v in pairs(fields) do rec[k] = v end
+			goals[rec.id] = rec
+		end
+		goal(1, 28, 12, { kind = "items", item = 2589, target = 500, title = "Linen for the guild bags",
+			note = "Put it in the Materials tab." })
+		goal(2, 20, 25, { kind = "gold", target = 100 * 10000, title = "Gold for the repairs" })
+		D.goals = goals
 	end
 
 	-- Six listings of the guild group finder and two applications to the player's own (SPEC-13 §6.10), outside D.sets:

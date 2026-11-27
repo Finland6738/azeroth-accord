@@ -40,9 +40,9 @@ Tutto M13 è dietro un interruttore nuovo, **`econ`**, in [`Core/Features.lua`](
 | `Data/Prices.lua` | i prezzi di Auctionator (§5.7); riusato da M17 | M13.4 |
 | `Data/Shopping.lua`, `UI/Shopping.lua` | la lista della spesa e la pagina *Shopping list* della vista *Professions* (§5) | M13.4 |
 | `Data/Board.lua`, `UI/Board.lua` | l'insieme `board` e la modalità *Board* (§6) | M13.5 |
-| `Data/Goals.lua`, `UI/Goals.lua` | l'insieme `goals`, l'avanzamento dai registri, la modalità *Goals* (§7) | M13.9 |
+| `Data/Goals.lua`, `UI/Goals.lua` | l'insieme `goals`, l'avanzamento dai registri, la pagina *Goals* di Economia (§7) | M13.9 |
 
-**Una vista nuova**, *Market* (`market` in `Config.VIEWS`, dopo `bank`; `/accord market`), con le modalità *Orders*, *Wishlist*, *Demand*, *Board* e *Goals* (`View.AddMode`, in quest'ordine, ognuna aggiunta dal suo passo). La lista della spesa è una pagina della vista *Professions* (`/accord shopping`), accanto al catalogo, perché parte dalle ricette e perché M17 vi aggiunge la pagina *Levelling*.
+**Una vista nuova**, *Market* (`market` in `Config.VIEWS`, dopo `bank`; `/accord market`), con le modalità *Wishlist*, *Demand* e *Board* (`View.AddMode`, in quest'ordine, ognuna aggiunta dal suo passo). Dalla navigazione di M13.7 ([ui-style §9.11](ui-style.md#911-navigazione-due-livelli-proprietario-2026-11-27)) gli **Ordini** sono una pagina di *Professioni* e gli **obiettivi** (M13.9) una pagina di *Economia* (`goals` in `Config.VIEWS`, dopo *Mercato*; `/accord goals`). La lista della spesa è una pagina della vista *Professions* (`/accord shopping`), accanto al catalogo, perché parte dalle ricette e perché M17 vi aggiunge la pagina *Levelling*.
 
 ### 2.3 Eventi del Bus
 
@@ -57,7 +57,7 @@ Nessuna migrazione di schema: le chiavi nuove si aggiungono dove mancano, al pri
 | `AzerothAccordDB.inventory` | `[reame][GUID] = { name, faction, bags, bank, mail, bagsAt, bankAt, mailAt, mailPartial }`: per ogni personaggio dell'account i conteggi `{ [itemID] = n }` di borse e banca dell'ultima lettura e la sua ora; `mail` è l'elenco `{ { i = itemID, n, x = ora in cui il messaggio scade } }` (così un messaggio scaduto tra due visite smette di contare); la chiave `"*"` tiene `{ bank, bankAt }` della banca dell'account, se il client ne ha una, contata una volta sola (M13.4) | §5.4 |
 | `AzerothAccordDB.reagents` | `[recipeID] = { out, made, r = { { itemID, n } … }, at, build }`: i materiali di una ricetta come li ha dati il gioco | §5.2 |
 | `AzerothAccordDB.shopping` | `{ list = { { recipe, n, line } … }, breakdown, alts, mail, missingOnly, skill, at }`: la lista della spesa dell'account (`n` = quante volte creare la ricetta, `line` = la professione da cui è stata aggiunta; `alts` e `mail` contano finché non sono `false`) | §5.1 |
-| `GuildKey:Data().econ` | `{ next, seen, migrated, hidden, boardNext, boardWarned }`: il contatore degli id, i libri degli avvisi, i promemoria di M3 già offerti come ordini, gli autori della bacheca nascosti da questo giocatore, il contatore degli annunci e l'avviso della bacheca già letto | §3, §6 |
+| `GuildKey:Data().econ` | `{ next, seen, migrated, hidden, boardNext, boardWarned, reached, goalSeen }`: il contatore degli id, i libri degli avvisi, i promemoria di M3 già offerti come ordini, gli autori della bacheca nascosti da questo giocatore, il contatore degli annunci, l'avviso della bacheca già letto, gli obiettivi che questo client ha visto raggiunti e, senza il Centro azioni, quelli già annunciati | §3, §6, §7 |
 
 `inventory`, `reagents` e `shopping` sono **per account** (tutti i personaggi del computer li vedono) e **fuori da ogni gilda**: un alt in un'altra gilda conta lo stesso (§5.4). Niente di questo si manda (ECO-05) e niente entra nel backup personale (M7.5): l'inventario si rilegge, i materiali si richiedono al gioco, la lista si rifà. *Cancella i dati della gilda* (M6.1) toglie `econ`, non l'inventario.
 
@@ -285,28 +285,31 @@ Un record per obiettivo, scritto dagli **ufficiali e dal Guild Master** (`Goals.
 | `note` | 0–120 byte | |
 | `state` | `open` \| `cancelled` | un ufficiale annulla; *raggiunto* e *finito* non si scrivono (§7.2) |
 
-`maxBytes = 384`; al massimo `Goals.MAX_OPEN` = 5 obiettivi aperti per gilda (`Goals:Create` rifiuta oltre, `limit`). Forma sbagliata: `owner`; un mittente che non è ufficiale: `authority`. Dopo la creazione cambiano solo `title`, `note`, `ends` (solo più avanti) e `state` (`locked` per il resto). Un obiettivo chiuso si tiene 90 giorni dopo la chiusura, poi si cancella.
+`maxBytes = 448` (le stime di `Config.EstimateSize` contano anche i nomi dei campi: un record con titolo e nota al massimo arriva a circa 400; M13.9, in origine 384); al massimo `Goals.MAX_OPEN` = 5 obiettivi aperti per gilda (`Goals:Create` rifiuta oltre, `limit`). `start` è il giorno della creazione. Forma sbagliata: `owner`; un mittente che non è ufficiale: `authority`. Dopo la creazione cambiano solo `title`, `note`, `ends` (solo più avanti) e `state` (`locked` per il resto); un obiettivo annullato resta annullato. Due scritture della stessa `rev` seguono `Store.Compare`, così tutti i client tengono la stessa (anche due obiettivi creati nello stesso secondo). Si modificano e si annullano solo gli obiettivi aperti.
+
+**Conservazione**: un record si cancella 90 giorni dopo la fine del giorno `ends`, o 90 giorni dopo l'annullamento. Conta solo il record, mai il momento in cui un client l'ha visto raggiunto: così tutti lo cancellano insieme e nessuno lo rimanda a chi l'ha tolto. La pagina mostra tra i chiusi quelli chiusi da non più di 90 giorni.
 
 ### 7.2 L'avanzamento, dai registri della banca
 
-L'avanzamento **non si scrive**: ogni client lo calcola dai registri della banca che ha (SPEC-08 §8, `BankLog`, l'unione deterministica dei record di tutti gli autori), con `Goals:Progress(goal)`:
+L'avanzamento **non si scrive**: ogni client lo calcola dai registri della banca che ha (SPEC-08 §8, `BankLog`, l'unione deterministica dei record di tutti gli autori), nelle righe di `Goals:List` e `Goals:Get`:
 
 - **oggetti**: la somma delle voci `deposit` di quell'oggetto, su tutte le schede, con l'ora della voce nel giorno `start` o dopo e non oltre la fine del giorno `ends`;
 - **oro**: la somma dei depositi di denaro (registro del denaro, scheda 0) nello stesso intervallo; prelievi e riparazioni **non** si sottraggono (SPEC-10 Q48): un obiettivo conta quanto la gilda ha dato, non il saldo.
-- **Chiuso** quando l'avanzamento raggiunge `target` (*reached*, con il giorno della voce che lo ha raggiunto) o dopo il giorno `ends` (*ended*, con l'avanzamento di quel momento): lo decide ogni client dagli stessi dati, senza scrivere nulla (criterio di M13.9). Un registro letto dopo può ancora cambiare un obiettivo *ended* in *reached* se la voce cade dentro l'intervallo.
+- **Chiuso** quando l'avanzamento raggiunge `target` (*reached*, con il giorno della voce che lo ha raggiunto) o dopo il giorno `ends` (*ended*): lo decide ogni client dagli stessi dati, senza scrivere nulla nell'insieme (criterio di M13.9). Un registro letto dopo può ancora cambiare un obiettivo *ended* in *reached* se la voce cade dentro l'intervallo.
+- **Memoria locale** (SPEC-10 Q56): i registri sono corti (`BankLog` tiene le 150 voci più recenti per record), quindi le voci che hanno raggiunto un obiettivo possono uscirne. Un client ricorda in `GuildKey:Data().econ.reached` (mai inviato) di averlo visto raggiunto: resta *reached* e mostra almeno il traguardo. Un client che non l'ha mai visto raggiunto può mostrare meno.
 - **Chi ha contribuito**: per account, come le donazioni (BANK-11), visibile come la loro classifica (`BankLog.DONATIONS_VISIBLE_TO`, SPEC-10 Q5).
-- **Stessi dati, stesso numero**: due client con gli stessi registri danno lo stesso avanzamento (il criterio "progress matches the logs"). Un membro che non vede una scheda non ne vede il registro (SPEC-08 §8): il suo avanzamento può essere **più basso** di quello di un ufficiale, e la riga lo dice ("Counted from the logs you can see: 3 of 5 tabs"). Le ore del registro sono arrotondate (BANK-10): una voce vicina a `start` o a `ends` può cadere dalla parte sbagliata di un blocco; il tooltip dice "about".
-- **Registro fermo**: il gioco tiene una storia corta e la cattura avviene solo quando un membro con Accord apre la banca. Una riga dice l'età del registro più recente ("Bank log read 3 days ago"); con più di 7 giorni la barra è attenuata.
+- **Stessi dati, stesso numero**: due client con gli stessi registri danno lo stesso avanzamento (il criterio "progress matches the logs"). Un membro che non vede una scheda non ne vede il registro (SPEC-08 §8): il suo avanzamento può essere **più basso** di quello di un ufficiale, e la riga lo dice ("Counted from the logs you can see: 3 of 5 tabs"; le schede della banca sono quelle che il gioco dichiara o la più alta di cui il client ha un record). Le ore del registro sono arrotondate (BANK-10): una voce vicina a `start` o a `ends` può cadere dalla parte sbagliata di un blocco; il tooltip dice "about".
+- **Registro fermo**: la cattura avviene solo quando un membro con Accord apre la banca, e un registro invariato non si ripubblica. Una riga dice l'età del registro più recente che conta per l'obiettivo ("Newest bank log: 3 d ago"); con più di 7 giorni, o senza registri, la barra è attenuata.
 
-### 7.3 La modalità *Goals*
+### 7.3 La pagina *Goals*
 
-Una card per obiettivo aperto: titolo, oggetto o oro, barra (`Widgets.ThinBar`), `340 / 500` e la percentuale, i giorni che mancano, i primi tre contributori, la nota, l'età del registro; sotto, in un chip *Closed*, quelli chiusi degli ultimi 90 giorni. Per gli ufficiali *New goal* (pulsante pieno della finestra), *Edit* e *Cancel* con **Confirm**. Un obiettivo di oggetti entra nella domanda (§4.1) per quanto manca. Un **avviso** `goals.reached` (livello `normal`, una volta per obiettivo, chiave `<id>`) a tutti quando un obiettivo è raggiunto; il fornitore `goals` del Centro azioni non c'è (un obiettivo non chiede un'azione al singolo).
+Una **pagina della destinazione Economia** ([ui-style §9.11](ui-style.md#911-navigazione-due-livelli-proprietario-2026-11-27)), non una modalità di *Market*. Le chip *Open* e *Closed* (i chiusi degli ultimi 90 giorni); una `Widgets.DataTable` ordinabile (§9.9; al posto delle card, M13.9) con titolo, oggetto o oro, `340 / 500` con la percentuale e la sua `Widgets.ThinBar`, e i giorni che mancano o come si è chiuso. La riga scelta apre in basso i primi tre contributori, l'età del registro, le schede contate e la nota. Per gli ufficiali *New goal* (il pulsante pieno), *Edit* e *Cancel goal* con **Confirm**. La ricerca filtra titolo e oggetto. Un obiettivo di oggetti entra nella domanda (§4.1) per quanto manca. Un **avviso** `goals.reached` (livello `normal`, una volta per obiettivo, chiave `<id>`, solo se raggiunto negli ultimi 7 giorni) a tutti quando un obiettivo è raggiunto; senza il Centro azioni, una riga in chat. Il fornitore `goals` del Centro azioni non c'è (un obiettivo non chiede un'azione al singolo).
 
 ## 8. Domanda, desideri e bacheca: che cosa si vede accanto
 
 - La **scheda del membro** (SPEC-05) aggiunge, con `econ` acceso, una sezione *Market*: i suoi ordini aperti come compratore e come artigiano (M13.2; un clic apre l'ordine), i suoi desideri (M13.3), i suoi annunci aperti (M13.5).
 - Il **catalogo delle ricette** (SPEC-06 §2.4) dice per ogni ricetta quanti ordini aperti ha ("2 open orders", M13.2) e offre *Add to shopping list* (M13.4).
-- La vista *Bank* non cambia: gli obiettivi stanno nella vista *Market* e leggono i suoi registri.
+- La vista *Bank* non cambia: gli obiettivi stanno nella pagina *Goals* di Economia e leggono i suoi registri.
 
 ## 9. Le aste con un ufficiale come host (M13.10, solo descritte)
 

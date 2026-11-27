@@ -98,7 +98,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Spec: SPEC-17; SPEC-08
 - Scope: officers set collective targets, in materials or gold. Progress is read from the bank logs of M5.
 - Done when:
-  - [ ] Progress matches the logs; a goal closes when reached or at its end date.
+  - [x] Progress matches the logs; a goal closes when reached or at its end date.
 
 ### M13.10 — Auctions (later, optional)
 - Branch: `step/m13-10-auctions`

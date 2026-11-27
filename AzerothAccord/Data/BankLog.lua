@@ -278,6 +278,8 @@ local function accountOf(name)
 	return "name:" .. name:lower(), name, nil
 end
 
+Log.AccountOf = accountOf   -- also the contributors of the guild goals (Data/Goals.lua)
+
 -- { windows = ..., rows } : rows = { { key, name, classFile, gold (copper), items (units), deposits, place }, ... } for one
 -- window ("d30", "d365", "all"), sorted by opts.sort ("gold" or "items"), ties sharing a place. Only deposits count.
 function Log:Donations(opts)
