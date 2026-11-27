@@ -33,7 +33,7 @@ ns.modules.Inventory = Inv
 
 local type, pairs, ipairs, next = type, pairs, ipairs, next
 
-Inv.READ_MAIL = true       -- the one switch of the mail part (SPEC-17 §5.4: off when M13.8 finds it unreliable)
+Inv.READ_MAIL = true       -- the one switch of the mail part (SPEC-17 §5.4: off when M13.11 finds it unreliable)
 Inv.DELAY = 0.5            -- seconds BAG_UPDATE_DELAYED bursts are gathered
 Inv.ACCOUNT_KEY = "*"
 -- Enum.PlayerInteractionType when the client has no Enum [verify]: Banker 8, MailInfo 17, AccountBanker 68.

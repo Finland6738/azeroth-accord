@@ -17,7 +17,7 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, sign-ups on the game calendar, Raid-Helper events from Discord, composition, availability, rallies; raid and loot addons detected, one source per datum | 10 | final check |
 | **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented, detected in the guild, FDCP read through its API | 8 | final check |
 | **M12** | [M12-recruitment.md](M12-recruitment.md) | Recruitment, trials, onboarding, mentors; the Material 3 rules applied to the interface (ADR 0027) | 9 | final check |
-| **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, shopping list, wishlist, buy and sell board, goals | 8 | final check |
+| **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, shopping list, wishlist, buy and sell board, goals; interface rules (Material Symbols icons, navigation rail, sortable tables) | 11 | final check |
 | **M14** | [M14-board-polls.md](M14-board-polls.md) | Board, MOTD history, polls, kudos | 6 | final check |
 | **M15** | [M15-community.md](M15-community.md) | Opt-in community features | 6 | final check |
 | **M16** | [M16-quests.md](M16-quests.md) | Guild quests: the quests in every guild character's log, who has each one | 6 | final check |

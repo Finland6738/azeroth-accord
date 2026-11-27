@@ -59,22 +59,55 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Done when:
   - [x] A deal confirmed by one side only stays open; posts expire by themselves.
 
-### M13.6 — Guild goals
-- Branch: `step/m13-6-goals`
+### M13.6 — Interface: Material Symbols icons
+- Branch: `step/m13-6-icons`
+- Spec: [ui-style §9.10](../specs/ui-style.md#910-icone-material-symbols-proprietario-2026-11-27)
+- Scope (owner, 2026-11-27): every icon of the addon's own interface comes from Google's **Material Symbols Rounded** (Apache 2.0), outlined, and filled for the active state:
+  - a tool in `tools/` builds one atlas with only the icons used, from the official font or SVGs, with the licence in `docs/third-party.md` and the credits;
+  - `UI/Assets.lua` maps names to cells;
+  - the old custom icon sheet goes;
+  - the game's own icons (classes, items) stay.
+- Done when:
+  - [ ] No icon of the addon's interface comes from the old sheet; `tools/check_addon.py` checks the atlas and its licence entry.
+
+### M13.7 — Interface: navigation rail and two levels
+- Branch: `step/m13-7-navigation`
+- Spec: [ui-style §9.11](../specs/ui-style.md#911-navigazione-due-livelli-proprietario-2026-11-27)
+- Scope (owner, 2026-11-27):
+  - the views move from the top tab bar to a vertical **navigation rail** on the left: icons only, the name in a tooltip on hover, the active one filled with the indicator;
+  - the 15 views are grouped into the **8 destinations** of the map in ui-style §9.11 (Home, Guild, Raid, Groups, Professions, Economy, Community, Officers) plus Settings, each with its pages (owner, 2026-11-27);
+  - inside a view, **one** row of tabs for its pages, the same in every view, with the view's name at its start;
+  - no third navigation row: what was a sub-category becomes filter chips or a "Category" menu;
+  - the guild window's panel and the Accord window both use it; More disappears.
+- Done when:
+  - [ ] No view shows more than one row of tabs; every rail icon has its tooltip; the active view and page are visible at a glance.
+
+### M13.8 — Interface: sortable tables everywhere
+- Branch: `step/m13-8-tables`
+- Spec: [ui-style §9.9](../specs/ui-style.md#99-tabelle-sempre-ordinabili-proprietario-2026-11-27)
+- Scope (owner, 2026-11-27):
+  - every list with columns uses `Widgets.DataTable` with a header whose click sorts ascending, then descending, with the arrow;
+  - the hand-made lists (Bank, Bank log and requests, Events, Rallies, Mentors, Demand, Board, Raid, Season and the others) are migrated;
+  - card lists without columns get a "Sort by" menu with the same behaviour.
+- Done when:
+  - [ ] Every column header of every table sorts both ways; no hand-made columnar list is left.
+
+### M13.9 — Guild goals
+- Branch: `step/m13-9-goals`
 - Spec: SPEC-17; SPEC-08
 - Scope: officers set collective targets, in materials or gold. Progress is read from the bank logs of M5.
 - Done when:
   - [ ] Progress matches the logs; a goal closes when reached or at its end date.
 
-### M13.7 — Auctions (later, optional)
-- Branch: `step/m13-7-auctions`
+### M13.10 — Auctions (later, optional)
+- Branch: `step/m13-10-auctions`
 - Spec: SPEC-17
-- Scope: guild auctions run by one officer's client, which acts as the host and has the final word. Do this step only if the owner asks for it after M13.6.
+- Scope: guild auctions run by one officer's client, which acts as the host and has the final word. Do this step only if the owner asks for it after M13.9.
 - Done when:
   - [ ] The owner has decided whether to do it (SPEC-10).
 
-### M13.8 — In-game check and release
-- Branch: `step/m13-8-check`
+### M13.11 — In-game check and release
+- Branch: `step/m13-11-check`
 - Scope: `docs/checklists/M13.md` and the README status. The owner releases `v0.13.0`.
 - Done when:
   - [ ] The checklist exists.

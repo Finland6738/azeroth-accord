@@ -26,7 +26,7 @@ Ideas not yet planned, and what stays out of the addon. Every idea of the first 
 
 | Idea | Notes |
 |---|---|
-| Guild auctions run by one officer's client | M13.7, only if the owner asks for it after M13.6 |
+| Guild auctions run by one officer's client | M13.10, only if the owner asks for it after M13.9 |
 
 ## Out of scope
 

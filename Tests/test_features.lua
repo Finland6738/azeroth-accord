@@ -298,7 +298,7 @@ describe("the switch recruit (M12), off", function()
 	end)
 end)
 
-describe("the switch of M13, as shipped (off until M13.8)", function()
+describe("the switch of M13, as shipped (off until M13.11)", function()
 	before_boot(withFDCP)
 
 	-- the whole behaviour with the switch off and on is in Tests/test_orders.lua

@@ -572,6 +572,44 @@ dialog principali della gilda inventata e controlla **al più un pulsante pieno*
 
 Nulla di questo è provato nel client vero.
 
+### 9.9 Tabelle sempre ordinabili (proprietario, 2026-11-27)
+
+- **Ogni elenco a colonne** è una `Widgets.DataTable` con l'**intestazione**. Il clic su una colonna ordina **crescente**, un secondo clic **decrescente**, e la colonna ordinata ha la freccia e il colore `accent-text`. Nessun elenco a colonne fatto a mano.
+- Una colonna che non ha senso ordinare (un pulsante, un'icona d'azione) non ha clic, e la sua intestazione resta vuota o porta il nome senza freccia.
+- **Gli elenchi a card senza colonne** (pagine del manuale, annunci della bacheca) hanno un menu **"Ordina per"** con lo stesso comportamento: la voce scelta e poi crescente o decrescente.
+- L'ordinamento scelto si ricorda per vista e personaggio, come nel Roster.
+
+### 9.10 Icone: Material Symbols (proprietario, 2026-11-27)
+
+- **Tutte le icone dell'interfaccia propria di Accord** vengono da **Material Symbols Rounded** di Google (licenza **Apache 2.0**, compatibile con GPL-3, citata in `docs/third-party.md` e nei crediti). Sono **vuote** (outlined) di norma, **piene** (filled) per lo stato attivo: la vista scelta, l'interruttore acceso, il filtro scelto.
+- Le icone si costruiscono con uno strumento in `tools/` in **un solo atlante** che contiene solo le icone usate, con i nomi di Material Symbols (`groups`, `inventory_2`, `menu_book`…). Il foglio di icone disegnato da Accord (`Media/icons.tga`) va via.
+- Misure: 20 punti nei pulsanti e nelle schede, 24 nella barra di navigazione, 18 nei chip; colore del ruolo del contenuto (§9.1).
+- **Restano le icone del gioco** dove dicono una cosa del gioco: classi, oggetti, ricette, istanze.
+- Un'icona sola, senza testo, ha **sempre un tooltip** con il suo nome.
+
+### 9.11 Navigazione: due livelli (proprietario, 2026-11-27)
+
+- **Livello 1, le viste**: una **barra di navigazione verticale** a sinistra (la *navigation rail* di M3), **solo icone** di 24 su elementi alti 56, con il nome della vista in un tooltip al passaggio del mouse. La vista attiva ha l'icona piena, l'indicatore in `secondary-container` dietro l'icona e i badge di M3. La barra contiene tutte le viste, quindi non c'è più "Altro".
+- **Livello 2, le pagine di una vista**: **una sola** riga di schede in cima al contenuto, uguale in tutte le viste (schede primarie di §9.6), con il **nome della vista** a sinistra della riga, così si sa sempre dove si è. Una vista con una sola pagina mostra solo il nome.
+- **Nessun terzo livello di navigazione.** Le sotto-categorie diventano **filtri** (chip nella barra degli strumenti) o un **menu** "Categoria". Il selettore segmentato serve solo per **scelte**, non per navigare.
+- Vale nella finestra di Accord e nel pannello dentro la finestra della gilda.
+
+**La mappa delle destinazioni** (proprietario, 2026-11-27). Le 15 viste di oggi e quelle delle milestone future stanno in **8 icone** più le Impostazioni; i nomi delle icone sono quelli di Material Symbols e si confermano nel passo delle icone (M13.6):
+
+| # | Destinazione (icona) | Pagine |
+|---|---|---|
+| 1 | **Home** (`home`) | Centro azioni; lista di benvenuto (M12.4); bacheca degli annunci e storico del MOTD (M14) |
+| 2 | **Gilda** (`groups`) | Roster; Reputazione (like, indice sociale, mappa dei gruppi); Mentori; Addon della gilda |
+| 3 | **Raid** (`swords`) | Season; Eventi; Raid e loot (FDCP); Disponibilità |
+| 4 | **Gruppi** (`group_add`) | Cercagruppi (M18 sostituisce quello di M9); Quest (M16); Raduni |
+| 5 | **Professioni** (`construction`) | Ricette e "chi crea"; Ordini; Lista della spesa; Livellamento (M17) |
+| 6 | **Economia** (`account_balance`) | Banca (le sue modalità in un menu "Mostra", non in schede); Mercato (compro/vendo, desideri, domanda); Obiettivi di gilda |
+| 7 | **Community** (`celebration`) | Manuale; Sondaggi e kudos (M14); avvistamenti, storia della gilda, bingo, quiz, Secret Santa (M15) |
+| 8 | **Ufficiali** (`shield_person`), solo per chi può | Strumenti degli ufficiali; Reclutamento e prove; coda delle azioni manuali |
+| in fondo | **Impostazioni** (`settings`) | Impostazioni; Cosa condivido; Info e crediti |
+
+Un membro vede 7 icone più le Impostazioni. Una milestone nuova aggiunge **pagine** a una destinazione, non icone: una destinazione nuova si aggiunge solo con il consenso del proprietario.
+
 ### 9.7 Cosa non si prende da M3
 
 - I **colori dinamici** e la palette di base di M3: valgono i tre temi di §4.
@@ -588,6 +626,8 @@ Nulla di questo è provato nel client vero.
    menu, campi, card, tabella, side sheet, dialog, tooltip, badge, interruttore, snackbar); i test dei widget.
 3. **M12.8, viste** (fatto): ogni vista usa il componente giusto (un solo pulsante pieno, i filtri come chip, la riga
    scelta in `secondary-container`), le anteprime di §8 e il wiki rifatti.
+
+Le regole §9.9–§9.11 (tabelle, icone, navigazione) si applicano nei passi M13.6–M13.8 della [roadmap di M13](../roadmap/M13-economy.md).
 
 Da questo momento ogni modifica grafica, anche una correzione, segue questa sezione. Una regola che il gioco non permette
 si annota qui, con il motivo.

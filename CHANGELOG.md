@@ -19,6 +19,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- Interface rules (owner, 2026-11-27), in [ui-style §9.9–§9.11](docs/specs/ui-style.md#99-tabelle-sempre-ordinabili-proprietario-2026-11-27):
+  - every list with columns is a table whose headers sort ascending and descending, and card lists get a "Sort by" menu;
+  - every icon of the addon's interface comes from Google's Material Symbols Rounded (Apache 2.0), outlined, and filled when active, and an icon alone always has a tooltip;
+  - navigation has two levels: a vertical navigation rail of icons for the views, and one row of tabs for a view's pages; sub-categories become filters or a menu.
+
+  The 15 views are grouped into 8 destinations (Home, Guild, Raid, Groups, Professions, Economy, Community, Officers) plus Settings, and later milestones add pages, not icons.
+
+  M13 gains three steps that apply them (M13.6 icons, M13.7 navigation, M13.8 tables). Goals, auctions and the check move to M13.9, M13.10 and M13.11.
+
 - M13.1: **SPEC-17, guild economy** ([docs/specs/SPEC-17-guild-economy.md](docs/specs/SPEC-17-guild-economy.md), in Italian) and [ADR 0028](docs/adr/0028-guild-economy-never-moves-gold-or-items-each-side-writes-its-own-record.md). It specifies every later step of M13 behind a new switch `econ` (off until M13.8): craft orders as two records, one per side, delivered only when both confirm, and the migration of the M3 craft reminders (M13.2); the material demand and the wishlist data set `wish` (M13.3); the personal **shopping list** with owned/needed from the bags, the bank, the alts and the mail kept only on this computer (the counting module M17 reuses), reagents read from the game, the intermediate breakdown, prices read-only from Auctionator, *Ask the guild* and *Ask the bank* (M13.4); the buy and sell board with a double manual confirmation (M13.5); guild goals computed from the bank logs (M13.6); and a host-authoritative auction design, described only (M13.7). Accord never moves gold or items. New owner questions Q40–Q49 and risks R21–R24 in SPEC-10, each applied as proposed until the owner answers; ADR 0022 point 4 now also covers Auctionator. Documentation only: no code changes.
 
 ## [0.12.0] - 2026-11-27
