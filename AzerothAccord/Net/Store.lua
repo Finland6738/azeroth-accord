@@ -51,7 +51,9 @@
 -- Data/RecipeCatalogue.lua).
 --
 -- The mentor offers (`mentor`, SPEC-16 §6) are an ordinary set (first hand, officer relay, saved): one record per account
--- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04).
+-- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04), with a
+-- summary of its own (`summary = "mentor"`, Net/Sync.lua): until v0.12.0 it shared the census's, which a v0.9-v0.11
+-- client computes for the census alone.
 --
 -- The craft orders (`orders`, SPEC-17 §3) are an ordinary set (first hand, officer relay, saved) with two records per
 -- order, one per side, so that nobody writes the other's: a crafter part that arrives before its order waits for it
@@ -209,7 +211,7 @@ end
 
 -- The summary a set's records go to apart from the older sets: "extra" (the addon census), "handbook" (the guild
 -- handbook, SPEC-15 §3.6), "catalogue" (the guild recipe catalogue, SPEC-06 §1.5), "econ" (the sets of M13, SPEC-17
--- §10.2) or nil (the summary per author).
+-- §10.2), "mentor" (the mentor offers, SPEC-16 §7) or nil (the summary per author).
 -- A set a released client does not know never joins an existing kind: it gets one of its own, or that client's summary
 -- of the kind and a newer one's never agree.
 function Store.SummaryKind(set)
@@ -405,7 +407,7 @@ Store.SETS = {
 	mentor = {     -- the mentor offers (Data/Mentors.lua, M12.5, SPEC-16 §6): "M:<GUID>" { on, topics, note } or { off }
 		feature = "recruit",                       -- Core/Features.lua: with the switch off, neither written, accepted nor sent
 		maxBytes = 384,
-		summary = "extra",                         -- apart from the older sets, with the census (SPEC-16 §7)
+		summary = "mentor",                        -- a summary of its own: a client without the set compares the same (SPEC-16 §7)
 		owner = function(rec, s) return ns.Mentors ~= nil and ns.Mentors.ValidRecord(rec, s) end,    -- MEN-01, MEN-02
 		rate = function(rec) return ns.Mentors ~= nil and ns.Mentors.Within(rec) end,               -- MEN-04
 		expires = function(rec, t) return ns.Mentors ~= nil and ns.Mentors.Expired(rec, t) end,     -- an `off` after 60 days

@@ -472,6 +472,73 @@ describe("the mentor offers between clients", function()
 		for i = 1, 5 do eq(sim:client(i):addon().Store.stats.rejected, 0, "client " .. i) end
 	end)
 
+	-- A client of v0.11.0 knows the census but not the mentor offers: here the set is switched off in it, after every login.
+	local function makeOld(c)
+		local Store = c:addon().Store
+		local original = Store.IsActive
+		Store.IsActive = function(set) if set == "mentor" then return false end return original(set) end
+	end
+
+	-- Every mentor record each client hands to its transport.
+	local function watchMentors(sim)
+		local seen = {}
+		for i, c in ipairs(sim.clients) do
+			local Tr = c:addon().Transport
+			local original = Tr.Send
+			Tr.Send = function(self, dist, msg, opts)
+				if msg.t == "REC" and msg.s == "mentor" then seen[#seen + 1] = { from = i, dist = dist, target = opts and opts.target } end
+				return original(self, dist, msg, opts)
+			end
+		end
+		return seen
+	end
+
+	it("leave a client that does not know them as before: same summaries, nothing pushed, asked or refused", function()
+		local sim = Sim.new{ clients = 4, officers = { 1 }, offline = { 3 }, setup = simulated, accounts = true, seed = 73 }
+		makeOld(sim:client(4))
+		sim:advance(120)
+		truthy(sim:client(2):addon().Mentors:Join({ "raids" }, "hello"))
+		sim:advance(120)
+		eq(#sim:client(1):addon().Mentors:List(), 1)
+		local old = sim:client(4):addon()
+		eq(old.Store:Count("mentor"), 0)
+		-- a newer client that comes later gets the offer through its own summary
+		sim:client(3):login()
+		truthy(sim:advanceUntil(function() return #sim:client(3):addon().Mentors:List() == 1 end, 25 * 60), "the newcomer")
+		sim:advance(600)   -- and the older sets
+		-- the summaries an older client compares are the same as its own
+		local s, c = old.Sync:EncodeSummary(), old.Sync:EncodeSummary(nil, true)
+		for i = 1, 3 do
+			local Sy = sim:client(i):addon().Sync
+			eq(Sy:EncodeSummary(), s, "the per-author summary, client " .. i)
+			eq(Sy:EncodeSummary(nil, true), c, "the census's extra summary, client " .. i)
+			truthy(#Sy:EncodeSummary(nil, "mn") > 0, "the mentors' summary, client " .. i)
+		end
+		eq(#old.Sync:EncodeSummary(nil, "mn"), 0, "the old client has no mentors' summary")
+		-- the old client logs in again (HELLO), then again with block summaries (BHELLO): nothing of the offers travels
+		local seen = watchMentors(sim)
+		local pushes = 0
+		for i = 1, 3 do pushes = pushes + sim:client(i):addon().Sync.state.stats.pushes end
+		for round = 1, 2 do
+			sim:client(4):logout()
+			sim:client(4):login()
+			makeOld(sim:client(4))
+			if round == 2 then for i = 1, 4 do sim:client(i):addon().Sync.BLOCK_OVER = -1 end end
+			sim:advance(45 * 60)
+		end
+		truthy(sim:client(4):addon().Sync.state.stats.bhellosSent >= 1, "the old client sent a BHELLO")
+		eq(#seen, 0, "no mentor record sent to it or because of it")
+		local after = 0
+		for i = 1, 3 do after = after + sim:client(i):addon().Sync.state.stats.pushes end
+		eq(after, pushes, "nobody pushed anything to it")
+		eq(sim:client(4):addon().Sync.state.stats.requests, 0, "and it asked for nothing")
+		for i = 1, 4 do
+			local Ci = sim:client(i):addon()
+			eq(Ci.Store.stats.rejected, 0, "client " .. i)
+			eq(Ci.Sync.state.stats.quarantined, 0)
+		end
+	end)
+
 	-- The scenario of M10.8 (Tests/test_availability.lua): 50 clients, 45 minutes of churn, availability maps included.
 	-- `with`: one account in ten also joins the mentor list and leaves it again during the churn.
 	local function churn(with, established)

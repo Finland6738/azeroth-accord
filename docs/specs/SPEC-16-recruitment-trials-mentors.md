@@ -210,7 +210,7 @@ Un insieme sincronizzato su `GUILD` come gli altri, un record per account che si
 | `topics` | da 0 a 6 tra `raids`, `dungeons`, `pvp`, `professions`, `leveling`, `addons` | gli argomenti su cui aiuta |
 | `note` | 0–80 byte | testo libero, senza `|`, a capo né caratteri di controllo |
 
-Esattamente uno tra `on` e `off`. `maxBytes = 384` (la stima di un record con tutti gli argomenti e la nota più lunga supera i 256 byte previsti in M12.1). L'insieme va nel **riepilogo a parte** del censimento degli addon (`summary = "extra"`, [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): un'offerta nuova o cambiata non fa richiedere gli altri dati del suo autore. Un record `off` scade 60 giorni dopo il suo `time` (come una nota estesa cancellata); un record `on` non scade, ma conta solo se il personaggio è nel roster.
+Esattamente uno tra `on` e `off`. `maxBytes = 384` (la stima di un record con tutti gli argomenti e la nota più lunga supera i 256 byte previsti in M12.1). L'insieme ha un **riepilogo a parte tutto suo** (`summary = "mentor"`: `mn` del `HELLO` e del `DIGEST`, `mnb` del `BHELLO`, [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)): un'offerta nuova o cambiata non fa richiedere gli altri dati del suo autore, e un client che non conosce l'insieme (fino alla `v0.11.0`) vede gli stessi riepiloghi di prima. Nella `v0.12.0` stava nel riepilogo a parte del censimento degli addon (`c`), che un client della `v0.11.0` calcola senza le offerte: i due si riparavano a vicenda per sempre (corretto dopo la `v0.12.0`). Un record `off` scade 60 giorni dopo il suo `time` (come una nota estesa cancellata); un record `on` non scade, ma conta solo se il personaggio è nel roster.
 
 **Regole di fiducia (MEN-01…MEN-04):**
 
@@ -266,7 +266,7 @@ Stima per la gilda di 50 client di [SPEC-02 §4](SPEC-02-network-protocol.md#4-s
 | Accoglienza | da nessuna parte | 0 |
 | Coppie suggerite | da nessuna parte (calcolate sui dati che il client ha) | 0 |
 | `trials` | solo `OFFICER` e whisper tra ufficiali (TRI-02) | una prova circa 120 B sul filo, una nota fino a circa 900 B; qualche scrittura a settimana; una voce di 11 byte nel riepilogo `m` di `OHELLO`: meno di **2 B/min** per ufficiale |
-| `mentor` | `GUILD`, nel riepilogo a parte (con il censimento degli addon) | circa 150 B sul filo per record, scritto solo da un clic; a gilda allineata il costo misurato è sotto il rumore della misura; al primo scambio vedi sotto |
+| `mentor` | `GUILD`, nel riepilogo a parte suo (`mn`/`mnb`; nella `v0.12.0` con il censimento degli addon) | circa 150 B sul filo per record, scritto solo da un clic; a gilda allineata il costo misurato è sotto il rumore della misura; al primo scambio vedi sotto |
 
 **Il primo scambio.** Il giorno in cui si accende `recruit` nessun record di `trials` o `mentor` esiste: le offerte e le prove nascono dai clic, sparse nei giorni seguenti, quindi M12 **non si somma** al primo scambio delle mappe della disponibilità né a quello del manuale. Il tetto resta quello accettato dal proprietario per il primo scambio (SPEC-10 Q26, R17): la media fino a circa **550 B/min** e il client più carico al picco misurato (2,3 KB/min); a gilda allineata la media al massimo **450 B/min** e il client più carico **2 KB/min** ([SPEC-09 §7](SPEC-09-quality-release.md#7-budget-di-traffico-condiviso-m10)). Il limite **non sale per M12**.
 
