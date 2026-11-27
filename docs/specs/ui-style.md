@@ -128,11 +128,15 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   pool (40 righe, che cresce fino a 100 solo se la finestra si fa più alta) e non crea regioni. Le colonne fisse e
   flessibili restano; le colonne **fisse a sinistra e a destra come liste sincronizzate** non sono state fatte (nessuna
   vista di Accord ne ha bisogno: i pannelli sono stretti e le colonne le sceglie il giocatore).
-- **Schede.** L'indicatore da 2 pt **scorre** da una scheda all'altra in 200 ms (`Translation`, poi si posa) e si
-  dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
+- **Schede.** Dal 2026-11-27 (proprietario) le schede delle viste sono **riquadri arrotondati** (`surface-2`, anello
+  `border-subtle`) con l'**icona** della vista (dal foglio delle icone dell'addon, `Shell.VIEW_ICONS`) prima del nome;
+  quella attiva ha l'anello `accent`, un bagliore `accent` e nome e icona in `accent-text`, senza sottolineatura
+  (`Widgets.Tabs(..., { boxed = true })`). Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
+  scheda all'altra in 200 ms (`Translation`, poi si posa) e si dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
   Banca: `Tabs:SetBadge(id, testo|nil, tono)`; il testo lo passa il chiamante).
-- **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): fondo
-  `text-1`, testo `bg`, larghezza fino a 280 pt, il mouse lo attraversa. `Tooltip.Attach(frame, testo|righe|funzione)`;
+- **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): dal
+  2026-11-27 un riquadro scuro, fondo `surface-1` con anello `border`, il titolo in `accent-text` e le righe in `text-1`
+  (prima era invertito: fondo `text-1`, testo `bg`); i conteggi di una o due cifre sono pallini tondi; larghezza fino a 280 pt, il mouse lo attraversa. `Tooltip.Attach(frame, testo|righe|funzione)`;
   il `GameTooltip` del gioco solo per gli oggetti (`Tooltip.Item`, `AttachItem`) e mai riskinnato.
 - **Testi e colori.** Un widget non contiene frasi: ogni testo lo passa il chiamante già tradotto; ogni colore è un
   token del tema, tranne il bianco dello strato di passaggio del mouse (`-- theme-ok`). `tools/check_addon.py` fallisce

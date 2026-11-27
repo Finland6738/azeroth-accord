@@ -85,7 +85,8 @@ ICON_NAMES = ["chevron", "check", "cross", "dashed", "skull", "shield", "heal", 
               "info", "warn", "search", "filter", "copy", "trash", "edit", "calendar", "clock", "user", "users", "crown",
               "coin", "refresh", "download", "upload",
               "bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left",
-              "heart"]   # 2026-11-26: the Like button of the Reputation view
+              "heart",   # 2026-11-26: the Like button of the Reputation view
+              "hammer"]  # 2026-11-27: the Professions tab
 
 
 def draw_icon(name):
@@ -241,6 +242,9 @@ def draw_icon(name):
     elif name == "arrow_left":
         d.line([pt(13, 8), pt(3.5, 8)], fill=255, width=w)
         d.line([pt(7.5, 4), pt(3.5, 8), pt(7.5, 12)], fill=255, width=w, joint="curve")
+    elif name == "hammer":
+        d.line([pt(4, 13.5), pt(10.2, 7.3)], fill=255, width=int(1.9 * u))
+        d.polygon([pt(7.2, 3.4), pt(11.4, 1.6), pt(14.6, 4.8), pt(12.8, 9.0), pt(10.6, 8.2), pt(8.0, 5.6)], fill=255)
     elif name == "heart":
         d.ellipse([pt(1.6, 2.6), pt(8.4, 9.4)], fill=255)
         d.ellipse([pt(7.6, 2.6), pt(14.4, 9.4)], fill=255)

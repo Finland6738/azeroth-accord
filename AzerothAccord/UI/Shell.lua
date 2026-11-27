@@ -213,13 +213,20 @@ local function tabsKey(list)
 	return table.concat(parts, "\n")
 end
 
+-- The icon of each view's tab (a name of the icon sheet, UI/Assets.lua; owner, 2026-11-27: boxed tabs with icons).
+Shell.VIEW_ICONS = {
+	actions = "bell", roster = "users", professions = "hammer", reputation = "heart", bank = "coin", groups = "sword",
+	season = "flag", events = "calendar", availability = "clock", raid = "skull", handbook = "book", addons = "gem",
+	officers = "crown", settings = "gear", quests = "star",
+}
+
 local function buildTabs(content, list)
 	local key = tabsKey(list)
 	if content.tabs and content.tabsKey == key then return content.tabs end
 	if content.tabs then content.tabs:Hide() end
 	local defs = {}
-	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id } end
-	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"] })
+	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id, icon = v.icon or Shell.VIEW_ICONS[v.id] } end
+	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"], boxed = true })
 	tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
 	tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
 	for id, b in pairs(tabs.buttons) do

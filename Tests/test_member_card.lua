@@ -43,7 +43,8 @@ local function text(d, sectionId)
 	for _, s in ipairs(d.sections) do
 		if s.id == sectionId then
 			local out = {}
-			for _, l in ipairs(s.lines) do out[#out + 1] = l.text end
+			-- a character's second line (guild, main: 2026-11-27) after " | "
+			for _, l in ipairs(s.lines) do out[#out + 1] = l.text .. (l.sub and (" | " .. l.sub) or "") end
 			return out, s
 		end
 	end
@@ -100,7 +101,8 @@ describe("the content", function()
 
 	it("lists all the characters of the account, also outside the guild, main first (ACC-03)", function()
 		local lines = text(desc(BOBALT), "account")
-		deepEq(lines, { "Bob (50 Mage) - main", "Elsewhere (12 Hunter) - not in guild" })
+		deepEq(lines, { "Bob (50) | main", "Elsewhere (12) | not in guild" })
+		eq(select(2, text(desc(BOBALT), "account")).lines[1].classFile, "MAGE", "the name in the class colour, not the class name")
 		local d = desc(BOBALT)
 		local _, section = text(d, "account")
 		eq(section.lines[1].guid, BOB)
@@ -114,7 +116,7 @@ describe("the content", function()
 		rec.chars[3].guild, rec.chars[3].seen = "Les Chevaliers d'Épée", day - 3 * 86400
 		A().Accounts:MarkDirty()
 		local lines, section = text(desc(BOBALT), "account")
-		deepEq(lines, { "Bob (50 Mage) - main", "Elsewhere (12 Hunter) - Other guild: Les Chevaliers d'Épée · seen 3 d ago" })
+		deepEq(lines, { "Bob (50) | main", "Elsewhere (12) | Other guild: Les Chevaliers d'Épée · seen 3 d ago" })
 		eq(section.lines[2].prov.set, "altGuild"); eq(section.lines[2].prov.source, "shared"); eq(section.lines[2].prov.author, BOB)
 		-- its own card says it too, under the explanation of why it is not in the roster
 		local d = Card().Describe(Card().EntryFor(OUT))
@@ -122,24 +124,24 @@ describe("the content", function()
 			"Other guild: Les Chevaliers d'Épée · seen 3 d ago" })
 		rec.chars[3].guild, rec.chars[3].seen = "", day
 		A().Accounts:MarkDirty()
-		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12 Hunter) - No guild · seen today")
+		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12) | No guild · seen today")
 		rec.chars[3].guild, rec.chars[3].seen = nil, nil
 		A().Accounts:MarkDirty()
-		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12 Hunter) - not in guild")
+		eq(text(desc(BOBALT), "account")[2], "Elsewhere (12) | not in guild")
 		deepEq(text(Card().Describe(Card().EntryFor(OUT)), "details"), { "Not in this guild: listed by the member's other characters." })
 	end)
 
 	it("tells the main that it is the main, and the others who the alts are", function()
 		local lines = text(desc(BOB), "account")
 		eq(lines[1], "This is the main character.")
-		eq(lines[2], "Bobalt (30 Warrior)")
+		eq(lines[2], "Bobalt (30)")
 	end)
 
 	it("marks what the guild note declared", function()
 		local lines = text(desc("Player-1-0000A001"), "account")
 		deepEq(lines, { "No other character known." })
 		local lone = text(desc(LONE), "account")
-		eq(lone[1], "Ann (60 Priest) - main, declared in the note")
+		eq(lone[1], "Ann (60) | main · declared in the note")
 	end)
 
 	it("describes a character outside the guild from what the account lists", function()
@@ -237,7 +239,10 @@ describe("the frame", function()
 		eq(heads[2], "PROFESSIONS")
 		eq(texts[1], "Zone: Stormwind")
 		contains(table.concat(texts, "|"), "Blacksmithing 75/300")
-		contains(table.concat(texts, "|"), "Elsewhere (12 Hunter) - not in guild")
+		contains(table.concat(texts, "|"), "Elsewhere (12)")
+		local subs = {}
+		for _, it in ipairs(items) do if it:IsShown() and it.sub:IsShown() then subs[#subs + 1] = it.sub:GetText() end end
+		contains(table.concat(subs, "|"), "not in guild", "the guild status on the smaller second line")
 		local count = #items
 		rowOf("Ann"):Click()
 		eq(Card().frame.title:GetText(), "Ann")

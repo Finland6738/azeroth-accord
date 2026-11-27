@@ -106,20 +106,20 @@ local function accountSection(e)
 			if m.guid ~= e.guid then
 				local re = ns.Roster and ns.Roster:ByGUID(m.guid)
 				local classFile = m.classFile or (re and re.classFile) or (m.classID and ns.Roster.ClassFile(m.classID)) or nil
-				local what = {}
-				if m.level then what[#what + 1] = tostring(m.level) end
-				local className = classFile and ns.Roster.ClassName(classFile)
-				if className then what[#what + 1] = className end
-				local text = (m.name or "?") .. (#what > 0 and (" (" .. table.concat(what, " ") .. ")") or "")
+				-- the name in the class colour with only the level; main, guild and hint on a smaller line under it
+				-- (owner, 2026-11-27: the class name was redundant with the colour, the guild status crowded the line)
+				local text = (m.name or "?") .. (m.level and (" (" .. tostring(m.level) .. ")") or "")
 				local tags = {}
 				if m.isMain then tags[#tags + 1] = L["CARD_MAIN"] end
 				local ag = not m.inGuild and not m.hint and m.altGuild or nil
 				if not m.inGuild then tags[#tags + 1] = ns.Provenance.AltGuildText(ag) end
 				if m.hint then tags[#tags + 1] = L["CARD_HINT"] end
-				if #tags > 0 then text = text .. " - " .. table.concat(tags, ", ") end
-				lines[#lines + 1] = line(text, not m.inGuild, m.guid, nil, nil,
+				local ln = line(text, not m.inGuild, m.guid, nil, nil,
 					m.hint and { source = "note", member = m.name } or ns.Provenance.AltGuildInfo(ag)
 					or { source = "shared", observedAt = g.time, author = g.author })
+				ln.classFile = classFile
+				ln.sub = #tags > 0 and table.concat(tags, " · ") or nil
+				lines[#lines + 1] = ln
 			end
 		end
 	end
@@ -305,6 +305,10 @@ local function item(f, i)
 	it.text = Theme.NewText(it, "Small", "text-1")
 	it.text:SetJustifyH("LEFT")
 	it.text:SetPoint("TOPLEFT", it, "TOPLEFT", 0, 0)
+	it.sub = Theme.NewText(it, "MonoSmall", "text-3")   -- the second, smaller line of a character (guild, main)
+	it.sub:SetJustifyH("LEFT")
+	it.sub:SetPoint("TOPLEFT", it.text, "BOTTOMLEFT", 0, -2)
+	it.sub:Hide()
 	it.prov = Widgets.Provenance(it)   -- the label of the source, at the right of a line that has `prov` (M7.2)
 	it.prov:SetPoint("TOPRIGHT", it, "TOPRIGHT", 0, 0)
 	it.highlight = it:CreateTexture(nil, "HIGHLIGHT")
@@ -379,8 +383,18 @@ function Card:Layout()
 			local dim = it.prov:IsDim()
 			it.text:SetWidth(ln.prov and max(60, text - (it.prov:GetWidth() or 0) - 8) or text)
 			it.text:SetText(ln.text)
-			Theme.Text(it.text, dim and "text-3" or lineToken(ln))
+			if ln.classFile and not dim then Theme.ClassText(it.text, classColor(ln.classFile))
+			else Theme.Text(it.text, dim and "text-3" or lineToken(ln)) end
 			local h = max(14, it.text:GetStringHeight() or 14)
+			if ln.sub then
+				it.sub:SetWidth(it.text:GetWidth())
+				it.sub:SetText(ln.sub)
+				it.sub:Show()
+				h = h + 2 + max(12, it.sub:GetStringHeight() or 12)
+			else
+				it.sub:SetText("")
+				it.sub:Hide()
+			end
 			it:SetSize(text, h)
 			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil)
 			it:Show()

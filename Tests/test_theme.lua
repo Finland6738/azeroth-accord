@@ -519,9 +519,9 @@ describe("assets table", function()
 		isNil(A.IconCoords("nothing"))
 	end)
 
-	it("lists forty-one distinct icons that fit the sheet; the last ones sit in the third row", function()
+	it("lists forty-two distinct icons that fit the sheet; the last ones sit in the third row", function()
 		local A = AzerothAccord.Assets
-		eq(#A.icons, 41)
+		eq(#A.icons, 42)
 		local hl, _, ht = A.IconCoords("heart")   -- the Like button (2026-11-26)
 		near(hl, 8 / 16, 1e-9); near(ht, 2 / 16, 1e-9)
 		local seen = {}

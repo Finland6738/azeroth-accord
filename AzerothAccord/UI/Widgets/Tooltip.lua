@@ -1,5 +1,6 @@
--- Widget kit, part 5: the addon's own Tooltip (docs/specs/ui-style.md §3, FDCP: "inverted, own frame"): a surface of
--- `text-1` with the text in `bg`, one frame for the whole addon, 13 pt body. It shows lines the caller already translated;
+-- Widget kit, part 5: the addon's own Tooltip (docs/specs/ui-style.md §3): one frame for the whole addon, 13 pt body.
+-- Since 2026-11-27 (owner, after the game's own map tooltips) it is a dark box: `surface-1` with a `border` ring, the
+-- title in `accent-text`, the lines in `text-1` (M6.11 had FDCP's inverted look, `text-1` with the text in `bg`). It shows lines the caller already translated;
 -- the game's GameTooltip is used for ITEMS only (Tooltip.Item: the comparison and the link) and is never reskinned.
 -- M6.11, new in Azeroth Accord (FDCP only describes it). Lua 5.1; one unprotected frame made on first use.
 --   Widgets.Tooltip.Show(owner, content, anchor)   content: "text" | { "title", "line", { text = "...", token = "ok" } ... }
@@ -25,7 +26,7 @@ local function build()
 	f:SetFrameStrata("TOOLTIP")
 	f:SetClampedToScreen(true)
 	f:EnableMouse(false)   -- it never takes a click: the pointer goes through to what is under it
-	f.parts = Theme.Panel(f, { radius = 8, fill = "text-1", border = false, shadow = true })
+	f.parts = Theme.Panel(f, { radius = 8, fill = "surface-1", border = "border", shadow = true })
 	f.lines = {}
 	f:Hide()
 	return f
@@ -34,7 +35,7 @@ end
 local function line(f, i)
 	local fs = f.lines[i]
 	if not fs then
-		fs = Theme.NewText(f, i == 1 and "BodyMedium" or "Body", "bg")
+		fs = Theme.NewText(f, i == 1 and "BodyMedium" or "Body", i == 1 and "accent-text" or "text-1")
 		fs:SetJustifyH("LEFT")
 		if fs.SetWordWrap then fs:SetWordWrap(true) end
 		f.lines[i] = fs
@@ -65,7 +66,7 @@ function Tooltip.Show(owner, content, anchor)
 		local fs = line(f, i)
 		fs:SetWidth(0)   -- natural width first
 		fs:SetText(textOf(entry))
-		Theme.Text(fs, type(entry) == "table" and entry.token or "bg")
+		Theme.Text(fs, type(entry) == "table" and entry.token or (i == 1 and "accent-text" or "text-1"))
 		widest = max(widest, fs:GetStringWidth() or 0)
 	end
 	for i = #list + 1, #f.lines do f.lines[i]:SetText(""); f.lines[i]:Hide() end

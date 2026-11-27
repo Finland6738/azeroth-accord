@@ -142,15 +142,25 @@ function Widgets.Badge(parent, text, tone)
 	local f = CreateFrame("Frame", nil, parent)
 	f.fill = Theme.Slice(f, "rr_fill_12", token, "BACKGROUND", 0.16)
 	f.fill:SetAllPoints(f)
+	-- a count of one or two figures is a round dot (owner, 2026-11-27: "the square counters round"); longer text a pill
+	f.dot = f:CreateTexture(nil, "BACKGROUND")
+	f.dot:SetTexture(Assets.textures.circle.path)
+	f.dot:SetAllPoints(f)
+	Theme.Tint(f.dot, token, 0.16)
+	f.dot:Hide()
 	f.label = Theme.NewText(f, "Th", token)
 	f.label:SetPoint("CENTER", f, "CENTER", 0, 0)
 	function f:SetBadge(newText, newTone)
 		tone = newTone or tone   -- a badge keeps the tone it last had
 		local t = BADGE_TONES[tone or "neutral"] or BADGE_TONES.neutral
 		Theme.Tint(self.fill, t, 0.16)
+		Theme.Tint(self.dot, t, 0.16)
 		Theme.Text(self.label, t)
 		self.label:SetText(newText or "")
-		self:SetSize(max(24, self.label:GetStringWidth() + 20), 24)
+		local short = #(newText or "") <= 2
+		self.dot:SetShown(short)
+		self.fill:SetShown(not short)
+		self:SetSize(short and 24 or max(24, self.label:GetStringWidth() + 20), 24)
 	end
 	f:SetBadge(text, tone)
 	return f
@@ -167,7 +177,11 @@ end
 -- they are first drawn closer (10 points each side) and, if they are still too many, the ones that do not fit go into a
 -- menu behind a last tab, opts.moreText, which carries the sum of their counts. The active tab always stays on the bar.
 -- A bar whose width is not known yet shows every tab.
+-- opts.boxed (owner, 2026-11-27): every tab is a rounded box (surface-2 with a border-subtle ring) with its icon (t.icon,
+-- a name of the icon sheet) before the name; the active one has the accent ring, an accent glow and its name and icon in
+-- the accent's text colour; no underline.
 function Widgets.Tabs(parent, tabs, onSelect, opts)
+	local BOXED = opts and opts.boxed
 	local bar = CreateFrame("Frame", nil, parent)
 	bar:SetHeight(44)
 	bar.buttons, bar.order, bar.hidden, bar.overflow = {}, {}, {}, {}
@@ -181,10 +195,25 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	bar.indicator:SetHeight(2)
 	bar.indicator:Hide()
 
-	local GAP, PAD, TIGHT = 4, 16, 10
-	-- the width of a tab: its text, `pad` points each side, and the badge when it shows one
+	local GAP, PAD, TIGHT = BOXED and 6 or 4, BOXED and 14 or 16, 10
+	local ICON, ICON_GAP = 14, 6
+	-- the box of a boxed tab (fill, ring, glow), 6 points below the bar's top and 2 above its line
+	local function box(b)
+		b.fill = Theme.Slice(b, "rr_fill_8", "surface-2", "BACKGROUND")
+		b.fill:SetPoint("TOPLEFT", b, "TOPLEFT", 0, -6)
+		b.fill:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 0, 2)
+		b.ring = Theme.Slice(b, "rr_ring_8", "border-subtle", "BORDER")
+		b.ring:SetAllPoints(b.fill)
+		b.glow = Theme.Glow(b, "glow_s", "accent", { layer = "BACKGROUND", alpha = 0.35 })
+		b.glow:SetPoint("TOPLEFT", b.fill, "TOPLEFT", -10, 10)
+		b.glow:SetPoint("BOTTOMRIGHT", b.fill, "BOTTOMRIGHT", 10, -10)
+		Theme.GlowShow(b.glow, false)
+	end
+	Widgets.TabBox = box
+	-- the width of a tab: its text, `pad` points each side, its icon, and the badge when it shows one
 	local function wanted(b, pad)
 		local w = b.label:GetStringWidth() + 2 * pad
+		if b.icon then w = w + ICON + ICON_GAP end
 		if b.badge and b.badge:IsShown() then w = w + b.badge:GetWidth() + 6 end
 		return max(64, w), w
 	end
@@ -197,7 +226,13 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		b:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", x, 0)
 		b.x, b.w = x, w
 		b.label:ClearAllPoints()
-		b.label:SetPoint("LEFT", b, "LEFT", (w - content) / 2 + pad, 1)
+		local left = (w - content) / 2 + pad
+		if b.icon then
+			b.icon:ClearAllPoints()
+			b.icon:SetPoint("LEFT", b, "LEFT", left, BOXED and -2 or 1)
+			left = left + ICON + ICON_GAP
+		end
+		b.label:SetPoint("LEFT", b, "LEFT", left, BOXED and -2 or 1)
 		if b.badge and b.badge:IsShown() then
 			b.badge:ClearAllPoints()
 			b.badge:SetPoint("LEFT", b.label, "RIGHT", 6, 1)
@@ -210,7 +245,8 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		if bar.more then return bar.more end
 		local more = CreateFrame("Button", nil, bar)
 		more:SetHeight(44)
-		more.label = Theme.NewText(more, "Tab", "text-3")
+		if BOXED then box(more) end
+		more.label = Theme.NewText(more, "Tab", BOXED and "text-2" or "text-3")
 		more.label:SetText(opts and opts.moreText or "...")
 		more:SetScript("OnClick", function(self)
 			local items = {}
@@ -297,6 +333,7 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	-- puts the indicator under the active tab; from `fromX` (its old place) it slides there, otherwise it appears
 	local function place(fromX, fromW, changed)
 		local ind = bar.indicator
+		if BOXED then ind:Hide() return end   -- the boxed tabs show the active one by its ring and glow
 		local b = bar.active and bar.buttons[bar.active]
 		if not b or bar.hidden[bar.active] or not b.x then
 			ind:Hide(); bar.ix, bar.iw = nil, nil
@@ -322,9 +359,19 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 
 	local function paint()
 		for id, b in pairs(bar.buttons) do
-			Theme.Text(b.label, id == bar.active and "text-1" or "text-3")
+			local on = id == bar.active
+			if BOXED then
+				Theme.Text(b.label, on and "accent-text" or "text-2")
+				if b.icon then Theme.Tint(b.icon, on and "accent-text" or "text-3") end
+				Theme.Tint(b.ring, on and "accent" or (b.hot and "border-strong" or "border-subtle"))
+				Theme.GlowShow(b.glow, on)
+			else
+				Theme.Text(b.label, on and "text-1" or "text-3")
+				if b.icon then Theme.Tint(b.icon, on and "text-1" or "text-3") end
+			end
 		end
 	end
+	bar.Paint = paint
 
 	function bar:Select(id)
 		if not self.buttons[id] or self.hidden[id] then return false end
@@ -374,15 +421,36 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	end
 	bar:SetScript("OnSizeChanged", function(self) self:Layout() end)
 
+
 	for _, t in ipairs(tabs) do
 		local b = CreateFrame("Button", nil, bar)
 		b.id = t.id
 		b:SetHeight(44)
-		b.label = Theme.NewText(b, "Tab", "text-3")
+		if BOXED then box(b) end
+		if t.icon and Assets.IconCoords(t.icon) then
+			b.icon = b:CreateTexture(nil, "ARTWORK")
+			b.icon:SetTexture(Assets.textures.icons.path)
+			b.icon:SetTexCoord(Assets.IconCoords(t.icon))
+			b.icon:SetSize(ICON, ICON)
+			Theme.Tint(b.icon, "text-3")
+		end
+		b.label = Theme.NewText(b, "Tab", BOXED and "text-2" or "text-3")
 		b.label:SetText(t.text or "")
 		b:SetScript("OnClick", function() bar:Select(t.id) end)
-		b:SetScript("OnEnter", function(self) if bar.active ~= self.id then Theme.Text(self.label, "text-2") end end)
-		b:SetScript("OnLeave", function(self) if bar.active ~= self.id then Theme.Text(self.label, "text-3") end end)
+		b:SetScript("OnEnter", function(self)
+			self.hot = true
+			if bar.active ~= self.id then
+				Theme.Text(self.label, BOXED and "text-1" or "text-2")
+				if BOXED then Theme.Tint(self.ring, "border-strong") end
+			end
+		end)
+		b:SetScript("OnLeave", function(self)
+			self.hot = false
+			if bar.active ~= self.id then
+				Theme.Text(self.label, BOXED and "text-2" or "text-3")
+				if BOXED then Theme.Tint(self.ring, "border-subtle") end
+			end
+		end)
 		bar.buttons[t.id] = b
 		bar.order[#bar.order + 1] = t.id
 		if t.badge ~= nil and t.badge ~= "" then

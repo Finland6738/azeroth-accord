@@ -35,13 +35,14 @@ Assets.logos = {
 	nebula_light = { path = "Interface\\AddOns\\AzerothAccord\\Media\\nebula_light_256.tga", w = 256, h = 256 },
 }
 
--- Cells of the icon sheet, in the order of tools/make_media.py (16 per row): 41 icons drawn for this addon.
+-- Cells of the icon sheet, in the order of tools/make_media.py (16 per row): 42 icons drawn for this addon.
 Assets.icons = { "chevron", "check", "cross", "dashed", "skull", "shield", "heal", "sword", "star", "gear", "arrow_up",
 	"arrow_down", "lock", "eye", "dot", "plus",
 	"info", "warn", "search", "filter", "copy", "trash", "edit", "calendar", "clock", "user", "users", "crown",
 	"coin", "refresh", "download", "upload",
 	"bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left",
-	"heart" }   -- 2026-11-26: the Like button
+	"heart",   -- 2026-11-26: the Like button
+	"hammer" }   -- 2026-11-27: the Professions tab
 
 -- Fonts (docs/third-party.md). Orbitron ships whole (it declares a Reserved Font Name): it is used for the title only, in
 -- capitals, and has no middle dot or arrow. `fallback` is the game font used when SetFont fails or the player chose the
