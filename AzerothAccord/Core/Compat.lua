@@ -143,6 +143,23 @@ local function readableCopy(t, depth)
 end
 Compat.ReadableCopy = readableCopy
 
+-- The same, SCHEMATIC_DEPTH tables deep (a recipe's schematic: its slots, their reagents, each reagent).
+local SCHEMATIC_DEPTH = 4
+local function deepCopy(t, depth)
+	if type(t) ~= "table" or IsSecret(t) then return nil end
+	local out = {}
+	for k, v in pairs(t) do
+		if not IsSecret(k) and not IsSecret(v) then
+			if type(v) == "table" then
+				if depth < SCHEMATIC_DEPTH then out[k] = deepCopy(v, depth + 1) end
+			elseif type(v) ~= "function" and type(v) ~= "userdata" then
+				out[k] = v
+			end
+		end
+	end
+	return out
+end
+
 local function str(v) return type(v) == "string" and v ~= "" and v or nil end
 
 -- "Name", "Name-Realm", "Name Surname" or "Name Surname-Realm" (a Forever full name may have a space) -> name, realm
@@ -873,6 +890,12 @@ function TradeSkill.BaseProfessionInfo()
 	return readableCopy((first("C_TradeSkillUI.GetBaseProfessionInfo")))
 end
 
+-- A readable copy of the CraftingRecipeSchematic C_TradeSkillUI.GetRecipeSchematic gives, or nil. The dump has the
+-- function but not the structure's fields [verify].
+function TradeSkill.Schematic(spellID)
+	return deepCopy((first("C_TradeSkillUI.GetRecipeSchematic", spellID, false)), 0)
+end
+
 -- true when the open window shows somebody else's recipes: a profession link from the chat (IsTradeSkillLinked), the
 -- guild's view of a member (IsTradeSkillGuild) [verify S4: neither is in the dump] or an NPC's crafting (IsNPCCrafting,
 -- in the dump). Its "learned" flags are not the player's, so nothing of it is published.
@@ -1052,6 +1075,15 @@ function Item.Info(itemID)
 	if not v or not str(v[1]) then v = all("GetItemInfo", itemID) end
 	if not v or not str(v[1]) then return nil end
 	return { name = v[1], link = str(v[2]), quality = num(v[3]), icon = v[10] }
+end
+
+-- The item id of an item name the client knows (C_Item.GetItemInfo takes a name too), else nil.
+function Item.IDByName(name)
+	if type(name) ~= "string" or name == "" then return nil end
+	local v = all("C_Item.GetItemInfo", name)
+	if not v or not str(v[2]) then v = all("GetItemInfo", name) end
+	local link = v and str(v[2])
+	return link and tonumber(link:match("item:(%d+)")) or nil
 end
 
 -- The icon of an item (a file id or a path), which the client usually knows before the name; nil when it does not.
@@ -1639,6 +1671,7 @@ local CAPS = {
 	{ "tradeskill.GetFilteredRecipeIDs", "tradeskill", "C_TradeSkillUI.GetFilteredRecipeIDs", note = "[verify S4] not in the dump" },
 	{ "tradeskill.GetRecipeInfo", "tradeskill", "C_TradeSkillUI.GetRecipeInfo" },
 	{ "tradeskill.GetCategoryInfo", "tradeskill", "C_TradeSkillUI.GetCategoryInfo", note = "[verify S4] not in the dump" },
+	{ "tradeskill.GetRecipeSchematic", "tradeskill", "C_TradeSkillUI.GetRecipeSchematic", note = "[verify] fields (SPEC-10 R21)" },
 	{ "spell.GetSpellInfo", "spell", "C_Spell.GetSpellInfo" },
 	{ "spell.GetSpellLink", "spell", "C_Spell.GetSpellLink" },
 	{ "spell.RequestLoadSpellData", "spell", "C_Spell.RequestLoadSpellData" },

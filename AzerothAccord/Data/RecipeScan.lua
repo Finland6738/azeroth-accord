@@ -230,6 +230,8 @@ function Scan:Run()
 	local C = compat()
 	if C:Feature("ownRecipes") ~= "available" then C:SetFeature("ownRecipes", "available", "a profession window was read") end
 	local ok, why = self:Publish(read)
+	-- the materials of this profession's recipes, read while its window is open (SPEC-17 §5.2)
+	if ns.Reagents then ns.Reagents:Queue(read.all or read.ids) end
 	-- after the own list, so the store already holds the proof that this character has the profession
 	if ns.RecipeCatalogue and ns.GuildKey and ns.GuildKey:Current() then ns.RecipeCatalogue:Publish(read) end
 	return ok, why

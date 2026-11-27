@@ -41,6 +41,12 @@ Un [[gruppo|Groups-it]] che pubblichi (tipo, attività, livelli, posti, ruoli ce
 
 Un **ordine** di crafting che fai (la ricetta, quanti, l'artigiano, chi porta i materiali, il prezzo come testo, la nota, il giorno "entro") e i passi che segni da artigiano (con la tua nota) vanno alla tua gilda, e li vede tutta la gilda. Gli ordini chiusi si cancellano dopo 30 giorni. Le vecchie richieste di crafting non si pubblicano mai se non premi *Crea l'ordine*. Vedi [[Professioni e ricette|Professions-and-Recipes-it]].
 
+## Lista dei desideri
+
+> In arrivo con la milestone M13, nascosta finché M13 non è completa.
+
+La tua **lista dei desideri** (gli oggetti, quanti, fino a quale giorno, se una voce viene dalla lista della spesa, e la tua nota) va alla tua gilda, e la vede tutta la gilda. Le voci scadono da sole, e una lista vuota si cancella 30 giorni dopo l'ultima modifica. La domanda di materiali e i materiali delle ricette restano sul tuo computer e non si mandano mai.
+
 ## L'elenco dei tuoi addon
 
 > Dalla `v0.9.0`.

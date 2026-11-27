@@ -105,6 +105,7 @@ local function buildOverlay(data)
 			GuildMemberRecipes = no,
 			NumGuildTradeSkill = function() return 0 end,
 			OwnProfessions = empty, RecipeIDs = no, RecipeInfo = no, BaseProfessionInfo = no, RecipeMeta = no,
+			Schematic = no,
 		},
 		Bank = {
 			Enabled = function() return false end,
@@ -147,6 +148,8 @@ local function fill(data, account, char)
 	end
 	if data.orders and ns.Features and ns.Features.On("econ") then   -- the craft orders (SPEC-17 §11)
 		data.sets.orders = data.orders
+		data.sets.wish = data.wish                   -- the wishlists (SPEC-17 §11)
+		account.reagents = data.reagents             -- invented materials, in the copy only
 	end
 	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
 		data.sets.groups = data.groups.listings

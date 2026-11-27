@@ -584,7 +584,12 @@ function Orders:Create(spec)
 	end
 	if self:OpenCount() >= Orders.MAX_OPEN then return nil, "limit" end
 	local n = nextNumber(buyer)
-	local rec, why = put(Orders.OrderId(buyer, n), { crafter = crafter, recipe = spec.recipe, item = spec.item, count = count,
+	local item = spec.item
+	if item == nil then   -- what the recipe creates, when the game says it (locked after this write)
+		local mats = ns.Reagents and ns.Reagents:Ensure(spec.recipe)
+		item = mats and mats.out or nil
+	end
+	local rec, why = put(Orders.OrderId(buyer, n), { crafter = crafter, recipe = spec.recipe, item = item, count = count,
 		mats = mats, price = price ~= "" and price or nil, note = note ~= "" and note or nil, by = by, created = t, state = "open" })
 	if not rec then return nil, why end
 	local e = econ()

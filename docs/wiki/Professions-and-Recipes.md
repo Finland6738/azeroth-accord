@@ -71,6 +71,22 @@ Every step asks for a second click (**Confirm**). An order is **delivered only w
 
 An order nobody accepted expires after 14 days; one with a needed-by day, 7 days after it; an accepted one without a day, after 60 days with no step. Closed orders are deleted after 30 days. You can have at most 10 open orders. The [[Action Center|Action-Center]] shows what waits for you. The requests you made before as whispers appear once under *From your earlier requests*, with *Make it an order* and *Dismiss*: nothing is published without your click.
 
+## Wishlist
+
+> **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
+
+In the **Market** view, the *Wishlist* chip holds what you would like to get. Add an item by pasting its link, typing its number, or typing the name of an item your game already knows; choose how many and for how many days (14 unless you say otherwise, 30 at most), and a note for the whole list if you like. You can wish for up to 30 items. **The whole guild sees your list**, and each entry goes away by itself after its days.
+
+Below your list are the guild's wishes, by item, with who is online first. *I have some* opens the chat box with a whisper already typed ("Hi! I have Linen Cloth for your wishlist."): **you** send it. A wishlist has no price: it is not a sale.
+
+## Material demand
+
+> **Coming with milestone M13, hidden until M13 is complete.**
+
+The *Demand* chip adds up the materials the open [craft orders](#craft-orders) need (requested, accepted or in progress), one row per material, with how many the guild bank showed at its last visit. Point at a row to see which orders ask for it. It changes by itself when an order is ready or closed.
+
+The addon asks the game for a recipe's materials and never guesses them. If a line says some materials are unknown, open that profession once with any of your characters. Guild goals will join the demand when they arrive.
+
 ## If something is missing
 
 - **The list of a member is not there**: the game does not always give recipe lists, and a member's addon shares theirs only after they open the profession window with Azeroth Accord. The panel says so, and asks for the list by itself while somebody who has it is online.

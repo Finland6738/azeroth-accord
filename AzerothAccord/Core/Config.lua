@@ -102,6 +102,7 @@ Config.rules = {
 	["account.settings.shareCoplay"] = { type = "boolean" },
 	["account.settings.shareAddons"] = { type = "boolean" },
 	["account.settings.shareAvailability"] = { type = "boolean" },
+	["account.reagents"] = { type = "table", optional = true },   -- the recipe materials the game gave (Data/Reagents.lua)
 	["account.avail"] = { type = "table", optional = true },   -- the minutes online per hour of the week (Data/Availability.lua)
 	["account.settings.groupFilter"] = { type = "table", validate = function(v)
 		if v.fits ~= nil and type(v.fits) ~= "boolean" then return false end

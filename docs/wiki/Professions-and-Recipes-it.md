@@ -71,6 +71,22 @@ Ogni passo chiede un secondo clic (**Conferma**). Un ordine è **consegnato solo
 
 Un ordine che nessuno accetta scade dopo 14 giorni; uno con un giorno "entro", 7 giorni dopo quel giorno; uno accettato senza giorno, dopo 60 giorni senza un passo. Gli ordini chiusi si cancellano dopo 30 giorni. Puoi avere al massimo 10 ordini aperti. Il [[Centro azioni|Action-Center-it]] mostra ciò che aspetta te. Le richieste fatte prima come sussurri compaiono una volta sotto *Dalle tue richieste precedenti*, con *Crea l'ordine* e *Scarta*: niente si pubblica senza un tuo clic.
 
+## La lista dei desideri
+
+> **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e quanto segue non è stato provato nel gioco.
+
+Nella vista **Mercato**, il chip *Desideri* raccoglie ciò che vorresti avere. Aggiungi un oggetto incollandone il link, scrivendone il numero o il nome di un oggetto che il tuo gioco conosce già; scegli quanti e per quanti giorni (14 se non dici altro, al massimo 30) e, se vuoi, una nota per tutta la lista. Puoi desiderare fino a 30 oggetti. **Tutta la gilda vede la tua lista**, e ogni voce sparisce da sola dopo i suoi giorni.
+
+Sotto la tua lista ci sono i desideri della gilda, per oggetto, con chi è online per primo. *Ne ho* apre la casella della chat con un sussurro già scritto ("Ciao! Ho Panno di lino per la tua lista dei desideri."): lo mandi **tu**. La lista non ha prezzi: non è una vendita.
+
+## La domanda di materiali
+
+> **In arrivo con la milestone M13, nascosta finché M13 non è completa.**
+
+Il chip *Domanda* somma i materiali che servono agli [ordini di crafting](#gli-ordini-di-crafting) aperti (richiesti, accettati o in lavorazione), una riga per materiale, con quanti ne mostrava la banca di gilda all'ultima visita. Passa su una riga per vedere quali ordini lo chiedono. Cambia da sola quando un ordine è pronto o chiuso.
+
+L'addon chiede al gioco i materiali di una ricetta e non li inventa mai. Se una riga dice che alcuni materiali sono sconosciuti, apri una volta quella professione con un tuo personaggio. Gli obiettivi di gilda entreranno nella domanda quando arriveranno.
+
 ## Se manca qualcosa
 
 - **L'elenco di un membro non c'è**: il gioco non dà sempre gli elenchi delle ricette, e l'addon di un membro condivide il suo solo dopo che apre la finestra della professione con Azeroth Accord. Il pannello lo dice, e chiede da solo l'elenco finché è online qualcuno che lo ha.

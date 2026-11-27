@@ -122,6 +122,9 @@ end
 
 if ns.addon then
 	ns.addon.MarketView = View
+	LibStub("AceEvent-3.0"):Embed(View)
+	-- the names of the items asked for (the wishlist and the demand) arrive later
+	pcall(View.RegisterEvent, View, "GET_ITEM_INFO_RECEIVED", function() if on() then View:Changed() end end)
 	if ns.Bus then
 		ns.Bus:On("ROSTER_UPDATED", function() View:Changed() end)
 		ns.Bus:On("RECIPE_NAMES_UPDATED", function() View:Changed() end)

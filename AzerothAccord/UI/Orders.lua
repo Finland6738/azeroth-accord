@@ -11,7 +11,7 @@
 --   View:Press(id, action)                first click: "armed"; second: true, or false and a reason
 --   View:OpenNew(crafter, recipe, opts)   the New order window (opts = { from = an earlier request }); View:Place()
 --   View:Whisper(guid)
---   View.CardSection(entry)               "Market" on the member card: the open orders of that character
+--   View.CardSection(entry)               "Market" on the member card: the open orders and the wishes of that character
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
@@ -90,6 +90,17 @@ function View.StepText(row)
 	return L["ORD_STEP_" .. a.state:upper()]:format(escape(row.crafterName), ago(a.at))
 end
 
+-- "Materials: 4 × Copper Bar, 2 × Linen Cloth" for `count` of a recipe, or nil while the game has not given them.
+function View.MaterialsText(recipe, count)
+	local mats = ns.Reagents and ns.Reagents:Ensure(recipe)
+	if not (mats and ns.Wishlist) then return nil end
+	local out = {}
+	for i, slot in ipairs(mats.r) do
+		out[i] = L["ORD_ITEM"]:format(slot[2] * count, escape(ns.Wishlist.ItemName(slot[1])))
+	end
+	return L["ORD_MATERIALS"]:format(table.concat(out, ", "))
+end
+
 -- The lines of a row's tooltip: both notes, the steps with their times, and who is missing.
 function View.TipLines(row)
 	local out = { View.ItemText(row) }
@@ -103,6 +114,8 @@ function View.TipLines(row)
 			escape(row.buyerName), ago(rec.closed)), token = "text-3" }
 	end
 	if rec.by then out[#out + 1] = { text = L["ORD_NEEDED_BY"]:format(O().DayText(rec.by)), token = "text-3" } end
+	local mats = View.MaterialsText(row.recipe, row.count)
+	if mats then out[#out + 1] = { text = mats, token = "text-2" } end
 	if rec.note then out[#out + 1] = { text = L["ORD_NOTE_OF"]:format(escape(row.buyerName), escape(rec.note)) } end
 	if row.part and row.part.note then
 		out[#out + 1] = { text = L["ORD_NOTE_OF"]:format(escape(row.crafterName), escape(row.part.note)) }
@@ -583,7 +596,8 @@ function View.CardSection(e)
 	local M = O()
 	if not (M and M.Enabled()) or type(e) ~= "table" or type(e.guid) ~= "string" or e.notInGuild then return nil end
 	local buying, crafting = M:OfMember(e.guid)
-	if #buying == 0 and #crafting == 0 then return nil end
+	local wishes = ns.WishlistView and ns.WishlistView.CardLines(e.guid) or {}
+	if #buying == 0 and #crafting == 0 and #wishes == 0 then return nil end
 	local lines = {}
 	local function add(list, key, side)
 		for _, row in ipairs(list) do
@@ -594,6 +608,7 @@ function View.CardSection(e)
 	end
 	add(buying, "ORD_CARD_BUYING", "crafterName")
 	add(crafting, "ORD_CARD_CRAFTING", "buyerName")
+	for _, line in ipairs(wishes) do lines[#lines + 1] = line end   -- then the character's wishes (M13.3)
 	return { id = "market", title = L["ORD_CARD_TITLE"], lines = lines }
 end
 

@@ -49,6 +49,11 @@
 --                                                     (or the guild changed), M12.5.
 --   ORDERS_CHANGED(id)                                Data/Orders.lua; a craft order or the crafter's part of it arrived or was
 --                                                     written, or an earlier craft request was dismissed (nil: several), M13.2.
+--   REAGENTS_CHANGED(recipe)                          Data/Reagents.lua; the game gave the materials of a recipe, new or
+--                                                     changed, M13.3.
+--   WISHLIST_CHANGED(guid)                            Data/Wishlist.lua; a character's wishlist arrived or was written, M13.3.
+--   DEMAND_CHANGED()                                  Data/Demand.lua; the material demand may have changed (1 s after what
+--                                                     it is computed from), M13.3.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

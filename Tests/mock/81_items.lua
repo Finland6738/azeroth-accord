@@ -23,6 +23,12 @@ C_Item = {}
 
 -- itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture
 function C_Item.GetItemInfo(id)
+	if type(id) == "string" then   -- a name: only an item already loaded is found, as in the client
+		local name = id:lower()
+		for itemID, i in pairs(items.info) do
+			if items.cached[itemID] and i.name:lower() == name then id = itemID end
+		end
+	end
 	local info = items.info[id]
 	if not info or not items.cached[id] then return nil end
 	return info.name, link(id, info), info.quality or 1, 1, 1, "Miscellaneous", "Junk", 20, "", info.icon or 134400

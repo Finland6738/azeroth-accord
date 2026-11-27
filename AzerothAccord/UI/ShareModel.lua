@@ -496,6 +496,26 @@ end
 Model.Add("orders", { set = "orders", feature = "econ", build = builders.orders, title = "SHARE_ORDERS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ORDERS" })
 
+-- the own wishlist (M13.3, SPEC-17 §11): the record as it was last sent; an entry past its day no longer shows
+builders.wish = function(guid)
+	local lines, recs = {}, own("wish", guid)
+	local Wish = ns.Wishlist
+	for _, rec in ipairs(recs) do
+		for _, e in ipairs(Wish and Wish.Live(rec) or {}) do
+			local name = Wish.ItemName(e.item)
+			lines[#lines + 1] = L["SHARE_WISH_LINE"]:format(ns.Contacts and ns.Contacts.Escape(name) or name, e.n,
+				ns.Orders.DayText(e.day))
+		end
+		if rec.note then
+			lines[#lines + 1] = L["SHARE_ORDER_NOTE"]:format(ns.Contacts and ns.Contacts.Escape(rec.note) or rec.note)
+		end
+	end
+	if #lines == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("wish", { set = "wish", feature = "econ", build = builders.wish, title = "SHARE_WISH",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_WISH" })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

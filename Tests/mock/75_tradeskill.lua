@@ -99,6 +99,25 @@ function ts.AddAllRecipeIDs()
 	end
 end
 
+-- Mock.tradeskill.schematics = { [recipe] = <CraftingRecipeSchematic as the modern client gives it> }: what
+-- GetRecipeSchematic answers (the structure's fields are not in the dump). With schematicNeedsWindow it answers only for
+-- the recipes of the open profession window. Mock.tradeskill.Schematic(out, made, { itemID, n }, ...) builds one.
+ts.schematics = ts.schematics or {}
+ts.schematicCalls = ts.schematicCalls or {}
+function ts.Schematic(out, made, ...)
+	local slots = {}
+	for i, s in ipairs({ ... }) do
+		slots[i] = { reagentType = 1, required = true, quantityRequired = s[2], reagents = { { itemID = s[1] } } }
+	end
+	return { outputItemID = out, quantityMin = made, quantityMax = made, reagentSlotSchematics = slots }
+end
+function C_TradeSkillUI.GetRecipeSchematic(spellID, isRecraft)
+	assert(isRecraft == false, "isRecraft is not nilable")
+	ts.schematicCalls[#ts.schematicCalls + 1] = spellID
+	if ts.schematicNeedsWindow and not C_TradeSkillUI.GetRecipeInfo(spellID) then return nil end
+	return ts.schematics[spellID]
+end
+
 -- The guild recipe directory: a query answers on a later frame with GUILD_RECIPE_KNOWN_BY_MEMBERS, when enabled.
 local lastAnswer
 C_GuildInfo = C_GuildInfo or {}

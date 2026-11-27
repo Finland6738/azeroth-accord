@@ -144,6 +144,8 @@ La **domanda** è la somma, per oggetto, dei materiali che servono alla gilda; s
 
 La modalità *Demand* della vista *Market* mostra una riga per oggetto: icona e nome, quanti ne servono, da quanti ordini e obiettivi (il tooltip li elenca), quanti ne ha la banca di gilda secondo la foto che il giocatore vede (SPEC-08 §6, con l'età) e, se il giocatore ne ha, i suoi (§5.4). Un ordine di cui il client non conosce ancora i materiali si conta a parte ("Materials unknown for 2 orders": li si legge aprendo la professione, §5.2). La domanda **cambia quando un ordine si chiude** (criterio di M13.3): è un calcolo, non uno stato da tenere in ordine.
 
+Un ordine *ready* non entra nella domanda (non gli serve più nulla). Gli obiettivi arrivano con M13.6 attraverso `Goals:Demand(t)` → `{ id, item, missing, title }`, che `Data/Demand.lua` chiama se c'è. La colonna dei posseduti di chi guarda arriva con l'inventario (M13.4). `DEMAND_CHANGED` esce 1 s dopo un cambiamento di ordini, obiettivi, materiali, roster o foto della banca; la vista ricalcola ogni volta che si disegna.
+
 ### 4.2 L'insieme `wish`
 
 Un record **per personaggio** con i suoi desideri:
@@ -154,11 +156,12 @@ Un record **per personaggio** con i suoi desideri:
 | `e` | da 0 a `Wishlist.MAX` = 30 voci `{ i = itemID, n = quantità 1–999, u = giorno di scadenza, s = "sl" se viene dalla lista della spesa }` | la lista; vuota = nessun desiderio |
 | `note` | 0–80 byte | una riga per tutta la lista |
 
-`maxBytes = 768`. Lo scrive solo l'account del personaggio (NET-10, o un ufficiale che lo ritrasmette; WSH-01, `owner`); un oggetto due volte, una quantità fuori dai limiti, una scadenza oltre 30 giorni dal `time` del record o già passata alla scrittura si rifiutano (WSH-02, `owner`); al massimo 20 revisioni all'ora per autore (WSH-03, `rate`).
+`maxBytes = 2560`: la stima di `Config.EstimateSize`, che conta anche i nomi dei campi, per 30 voci e la nota arriva a circa 2 400 (M13.3; sul filo il record è molto più piccolo, §10.3). Lo scrive solo l'account del personaggio (NET-10, o un ufficiale che lo ritrasmette; WSH-01, `owner`); un oggetto due volte, una quantità fuori dai limiti, una scadenza oltre 30 giorni dal `time` del record o già passata alla scrittura si rifiutano (WSH-02, `owner`); al massimo 20 revisioni all'ora per autore (WSH-03, `rate`).
 
 - **Scadenza** (criterio di M13.3): ogni voce ha la sua, `Wishlist.DAYS` = 14 giorni di predefinito, da 1 a 30. Una voce scaduta **sparisce da sola** su ogni client dalla data, senza scrivere; il client dell'autore la toglie dal record alla prossima scrittura. Un record senza voci vive scade 30 giorni dopo il suo `time`.
+- **L'ingresso della lista della spesa** (M13.4, *Ask the guild*): `Wishlist:Plan(wants)` dice che cosa si scriverebbe (`entries`, `asked`, `left`) senza scrivere, per la conferma; `Wishlist:Ask(wants)` scrive. Quando 30 voci non bastano, le voci scritte a mano restano, quelle vecchie della lista della spesa cedono il posto e i mancanti più numerosi entrano per primi (SPEC-10 Q51).
 - **Chi vede**: tutta la gilda (SPEC-10 Q43): chi desidera vuole che gli altri lo sappiano.
-- **La modalità *Wishlist***: in cima la propria lista (aggiungere un oggetto da un link incollato, dal nome di un oggetto della cache del client o dalla lista della spesa; la quantità; i giorni; *Remove*); sotto, i desideri della gilda per oggetto, con chi li desidera (online prima), quanti ne vuole, la scadenza, e *I have some* che apre un sussurro precompilato ("Hi! I have Linen Cloth for your wishlist.", l'addon non lo manda). Il giocatore vede accanto a ogni oggetto quanti ne ha lui (§5.4), così sa se può aiutare.
+- **La modalità *Wishlist***: in cima la propria lista (aggiungere un oggetto da un link incollato, dal nome di un oggetto della cache del client o dalla lista della spesa; la quantità; i giorni; *Remove*); sotto, i desideri della gilda per oggetto, con chi li desidera (online prima), quanti ne vuole, la scadenza, e *I have some* che apre un sussurro precompilato ("Hi! I have Linen Cloth for your wishlist.", l'addon non lo manda). Da M13.4 il giocatore vede accanto a ogni oggetto quanti ne ha lui (§5.4), così sa se può aiutare; l'aggiunta dalla lista della spesa arriva con M13.4. Il nome di un oggetto si riconosce solo se il client lo conosce già.
 - Desiderare non è chiedere un prezzo: per comprare e vendere c'è la bacheca (§6).
 
 ## 5. La lista della spesa (M13.4)
@@ -181,6 +184,7 @@ I materiali di una ricetta si leggono con `C_TradeSkillUI.GetRecipeSchematic(rec
 
 Una casella con più alternative conta la **prima** e mostra le altre nel tooltip ("or Heavy Leather"); la scelta della qualità dei materiali (`supportsQualities`) non c'è su Forever per le ricette viste (SPEC-06 §1.5) e non si gestisce.
 
+- **In M13.3** (`Data/Reagents.lua`) ci sono la lettura, la cache, la coda e `item` degli ordini nuovi (`outputItemID`, bloccato dopo la prima scrittura); la riga di un ordine elenca i materiali nel tooltip. La scomposizione (§5.3), i *posseduti/necessari* e la finestra *New order* con i materiali arrivano con M13.4. Ogni casella si tiene come `{ itemID, quantità, alternative… }`.
 - **Cache** (`AzerothAccordDB.reagents`): la risposta si tiene per account, con la build del client (`build`); una build nuova la fa rileggere alla prima occasione. Non è un dato personale ma neanche un record: **non viaggia** (SPEC-10 Q45).
 - **Quando si legge**: alla scansione della propria professione (`RecipeScan`, SPEC-06 §1.3) per le ricette di quella professione, al massimo 50 ogni secondo; e quando una vista chiede una ricetta che non ha (`Reagents:Ensure(recipeID)`). Se il gioco risponde solo con la finestra della professione aperta (**[verificare]** in M13.8), una ricetta di una professione che il giocatore non ha resta "Materials unknown: open <professione> once with any character of this computer" finché un personaggio dell'account non apre quella professione; nessun altro ripiego in M13.4.
 - **Mai inventati**: una ricetta senza risposta del gioco non ha materiali, non zero materiali.
@@ -322,7 +326,7 @@ Per la gilda di 50 client di [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincron
 |---|---|---|
 | Lista della spesa, inventario, materiali, prezzi, domanda, avanzamento degli obiettivi | da nessuna parte | 0 |
 | `orders` | `GUILD`, riepilogo `ec` | un ordine circa 200 B sul filo, la parte circa 120 B; ogni ordine 3–5 revisioni in tutto; qualche ordine al giorno per gilda: meno di **2 B/min** per client |
-| `wish` | `GUILD`, riepilogo `ec` | un record da 100 a 500 B; scritto da un clic (o da *Ask the guild*): meno di **1 B/min** |
+| `wish` | `GUILD`, riepilogo `ec` | un record da 100 a 900 B; scritto da un clic (o da *Ask the guild*): meno di **1 B/min** |
 | `board` | `GUILD`, riepilogo `ec` | un annuncio circa 180 B, una risposta circa 100 B; qualche annuncio al giorno: meno di **2 B/min** |
 | `goals` | `GUILD`, riepilogo `ec` | qualche record al mese: trascurabile |
 | Riepilogo `ec` | `HELLO`, `BHELLO`, `DIGEST` | 11 byte per autore che ha record di M13, solo da chi ha `econ` acceso |
@@ -338,6 +342,8 @@ Gli insiemi `orders`, `wish`, `board` e `goals` non esistono per nessun client g
 Ogni passo che scrive un insieme lo misura nel simulatore (`Tests/test_sync_sim.lua`, lo scenario di M10.8: 50 client, 45 minuti, accessi e uscite), con un carico più alto del reale: M13.2 un ordine nuovo ogni 5 minuti per tutta la gilda con tutti i passaggi; M13.3 un desiderio cambiato ogni 3 minuti; M13.5 un annuncio ogni 3 minuti e una risposta ogni 5. Il test fa rispettare i limiti di sopra e controlla che un client senza `econ` non riceva né mandi nulla di M13 oltre ai `REC` su `GUILD`, che ignora.
 
 **M13.2, misurato** (`Tests/test_orders.lua`, 9 ordini con tutti i 45 passaggi, nota e prezzo al massimo): in media **328 B/min** per client (283 senza ordini), il client più carico **1573 B/min** (859): dentro i limiti. Un `BHELLO` con tutti i riepiloghi, per 1000 autori, è di **509 B** su 512: un riepilogo in più (le aste di M13.7) vorrebbe prima spazio.
+
+**M13.3, misurato** (`Tests/test_wishlist.lua`, 15 liste da 30 voci con quantità al massimo scritte durante lo scenario): in media **267 B/min** per client (253 senza desideri), il client più carico **1197 B/min** (868): dentro i limiti.
 
 ## 11. *What I share*, aspetto, diagnostica, demo
 
@@ -358,7 +364,7 @@ Ogni passo che scrive un insieme lo misura nel simulatore (`Tests/test_sync_sim.
 | Passo | File | Casi |
 |---|---|---|
 | M13.2 | `Tests/test_orders.lua` | solo il compratore scrive l'ordine e solo l'artigiano la sua parte, anche contro un client falsificato e un ufficiale (ORD-01); contenuto bloccato e passaggi solo in avanti (`locked`); la parte che arriva prima dell'ordine aspetta (`wait`); gli stati ricavati, uguali su ogni client; *delivered* solo con le due conferme, una sola resta *ready* (criterio); scadenza di un *requested* e di un ordine con `by`; chi esce dalla gilda; i promemoria di M3 offerti come ordini, mai pubblicati da soli, una volta (criterio); limiti e ritmo; righe del Centro azioni e avvisi una volta; nessuna funzione che sposta oggetti o oro chiamata (ECO-01); traffico (§10.3); interruttore spento |
-| M13.3 | `Tests/test_demand.lua`, `Tests/test_wishlist.lua` | la domanda somma ordini aperti e obiettivi e cambia quando un ordine si chiude (criterio); materiali sconosciuti contati a parte; una voce dei desideri scade da sola (criterio); forma, proprietario, ritmo; *I have some* non manda nulla; traffico; interruttore spento |
+| M13.3 | `Tests/test_demand.lua`, `Tests/test_wishlist.lua` | i materiali dal gioco finto (campi mancanti, cache, build nuova, lettura alla scansione); la domanda somma ordini aperti e obiettivi e cambia quando un ordine si chiude (criterio); materiali sconosciuti contati a parte; una voce dei desideri scade da sola (criterio); forma, proprietario, ritmo; *I have some* non manda nulla; traffico; interruttore spento |
 | M13.4 | `Tests/test_inventory.lua`, `Tests/test_reagents.lua`, `Tests/test_shopping.lua` | posseduti giusti per le borse, la banca e un alt (criterio), con la posta e senza, con un alt di un altro reame che non conta; banca di gilda solo nella sua colonna; posta parziale e in contrassegno; lettura dopo `BAG_UPDATE_DELAYED`; materiali dal gioco finto con i campi del client moderno e con campi mancanti; cache e build nuova; la scomposizione cambia i totali (criterio), solo la parte mancante, 4 livelli, nessun giro; *Ask the guild* scrive solo i mancanti; *Ask the bank* compila solo ciò che manca e la banca mostra (criterio); prezzi con un Auctionator finto, senza, e con un'API che dà errore; inventario mai in un record o in un messaggio; interruttore spento |
 | M13.5 | `Tests/test_board.lua` | un affare confermato da una parte sola resta aperto (criterio); concluso con le due conferme e non si riapre; ritiro prima della seconda conferma; gli annunci scadono da soli (criterio); contenuto bloccato; non ci si risponde da soli; nascondere un autore; traffico; interruttore spento |
 | M13.6 | `Tests/test_goals.lua` | l'avanzamento è la somma dei depositi dei registri nell'intervallo (criterio), uguale per due client con gli stessi registri; prelievi non sottratti; chiuso quando raggiunto o alla fine (criterio); un membro che vede meno schede; solo ufficiali scrivono (`authority`); al massimo 5 aperti; l'avviso una volta; interruttore spento |

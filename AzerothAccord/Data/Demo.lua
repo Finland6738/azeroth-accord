@@ -17,6 +17,7 @@
 --   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
 --   recruit                      the records of M12, by set (switch "recruit"): the recruitment text, the trials, the mentors
 --   orders                       the records of the craft orders (M13.2, switch "econ")
+--   wish, reagents               the wishlists and the invented recipe materials (M13.3, switch "econ")
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -523,6 +524,31 @@ function DemoData.Build(now)
 		order(1, 18, 22, 2331, 10, 3, nil, "working", 20)
 		order(3, PLAYER_INDEX, 5, 2332, 3, 6, nil, "handed", 5)
 		D.orders = orders
+
+		-- The materials of some of the recipes ordered above (the material demand), as the game would give them: item ids
+		-- only, the names come from the game's own item data. The others (2331) stay "unknown".
+		local function mats(out, ...)
+			return { out = out, made = 1, r = { ... }, at = now, build = "demo" }
+		end
+		D.reagents = {
+			[2663] = mats(2853, { 2840, 2 }),
+			[2330] = mats(118, { 2447, 1 }, { 765, 1 }, { 3371, 1 }),
+		}
+
+		-- Three wishlists (SPEC-17 §11): the player's and two members'.
+		local wish = {}
+		local function list(index, hoursAgo, note, entries)
+			local guid, t = members[index].guid, now - hoursAgo * HOUR
+			local e = {}
+			for i, w in ipairs(entries) do
+				e[i] = { i = w[1], n = w[2], u = tonumber(date("!%Y%m%d", now + w[3] * DAY)), s = w[4] }
+			end
+			wish["W:" .. guid] = { id = "W:" .. guid, author = guid, rev = 1, time = t, e = e, note = note }
+		end
+		list(PLAYER_INDEX, 5, "For first aid and the new bags", { { 2589, 40, 9 }, { 4306, 12, 12, "sl" } })
+		list(3, 20, nil, { { 2840, 20, 4 }, { 2589, 10, 1 } })
+		list(7, 50, "No hurry", { { 774, 3, 20 } })
+		D.wish = wish
 	end
 
 	-- Six listings of the guild group finder and two applications to the player's own (SPEC-13 §6.10), outside D.sets:

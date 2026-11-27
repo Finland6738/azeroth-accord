@@ -34,7 +34,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
   - the materials needed by open orders and goals, summed;
   - a personal wishlist of items, visible to the guild.
 - Done when:
-  - [ ] The demand updates when an order closes; a wishlist entry expires.
+  - [x] The demand updates when an order closes; a wishlist entry expires.
 
 ### M13.4 — Shopping list
 - Branch: `step/m13-4-shopping`

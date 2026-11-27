@@ -9,7 +9,7 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord` | Apre o chiude la finestra di Accord (devi essere in una gilda) |
 | `/accord inbox` | Apre il **Centro azioni**, l'elenco di ciò che ti aspetta (vedi [[Centro azioni|Action-Center-it]]) *(M9.2, dalla `v0.9.0`)* |
 | `/accord groups` | Apre la vista **Gruppi**, il cercagruppi della gilda (vedi [[Gruppi|Groups-it]]) *(M9.7, dalla `v0.9.0`)* |
-| `/accord market` | Apre la vista **Mercato** con gli ordini di crafting (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) *(M13.2: nascosta finché M13 non è completa; fino ad allora risponde come un comando sconosciuto)* |
+| `/accord market` | Apre la vista **Mercato** con gli ordini di crafting, la lista dei desideri e la domanda di materiali (vedi [[Professioni e ricette|Professions-and-Recipes-it]]) *(M13.2: nascosta finché M13 non è completa; fino ad allora risponde come un comando sconosciuto)* |
 | `/accord addons` | Apre la vista **Addon della gilda**: quali addon usano i membri (vedi [[Addon della gilda|Guild-Addons-it]]) *(M9.9, dalla `v0.9.0`)* |
 | `/accord season` | Apre la vista **Season**: il roster della season e la tua dichiarazione (vedi [[Roster della season|Season-Roster-it]]) *(M10.3, dalla `v0.10.0`)* |
 | `/accord recruit` | Apre il **testo di reclutamento** da copiare e pubblicare a mano, solo ufficiali (vedi [[Roster della season|Season-Roster-it]]) *(M12.2, dalla `v0.12.0`)* |

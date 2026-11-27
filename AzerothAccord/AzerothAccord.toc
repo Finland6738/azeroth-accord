@@ -71,7 +71,10 @@ Data\OfficerOps.lua
 Data\Trials.lua
 Data\Onboarding.lua
 Data\Mentors.lua
+Data\Reagents.lua
 Data\Orders.lua
+Data\Wishlist.lua
+Data\Demand.lua
 Data\Digest.lua
 Data\GroupActivities.lua
 Data\Groups.lua
@@ -119,6 +122,8 @@ UI\BankLog.lua
 UI\BankRequests.lua
 UI\Market.lua
 UI\Orders.lua
+UI\Wishlist.lua
+UI\Demand.lua
 UI\Raid.lua
 UI\Season.lua
 UI\Recruit.lua

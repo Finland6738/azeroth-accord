@@ -59,6 +59,10 @@
 -- (`transition` "locked"), and a receiver takes at most 30 revisions of an author an hour (`rate`). The sets of M13 are
 -- summarised apart (`summary = "econ"`, Net/Sync.lua). Data/Orders.lua.
 --
+-- The wishlists (`wish`, SPEC-17 §4.2) are an ordinary set (first hand, officer relay, saved): one record per character,
+-- written by its account only (WSH-01, WSH-02), at most 20 revisions of an author an hour (`rate`, WSH-03); every entry
+-- expires by itself from its date, and a record without a live entry goes after 30 days. Data/Wishlist.lua.
+--
 -- The guild handbook (`handbook`, SPEC-15 §3) is an ordinary set (first hand, officer relay, saved) with three rules of
 -- its own: only a writer (Data/Handbook.lua: the Guild Master, the officers and the ranks the officers chose) passes a page
 -- first hand (`writer`, HBK-01: refused as "authority"); a receiver takes at most Handbook.WRITES_PER_HOUR new revisions
@@ -70,6 +74,7 @@
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
 -- A closed craft order and the crafter's part of it go 30 days after it closed (SPEC-17 §3.4).
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
+-- A wishlist without a live entry goes 30 days after its last write (SPEC-17 §4.2).
 -- A trial is kept forever, closed or not (SPEC-16 §4.1, Q35); a deleted trial note expires after 60 days. A left mentor
 -- offer expires after 60 days.
 --
@@ -416,6 +421,14 @@ Store.SETS = {
 		rate = function(rec) return ns.Orders ~= nil and ns.Orders.Within(rec) end,                      -- ORD-06
 		expires = function(rec, t) return ns.Orders ~= nil and ns.Orders.Expired(rec, t) end,            -- 30 days closed
 	},
+	wish = {       -- the wishlists (Data/Wishlist.lua, M13.3, SPEC-17 §4.2): "W:<GUID>", one per character
+		feature = "econ",
+		maxBytes = 2560,                           -- the estimated size of a record with 30 entries
+		summary = "econ",
+		owner = function(rec, s) if not ns.Wishlist then return false end return ns.Wishlist.ValidRecord(rec, s) end,   -- WSH-01, 02
+		rate = function(rec) return ns.Wishlist ~= nil and ns.Wishlist.Within(rec) end,                  -- WSH-03
+		expires = function(rec, t) return ns.Wishlist ~= nil and ns.Wishlist.Expired(rec, t) end,        -- empty after 30 days
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -426,7 +439,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor", "orders" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor", "orders", "wish" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

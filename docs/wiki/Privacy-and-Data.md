@@ -42,6 +42,12 @@ A [[group|Groups]] you post (type, activity, levels, size, roles still needed, y
 
 A craft **order** you place (the recipe, how many, the crafter, who brings the materials, your price as text, your note, the needed-by day) and the steps you take as the crafter (with your note) are sent to your guild, and everybody in the guild sees them. Closed orders are deleted after 30 days. Your old craft requests are never published unless you press *Make it an order*. See [[Professions and Recipes|Professions-and-Recipes]].
 
+## Wishlist
+
+> Coming with milestone M13, hidden until M13 is complete.
+
+Your **wishlist** (the items, how many, until which day, whether an entry came from the shopping list, and your note) is sent to your guild, and everybody in the guild sees it. Entries expire by themselves, and an empty list is deleted 30 days after your last change. The material demand and the recipe materials stay on your computer and are never sent.
+
 ## Your addon list
 
 > From `v0.9.0`.
