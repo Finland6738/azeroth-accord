@@ -28,9 +28,9 @@ Aprila con la scheda **Banca** del pannello o con `/accord bank`. Le modalità (
 
 ## Registri, donazioni e denaro
 
-- **Registro**: chi ha depositato o prelevato cosa, dal più recente. Il gioco tiene solo una breve storia e la mostra solo alla cassaforte; l'addon aggiunge alla storia ogni visita di un compagno con l'addon, senza elencare due volte lo stesso evento, così cresce oltre quella del gioco. Cerca per nome o oggetto.
-- **Donazioni**: cosa ha depositato ogni giocatore (oro e oggetti) negli ultimi 30 giorni, negli ultimi 365 giorni o da sempre (i pulsanti in alto scelgono il periodo e l'ordine, per oro o per oggetti), tutti i personaggi di un giocatore insieme. Prelievi e riparazioni non contano. L'elenco è visibile a ogni membro (il proprietario può limitarlo agli ufficiali).
-- **Denaro**: come è cambiato il denaro della gilda negli ultimi 30 giorni, da ciò che gli addon hanno visto.
+- **Registro**: chi ha depositato o prelevato cosa, dal più recente. Il gioco tiene solo una breve storia e la mostra solo alla cassaforte; l'addon aggiunge alla storia ogni visita di un compagno con l'addon, senza elencare due volte lo stesso evento, così cresce oltre quella del gioco. Cerca per nome o oggetto. Clicca il titolo di una colonna per ordinare (un secondo clic inverte).
+- **Donazioni**: cosa ha depositato ogni giocatore (oro e oggetti) negli ultimi 30 giorni, negli ultimi 365 giorni o da sempre (i pulsanti in alto scelgono il periodo; clicca il titolo di una colonna, *Oro*, *Oggetti* o *Depositi*, per cambiare l'ordine), tutti i personaggi di un giocatore insieme. Prelievi e riparazioni non contano. L'elenco è visibile a ogni membro (il proprietario può limitarlo agli ufficiali).
+- **Denaro**: come è cambiato il denaro della gilda negli ultimi 30 giorni, da ciò che gli addon hanno visto, e sotto il grafico il registro dell'oro (quando, chi, cosa, somma), ordinabile dai titoli.
 
 ![Banca, Registro: il registro della banca unito senza doppioni](../specs/mockups/previews/bank-log.webp)
 

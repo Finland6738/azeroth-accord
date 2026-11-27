@@ -28,9 +28,9 @@ Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, I
 
 ## Logs, donations and money
 
-- **Log**: who deposited or withdrew what, newest first. The game keeps only a short history and shows it only at the vault; the addon adds every visit of a guildmate with the addon to the history, without listing the same event twice, so it grows beyond the game's. Search by name or item.
-- **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever (pills at the top choose the period and the order, gold or items), all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
-- **Money**: how the guild's money changed over the last 30 days, from what the addons have seen.
+- **Log**: who deposited or withdrew what, newest first. The game keeps only a short history and shows it only at the vault; the addon adds every visit of a guildmate with the addon to the history, without listing the same event twice, so it grows beyond the game's. Search by name or item. Click a column title to sort by it (a second click reverses).
+- **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever (pills at the top choose the period; click a column title, *Gold*, *Items* or *Deposits*, to change the order), all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
+- **Money**: how the guild's money changed over the last 30 days, from what the addons have seen, and under the chart the money log (when, who, what, amount), sortable by its titles.
 
 ![Bank, Log: the merged bank log without duplicates](../specs/mockups/previews/bank-log.webp)
 
