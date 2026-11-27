@@ -41,6 +41,8 @@ From `v0.10.0` it also has **Share when I usually play** (on by default): see [[
 
 Pick which of your characters is your **main**. It leads your characters in the grouped Roster and on the member card ([[Guild Roster|Guild-Roster]]). Until you pick one, the highest-level character leads. The menu lists the characters of your account on this realm.
 
+If your account has two or more characters and you never picked a main, opening Accord shows **Choose your main** over the panel: pick the character (the highest one is preselected) and press **Confirm**. It cannot be skipped; you can change the choice here later. It does not appear in combat.
+
 ## Absence
 
 Tell your officers when you will be back: type the **return date** (YYYY-MM-DD, at most 180 days ahead) and press **Save**; **Clear** removes it. Until that day, included, officers do not count you as inactive. Only officers see it, and no reason is asked. The card shows what **your** account declared. The same from the chat: `/accord away 2026-12-31`, `/accord away off`. See *Declared absences* in [[Guild Roster|Guild-Roster]].

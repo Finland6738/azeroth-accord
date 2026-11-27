@@ -41,6 +41,8 @@ Dalla `v0.10.0` ha anche **Condividi quando gioco di solito** (acceso di default
 
 Scegli quale dei tuoi personaggi è il tuo **main**. Guida i tuoi personaggi nel Roster raggruppato e nella scheda del membro ([[Roster di gilda|Guild-Roster-it]]). Finché non ne scegli uno, guida il personaggio di livello più alto. Il menu elenca i personaggi del tuo account in questo reame.
 
+Se il tuo account ha due o più personaggi e non hai mai scelto un main, aprendo Accord compare **Scegli il tuo main** sopra il pannello: scegli il personaggio (il più alto è preselezionato) e premi **Conferma**. Non si può saltare; qui puoi cambiare la scelta in seguito. Non compare in combattimento.
+
 ## Assenza
 
 Dì agli ufficiali quando torni: scrivi la **data di rientro** (AAAA-MM-GG, al massimo tra 180 giorni) e premi **Salva**; **Cancella** la toglie. Fino a quel giorno, compreso, gli ufficiali non ti contano tra gli inattivi. La vedono solo loro, e non si chiede il motivo. La card mostra ciò che ha dichiarato il **tuo** account. Lo stesso dalla chat: `/accord away 2026-12-31`, `/accord away off`. Vedi *Assenze dichiarate* in [[Roster di gilda|Guild-Roster-it]].

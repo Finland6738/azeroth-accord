@@ -730,6 +730,7 @@ function Shell:Attach(host)
 	content:SetFrameLevel((host.frame:GetFrameLevel() or 1) + 1)
 	content:Show()
 	self:Refresh()
+	if ns.MainPrompt then ns.MainPrompt:MaybeShow(content) end   -- a main never chosen is asked for here
 end
 
 -- The host went away (its frame was hidden): the content hides with it.

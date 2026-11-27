@@ -157,6 +157,7 @@ UI\HandbookEditor.lua
 UI\LootPage.lua
 UI\SettingsModel.lua
 UI\Settings.lua
+UI\MainPrompt.lua
 UI\ShareModel.lua
 UI\SharePanel.lua
 UI\About.lua
