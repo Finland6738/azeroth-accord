@@ -132,7 +132,10 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   `border-subtle`) con l'**icona** della vista (dal foglio delle icone dell'addon, `Shell.VIEW_ICONS`) prima del nome;
   i riquadri sono tutti uguali e quella attiva si distingue solo come nelle schede di Material Design 3: la
   **sottolineatura `accent` da 2 pt** in fondo al suo riquadro (scorre da una scheda all'altra) e nome e icona in
-  `text-1` invece di `text-2` / `text-3`; niente bagliore né anello colorato (`Widgets.Tabs(..., { boxed = true })`). Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
+  `accent-text` invece di `text-2` / `text-3` (prima `text-1`: il proprietario non la distingueva, "non è arancione"), con
+  il riquadro velato d'`accent` al 18 %; niente bagliore né anello colorato (`Widgets.Tabs(..., { boxed = true })`). Le
+  pagine della Banca stanno in una card `surface-1` con anello `border-subtle`, a 14 pt dal bordo, e l'elenco degli
+  oggetti ha un'intestazione come la DataTable. Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
   scheda all'altra in 200 ms (`Translation`, poi si posa) e si dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
   Banca: `Tabs:SetBadge(id, testo|nil, tono)`; il testo lo passa il chiamante).
 - **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): dal

@@ -385,6 +385,9 @@ L["NEW_NONE"] = "Nobody new to suggest right now: no guildmate of your level is 
 -- Bank view (SPEC-08 BANK-04, M5.3)
 L["VIEW_BANK"] = "Bank"
 L["BANK_MODE_TABS"] = "Tabs"
+L["BANK_COL_ITEM"] = "Item"
+L["BANK_COL_TOTAL"] = "Total"
+L["BANK_COL_WHERE"] = "Where"
 L["BANK_MODE_ITEMS"] = "Items"
 L["BANK_GOLD"] = "%dg"
 L["BANK_SILVER"] = "%ds"

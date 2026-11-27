@@ -30,6 +30,7 @@ View.REFRESH_DELAY = 0.4
 View.COLUMNS, View.ROWS, View.CELL = 14, 7, 34
 View.MAX_REQUESTS_PER_REFRESH = 20     -- item names asked for in one redraw
 
+View.CARD_PAD = 14             -- the space between the mode's card and what it holds
 View.modes = {}                -- id -> { id, label, order, available, build, refresh, frame }
 View.mode = "tabs"
 View.tab = nil                 -- the tab shown in the Tabs mode
@@ -338,13 +339,37 @@ local function fillRow(row, d)
 	row:Show()
 end
 
+-- The header of the item list, in the look of the DataTable's (surface-2, Th, text-3), over the same columns as the rows.
+local function itemsHeader(f)
+	local head = CreateFrame("Frame", nil, f)
+	head:SetHeight(28)
+	head:SetPoint("TOPLEFT", f.explain, "BOTTOMLEFT", -4, -8)
+	head:SetPoint("RIGHT", f, "RIGHT", 0, 0)
+	head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
+	head.fill:SetAllPoints(head)
+	local function label(text, x, width, justify)
+		local fs = Widgets.Text(head, "Th", "text-3", justify or "LEFT")
+		fs:SetPoint("LEFT", head, "LEFT", x, 0)
+		fs:SetWidth(width)
+		fs:SetText(text:upper())
+		return fs
+	end
+	-- the same x as a row: icon 6 + 20 + 8, the name 210, the total 6 + 56, the tabs 12 after it
+	head.item = label(L["BANK_COL_ITEM"], 34, 210)
+	head.total = label(L["BANK_COL_TOTAL"], 34 + 210 + 6, 56, "RIGHT")
+	head.where = label(L["BANK_COL_WHERE"], 34 + 210 + 6 + 56 + 12, 200)
+	f.head = head
+	return head
+end
+
 function items.build(f)
 	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANK_ITEMS_EXPLAIN"])
+	local head = itemsHeader(f)
 	local area = CreateFrame("Frame", nil, f)
-	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -24)
+	area:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -4)
 	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	area:SetClipsChildren(true)
 	area:EnableMouseWheel(true)
@@ -393,9 +418,15 @@ function View:Build(f)
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.bar = bar
-	f.body = CreateFrame("Frame", nil, f)
-	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)
-	f.body:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	-- every mode sits in one card of its own colour under the chips, with room around it (owner, 2026-11-27: the page
+	-- read as one mass of text); the modes fill the card's inside, View.CARD_PAD from its edge
+	f.card = CreateFrame("Frame", nil, f)
+	f.card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)
+	f.card:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	f.card.parts = Theme.Panel(f.card, { radius = 12, fill = "surface-1", border = "border-subtle" })
+	f.body = CreateFrame("Frame", nil, f.card)
+	f.body:SetPoint("TOPLEFT", f.card, "TOPLEFT", View.CARD_PAD, -View.CARD_PAD)
+	f.body:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -View.CARD_PAD, View.CARD_PAD)
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
 end

@@ -374,6 +374,9 @@ L["NEW_NONE"] = "Nessuno di nuovo da suggerire adesso: nessun compagno del tuo l
 -- Vista Banca (SPEC-08 BANK-04, M5.3)
 L["VIEW_BANK"] = "Banca"
 L["BANK_MODE_TABS"] = "Schede"
+L["BANK_COL_ITEM"] = "Oggetto"
+L["BANK_COL_TOTAL"] = "Totale"
+L["BANK_COL_WHERE"] = "Dove"
 L["BANK_MODE_ITEMS"] = "Oggetti"
 L["BANK_GOLD"] = "%do"
 L["BANK_SILVER"] = "%da"

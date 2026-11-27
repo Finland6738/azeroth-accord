@@ -181,6 +181,9 @@ end
 -- icon (t.icon, a name of the icon sheet) before the name. The active one differs only as Material Design 3 tabs do: the
 -- 2 pt accent underline at the bottom of its box (it slides to the next tab) and its name and icon in text-1 instead of
 -- text-2 / text-3. No glow, no accent ring, nothing that makes it look like a lit button (owner's follow-up the same day).
+-- Later the same day the owner found the open tab too hard to tell ("the Bank tab is not orange"): its name and icon are
+-- in accent-text and its box takes a light accent tint (ACTIVE_TINT), still without a glow or a ring.
+Widgets.TAB_ACTIVE_TINT = 0.18   -- the accent's alpha on the open boxed tab's fill
 function Widgets.Tabs(parent, tabs, onSelect, opts)
 	local BOXED = opts and opts.boxed
 	local bar = CreateFrame("Frame", nil, parent)
@@ -359,8 +362,9 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		for id, b in pairs(bar.buttons) do
 			local on = id == bar.active
 			if BOXED then
-				Theme.Text(b.label, on and "text-1" or "text-2")
-				if b.icon then Theme.Tint(b.icon, on and "text-1" or "text-3") end
+				Theme.Text(b.label, on and "accent-text" or "text-2")
+				if b.icon then Theme.Tint(b.icon, on and "accent-text" or "text-3") end
+				if on then Theme.Tint(b.fill, "accent", Widgets.TAB_ACTIVE_TINT) else Theme.Tint(b.fill, "surface-2") end
 				Theme.Tint(b.ring, b.hot and "border-strong" or "border-subtle")
 			else
 				Theme.Text(b.label, on and "text-1" or "text-3")
