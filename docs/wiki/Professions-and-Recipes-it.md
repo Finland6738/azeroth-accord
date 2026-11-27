@@ -6,11 +6,11 @@
 
 ## Le ricette della gilda
 
-La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per nome. WoW Forever non dice agli addon il livello di abilità che una ricetta richiede, quindi la vista non lo mostra.
+La vista **Professioni** (`/accord professions`, o l'icona **Professioni** della barra di navigazione, pagina **Ricette**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per nome. WoW Forever non dice agli addon il livello di abilità che una ricetta richiede, quindi la vista non lo mostra.
 
 - **Clicca una ricetta** per vedere **chi può crearla**, subito sotto: prima i personaggi online, gli alt di uno stesso giocatore insieme, con **Chiedi di crearlo** accanto a chi è online. Un altro clic la chiude.
 - **Clicca la professione di un membro** nella tabella del Roster o nella scheda del membro: questo elenco si apre su quella professione. Per ora un clic su un personaggio sotto una ricetta non apre nulla (l'elenco del singolo membro è spento, vedi sotto).
-- Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. Ogni professione che scegli riparte da *Qualcuno può crearla*, e un clic sulla scheda **Professioni** riporta sempre a questo elenco con il menu delle professioni. La casella di ricerca filtra per nome.
+- Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. Ogni professione che scegli riparte da *Qualcuno può crearla*, e un clic sulla scheda **Ricette** riporta sempre a questo elenco con il menu delle professioni. La casella di ricerca filtra per nome.
 - Passa il mouse su una ricetta per vedere il suggerimento del gioco, subito accanto al nome.
 - La riga sotto il titolo dice chi ha condiviso l'elenco completo e quanto è vecchio.
 
@@ -42,7 +42,7 @@ Le tue ricette si condividono quando apri la finestra della professione con l'ad
 
 ## Chi può creare
 
-Apri la vista **Professioni** (`/accord professions`, o la scheda **Professioni**), clicca **Chi può creare** e scrivi il nome di un oggetto o di una ricetta nella casella di ricerca a destra delle schede (almeno due lettere; puoi anche incollare il link di un oggetto). La vista elenca le ricette che corrispondono e, sotto ognuna, i membri che possono crearla: **prima i membri online**, poi per nome, con i personaggi di un giocatore insieme (gli alt un po' più a destra). Ogni riga dice la professione e il livello e da dove viene l'elenco e quanto è vecchio. Il pulsante **Solo online** (acceso finché è attivo) tiene solo i membri online adesso. Clicca un membro per vedere tutte le sue ricette; **Torna alla ricerca** riporta alla ricerca, e **Ricette della gilda** alle ricette della gilda.
+Apri la vista **Professioni** (`/accord professions`, o la pagina **Ricette** dell'icona **Professioni**), clicca **Chi può creare** e scrivi il nome di un oggetto o di una ricetta nella casella di ricerca a destra delle schede (almeno due lettere; puoi anche incollare il link di un oggetto). La vista elenca le ricette che corrispondono e, sotto ognuna, i membri che possono crearla: **prima i membri online**, poi per nome, con i personaggi di un giocatore insieme (gli alt un po' più a destra). Ogni riga dice la professione e il livello e da dove viene l'elenco e quanto è vecchio. Il pulsante **Solo online** (acceso finché è attivo) tiene solo i membri online adesso. Clicca un membro per vedere tutte le sue ricette; **Torna alla ricerca** riporta alla ricerca, e **Ricette della gilda** alle ricette della gilda.
 
 La ricerca copre i membri **di cui l'elenco delle ricette è noto**: gli elenchi condivisi dai compagni che usano Azeroth Accord e quelli che il gioco ti ha dato quando hai aperto le ricette di un membro. Se non si trova nessuno, apri le ricette di qualche membro (l'addon le chiede) e cerca di nuovo.
 
@@ -60,7 +60,7 @@ Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto la ricet
 
 **Chiedi di crearlo** (*Request craft*) aprirà la finestra **Nuovo ordine** invece del solo sussurro: scegli l'artigiano (anche offline: vedrà l'ordine al prossimo accesso), quanti, chi porta i materiali, un prezzo a parole tue, una nota e, se vuoi, il giorno entro cui ti serve. *Sussurra anche a* tiene il messaggio di prima, spento di predefinito. L'ordine lo vede tutta la gilda.
 
-La vista **Mercato** (`/accord market`) elenca gli ordini, *Per me*, *I miei* o *Tutti*, e a richiesta anche i chiusi. Un ordine passa per **richiesto, accettato, in lavorazione, pronto, consegnato**, oppure finisce **annullato**:
+La pagina **Ordini** di **Professioni** (una modalità della vista Mercato prima di M13.7) elenca gli ordini, *Per me*, *I miei* o *Tutti*, e a richiesta anche i chiusi. Un ordine passa per **richiesto, accettato, in lavorazione, pronto, consegnato**, oppure finisce **annullato**:
 
 | Chi | Passi |
 |---|---|
@@ -75,7 +75,7 @@ Un ordine che nessuno accetta scade dopo 14 giorni; uno con un giorno "entro", 7
 
 > **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e quanto segue non è stato provato nel gioco.
 
-Nella vista **Mercato**, il chip *Desideri* raccoglie ciò che vorresti avere. Aggiungi un oggetto incollandone il link, scrivendone il numero o il nome di un oggetto che il tuo gioco conosce già; scegli quanti e per quanti giorni (14 se non dici altro, al massimo 30) e, se vuoi, una nota per tutta la lista. Puoi desiderare fino a 30 oggetti. **Tutta la gilda vede la tua lista**, e ogni voce sparisce da sola dopo i suoi giorni.
+Nella vista **Mercato** (`/accord market`, una pagina di **Economia**), *Desideri* nel suo menu **Mostra** raccoglie ciò che vorresti avere. Aggiungi un oggetto incollandone il link, scrivendone il numero o il nome di un oggetto che il tuo gioco conosce già; scegli quanti e per quanti giorni (14 se non dici altro, al massimo 30) e, se vuoi, una nota per tutta la lista. Puoi desiderare fino a 30 oggetti. **Tutta la gilda vede la tua lista**, e ogni voce sparisce da sola dopo i suoi giorni.
 
 Sotto la tua lista ci sono i desideri della gilda, per oggetto, con chi è online per primo. *Ne ho* apre la casella della chat con un sussurro già scritto ("Ciao! Ho Panno di lino per la tua lista dei desideri."): lo mandi **tu**. La colonna *Tuoi* dice quanti ne hai (borse, banca, posta e alt, vedi la [lista della spesa](#la-lista-della-spesa)), così sai se puoi aiutare. La lista non ha prezzi: non è una vendita.
 
@@ -91,7 +91,7 @@ L'addon chiede al gioco i materiali di una ricetta e non li inventa mai. Se una 
 
 > **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e quanto segue non è stato provato nel gioco.
 
-Nelle ricette della gilda, **Lista della spesa** apre la tua lista, e ogni ricetta ha **Alla lista** (una in più a ogni clic; non serve conoscere la ricetta). Nella pagina puoi aggiungere anche da una professione e dalle sue ricette (la casella di ricerca le filtra), scegliere **quante volte** creare ogni ricetta (da 1 a 999; una ricetta che dà più pezzi dice quanti ne escono), usare **-**, **+** e **Togli**, o **Svuota lista**. Fino a 50 ricette, di qualsiasi professione. La lista è del tuo computer: ogni personaggio vede la stessa.
+La **Lista della spesa** è una pagina di **Professioni**; nelle ricette della gilda anche **Lista della spesa** la apre, e ogni ricetta ha **Alla lista** (una in più a ogni clic; non serve conoscere la ricetta). Nella pagina puoi aggiungere anche da una professione e dalle sue ricette (la casella di ricerca le filtra), scegliere **quante volte** creare ogni ricetta (da 1 a 999; una ricetta che dà più pezzi dice quanti ne escono), usare **-**, **+** e **Togli**, o **Svuota lista**. Fino a 50 ricette, di qualsiasi professione. La lista è del tuo computer: ogni personaggio vede la stessa.
 
 Accord somma i materiali che il gioco dà per quelle ricette, una riga per materiale: una barra **posseduti / necessari**, i numeri (`12 / 40`), quanti **mancano**, quanti ne mostrava la **banca di gilda** all'ultima visita e, se usi Auctionator, il **prezzo** d'asta. Prima i mancanti. Passa su una riga per vedere dove li hai, ognuno con la sua età: le tue borse, la tua banca, la tua posta e i tuoi **alt** dello stesso reame e fazione (come Accord li ha visti l'ultima volta su questo computer; un alt che non ha mai aperto la banca con Accord dice *mai letta*). La banca di gilda non si somma mai a ciò che possiedi.
 
@@ -107,7 +107,7 @@ Nulla della lista o dei tuoi conteggi lascia il tuo computer finché non premi u
 
 > **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e niente di quanto segue è stato provato nel gioco vero.
 
-Nella vista **Mercato**, il chip *Bacheca* raccoglie gli annunci della gilda: *WTS* (vendo) e *WTB* (compro). **Nuovo annuncio** chiede se vendi o compri, l'oggetto (un link incollato, il suo numero o il nome di un oggetto che il tuo gioco conosce già), quanti, per quanti giorni (3 se non dici altro, al massimo 7), un prezzo scritto a parole tue e una nota. Puoi avere al massimo 10 annunci aperti, e **li vede tutta la gilda**. Un annuncio non si modifica: per cambiare il prezzo ritiralo e pubblicane un altro. Alla fine dei suoi giorni sparisce da solo.
+Nella vista **Mercato**, *Bacheca* nel suo menu **Mostra** raccoglie gli annunci della gilda: *WTS* (vendo) e *WTB* (compro). **Nuovo annuncio** chiede se vendi o compri, l'oggetto (un link incollato, il suo numero o il nome di un oggetto che il tuo gioco conosce già), quanti, per quanti giorni (3 se non dici altro, al massimo 7), un prezzo scritto a parole tue e una nota. Puoi avere al massimo 10 annunci aperti, e **li vede tutta la gilda**. Un annuncio non si modifica: per cambiare il prezzo ritiralo e pubblicane un altro. Alla fine dei suoi giorni sparisce da solo.
 
 Se un annuncio ti interessa premi **Mi interessa**: l'autore vede il tuo nome (**Sussurra** apre la casella della chat se vuoi parlargli). Poi vi incontrate e scambiate **nel gioco, a mano**. A scambio fatto confermate tutti e due: l'autore ti sceglie e preme **Affare fatto con ...**, tu premi **Affare fatto**. L'affare è **concluso solo con le due conferme**; con una sola l'annuncio resta aperto per tutti e dice chi manca. Finché l'altro non ha confermato puoi usare **Annulla conferma** o **Non mi interessa**. Un affare concluso resta visibile 7 giorni. Ogni passo chiede un secondo clic (**Conferma**).
 

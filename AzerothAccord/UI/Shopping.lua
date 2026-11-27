@@ -1,4 +1,4 @@
--- ShoppingView: the "Shopping list" page of the Professions view (M13.4; SPEC-17 §5.6, §5.8; ui-style §9, ADR 0027).
+-- ShoppingView: the "Shopping list" page of the Professions destination (its own page since M13.7) (M13.4; SPEC-17 §5.6, §5.8; ui-style §9, ADR 0027).
 -- Lua 5.1.
 -- At the top the recipes picked (from the catalogue's "Add to list", or here: a profession, a recipe of it filtered by the
 -- panel's search box, how many), each with how many times, the pieces it makes, - / + and Remove; then the switch "Break
@@ -159,12 +159,10 @@ function View:Add(recipe, n, line)
 	return true
 end
 
--- Opens the page of the Professions view.
+-- Opens the page.
 function View:Open()
-	if not View.Enabled() or not ns.RecipeView then return false end
-	local shown = ns.Shell and ns.Shell:OpenView("professions")
-	ns.RecipeView:SetMode("shopping")
-	return shown ~= false
+	if not View.Enabled() or not ns.Shell then return false end
+	return ns.Shell:OpenView("shopping") and true or false
 end
 
 function View:AskGuild()
@@ -410,14 +408,10 @@ end
 function View:Build(f)
 	self.frame = f
 	local opts = S():Options()
-	-- the header: back to the guild's recipes, the title
-	f.back = Widgets.Button(f, { text = L["CAT_BACK"], style = "text", dense = true, onClick = function()
-		if ns.RecipeView then ns.RecipeView:SetMode("catalogue") end
-	end })
-	f.back:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	-- the header: the title (the guild's recipes are the tab beside this one, M13.7: no Back)
 	f.title = Theme.NewText(f, "H1", "text-1")
 	f.title:SetJustifyH("LEFT")
-	f.title:SetPoint("LEFT", f.back, "RIGHT", 16, 0)
+	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -10)
 	f.title:SetText(L["SHOP_TITLE"])
 	f.private = Widgets.Text(f, "Small", "text-3", "RIGHT")
 	f.private:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -10)
@@ -570,6 +564,17 @@ function View:SetSearch(text)
 	if text == (View.search or "") then return end
 	View.search = text
 	if self.frame then self:Refresh() end
+end
+
+if ns.Shell then
+	ns.Shell:RegisterView("shopping", { label = L["SHOP_TITLE"], order = 24, dest = "professions", search = true,
+		visible = function() return View.Enabled() end,
+		build = function(f)
+			View:Build(f)
+			f:HookScript("OnShow", function() View:Refresh() end)
+			View:Refresh()
+		end,
+		onSearch = function(text) View:SetSearch(text) end })
 end
 
 if ns.addon then

@@ -1,15 +1,19 @@
--- Shell: the Accord panel and its tabs (SPEC-04 §2-§4, docs/specs/ui-style.md §3). Lua 5.1.
+-- Shell: the Accord panel, its navigation rail and its pages (SPEC-04 §2-§4, docs/specs/ui-style.md §3, §9.11). Lua 5.1.
 --
 -- One content frame, shown in one host at a time: the panel of the Accord tab in the guild window (UI/GuildTab.lua) or
 -- the standalone window (UI/Window.lua). The host draws what is around it (the window: its panel and title bar; the
--- guild window: a fill of the theme over Blizzard's content area). The content has
---   * the tab bar (ns.Widgets.Tabs, 48 pt, the 3 pt indicator under the active tab): one tab per registered view (Roster,
---     Professions, Reputation, Bank, Settings), in order; views of later milestones register themselves, so a view that
---     is not ready never shows; a view's `badge` function puts a count on its tab (the Bank: requests waiting); the
---     tabs that do not fit beside the search box go into the menu of a *More* tab (Widgets.Tabs);
---   * at the right of the tabs: the search box, while the selected view can search, and Pop out in the guild window;
+-- guild window: a fill of the theme over Blizzard's content area). Navigation has two levels (ui-style §9.11, M13.7):
+--   * level 1, the navigation rail at the left: one icon per destination of Shell.DESTINATIONS (Home, Guild, Raid,
+--     Groups, Professions, Economy, Community, Officers, and Settings at the bottom), 24 pt icons on 56 pt items, the name
+--     in a tooltip; the active one has its icon filled and the secondary-container indicator behind it; a destination
+--     carries the sum of its views' badges. A destination without a visible view has no icon (Officers for a member);
+--   * level 2, one row at the top of the content: the destination's name, then one tab (ns.Widgets.Tabs) per page of it.
+--     A page is a registered view (Roster, Bank...) or, for a view that has pages of its own (`pages`), one of them
+--     (Officers: Inactive, Queue, Timeline...). A destination with one page shows only its name;
+--   * at the right of that row: the search box, while the selected view can search, and Pop out in the guild window;
 --   * the body: the selected view, or a welcome text while no view exists;
 --   * in the guild window only, a line under the body with the sync state (the window has it in its title bar).
+-- There is no third row: what a view shows inside a page is chosen with filter chips or a "Show" menu.
 -- Every colour is a token of UI/Theme.lua, so Theme.Apply repaints the shell without /reload. The views draw with
 -- the widget kit: each gets a plain frame that fills the body.
 -- The panel holds no protected action, so it opens and closes in combat too (GT-06).
@@ -23,7 +27,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, pairs, ipairs, tostring, floor, pcall = type, pairs, ipairs, tostring, math.floor, pcall
 
 Shell.NAME = "AzerothAccordShell"
-Shell.PAD = 16            -- between the edge of the host and the tabs, the body
+Shell.PAD = 16            -- between the rail and the row of pages, the body; at the right edge of the host
 Shell.TOP = 4             -- above the tab bar
 Shell.TAB_BAR = Widgets.TAB_HEIGHT   -- the height of the tabs (48)
 Shell.STRIP = 40          -- the Demo strip above the tab bar (demo mode, SPEC-11 §3.1)
@@ -31,15 +35,54 @@ Shell.GAP = 12            -- between the tab bar and the body
 Shell.FOOTER = 24         -- the sync-state line of the guild window
 Shell.SEARCH_WIDTH = { window = 200, tab = 150 }
 Shell.STATUS_REFRESH = 30
+Shell.RAIL = 80           -- the width of the navigation rail (ui-style §9.11)
+Shell.RAIL_ITEM = 56      -- the height of one of its items
+Shell.RAIL_ICON = 24
+Shell.RAIL_TOP = 8        -- above its first item and under its last (Settings)
+Shell.INDICATOR = { 56, 32 }   -- the active destination's indicator, a pill behind the icon (M3)
+Shell.TITLE_GAP = 24      -- between the destination's name and its first tab
 
-Shell.views = {}        -- id -> { id, label, order, build(frame), frame, search, onSearch(text), badge() }
+-- The destinations of the rail (owner, 2026-11-27, ui-style §9.11): id, Material Symbols icon, name, order. A new
+-- milestone adds pages to one of them, never an icon (a new destination needs the owner's consent).
+Shell.DESTINATIONS = {
+	{ id = "home", icon = "home", label = L["NAV_HOME"] },
+	{ id = "guild", icon = "groups", label = L["NAV_GUILD"] },
+	{ id = "raid", icon = "swords", label = L["NAV_RAID"] },
+	{ id = "groups", icon = "group_add", label = L["NAV_GROUPS"] },
+	{ id = "professions", icon = "construction", label = L["NAV_PROFESSIONS"] },
+	{ id = "economy", icon = "account_balance", label = L["NAV_ECONOMY"] },
+	{ id = "community", icon = "celebration", label = L["NAV_COMMUNITY"] },
+	{ id = "officers", icon = "shield_person", label = L["NAV_OFFICERS"] },
+	{ id = "settings", icon = "settings", label = L["NAV_SETTINGS"], bottom = true },
+}
+
+-- The destination of each view of the map; a view may say its own (`dest`). One that says nothing goes to Community.
+Shell.VIEW_DEST = {
+	actions = "home",
+	roster = "guild", reputation = "guild", mentors = "guild", addons = "guild",
+	season = "raid", events = "raid", raid = "raid", availability = "raid",
+	groups = "groups", quests = "groups", rallies = "groups",
+	professions = "professions", orders = "professions", shopping = "professions",
+	bank = "economy", market = "economy", goals = "economy",
+	handbook = "community",
+	officers = "officers",
+	settings = "settings",
+}
+Shell.DEFAULT_DEST = "community"
+
+Shell.views = {}        -- id -> { id, label, order, dest, build(frame), frame, search, onSearch(text), badge(), pages... }
+Shell.pageOf = {}       -- view id -> the page shown last of a view with pages
+Shell.destLast = {}     -- destination id -> the key of its page shown last
 Shell.host = nil        -- the host the content is in now: { frame, mode = "tab" | "window", name, onLeave, onStatus }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Views
 ---------------------------------------------------------------------------------------------------------------------
 -- A view registers itself: def = { label, order, build(frame) -> nil, search = bool, onSearch(text), badge() -> n,
--- visible() -> bool (a view without it always shows; one that says no has no tab and cannot be selected) }.
+-- visible() -> bool (a view without it always shows; one that says no has no tab and cannot be selected), dest (the
+-- destination, default Shell.VIEW_DEST), pageLabel (its tab's text when not `label`) }. A view with pages of its own
+-- adds pages() -> { { id, label } } (the visible ones, in order), showPage(id) (shows that page; the view then calls
+-- Shell:PageShown) and page() -> id (the one it shows), and may add pageBadge(id) -> n. Each page gets a tab.
 function Shell:RegisterView(id, def)
 	if type(id) ~= "string" or type(def) ~= "table" or type(def.build) ~= "function" then return false end
 	def.id = id
@@ -49,20 +92,44 @@ function Shell:RegisterView(id, def)
 	return true
 end
 
--- The count on a view's tab: the number its `badge` function gives when above 0 ("99+" from 100), else nil (no badge).
-function Shell.BadgeText(view)
-	if type(view) ~= "table" or type(view.badge) ~= "function" then return nil end
-	local ok, n = pcall(view.badge)
-	if not ok or type(n) ~= "number" or n <= 0 then return nil end
-	return n > 99 and "99+" or tostring(floor(n))
+-- The number a badge function gives (0 when it has none or raises).
+local function count(fn, ...)
+	if type(fn) ~= "function" then return 0 end
+	local ok, n = pcall(fn, ...)
+	if not ok or type(n) ~= "number" or n <= 0 then return 0 end
+	return floor(n)
 end
 
--- Puts the counts on the tabs again (a badge changed: Data/BankInbox.lua calls this).
+local function countText(n) if n <= 0 then return nil end return n > 99 and "99+" or tostring(n) end
+
+-- The count on a view's tab: the number its `badge` function gives when above 0 ("99+" from 100), else nil (no badge).
+function Shell.BadgeText(view)
+	if type(view) ~= "table" then return nil end
+	return countText(count(view.badge))
+end
+
+-- Puts the counts on the rail and on the tabs again (a badge changed: Data/BankInbox.lua calls this).
 function Shell:UpdateBadges()
-	local tabs = self.content and self.content.tabs
-	if not tabs then return end
-	for id, view in pairs(self.views) do
-		if tabs.buttons[id] then tabs:SetBadge(id, Shell.BadgeText(view)) end
+	local content = self.content
+	if not content then return end
+	local sums = {}
+	for _, view in pairs(self.views) do
+		if Shell.Visible(view) then
+			local d = Shell.DestOf(view)
+			sums[d] = (sums[d] or 0) + count(view.badge)
+		end
+	end
+	if content.rail then
+		for id, item in pairs(content.rail.items) do item:SetCount(countText(sums[id] or 0)) end
+	end
+	local tabs = content.tabs
+	if not tabs or not content.pageList then return end
+	for _, p in ipairs(content.pageList) do
+		if tabs.buttons[p.key] then
+			local view = self.views[p.view]
+			local n = p.page and count(view and view.pageBadge, p.page) or count(view and view.badge)
+			tabs:SetBadge(p.key, countText(n))
+		end
 	end
 end
 
@@ -81,6 +148,85 @@ function Shell:ViewList()
 		if a.order ~= b.order then return a.order < b.order end
 		return a.id < b.id
 	end)
+	return list
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Destinations and pages
+---------------------------------------------------------------------------------------------------------------------
+local DEST = {}
+for i, d in ipairs(Shell.DESTINATIONS) do d.order = i DEST[d.id] = d end
+
+function Shell.Destination(id) return DEST[id] end
+
+function Shell.DestOf(view)
+	local d = type(view) == "table" and (view.dest or Shell.VIEW_DEST[view.id]) or nil
+	return DEST[d] and d or Shell.DEFAULT_DEST
+end
+
+-- The pages of a view that has some ({ { id, label } }), else nil.
+function Shell.PagesOf(view)
+	if type(view) ~= "table" or type(view.pages) ~= "function" then return nil end
+	local ok, list = pcall(view.pages)
+	if not ok or type(list) ~= "table" or #list == 0 then return nil end
+	return list
+end
+
+-- "officers:queue" -> "officers", "queue"; "roster" -> "roster", nil.
+function Shell.SplitKey(key)
+	if type(key) ~= "string" then return nil, nil end
+	local id, page = key:match("^([^:]+):(.+)$")
+	if id then return id, page end
+	return key, nil
+end
+
+local function hasPage(view, page)
+	for _, p in ipairs(Shell.PagesOf(view) or {}) do if p.id == page then return true end end
+	return false
+end
+
+-- The page a view with pages shows: the one chosen last (a tab, or the view itself through Shell:PageShown), else the
+-- one the view says, else its first.
+function Shell:CurrentPage(view)
+	local pages = Shell.PagesOf(view)
+	if not pages then return nil end
+	if hasPage(view, self.pageOf[view.id]) then return self.pageOf[view.id] end
+	local now = type(view.page) == "function" and select(2, pcall(view.page)) or nil
+	if hasPage(view, now) then return now end
+	return pages[1].id
+end
+
+-- The key of the tab of a view: its id, or "id:page" for a view with pages.
+function Shell:KeyOf(id)
+	local view = self.views[id]
+	local page = view and self:CurrentPage(view)
+	return page and (id .. ":" .. page) or id
+end
+
+-- The tabs of destination `dest`: { { key, view, page?, text } } in order.
+function Shell:PageList(dest)
+	local list = {}
+	for _, v in ipairs(self:ViewList()) do
+		if Shell.DestOf(v) == dest then
+			local pages = Shell.PagesOf(v)
+			if pages then
+				for _, p in ipairs(pages) do
+					list[#list + 1] = { key = v.id .. ":" .. p.id, view = v.id, page = p.id, text = p.label or p.id }
+				end
+			else
+				list[#list + 1] = { key = v.id, view = v.id, text = v.pageLabel or v.label or v.id }
+			end
+		end
+	end
+	return list
+end
+
+-- The destinations that have a visible view, in the order of the rail.
+function Shell:DestList()
+	local has = {}
+	for _, v in pairs(self.views) do if Shell.Visible(v) then has[Shell.DestOf(v)] = true end end
+	local list = {}
+	for _, d in ipairs(Shell.DESTINATIONS) do if has[d.id] then list[#list + 1] = d end end
 	return list
 end
 
@@ -104,8 +250,15 @@ end
 local function buildBar(content)
 	local bar = CreateFrame("Frame", nil, content)
 	bar:SetHeight(Shell.TAB_BAR)
-	bar:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -Shell.TOP)
-	bar:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
+	-- the destination's name at the start of the row (ui-style §9.11), and the divider under the whole row
+	bar.title = Theme.NewText(bar, "TitleLarge", "text-1")
+	bar.title:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	bar.title:SetJustifyH("LEFT")
+	bar.line = bar:CreateTexture(nil, "BORDER")
+	Theme.Fill(bar.line, "border")
+	bar.line:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", 0, 0)
+	bar.line:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 0, 0)
+	bar.line:SetHeight(Theme.Px(1))
 	-- the search box: the Widgets field is `searchField`; `search` is its edit box, where the views and the tests type
 	bar.searchField = Widgets.EditBox(bar, { width = Shell.SEARCH_WIDTH.window, dense = true, placeholder = L["SEARCH_PLACEHOLDER"],
 		onChange = function(text, user) if user then Shell:OnSearch(text or "") end end })
@@ -116,12 +269,95 @@ local function buildBar(content)
 	content.bar = bar
 end
 
--- The strip of demo mode, over the tabs: the warning colour, what the mode does and the way out.
+---------------------------------------------------------------------------------------------------------------------
+-- The navigation rail (ui-style §9.11; M3 navigation rail, icons only)
+---------------------------------------------------------------------------------------------------------------------
+local function newRailItem(rail, dest)
+	local item = CreateFrame("Button", nil, rail)
+	item:SetSize(Shell.RAIL, Shell.RAIL_ITEM)
+	item.id, item.name, item.iconName = dest.id, dest.label or dest.id, dest.icon
+	local w, h = Shell.INDICATOR[1], Shell.INDICATOR[2]
+	-- the indicator: a pill of secondary-container behind the icon, shown on the active destination; the state layer
+	-- (hover, press) has the same shape, in the colour of the icon
+	item.indicator = Theme.Slice(item, Theme.ShapeSlice("full"), "secondary-container", "BACKGROUND")
+	item.indicator:SetSize(w, h)
+	item.indicator:SetPoint("CENTER", item, "CENTER", 0, 0)
+	item.indicator:Hide()
+	local hit = CreateFrame("Frame", nil, item)
+	hit:SetSize(w, h)
+	hit:SetPoint("CENTER", item, "CENTER", 0, 0)
+	item.over = Widgets.TrackState(item, Widgets.StateLayer(item, "text-2", { shape = "full", anchor = hit, layer = "BORDER" }))
+	item.icon = Widgets.Icon(item, dest.icon, Shell.RAIL_ICON, "text-2", "ARTWORK")
+	item.icon:SetPoint("CENTER", item, "CENTER", 0, 0)
+	function item:SetActive(on)
+		on = on and true or false
+		self.active = on
+		self.indicator:SetShown(on)
+		self.icon:SetTexCoord(ns.Assets.IconCoords(self.iconName, on))
+		Theme.Tint(self.icon, on and "on-secondary-container" or "text-2")
+		Widgets.SetStateColor(self.over, on and "on-secondary-container" or "text-2")
+	end
+	-- the M3 badge: the count at the top right of the icon (the err badge of the kit)
+	function item:SetCount(text)
+		if not text then
+			if self.badge then self.badge:Hide() end
+			return
+		end
+		if not self.badge then
+			self.badge = Widgets.Badge(self, text)
+			self.badge:SetFrameLevel((self:GetFrameLevel() or 1) + 3)
+			self.badge:SetPoint("BOTTOMLEFT", self.icon, "TOPRIGHT", -10, -8)
+		else
+			self.badge:SetBadge(text)
+		end
+		self.badge:Show()
+	end
+	if Widgets.Tooltip then Widgets.Tooltip.Attach(item, function(self) return self.name end, "RIGHT") end
+	item:SetScript("OnClick", function(self) Shell:SelectDest(self.id, true) end)
+	item:SetActive(false)
+	return item
+end
+
+local function buildRail(content)
+	local rail = CreateFrame("Frame", nil, content)
+	rail:SetWidth(Shell.RAIL)
+	rail.line = rail:CreateTexture(nil, "BORDER")
+	Theme.Fill(rail.line, "border-subtle")
+	rail.line:SetPoint("TOPRIGHT", rail, "TOPRIGHT", 0, 0)
+	rail.line:SetPoint("BOTTOMRIGHT", rail, "BOTTOMRIGHT", 0, 0)
+	rail.line:SetWidth(Theme.Px(1))
+	rail.items = {}
+	for _, d in ipairs(Shell.DESTINATIONS) do rail.items[d.id] = newRailItem(rail, d) end
+	content.rail = rail
+end
+
+-- Shows the icons of the destinations that have a visible view: from the top, Settings at the bottom.
+local function layoutRail(content, list)
+	local rail = content.rail
+	local shown = {}
+	for _, d in ipairs(list) do shown[d.id] = d end
+	local y = -Shell.RAIL_TOP
+	rail.order = {}
+	for _, d in ipairs(Shell.DESTINATIONS) do
+		local item = rail.items[d.id]
+		item:ClearAllPoints()
+		item:SetShown(shown[d.id] ~= nil)
+		if shown[d.id] then
+			if d.bottom then
+				item:SetPoint("BOTTOMLEFT", rail, "BOTTOMLEFT", 0, Shell.RAIL_TOP)
+			else
+				item:SetPoint("TOPLEFT", rail, "TOPLEFT", 0, y)
+				y = y - Shell.RAIL_ITEM
+			end
+			rail.order[#rail.order + 1] = d.id
+		end
+	end
+end
+
+-- The strip of demo mode, over the row of pages: the warning colour, what the mode does and the way out.
 local function buildStrip(content)
 	local strip = CreateFrame("Frame", nil, content)
 	strip:SetHeight(Shell.STRIP)
-	strip:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -Shell.TOP)
-	strip:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
 	strip.fill = strip:CreateTexture(nil, "BACKGROUND")
 	Theme.Fill(strip.fill, "warn", 0.16)
 	strip.fill:SetAllPoints(strip)
@@ -142,15 +378,23 @@ local function buildStrip(content)
 	return strip
 end
 
--- The strip shows while demo mode is on, and the tab bar moves down under it.
+-- The left edge of what lies right of the rail.
+local function leftEdge() return Shell.RAIL + Shell.PAD end
+
+-- The strip shows while demo mode is on, and the row of pages moves down under it.
 local function layoutDemo(content)
 	local on = ns.Demo ~= nil and ns.Demo:IsActive()
 	if on and not content.strip then buildStrip(content) end
-	if content.strip then content.strip:SetShown(on) end
+	if content.strip then
+		content.strip:SetShown(on)
+		content.strip:ClearAllPoints()
+		content.strip:SetPoint("TOPLEFT", content, "TOPLEFT", leftEdge(), -Shell.TOP)
+		content.strip:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
+	end
 	local top = Shell.TOP + (on and (Shell.STRIP + 4) or 0)
 	local bar = content.bar
 	bar:ClearAllPoints()
-	bar:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -top)
+	bar:SetPoint("TOPLEFT", content, "TOPLEFT", leftEdge(), -top)
 	bar:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -top)
 end
 
@@ -195,52 +439,53 @@ function Shell:Content()
 	if self.content then return self.content end
 	local content = CreateFrame("Frame", Shell.NAME, UIParent)
 	content:Hide()
+	buildRail(content)
 	buildBar(content)
 	buildFooter(content)
 	buildBody(content)
+	content.tabsCache = {}
 	content:SetScript("OnShow", function() Shell:StartStatus() Shell:Refresh() end)
 	content:SetScript("OnHide", function() Shell:StopStatus() end)
 	self.content = content
 	return content
 end
 
--- The tab bar for the views in `list`. Widgets.Tabs takes its tabs when it is made, so a view that registers later (or a
--- changed label) makes a new bar; the old one is hidden. A click on a tab goes through Shell:Select with `retry`, so a
--- click on the tab of a view that failed builds it again (the bar itself does not call back for the active tab).
+-- The row of tabs for the pages in `list` (one destination). Widgets.Tabs takes its tabs when it is made, so each set of
+-- pages has its own bar, kept and shown again when the destination comes back (a view that registers later or a changed
+-- label makes a new one). A click on a tab goes through Shell:Select with `retry`, so a click on the tab of a view that
+-- failed builds it again (the bar itself does not call back for the active tab).
 local function tabsKey(list)
 	local parts = {}
-	for i, v in ipairs(list) do parts[i] = v.id .. "=" .. tostring(v.label or v.id) end
+	for i, p in ipairs(list) do parts[i] = p.key .. "=" .. tostring(p.text) end
 	return table.concat(parts, "\n")
 end
-
--- The icon of each view's tab (an icon name of UI/Assets.lua; owner, 2026-11-27: tabs with icons).
-Shell.VIEW_ICONS = {
-	actions = "bell", roster = "users", professions = "hammer", reputation = "heart", bank = "coin", groups = "sword",
-	season = "flag", events = "calendar", availability = "clock", raid = "skull", handbook = "book", addons = "gem",
-	officers = "crown", settings = "gear", quests = "star",
-}
 
 local function buildTabs(content, list)
 	local key = tabsKey(list)
 	if content.tabs and content.tabsKey == key then return content.tabs end
 	if content.tabs then content.tabs:Hide() end
-	local defs = {}
-	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id, icon = v.icon or Shell.VIEW_ICONS[v.id] } end
-	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"] })
-	tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
-	tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
-	for id, b in pairs(tabs.buttons) do
-		b:HookScript("OnClick", function() Shell:Select(id, true) end)
+	local tabs = content.tabsCache[key]
+	if not tabs then
+		local defs = {}
+		for i, p in ipairs(list) do defs[i] = { id = p.key, text = p.text } end
+		tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"] })
+		tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
+		tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
+		for id, b in pairs(tabs.buttons) do
+			b:HookScript("OnClick", function() Shell:Select(id, true) end)
+		end
+		content.tabsCache[key] = tabs
 	end
 	content.tabs, content.tabsKey = tabs, key
-	-- the search box and Pop out lie over the right end of the bar (its line runs under them)
+	-- the search box and Pop out lie over the right end of the row (its line runs under them)
 	local level = (tabs:GetFrameLevel() or 1) + 2
 	content.bar.searchField:SetFrameLevel(level)
 	content.bar.popOut:SetFrameLevel(level)
 	return tabs
 end
 
--- What depends on the host: Pop out and the footer only in the guild window, the width of the search box, the body.
+-- What depends on the host: Pop out and the footer only in the guild window, the width of the search box, the rail, the
+-- body.
 local function layout(content, mode)
 	layoutDemo(content)
 	local bar, tab = content.bar, mode == "tab"
@@ -251,6 +496,11 @@ local function layout(content, mode)
 	if tab then field:SetPoint("RIGHT", bar.popOut, "LEFT", -8, 0)
 	else field:SetPoint("RIGHT", bar, "RIGHT", 0, 0) end
 	content.footer:SetShown(tab)
+	local rail = content.rail
+	rail:ClearAllPoints()
+	rail:SetPoint("TOPLEFT", content, "TOPLEFT", 0, 0)
+	if tab then rail:SetPoint("BOTTOMLEFT", content.footer, "TOPLEFT", -Shell.PAD, 0)
+	else rail:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", 0, 0) end
 	local body = content.body
 	body:ClearAllPoints()
 	body:SetPoint("TOPLEFT", bar, "BOTTOMLEFT", 0, -Shell.GAP)
@@ -259,8 +509,8 @@ local function layout(content, mode)
 	content.mode = tab and "tab" or "window"
 end
 
--- The room the tabs leave at the right of the bar: the search box (also while the selected view has none, so that the tabs
--- do not move from one view to the next) and, in the guild window, Pop out.
+-- The room the tabs leave at the right of the row: the search box (also while the selected view has none, so that the
+-- tabs do not move from one page to the next) and, in the guild window, Pop out.
 function Shell.TabReserve(content)
 	local tab = content.mode == "tab"
 	local reserve = Shell.SEARCH_WIDTH[tab and "tab" or "window"] + 8
@@ -271,25 +521,64 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Refresh, selection, search
 ---------------------------------------------------------------------------------------------------------------------
+-- The view to show when none is chosen: the one remembered (char.ui.lastView: a view id, or "id:page" since M13.7),
+-- else the first page of the first destination.
+function Shell:DefaultKey()
+	local last = ns.Config and ns.Config:Get("char.ui.lastView")
+	local id, page = Shell.SplitKey(last)
+	if id and Shell.Visible(self.views[id]) then
+		if page and hasPage(self.views[id], page) then self.pageOf[id] = page end
+		return id
+	end
+	local dests = self:DestList()
+	local first = dests[1] and self:PageList(dests[1].id)[1]
+	if first and first.page then self.pageOf[first.view] = first.page end
+	return first and first.view or nil
+end
+
+-- The row of the selected view's destination: its name, and its tabs when it has more than one page.
+local function showRow(self, content)
+	local view = self.selected and self.views[self.selected]
+	local dest = view and Shell.DestOf(view)
+	local d = DEST[dest]
+	content.dest = dest
+	content.bar.title:SetText(d and d.label or "")
+	local list = dest and self:PageList(dest) or {}
+	content.pageList = list
+	if #list > 1 then
+		local tabs = buildTabs(content, list)
+		tabs:ClearAllPoints()
+		tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", (content.bar.title:GetStringWidth() or 0) + Shell.TITLE_GAP, 0)
+		tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
+		tabs:Show()
+		tabs:SetReserve(Shell.TabReserve(content))
+		tabs:Select(self:KeyOf(self.selected))
+	elseif content.tabs then
+		content.tabs:Hide()
+		content.tabs, content.tabsKey = nil, nil
+	end
+	for id, item in pairs(content.rail.items) do item:SetActive(id == dest) end
+	if dest then self.destLast[dest] = self:KeyOf(self.selected) end
+end
+
 function Shell:Refresh()
 	local content = self.content
 	if not content then return end
 	layout(content, self.host and self.host.mode or "window")
+	layoutRail(content, self:DestList())
 	local list = self:ViewList()
 	if #list == 0 then
 		if content.tabs then content.tabs:Hide() end
+		content.tabs, content.tabsKey, content.pageList = nil, nil, nil
+		content.bar.title:SetText("")
+		for _, item in pairs(content.rail.items) do item:SetActive(false) end
 		self.selected = nil
 		content.empty:Show()
 	else
-		local tabs = buildTabs(content, list)
-		tabs:Show()
-		tabs:SetReserve(Shell.TabReserve(content))
 		if not (self.selected and Shell.Visible(self.views[self.selected])) then
-			local last = ns.Config and ns.Config:Get("char.ui.lastView")
-			self.selected = (last and Shell.Visible(self.views[last])) and last or list[1].id
+			self.selected = self:DefaultKey()
 		end
 		content.empty:Hide()
-		self:UpdateBadges()
 		self:ShowSelected()
 	end
 	self:UpdateSearch()
@@ -324,31 +613,75 @@ end
 
 function Shell:ShowSelected()
 	local content = self.content
-	if content.tabs and self.selected then content.tabs:Select(self.selected) end
+	local selected = self.selected and self.views[self.selected]
 	for id, view in pairs(self.views) do
 		if id == self.selected then
-			if not view.frame then buildView(content, view) end
+			if not view.frame then
+				-- while a view is built it shows its own first page: the page chosen is shown just below
+				self.building = true
+				buildView(content, view)
+				self.building = nil
+			end
 			view.frame:Show()
 		elseif view.frame then
 			view.frame:Hide()
 		end
 	end
+	-- a view with pages shows the page chosen (it calls Shell:PageShown back)
+	if selected and not selected.failed and Shell.PagesOf(selected) and type(selected.showPage) == "function" then
+		self.showing = true
+		pcall(selected.showPage, self:CurrentPage(selected))
+		self.showing = nil
+	end
+	showRow(self, content)
+	self:UpdateBadges()
 	self:UpdateSearch()
 end
 
--- `retry` is true for a click on a tab: a view whose build failed is then built afresh.
-function Shell:Select(id, retry)
-	local view = self.views[id]
+-- Selects `key`: a view id, or "id:page" for a page of a view with pages. `retry` is true for a click on a tab or on the
+-- rail: a view whose build failed is then built afresh.
+function Shell:Select(key, retry)
+	local id, page = Shell.SplitKey(key)
+	local view = id and self.views[id]
 	if not Shell.Visible(view) then return false end
+	if page and not hasPage(view, page) then return false end
 	if retry and view.failed and view.frame then
 		view.frame:Hide()
 		view.frame, view.failed = nil, nil
 	end
 	self.selected = id
-	if ns.Config then ns.Config:Set("char.ui.lastView", id) end
+	if page then self.pageOf[id] = page end
 	-- a click on the tab may put the view back on its start (`onTabClick`: the Professions view shows the guild's recipes)
 	if retry and type(view.onTabClick) == "function" then pcall(view.onTabClick) end
 	if self.content then self:ShowSelected() end
+	if ns.Config then ns.Config:Set("char.ui.lastView", self:KeyOf(id)) end
+	return true
+end
+
+-- A click on the rail: the destination's page shown last, else its first.
+function Shell:SelectDest(dest, retry)
+	local list = self:PageList(dest)
+	if #list == 0 then return false end
+	local last = self.destLast[dest]
+	for _, p in ipairs(list) do
+		if p.key == last then return self:Select(last, retry) end
+	end
+	return self:Select(list[1].key, retry)
+end
+
+-- A view with pages changed its page itself (View:OpenPage, a link of the Action Center): the tabs follow.
+function Shell:PageShown(id, page)
+	local view = self.views[id]
+	if not (view and hasPage(view, page)) then return false end
+	if self.building then return true end
+	self.pageOf[id] = page
+	if self.showing or self.selected ~= id then return true end
+	if ns.Config then ns.Config:Set("char.ui.lastView", id .. ":" .. page) end
+	local content = self.content
+	if content then
+		showRow(self, content)
+		self:UpdateBadges()
+	end
 	return true
 end
 
@@ -426,18 +759,21 @@ function Shell:Toggle()
 end
 
 -- /accord roster|professions|reputation|bank|settings: open that view where the panel is, or in the standalone window.
-function Shell:OpenView(id)
+-- `key` is a view id or "id:page".
+function Shell:OpenView(key)
 	if not inGuild() then
 		if ns.addon then ns.addon:Print(L["NOT_IN_GUILD"]) end
 		return false
 	end
+	local id, page = Shell.SplitKey(key)
 	if not Shell.Visible(self.views[id]) then
 		if ns.addon then ns.addon:Print(L["COMING_SOON"]) end
 		return false
 	end
 	self.selected = id   -- before the window opens, so the first view built is this one
+	if page then self.pageOf[id] = page end
 	if not self:IsShown() and ns.Window then ns.Window:Open() end
-	return self:Select(id)
+	return self:Select(key)
 end
 
 -- Pop out: from the guild window to the larger standalone window, on the same view.

@@ -16,7 +16,7 @@
 ### Dare un like
 
 - Sulla **scheda del membro** di un compagno (clicca la sua riga nel Roster): la sezione *Like* mostra il totale del giocatore e **[Dai un like]**. Cliccalo, poi clicca di nuovo entro pochi secondi per confermare: un like non si può ritirare.
-- Nella vista **Reputazione** (`/accord reputation`), modalità **Like** (le modalità sono i pulsanti in alto nella vista): ogni giocatore della gilda, una riga per giocatore con tutti i suoi personaggi insieme, ordinata per like. Clicca **Like** due volte su una riga. Clicca le intestazioni per ordinare per nome o per like; la casella di ricerca trova un giocatore da uno qualsiasi dei suoi personaggi; cliccare una riga apre la sua scheda.
+- Nella vista **Reputazione** (`/accord reputation`), modalità **Like** (le modalità sono nel menu **Mostra** in alto nella vista): ogni giocatore della gilda, una riga per giocatore con tutti i suoi personaggi insieme, ordinata per like. Clicca **Like** due volte su una riga. Clicca le intestazioni per ordinare per nome o per like; la casella di ricerca trova un giocatore da uno qualsiasi dei suoi personaggi; cliccare una riga apre la sua scheda.
 - Dopo la riga dice *in attesa* (ancora nessun ufficiale con l'addon online) o *dato*. I tuoi personaggi dicono *tu*.
 - La colonna **Like** del Roster mostra il totale di ogni giocatore: verde quando gli hai dato un like, grigio finché il tuo like è in attesa.
 - Se l'addon di un ufficiale rifiuta un like (è uno dei tuoi personaggi, o il giocatore ha lasciato la gilda), la chat dice perché.
@@ -66,7 +66,7 @@ La modalità **Qualcuno di nuovo** della vista Reputazione suggerisce compagni d
 
 > **Novità della `v0.12.0`**. Nulla è stato verificato nel gioco vero.
 
-La modalità **Mentori** della vista Reputazione elenca i membri che si offrono di aiutare i nuovi; la vedono **tutti**.
+La pagina **Mentori** di **Gilda** (una modalità della vista Reputazione prima della `v0.13.0`) elenca i membri che si offrono di aiutare i nuovi; la vedono **tutti**.
 
 - **Nessuno compare senza averlo scelto.** L'offerta è spenta: **Offriti come mentore ai nuovi membri** ti mette nell'elenco con un clic (da qui o dalla sua carta in *Cosa condivido*). Una sola offerta per account, sul personaggio con cui vuoi essere contattato.
 - **Modifica** sceglie gli argomenti (raid, spedizioni, PvP, professioni, livellamento, addon) e una nota breve (80 byte).

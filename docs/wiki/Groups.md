@@ -4,9 +4,9 @@
 
 > **New in `v0.9.0`**. Nothing on this page has been checked in the real game; in particular the invitation sent by the addon, also inside an instance.
 
-The **Groups** tab is the game's premade groups panel, **for your guild only**: a leader posts a group, guild members apply with a role, the leader accepts them and they are invited. Open it with its tab or with `/accord groups`. Nobody outside the guild sees a group, and only members who use the addon take part.
+The **Groups** tab is the game's premade groups panel, **for your guild only**: a leader posts a group, guild members apply with a role, the leader accepts them and they are invited. Open it with the **Groups** icon of the rail or with `/accord groups`. Nobody outside the guild sees a group, and only members who use the addon take part.
 
-The tab has three pages: **Groups** (the list), **Post a group** and **My group**.
+The **Groups** icon of the rail has the pages **Group finder** (the list), **Post a group**, **My group** and, from `v0.13.0`, [**Rallies**](Events#pvp-and-world-rallies).
 
 ## Finding a group
 

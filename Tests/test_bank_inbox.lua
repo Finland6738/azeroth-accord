@@ -96,12 +96,12 @@ describe("the counter on the tab, the panel and the compartment", function()
 		eq(tab.badge.label:GetText(), "1")
 	end)
 
-	it("the Bank tab of the panel and the compartment tooltip say how many wait", function()
+	it("the Economy icon of the rail and the compartment tooltip say how many wait", function()
 		asOfficer()
 		arrive(BOB, 1, "open"); arrive(BOB, 2, "open")
 		Mock.Slash("/accord bank")
-		local bank = A().Shell.content.tabs.buttons.bank
-		eq(bank.label:GetText(), "Bank")
+		local bank = A().Shell.content.rail.items.economy   -- the Bank is the one page of Economy (M13.7): no tab, the icon
+		eq(bank.name, "Economy")
 		truthy(bank.badge:IsShown())
 		eq(bank.badge.label:GetText(), "2")
 		local tip = { lines = {} }

@@ -10,7 +10,8 @@
 -- The BattleTag is read from the game and shown here; the Discord user name is typed (at most 32 characters, no links)
 -- and used when the server does not give it natively. Both are always shared with the guild (owner decision D3): the
 -- text says so and there is no switch.
---   View.Build(parent) -> frame   the page selector (only with more than one page) and the pages; the Settings page's
+--   View.Build(parent, opts) -> frame   the page selector (only with more than one page, and not in the panel: there the
+--                                 pages are tabs of the shell's row, M13.7) and the pages; the Settings page's
 --                                 controls are fields of the frame: .theme, .effects, .animations, .font (Appearance),
 --                                 .battleTag, .discordEdit, .save, .status, .main, .checks[key], .columnChecks[i],
 --                                 .sizes[i], .clear ...; frame:Refresh() re-reads every value
@@ -709,7 +710,7 @@ local function buildSettingsPage(holder, f)
 	f.backupCard = f.cards[#f.cards]
 end
 
-View.pages[1] = { id = "settings", label = L["VIEW_SETTINGS"], order = 10, build = buildSettingsPage }
+View.pages[1] = { id = "settings", label = L["SET_PAGE_GENERAL"], order = 10, build = buildSettingsPage }
 
 -- Another page beside Settings (M6.15: Info). def = { label, order, build(frame, f) }: build draws into `frame` (the area
 -- under the selector) and may keep fields on `f` (the outer frame). Pages are added while the files load.
@@ -739,14 +740,17 @@ function View:ShowPage(f, id)
 		def.build(holder, f)
 	end
 	if f.pager then f.pager:Select(id) end
+	if f == View.frame and ns.Shell then ns.Shell:PageShown("settings", id) end   -- the panel's row of tabs follows
 	return true
 end
 
-function View.Build(parent)
+-- opts.pager = false: no selector (the panel's view: its pages are tabs of the shell's row, M13.7); the canvas of the
+-- game's Settings window keeps it.
+function View.Build(parent, opts)
 	local f = CreateFrame("Frame", nil, parent)
 	f:SetAllPoints(parent)
 	f.holders = {}
-	if #View.pages > 1 then
+	if #View.pages > 1 and not (opts and opts.pager == false) then
 		local items = {}
 		for i, p in ipairs(View.pages) do items[i] = { id = p.id, text = p.label } end
 		f.pager = Widgets.Segmented(f, items, function(id) View:ShowPage(f, id) end)
@@ -764,7 +768,15 @@ end
 -- The view of the panel and the panel of the game's Settings window
 ---------------------------------------------------------------------------------------------------------------------
 if ns.Shell then
-	ns.Shell:RegisterView("settings", { label = L["VIEW_SETTINGS"], order = 90, build = function(f) View.frame = View.Build(f) end })
+	ns.Shell:RegisterView("settings", { label = L["VIEW_SETTINGS"], order = 90,
+		build = function(f) View.frame = View.Build(f, { pager = false }) end,
+		pages = function()
+			local list = {}
+			for i, p in ipairs(View.pages) do list[i] = { id = p.id, label = p.label } end
+			return list
+		end,
+		page = function() return View.frame and View.frame.pageId or "settings" end,
+		showPage = function(id) if View.frame then View:ShowPage(View.frame, id) end end })
 end
 
 -- The canvas of the game's Settings window: the same page, built the first time the panel is shown. Blizzard sizes a

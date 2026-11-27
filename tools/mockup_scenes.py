@@ -114,7 +114,7 @@ def roster_body(rows, **kw):
             f'<div style="position:relative">{table(cols, rows, **kw)}{scrollbar(4, 110)}</div></div>')
 
 
-@scene("accord-tab-roster", "The Accord tab in the guild window: a fifth tab under the game's four, the tabs of the views along the top, and the Roster")
+@scene("accord-tab-roster", "The Accord tab in the guild window: a fifth tab under the game's four, the navigation rail, the Guild row of pages, and the Roster")
 def s_accord_tab():
     rows = [roster_row(m, i) for i, m in enumerate(MEMBERS)]
     return full("roster", roster_body(rows, sort=0, sel=(3,)), peers=9, ago=1, search_text="")

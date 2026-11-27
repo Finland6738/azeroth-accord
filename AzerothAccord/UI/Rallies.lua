@@ -235,7 +235,7 @@ function View:Build(f)
 	f.offset = 0
 	f:SetScript("OnShow", function() opened(f) end)
 	f:SetScript("OnHide", function() closed(f) end)
-	self:Redraw()
+	opened(f)   -- the shell builds the page on screen: no OnShow comes first
 end
 
 -- The form follows the character's open rally the first time it shows, and again when that rally changes.
@@ -316,16 +316,23 @@ function View:Scroll(delta)
 	return true
 end
 
--- Opens the Events view on this page, with rally `id` chosen (the notice, the row of the Action Center).
+-- Opens the Rallies page (the Groups destination since M13.7), with rally `id` chosen (the notice, the row of the
+-- Action Center).
 function View:Open(id)
-	if not (on() and ns.EventsView) then return false end
+	if not on() then return false end
 	if id then self.chosen = id end
-	if ns.Shell and not ns.Shell:OpenView("events") then return false end
-	return ns.EventsView:ShowPage("rallies")
+	if not (ns.Shell and ns.Shell:OpenView("rallies")) then return false end
+	if self.frame and self.frame:IsVisible() then self:Redraw() end
+	return true
 end
 
 function View:Changed()
 	if self.frame and self.frame:IsVisible() then self:Redraw() end
+end
+
+if ns.Shell then
+	ns.Shell:RegisterView("rallies", { label = L["EVENTS_PAGE_RALLIES"], order = 48, dest = "groups", visible = on,
+		build = function(f) View:Build(f) end })
 end
 
 if ns.addon then

@@ -1,4 +1,4 @@
--- MentorsView: the "Mentors" mode of the Reputation view, the dialog of the own offer, and, for the officers, the mentors
+-- MentorsView: the "Mentors" page of the Guild destination (a mode of the Reputation view until M13.7), the dialog of the own offer, and, for the officers, the mentors
 -- suggested to the new members: the third tab of the Trials page and a section of the member card (M12.5; SPEC-16 §6).
 -- Lua 5.1.
 -- The list is for every member; the pairs only for who may see them (Mentors.CanSeePairs). Only with the switch "recruit".
@@ -25,6 +25,7 @@ View.TOP = 84                  -- the own offer and the topic filter
 View.WIDTH, View.HEIGHT = 460, 330
 View.topic = nil               -- the topic filter (nil: all)
 View.offset = 0
+View.search = ""             -- the panel's search on this page
 
 local function M() return ns.Mentors end
 local function escape(text) return ns.Contacts and ns.Contacts.Escape(text) or (tostring(text or ""):gsub("|", "||")) end
@@ -125,7 +126,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function result(ok, why)
 	View.error = not ok and View.ErrorText(why) or nil
-	if ns.ReputationView then ns.ReputationView:Changed() end
+	View:Redraw()
 	if ok then return true end
 	return false, why
 end
@@ -267,7 +268,7 @@ function mode.build(f)
 	f.filter = Widgets.ChipRow(f, function(id)
 		View.topic = id ~= "all" and id or nil
 		View.offset = 0
-		if ns.ReputationView then ns.ReputationView:Redraw() end
+		View:Redraw()
 	end)
 	f.filter:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -44)
 	f.filter:SetPoint("RIGHT", f, "RIGHT", 0, 0)
@@ -278,7 +279,7 @@ function mode.build(f)
 	f.area:EnableMouseWheel(true)
 	f.area:SetScript("OnMouseWheel", function(_, delta)
 		View.offset = max(0, View.offset - delta)
-		if ns.ReputationView then ns.ReputationView:Redraw() end
+		View:Redraw()
 	end)
 	f.area.rows = {}
 	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
@@ -346,7 +347,7 @@ function mode.refresh(f)
 	local chips = { { id = "all", text = L["MEN_ALL"] } }
 	for _, id in ipairs(M().TOPICS) do chips[#chips + 1] = { id = id, text = View.TopicText(id) } end
 	f.filter:SetItems(chips, View.topic or "all")
-	local search = ns.ReputationView and ns.ReputationView.search
+	local search = View.search
 	local list = View.ListRows({ topic = View.topic, search = search })
 	View.shown = list
 	local h = f.area:GetHeight() or 0
@@ -360,9 +361,29 @@ function mode.refresh(f)
 	f.foot:SetText(L["MEN_EXPLAIN"])
 end
 
-if ns.ReputationView then
-	ns.ReputationView.AddMode("mentors", { label = L["REP_MODE_MENTORS"], order = 50, build = mode.build, refresh = mode.refresh,
-		search = true, available = function() return M() ~= nil and M().Enabled() end })
+-- The page draws again while it is on screen.
+function View:Redraw()
+	local f = self.frame
+	if f and f:IsVisible() then mode.refresh(f) end
+end
+
+function View:SetSearch(text)
+	text = type(text) == "string" and text or ""
+	if text == self.search then return end
+	self.search, self.offset = text, 0
+	self:Redraw()
+end
+
+-- A page of the Guild destination (M13.7, ui-style §9.11): no longer a mode of the Reputation view.
+if ns.Shell then
+	ns.Shell:RegisterView("mentors", { label = L["REP_MODE_MENTORS"], order = 32, dest = "guild", search = true,
+		visible = function() return M() ~= nil and M().Enabled() end,
+		build = function(f)
+			mode.build(f)
+			f:SetScript("OnShow", function() mode.refresh(f) end)
+			mode.refresh(f)
+		end,
+		onSearch = function(text) View:SetSearch(text) end })
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -465,7 +486,7 @@ if ns.addon then
 	if ns.Bus then
 		ns.Bus:On("MENTORS_CHANGED", function()
 			if ns.MemberCard then ns.MemberCard:Refresh() end
-			if ns.ReputationView then ns.ReputationView:Changed() end
+			View:Redraw()
 			if ns.OfficersView then ns.OfficersView:Changed() end
 			if View.dialog and View.dialog:IsShown() and not M():Own() then View.dialog:Close() end
 		end)

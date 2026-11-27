@@ -75,6 +75,10 @@ Le cinque viste diventano le **schede** orizzontali di FDCP §6 (sostituiscono l
 | **Bank** | i sette modi della banca | |
 | **Settings** | Impostazioni | **selettore a pillole** a due segmenti: *Settings* e *Info* (crediti, [M6.15](../roadmap/M6-release.md)); l'Aspetto è una card della prima |
 
+**Da M13.7** le viste non sono più schede in alto: sono le pagine delle destinazioni della barra di navigazione a sinistra
+([§9.11](#911-navigazione-due-livelli-proprietario-2026-11-27)), e la riga in alto ha le schede delle pagine di una sola
+destinazione.
+
 Restano vere le regole attuali: una vista non ancora pronta non compare, la scheda scelta per ultima si ricorda per
 personaggio (`char.ui.lastView`), una vista che solleva un errore mostra il suo testo di errore e non toglie le altre,
 i badge (richieste della banca) stanno sul titolo della scheda.
@@ -504,7 +508,7 @@ l'azione principale.
 
 | Componente | Misure (punti) | Colori e forma | Quando si usa |
 |---|---|---|---|
-| **Schede** (primarie) | alte 48; indicatore di 3 sotto l'etichetta, arrotondato in alto (3, 3, 0, 0), largo almeno 24 e rientrato di 2 per lato; divisore di 1 sotto la barra | etichetta attiva `accent-text`, inattive `text-2`; indicatore `accent`; divisore `border`; strato di stato sulla scheda; **nessun bagliore, nessun riempimento** | le viste di Accord (barra in alto) |
+| **Schede** (primarie) | alte 48; indicatore di 3 sotto l'etichetta, arrotondato in alto (3, 3, 0, 0), largo almeno 24 e rientrato di 2 per lato; divisore di 1 sotto la barra | etichetta attiva `accent-text`, inattive `text-2`; indicatore `accent`; divisore `border`; strato di stato sulla scheda; **nessun bagliore, nessun riempimento** | le pagine di una destinazione (la riga in alto, §9.11) |
 | **Pulsante pieno** | alto 40 (36 nelle barre degli strumenti), padding 24 (16 con icona), etichetta Label large | `accent` / `on-accent`, forma piena; con gli effetti accesi il bagliore dell'accento | **una sola** azione principale per vista o dialog |
 | **Pulsante tonale** | come il pieno | `secondary-container` / `on-secondary-container` | azioni secondarie importanti (Esporta, Colonne) |
 | **Pulsante contornato** | come il pieno, bordo di 1 | bordo `border`, etichetta `text-2` | azioni alternative, "Annulla" |
@@ -631,6 +635,39 @@ Non provato nel client vero.
 | in fondo | **Impostazioni** (`settings`) | Impostazioni; Cosa condivido; Info e crediti |
 
 Un membro vede 7 icone più le Impostazioni. Una milestone nuova aggiunge **pagine** a una destinazione, non icone: una destinazione nuova si aggiunge solo con il consenso del proprietario.
+
+**Realizzazione (M13.7).** `UI/Shell.lua`: `Shell.DESTINATIONS` (le nove della mappa, nell'ordine) e `Shell.VIEW_DEST` (la
+destinazione di ogni vista; una vista può dire la sua con `dest`). Le viste si registrano come prima (`Shell:RegisterView`);
+una vista con pagine proprie le dà alla shell (`pages`, `showPage`, `page`, `pageBadge`) e ogni pagina è una scheda della riga.
+
+- **Barra**: larga 80, elementi alti 56, icona di 24 al centro, indicatore a pillola 56 × 32 in `secondary-container`
+  (l'icona attiva è piena, in `on-secondary-container`; le altre vuote in `text-2`); strato di stato della stessa forma;
+  tooltip semplice a destra con il nome; badge `err` in alto a destra dell'icona con la **somma** dei conteggi delle viste
+  della destinazione. Una destinazione senza viste visibili non ha l'icona (Ufficiali per un membro; Economia resta per la
+  Banca). Impostazioni sta in fondo. Un clic apre la pagina della destinazione vista per ultima, altrimenti la prima.
+- **Riga**: il nome della destinazione in Title large, poi le schede primarie di §9.6 (senza icone: l'icona è sulla barra),
+  la ricerca e *Stacca* a destra. Le pagine con un conteggio hanno il badge sulla loro scheda (Il mio gruppo, Coda,
+  Centro azioni, Avvisi: il conteggio non è più nel nome). *Adattamento*: se la riga non ha spazio per tutte le schede
+  (il pannello stretto della finestra Gilda), le ultime vanno ancora dietro **Altro** (la regola toglie "Altro" dalla barra,
+  dove ci sono tutte le icone; senza "Altro" una scheda della riga sarebbe irraggiungibile).
+- **Le pagine della mappa** come sono oggi: Home = Centro azioni, Avvisi; Gilda = Roster, Reputazione, Mentori, Addon della
+  gilda; Raid = Season, Eventi, Raid, Disponibilità; Gruppi = Cercagruppi, Pubblica un gruppo, Il mio gruppo, Raduni;
+  Professioni = Ricette, Ordini, Lista della spesa; Economia = Banca, Mercato; Community = Manuale; Ufficiali = Inattivi,
+  Coda, Cronologia, Prove; Impostazioni = Generali, Cosa condivido, Info. *Adattamenti*: le tre pagine della vista Gruppi di
+  M9 sono tre schede (la mappa dice "Cercagruppi": M18 lo sostituisce); i Raduni lasciano la vista Eventi, i Mentori la
+  Reputazione, gli Ordini il Mercato e la Lista della spesa la vista Professioni: ora sono viste a sé. Gli Avvisi restano
+  una pagina di Home (la mappa non li nomina; stanno con il Centro azioni da M9.3). La pagina *Impostazioni* si chiama
+  **Generali**, per non ripetere il nome della destinazione.
+- **Nessun terzo livello**: i modi di Banca, Reputazione e Mercato sono un menu **Mostra** (`Widgets.ModeMenu`, una
+  `Widgets.Select` con la sua etichetta, con le stesse chiamate di `Widgets.ChipRow`). Restano chip i filtri veri (le
+  schede della banca del gioco, Per me / I miei / Tutti degli Ordini, i temi dei Mentori, le tre liste delle Prove). Restano
+  segmentati le scelte (Gilda / Le mie della Disponibilità, la fonte della Season, le durate). La finestra delle
+  impostazioni del gioco, che non ha la riga della shell, tiene il suo selettore di pagine.
+- **Una sola pagina**: la riga mostra solo il nome della destinazione (Community, Economia con la sola Banca).
+- **Ultima pagina**: `char.ui.lastView` è un id di vista o `vista:pagina` (`officers:queue`, `settings:info`); gli id di
+  prima di M13.7 restano validi (`events` apre Raid → Eventi). `/accord <vista>` funziona come prima.
+
+Non provato nel client vero.
 
 ### 9.7 Cosa non si prende da M3
 

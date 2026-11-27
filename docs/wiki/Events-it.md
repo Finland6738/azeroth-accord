@@ -8,7 +8,7 @@ Il calendario del gioco è il terreno comune della gilda per gli eventi. Accord 
 
 ## La vista Eventi
 
-Aprila con la sua scheda o con `/accord events`. Ha due pagine: **Eventi**, descritta qui, e [**Raduni**](#raduni-pvp-e-nel-mondo).
+Aprila con la sua scheda o con `/accord events`. Anche i [**Raduni**](#raduni-pvp-e-nel-mondo) sono descritti in questa pagina; dalla `v0.13.0` sono una pagina dell'icona **Gruppi** della barra di navigazione.
 
 - **La scelta dell'evento**: gli eventi della gilda nel calendario del gioco da 7 giorni fa a 14 giorni avanti, **chiunque li abbia creati** (un ufficiale, la finestra del gioco, un altro addon). Sceglierne uno legge dal calendario le risposte di tutti.
 - **La tua risposta**: scegli il tuo **ruolo** e premi **Iscriviti**, **Forse** o **Rifiuta**. Accord scrive la risposta nel calendario del gioco e ti dice quando è salvata. Anche una risposta data nella finestra del calendario del gioco compare in Accord.
@@ -67,7 +67,7 @@ Solo quando il tuo client **non ha un calendario usabile** (il gioco non manda l
 
 ## Raduni PvP e nel mondo
 
-Un **raduno** è una chiamata veloce alla gilda: "PvP al crocevia tra 15 minuti". Apri la pagina **Raduni** della vista Eventi.
+Un **raduno** è una chiamata veloce alla gilda: "PvP al crocevia tra 15 minuti". Apri la pagina **Raduni** di **Gruppi**.
 
 - **Chiamarne uno**: scegli **PvP** o **Mondo**, scrivi il **punto d'incontro a parole** (al massimo 60 caratteri), scegli quando inizia (da subito a 2 ore) e quanto dura (da 15 minuti a 2 ore) e premi **Chiama il raduno**. Può farlo ogni membro con l'addon. Hai **un raduno aperto** alla volta (uno nuovo chiude il precedente) e puoi chiamarne **al massimo 4 in un'ora**.
 - **Cambiarlo**: può solo chi l'ha chiamato, con **Modifica** (l'inizio resta entro 2 ore dalla prima chiamata) e **Chiudi**. Gli ufficiali non possono cambiare né togliere il raduno di un altro.

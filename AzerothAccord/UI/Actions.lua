@@ -327,11 +327,18 @@ end
 
 View.AddPage("notices", { label = L["NOTICE_PAGE"], order = 20, build = buildNotices, refresh = refreshNotices })
 
--- The number of unread notices on the page's name.
-local function pagerCount(f)
-	if not (f.pager and ns.Notify) then return end
-	local n = ns.Notify:Unread()
-	f.pager:SetItemText("notices", n > 0 and L["NOTICE_PAGE_COUNT"]:format(n) or L["NOTICE_PAGE"])
+-- The counts on the pages' tabs (the shell's row, M13.7): the things to do on the inbox, the unread notices on Notices.
+function View.PageBadge(id)
+	if id == "notices" then return ns.Notify and ns.Notify:Unread() or 0 end
+	if id == "inbox" then return ns.Actions:Count() end
+	return 0
+end
+
+-- The pages, for the shell's row of tabs.
+function View.PageList()
+	local list = {}
+	for i, p in ipairs(View.pages) do list[i] = { id = p.id, label = p.label } end
+	return list
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -350,13 +357,13 @@ function View:ShowPage(id)
 	if not f then return true end
 	if not f.holders[id] then
 		local holder = CreateFrame("Frame", nil, f)
-		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, f.pager and -View.PAGER_HEIGHT or 0)
+		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 		holder:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 		f.holders[id] = holder
 		def.build(holder, self)
 	end
 	for pid, holder in pairs(f.holders) do holder:SetShown(pid == id) end
-	if f.pager then f.pager:Select(id) end
+	if ns.Shell then ns.Shell:PageShown("actions", id) end
 	self:Redraw()
 	return true
 end
@@ -364,7 +371,6 @@ end
 function View:Redraw()
 	local f = self.frame
 	if not f then return end
-	pagerCount(f)
 	local holder, def = f.holders[self.pageId], pageOf(self.pageId)
 	if holder and def then def.refresh(holder, self) end
 end
@@ -384,12 +390,6 @@ end
 function View:Build(f)
 	self.frame = f
 	f.holders = {}
-	if #View.pages > 1 then
-		local items = {}
-		for i, p in ipairs(View.pages) do items[i] = { id = p.id, text = p.label } end
-		f.pager = Widgets.Segmented(f, items, function(id) if id ~= View.pageId then View:ShowPage(id) end end)
-		f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	end
 	f:SetScript("OnShow", function()
 		watch(f, true)
 		ns.Actions:Refresh()   -- ACT-03: read again when the view opens
@@ -409,7 +409,9 @@ end
 
 if ns.Shell then
 	ns.Shell:RegisterView("actions", { label = L["VIEW_ACTIONS"], order = 5, visible = enabled,
-		badge = function() return ns.Actions:Count() end, build = function(f) View:Build(f) end })
+		badge = function() return ns.Actions:Count() end, build = function(f) View:Build(f) end,
+		pages = View.PageList, page = function() return View.pageId end,
+		showPage = function(id) View:ShowPage(id) end, pageBadge = View.PageBadge })
 end
 
 if ns.addon then

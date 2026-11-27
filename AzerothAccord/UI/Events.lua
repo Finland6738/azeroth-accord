@@ -757,6 +757,7 @@ function View:Build(f)
 		if ns.Calendar.Enabled() then ns.Calendar:Start() end
 		View:Redraw()
 	end)
+	if ns.Calendar.Enabled() then ns.Calendar:Start() end   -- the shell builds the view on screen: no OnShow comes first
 	self:Redraw()
 end
 
@@ -917,44 +918,17 @@ function View:Changed()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- The two pages of the view: the events (above) and the rallies (UI/Rallies.lua, M10.9)
+-- The rallies (UI/Rallies.lua, M10.9) were the second page of this view; since M13.7 they are a page of the Groups
+-- destination (ui-style §9.11). ShowPage stays for the callers of M10.
 ---------------------------------------------------------------------------------------------------------------------
-View.PAGER_HEIGHT = 44
-View.pageId = "events"
-
 function View:ShowPage(id)
-	if id ~= "events" and id ~= "rallies" then return false end
-	self.pageId = id
-	local f = self.root
-	if not f then return true end
-	local holder = f.holders[id]
-	if not holder then
-		holder = CreateFrame("Frame", nil, f)
-		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.PAGER_HEIGHT)
-		holder:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-		holder:Hide()   -- built hidden, so showing it runs the page's OnShow
-		f.holders[id] = holder
-		if id == "events" then self:Build(holder) else ns.RalliesView:Build(holder) end
-	end
-	for pid, other in pairs(f.holders) do
-		if pid ~= id then other:Hide() end
-	end
-	holder:Show()
-	f.pager:Select(id)
-	return true
-end
-
-function View:BuildPages(f)
-	self.root = f
-	f.holders = {}
-	f.pager = Widgets.Segmented(f, { { id = "events", text = L["EVENTS_PAGE_EVENTS"] }, { id = "rallies", text = L["EVENTS_PAGE_RALLIES"] } },
-		function(id) if id ~= View.pageId then View:ShowPage(id) end end)
-	f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	self:ShowPage(self.pageId)
+	if id == "events" then return true end
+	if id == "rallies" then return ns.Shell ~= nil and ns.Shell:OpenView("rallies") and true or false end
+	return false
 end
 
 if ns.Shell then
-	ns.Shell:RegisterView("events", { label = L["VIEW_EVENTS"], order = 46, visible = on, build = function(f) View:BuildPages(f) end })
+	ns.Shell:RegisterView("events", { label = L["VIEW_EVENTS"], order = 46, visible = on, build = function(f) View:Build(f) end })
 end
 
 if ns.addon then

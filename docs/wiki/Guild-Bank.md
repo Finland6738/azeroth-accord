@@ -20,7 +20,7 @@
 
 ![Bank, Items: every item once with its total and where it is](../specs/mockups/previews/bank-items.webp)
 
-Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, Items, Inbox for officers, Requests, Log, Donations, Money) are the chips at the top of the view; the chosen one is filled and has a check mark.
+Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, Items, Inbox for officers, Requests, Log, Donations, Money) are in the **Show** menu at the top of the view *(from `v0.13.0`; before, a row of chips)*. The Bank is a page of the **Economy** icon of the rail.
 
 - **Tabs**: one chip per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab chips you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
 - **Items**: one row per item over all the tabs you may see, with the total and where it is. The search box of the panel filters by item name, item number or tab name.

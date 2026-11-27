@@ -165,14 +165,23 @@ p { margin: 0 0 8px; }
 .gw-tab img { width: 30px; height: 30px; border-radius: 50%; }
 .inset { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; background: var(--bg); border-radius: 0 0 12px 12px; overflow: hidden; }
 .pn { position: absolute; inset: 0; background: var(--bg); color: var(--text-1); }
-.tabbar { position: absolute; left: 16px; right: 16px; top: 4px; height: 48px; display: flex; align-items: stretch; gap: 4px; border-bottom: 1px solid var(--border); }
+/* the navigation rail (ui-style §9.11, M13.7): 80 wide, 56-point items, the pill indicator behind the active icon */
+.rail { position: absolute; left: 0; top: 0; bottom: 0; width: 80px; border-right: 1px solid var(--border-subtle); }
+.rail .ri { position: absolute; left: 0; width: 80px; height: 56px; display: grid; place-items: center; color: var(--text-2); }
+.rail .ri svg { position: relative; width: 24px; height: 24px; }
+.rail .ri.on { color: var(--on-secondary-container); }
+.rail .ri.on::before { content: ""; position: absolute; left: 12px; top: 12px; width: 56px; height: 32px; border-radius: 16px; background: var(--secondary-container); }
+.rail .ri .n { position: absolute; left: 44px; top: 8px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--err); color: var(--on-error);
+  font: 500 10px/16px var(--body); text-align: center; }
+.tabbar { position: absolute; left: 96px; right: 16px; top: 4px; height: 48px; display: flex; align-items: stretch; gap: 4px; border-bottom: 1px solid var(--border); }
+.tabbar .dest { display: flex; align-items: center; font: 600 18px/1 var(--body); color: var(--text-1); padding-right: 12px; white-space: nowrap; }
 .tabbar .tab { position: relative; display: flex; align-items: center; gap: 6px; font: 600 14px/1 var(--body); color: var(--text-2); padding: 0 12px; white-space: nowrap; }
 .tabbar .tab.on { color: var(--accent-text); }
 .tabbar .tab.on::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); }
 .tabbar .tab .n { display: inline-grid; place-items: center; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; font: 500 10px/1 var(--body); background: var(--err); color: var(--on-error); }
 .tabbar .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.pbody { position: absolute; left: 16px; right: 16px; top: 64px; bottom: 36px; overflow: hidden; }
-.pfoot { position: absolute; left: 16px; right: 16px; bottom: 0; height: 32px; display: flex; align-items: center; font: 400 11px/1 var(--mono); color: var(--text-3); }
+.pbody { position: absolute; left: 96px; right: 16px; top: 64px; bottom: 36px; overflow: hidden; }
+.pfoot { position: absolute; left: 96px; right: 16px; bottom: 0; height: 32px; display: flex; align-items: center; font: 400 11px/1 var(--mono); color: var(--text-3); }
 .rel { position: relative; height: 100%; }
 
 /* ---- the standalone window (/accord, Pop out): title bar, tabs, body; 920 x 600 --------------------------------------------------------- */
@@ -472,8 +481,59 @@ def guild_window(inner, active="accord", badge=None, title=None, sub=None):
             f'<div class="gw-tabs">{t}</div><div class="inset">{inner}</div></div>')
 
 
-VIEWS = [("roster", "VIEW_ROSTER"), ("professions", "VIEW_PROFESSIONS"), ("reputation", "VIEW_REPUTATION"), ("bank", "VIEW_BANK"),
-         ("settings", "VIEW_SETTINGS")]
+# The destinations of the rail and their pages (UI/Shell.lua, ui-style §9.11) with the switches as they ship (econ off).
+# Generic line icons of our own (the addon draws Material Symbols; these previews keep original art, ADR 0019).
+DESTS = [("home", "NAV_HOME"), ("guild", "NAV_GUILD"), ("raid", "NAV_RAID"), ("groups", "NAV_GROUPS"), ("professions", "NAV_PROFESSIONS"),
+         ("economy", "NAV_ECONOMY"), ("community", "NAV_COMMUNITY"), ("officers", "NAV_OFFICERS"), ("settings", "NAV_SETTINGS")]
+DEST_PAGES = {
+    "home": [("actions", "VIEW_ACTIONS"), ("notices", "NOTICE_PAGE")],
+    "guild": [("roster", "VIEW_ROSTER"), ("reputation", "VIEW_REPUTATION"), ("mentors", "REP_MODE_MENTORS"), ("addons", "VIEW_ADDONS")],
+    "raid": [("season", "VIEW_SEASON"), ("events", "VIEW_EVENTS"), ("raid", "VIEW_RAID"), ("availability", "VIEW_AVAILABILITY")],
+    "groups": [("groups", "GRP_PAGE_LIST"), ("form", "GRP_PAGE_FORM"), ("mine", "GRP_PAGE_MINE"), ("rallies", "EVENTS_PAGE_RALLIES")],
+    "professions": [("professions", "PAGE_RECIPES")],
+    "economy": [("bank", "VIEW_BANK")],
+    "community": [("handbook", "VIEW_HANDBOOK")],
+    "officers": [("inactive", "OFF_PAGE_INACTIVE"), ("queue", "OFF_PAGE_QUEUE"), ("timeline", "OFF_PAGE_TIMELINE"), ("trials", "OFF_PAGE_TRIALS")],
+    "settings": [("settings", "SET_PAGE_GENERAL"), ("share", "SHARE_TAB"), ("info", "ABOUT_TAB")],
+}
+_RAIL_SVG = {
+    "home": '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+    "guild": '<circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/>'
+             '<path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5M15 14.5c3 0 6 1.3 6 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    "raid": '<path d="M5 4l10 10M4 5l1-1M19 4L9 14M20 5l-1-1M7 15l-3 3 2 2 3-3M17 15l3 3-2 2-3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    "groups": '<circle cx="10" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 20c0-3.6 3-5.5 7-5.5s7 1.9 7 5.5M19 7v6M16 10h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    "professions": '<path d="M14 6l4 4-9 9-4-4zM14 6l2-2 4 4-2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+    "economy": '<path d="M3 9l9-5 9 5zM5 10v8M10 10v8M14 10v8M19 10v8M3 20h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>',
+    "community": '<path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.2 6.6 19.2l1.3-6-4.5-4 6-.6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    "officers": '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+    "settings": '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+}
+
+
+def dest_of(view):
+    """The destination and the page of `view` ("bank", or "settings:info" for a page of a view with pages)."""
+    page = view.split(":")[-1]
+    for d, pages in DEST_PAGES.items():
+        for pid, _ in pages:
+            if pid == page:
+                return d, pid
+    return "guild", page
+
+
+def rail(view, badges=None, officer=False):
+    """The navigation rail: one icon per destination, Settings at the bottom, the active one with its indicator."""
+    active, _ = dest_of(view)
+    out, y = "", 8
+    for d, _ in DESTS:
+        if d == "officers" and not officer:
+            continue
+        n = (badges or {}).get(d)
+        badge = f'<span class="n">{n}</span>' if n else ""
+        top = "bottom:8px" if d == "settings" else f"top:{y}px"
+        out += f'<div class="ri{" on" if d == active else ""}" style="{top}"><svg viewBox="0 0 24 24">{_RAIL_SVG[d]}</svg>{badge}</div>'
+        if d != "settings":
+            y += 56
+    return f'<div class="rail">{out}</div>'
 
 
 def status_text(peers=7, ago=2):
@@ -481,12 +541,15 @@ def status_text(peers=7, ago=2):
 
 
 def tabbar(view, badge=None, search_text=None, searchable=True, popout=True, popin=False, width=150):
-    """The top bar of the content: the tabs (Widgets.Tabs: an indicator under the active one, a count badge on the Bank), the
-    search box on the right while the view has a search, and Pop out in the guild window."""
-    tabs = ""
-    for vid, key in VIEWS:
-        n = f'<span class="n">{badge}</span>' if badge and vid == "bank" else ""
-        tabs += f'<div class="tab{" on" if vid == view else ""}">{esc(T(key))}{n}</div>'
+    """The row at the top of the content (ui-style §9.11): the destination's name, then the tabs of its pages (Widgets.Tabs: an
+    indicator under the active one; none when the destination has one page), the search box on the right while the page
+    has a search, and Pop out in the guild window."""
+    dest, page = dest_of(view)
+    tabs = f'<div class="dest">{esc(T(dict(DESTS)[dest]))}</div>'
+    pages = DEST_PAGES[dest]
+    if len(pages) > 1:
+        for pid, key in pages:
+            tabs += f'<div class="tab{" on" if pid == page else ""}">{esc(T(key))}</div>'
     right = ""
     if searchable:
         right += search(search_text or "", width)
@@ -496,8 +559,10 @@ def tabbar(view, badge=None, search_text=None, searchable=True, popout=True, pop
 
 
 def panel(view, body, badge=None, search_text=None, popout=True, peers=7, ago=2, searchable=True):
-    """The Accord panel inside the guild window: tabs on top, the body, the sync state in the footer."""
-    return (f'<div class="pn">{tabbar(view, badge, search_text, searchable, popout)}<div class="pbody">{body}</div>'
+    """The Accord panel inside the guild window: the rail at the left, the row on top, the body, the sync state in the
+    footer. A bank count (`badge`) is on the Economy icon."""
+    badges = {"economy": badge} if badge else None
+    return (f'<div class="pn">{rail(view, badges, officer=bool(badge))}{tabbar(view, badge, search_text, searchable, popout)}<div class="pbody">{body}</div>'
             f'<div class="pfoot">{esc(status_text(peers, ago))}</div></div>')
 
 
@@ -512,7 +577,8 @@ def standalone(view, body, badge=None, peers=7, ago=2, search_text=None, searcha
     top = (f'<div class="tbar">{logo(30)}<span class="ttl">{esc(T("WINDOW_TITLE"))}</span><span class="sub">{esc(status_text(peers, ago))}</span><span class="grow"></span>'
            f'{btn(T("POP_IN"), "text", dense=True) if popin else ""}<span class="xbtn">{_X}</span></div>')
     grip = '<svg class="grip" viewBox="0 0 14 14"><path d="M13 3L3 13M13 8L8 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" style="color:var(--text-3)"/></svg>'
-    return (f'<div class="win">{top}<div class="inner"><div class="pn">{tabbar(view, badge, search_text, searchable, popout=False, width=200)}'
+    badges = {"economy": badge} if badge else None
+    return (f'<div class="win">{top}<div class="inner"><div class="pn">{rail(view, badges)}{tabbar(view, badge, search_text, searchable, popout=False, width=200)}'
             f'<div class="pbody" style="bottom:16px">{body}</div></div></div>{grip}</div>')
 
 

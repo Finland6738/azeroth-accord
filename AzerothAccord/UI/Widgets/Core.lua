@@ -1192,6 +1192,46 @@ function Widgets.Flow(bar, items, width, rowHeight, gap, x, y)
 	return #items > 0 and (line + 1) * (rowHeight + gap) - gap or 0
 end
 
+-- The "Show" menu of a view's modes (ui-style §9.11, M13.7: no third navigation row): the label "Show" and a Widgets.Select
+-- of the modes. The same calls as a ChipRow: :SetItems({ { id, text } }, activeId), :Select(id); `.active` the selected
+-- id, `.ids` the ids in order, `.select` the menu, `.width` the width of label and menu. onSelect(id) after a choice.
+-- opts: width (of the menu, 200), label (the caller's word, "Show": a widget shows no word it was not given).
+function Widgets.ModeMenu(parent, onSelect, opts)
+	opts = opts or {}
+	local bar = CreateFrame("Frame", nil, parent)
+	bar:SetHeight(32)
+	bar.ids = {}
+	bar.label = Theme.NewText(bar, "BodyMedium", "text-2")
+	bar.label:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	bar.label:SetText(opts.label or "")
+	bar.select = Widgets.Select(bar, { width = opts.width or 200, onSelect = function(id)
+		bar.active = id
+		if onSelect then onSelect(id) end
+	end })
+	bar.select:SetPoint("LEFT", bar.label, "RIGHT", 8, 0)
+	local function measure()
+		bar.width = (bar.label:GetStringWidth() or 0) + 8 + (bar.select:GetWidth() or 0)
+		bar:SetWidth(bar.width)
+	end
+	function bar:Select(id)
+		self.active = id
+		self.select:Select(id, true)
+	end
+	function bar:SetItems(items, active)
+		local choices = {}
+		self.ids = {}
+		for i, item in ipairs(items) do
+			choices[i] = { id = item.id, text = item.text }
+			self.ids[i] = item.id
+		end
+		self.select:SetChoices(choices)
+		self:Select(active)
+		measure()
+	end
+	measure()
+	return bar
+end
+
 -- A row of chips of which one is selected: the modes of a view, the tabs of the bank, a period. onSelect(id) after a
 -- click. :SetItems({ { id, text } }, activeId) makes, labels, places and selects the chips (the extra ones hide);
 -- :Select(id) marks one (the selected chip grows by its check, so the row is placed again); `.buttons[i]` are the chips

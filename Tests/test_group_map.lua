@@ -185,9 +185,7 @@ describe("the Groups mode", function()
 			isNil(G():Current())
 			Mock.Slash("/accord reputation")
 			falsy(A().ReputationView:SetMode("groups"))
-			for _, b in ipairs(A().ReputationView.frame.bar.buttons) do
-				if b:IsShown() then ne(b.modeId, "groups") end
-			end
+			for _, id in ipairs(A().ReputationView.frame.bar.ids) do ne(id, "groups") end
 		end)
 	end)
 end)

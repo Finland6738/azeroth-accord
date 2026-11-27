@@ -16,8 +16,8 @@
 --             recipe tooltip; the search box filters by name; the Category menu; the message when there is no list.
 -- With the switch "econ" (M13.2, SPEC-17 §3.5) Request craft opens the New order window (UI/Orders.lua), for members
 -- offline too, and a recipe of the catalogue says how many open orders ask for it.
---   shopping  (M13.4, SPEC-17 §5.6, switch "econ") the player's shopping list, drawn by UI/Shopping.lua in its own frame;
---             the catalogue's header has a "Shopping list" button and every recipe of it "Add to list".
+-- The shopping list (M13.4, SPEC-17 §5.6, switch "econ") is a page of its own of the Professions destination since M13.7
+-- (UI/Shopping.lua); the catalogue's header has a "Shopping list" button that opens it and every recipe "Add to list".
 -- The header has a Back button (to the roster, the catalogue or the craft list, where the list was opened from), and in the
 -- recipe list and the catalogue a "Who can craft" button, in the craft list a "Guild recipes" button; the source and the
 -- age of the list are always in the header.
@@ -82,7 +82,7 @@ local function syncSearchBox(self)
 	local box = searchBox()
 	if not box then return end
 	local text = self.mode == "craft" and self.craft.query or (self.mode == "catalogue" and self.cat.search)
-		or (self.mode == "shopping" and (ns.ShoppingView and ns.ShoppingView.search or "")) or self.model.search
+		or self.model.search
 	if (box:GetText() or "") ~= text then box:SetText(text) end
 end
 
@@ -95,8 +95,9 @@ end
 function View.ShoppingOn() return ns.ShoppingView ~= nil and ns.ShoppingView.Enabled() end
 
 function View:SetMode(mode)
-	if mode == "shopping" and not View.ShoppingOn() then return false end
-	if mode ~= "craft" and mode ~= "recipes" and mode ~= "catalogue" and mode ~= "shopping" then return false end
+	-- the shopping list is its own page (M13.7): this opens it
+	if mode == "shopping" then return View.ShoppingOn() and ns.ShoppingView:Open() or false end
+	if mode ~= "craft" and mode ~= "recipes" and mode ~= "catalogue" then return false end
 	self.mode = mode
 	self:ResetScroll()
 	syncSearchBox(self)
@@ -177,9 +178,7 @@ end
 -- The text of the panel's search box changed.
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
-	if self.mode == "shopping" then
-		if ns.ShoppingView then ns.ShoppingView:SetSearch(text) end
-	elseif self.mode == "catalogue" then
+	if self.mode == "catalogue" then
 		if self.cat:SetSearch(text) then
 			self:ResetScroll()
 			self:Redraw()
@@ -318,17 +317,6 @@ local function build(self, f)
 	t:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	f.table = t
 	f.message = t.empty   -- the message in place of the rows
-end
-
--- The frame of the shopping list (UI/Shopping.lua), made the first time it is shown.
-local function shopFrame(self)
-	local f = self.frame
-	if not f.shop then
-		f.shop = CreateFrame("Frame", nil, f)
-		f.shop:SetAllPoints(f)
-		ns.ShoppingView:Build(f.shop)
-	end
-	return f.shop
 end
 
 View.TIP_GAP = 12   -- points between the end of a name and its tooltip
@@ -715,17 +703,8 @@ function View:Redraw()
 	if self.mode == "recipes" and not self.model.guid then self.mode = "catalogue" end
 	-- the open orders of each recipe, said next to it in the catalogue (SPEC-17 §8)
 	self.orders = ordering() and self.mode == "catalogue" and ns.Orders:OpenByRecipe() or nil
-	if self.mode == "shopping" and not View.ShoppingOn() then self.mode = "catalogue" end
-	local shopping = self.mode == "shopping"
-	f.head:SetShown(not shopping)
-	f.bar:SetShown(not shopping)
-	f.table:SetShown(not shopping)
-	if f.shop then f.shop:SetShown(shopping) end
 	if self.mode ~= "catalogue" then f.head.shop:Hide() end
-	if shopping then
-		shopFrame(self):Show()
-		ns.ShoppingView:Refresh()
-	elseif self.mode == "craft" then redrawCraft(self)
+	if self.mode == "craft" then redrawCraft(self)
 	elseif self.mode == "catalogue" then redrawCatalogue(self)
 	else redrawRecipes(self) end
 	self.drawn = (self.drawn or 0) + 1
@@ -756,7 +735,7 @@ end
 
 if ns.Shell then
 	ns.Shell:RegisterView("professions", {
-		label = L["VIEW_PROFESSIONS"], order = 20, search = true,
+		label = L["VIEW_PROFESSIONS"], pageLabel = L["PAGE_RECIPES"], order = 20, search = true,
 		build = function(f) View:Build(f) end,
 		onSearch = function(text) View:SetSearch(text) end,
 		-- a click on the Professions tab always shows the guild's recipes with the profession menu (owner, 2026-11-27)

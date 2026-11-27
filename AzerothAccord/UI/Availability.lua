@@ -294,7 +294,7 @@ function View:Changed()
 end
 
 if ns.Shell then
-	ns.Shell:RegisterView("availability", { label = L["VIEW_AVAILABILITY"], order = 47, visible = on,
+	ns.Shell:RegisterView("availability", { label = L["VIEW_AVAILABILITY"], order = 52, visible = on,
 		build = function(f) View:Build(f) end })
 end
 

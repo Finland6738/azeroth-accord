@@ -95,6 +95,11 @@ local function builders()
 			r:SetItems({ { id = "a", text = "QZ1" }, { id = "b", text = "QZ2" } }, "a")
 			return r
 		end },
+		{ "ModeMenu", true, function(p)
+			local r = Widgets().ModeMenu(p, nil, { label = "QZ3" })
+			r:SetItems({ { id = "a", text = "QZ1" }, { id = "b", text = "QZ2" } }, "a")
+			return r
+		end },
 		{ "Card", false, function(p) return Widgets().Card(p, { hover = true, shadow = true }) end },
 		{ "Badge", true, function(p) return Widgets().Badge(p, "QZ1", "ok") end },
 		{ "Tabs", true, function(p)
@@ -148,7 +153,7 @@ describe("the kit", function()
 		isNil(AzerothAccord.Skin, "UI/Skin.lua is gone")
 		for _, name in ipairs({ "Button", "Card", "Badge", "Tabs", "Segmented", "Chip", "TitleBar", "Dialog", "EditBox",
 			"ChoiceList", "Switch", "Slider", "Select", "Snackbar", "Skeleton", "ClassMark", "PaintClassMark", "ThinBar",
-			"DataTable", "Text", "RowHover", "PaintName", "ChipRow" }) do
+			"DataTable", "Text", "RowHover", "PaintName", "ChipRow", "ModeMenu" }) do
 			eq(type(Widgets()[name]), "function", name)
 		end
 		eq(type(Widgets().Tooltip.Show), "function")
@@ -570,6 +575,23 @@ describe("filter chip (ui-style §9.6)", function()
 		eq(x(b), 50 + 8); eq(row.width, 50 + 8 + 68)
 		row:SetItems({ { id = "z", text = "QZ3" } }, "z")
 		falsy(b:IsShown()); eq(row.width, 68)
+	end)
+
+	it("a Show menu holds the modes of a view in one menu (M13.7: no third row), with the calls of a chip row", function()
+		local picked
+		local menu = Widgets().ModeMenu(CreateFrame("Frame"), function(id) picked = id end, { label = "Show" })
+		eq(menu.label:GetText(), "Show")
+		eq(menu.select:GetHeight(), 32)
+		menu:SetItems({ { id = "a", text = "QZ1" }, { id = "b", text = "QZ2" } }, "a")
+		deepEq(menu.ids, { "a", "b" })
+		eq(menu.active, "a"); eq(menu.select:Selected(), "a")
+		eq(menu.select.label:GetText(), "QZ1")
+		isNil(picked, "SetItems chooses without calling back")
+		menu.select:Select("b")
+		eq(picked, "b"); eq(menu.active, "b")
+		menu:Select("a")
+		eq(menu.select.label:GetText(), "QZ1"); eq(picked, "b", "Select from the view is silent")
+		truthy(menu.width > menu.select:GetWidth())
 	end)
 end)
 

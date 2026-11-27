@@ -477,13 +477,18 @@ describe("the panel in the guild window (ui-style.md §3, ADR 0003)", function()
 	end)
 end)
 
-describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
+describe("the rail and the pages (SPEC-04 §2, ui-style.md §9.11, M13.7)", function()
 	before_boot(function(M) guild() end)
 
-	it("shows no tabs and the welcome text while no view exists; view commands say coming soon", function()
+	local function rail() return Shell().content.rail end
+	local function item(id) return rail().items[id] end
+	local function keys(list) local out = {} for i, p in ipairs(list) do out[i] = p.key end return out end
+
+	it("shows no rail icon, no tabs and the welcome text while no view exists; view commands say coming soon", function()
 		Shell().views = {}   -- the views register themselves: here none exists
 		Mock.Slash("/accord")
 		isNil(Shell().content.tabs)
+		deepEq(rail().order, {})
 		truthy(Shell().content.empty:IsShown())
 		eq(Shell().content.empty.title:GetText(), "Welcome to Azeroth Accord")
 		falsy(Shell().content.bar.searchField:IsShown(), "no search without a view that can search")
@@ -492,39 +497,65 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 		contains(text(), "coming soon")
 	end)
 
-	it("a registered view gets a tab, opens with its command and is remembered; a late view rebuilds the bar", function()
+	it("a view gets the icon of its destination and a tab of its row; one page shows only the destination's name", function()
 		Shell().views = {}
 		local built = {}
 		Shell():RegisterView("roster", { label = "Roster", order = 1, search = true, build = function(f) built.roster = f end })
 		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function(f) built.bank = f end })
 		Mock.Slash("/accord bank")
 		truthy(Win():IsShown())
-		local tabs = Shell().content.tabs
-		deepEq(tabs.order, { "roster", "bank" })
-		eq(tabs.buttons.roster.label:GetText(), "Roster")
-		eq(tabs:Active(), "bank")
-		truthy(tabs.indicator:IsShown(), "the active tab has the accent indicator (ui-style §9.6)")
-		eq(Shell().content.bar:GetHeight(), 48)
-		isNil(tabs.buttons.bank.ring, "no box (M12.7)")
-		isNil(tabs.buttons.bank.fill, "no fill")
-		isNil(tabs.buttons.bank.glow, "no glow")
-		notNil(tabs.buttons.roster.icon, "every view's tab has its icon")
+		local content = Shell().content
+		deepEq(rail().order, { "guild", "economy" })
+		eq(content.dest, "economy")
+		eq(content.bar.title:GetText(), "Economy", "the destination's name at the start of the row")
+		isNil(content.tabs, "a destination with one page has no tabs")
+		truthy(item("economy").active)
+		truthy(item("economy").indicator:IsShown(), "the indicator behind the active icon")
+		falsy(item("guild").indicator:IsShown())
 		notNil(built.bank)
 		isNil(built.roster, "a view is built when first shown")
-		eq(built.bank:GetParent(), Shell().content.body, "the view's frame fills the body")
-		falsy(Shell().content.empty:IsShown())
-		falsy(Shell().content.bar.searchField:IsShown(), "Bank cannot search here")
-		tabs.buttons.roster:Click()
+		eq(built.bank:GetParent(), content.body, "the view's frame fills the body")
+		falsy(content.bar.searchField:IsShown(), "Bank cannot search here")
+		item("guild"):Click()
 		notNil(built.roster)
-		eq(tabs:Active(), "roster")
-		truthy(Shell().content.bar.searchField:IsShown())
+		eq(Shell().selected, "roster")
+		eq(content.bar.title:GetText(), "Guild")
+		truthy(item("guild").active); falsy(item("economy").active)
+		truthy(content.bar.searchField:IsShown())
 		eq(AzerothAccordCharDB.ui.lastView, "roster")
-		Shell():RegisterView("settings", { label = "Settings", order = 9, build = function() end })
-		local again = Shell().content.tabs
-		truthy(again ~= tabs, "a new bar for the new set of views")
-		falsy(tabs:IsShown())
-		deepEq(again.order, { "roster", "bank", "settings" })
-		eq(again:Active(), "roster")
+		-- a second page of the Guild destination: now the row has tabs, after the name
+		Shell():RegisterView("reputation", { label = "Reputation", order = 3, build = function() end })
+		local tabs = content.tabs
+		notNil(tabs)
+		eq(tabs:GetParent(), content.bar)
+		deepEq(tabs.order, { "roster", "reputation" })
+		eq(tabs.buttons.roster.label:GetText(), "Roster")
+		eq(tabs:Active(), "roster")
+		truthy(tabs.indicator:IsShown(), "the active tab has the accent indicator (ui-style §9.6)")
+		eq(content.bar:GetHeight(), 48)
+		isNil(tabs.buttons.reputation.ring, "no box (M12.7)")
+		isNil(tabs.buttons.reputation.fill, "no fill")
+		tabs.buttons.reputation:Click()
+		eq(Shell().selected, "reputation")
+		eq(AzerothAccordCharDB.ui.lastView, "reputation")
+		-- back to the economy and to the guild: the rail opens the page shown last
+		item("economy"):Click()
+		isNil(content.tabs)
+		item("guild"):Click()
+		eq(Shell().selected, "reputation")
+		eq(content.tabs:Active(), "reputation")
+	end)
+
+	it("every rail icon has its name in a tooltip, at the right of the rail", function()
+		Mock.Slash("/accord")
+		for _, id in ipairs(rail().order) do
+			local it = item(id)
+			Mock.RunScript(it, "OnEnter")
+			truthy(A().Widgets.Tooltip.IsShown(), id)
+			deepEq(A().Widgets.Tooltip.Lines(), { A().Shell.Destination(id).label }, id)
+			Mock.RunScript(it, "OnLeave")
+			falsy(A().Widgets.Tooltip.IsShown())
+		end
 	end)
 
 	it("what is typed in the search box goes to the selected view only", function()
@@ -542,41 +573,120 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 		eq(Shell().content.bar.searchField:GetText(), "set by a view")
 	end)
 
-	it("every view opens from its tab and from its command, in the order of the spec", function()
+	-- The map of ui-style §9.11 with the switches as they ship (econ off: no Market, Orders, Shopping list).
+	local MAP = {
+		home = { "actions:inbox", "actions:notices" },
+		guild = { "roster", "reputation", "mentors", "addons" },
+		raid = { "season", "events", "raid", "availability" },
+		groups = { "groups:list", "groups:form", "groups:mine", "rallies" },
+		professions = { "professions" },
+		economy = { "bank" },
+		community = { "handbook" },
+		settings = { "settings:settings", "settings:share", "settings:info" },
+	}
+
+	it("the destinations and their pages are those of the map, and every page opens from the rail and its tab", function()
 		Mock.Slash("/accord")
-		local tabs = Shell().content.tabs
-		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "availability",
-			"raid", "handbook", "addons", "settings" })
-		local labels = {}
-		for _, id in ipairs(tabs.order) do labels[#labels + 1] = tabs.buttons[id].label:GetText() end
-		deepEq(labels, { "Action Center", "Roster", "Professions", "Reputation", "Bank", "Groups", "Season", "Events",
-			"Availability", "Raid", "Handbook", "Guild addons", "Settings" })
-		for _, id in ipairs(tabs.order) do
-			tabs.buttons[id]:Click()
-			eq(tabs:Active(), id, "tab " .. id)
-			eq(Shell().selected, id)
-			truthy(Shell().views[id].frame:IsVisible(), id .. " shows")
-			isNil(Shell().views[id].failed, id .. " built")
+		deepEq(rail().order, { "home", "guild", "raid", "groups", "professions", "economy", "community", "settings" },
+			"a member sees 7 icons and Settings")
+		local names = {}
+		for i, id in ipairs(rail().order) do names[i] = item(id).name end
+		deepEq(names, { "Home", "Guild", "Raid", "Groups", "Professions", "Economy", "Community", "Settings" })
+		for _, dest in ipairs(rail().order) do
+			deepEq(keys(Shell():PageList(dest)), MAP[dest], dest)
+			item(dest):Click()
+			eq(Shell().content.dest, dest)
+			for _, key in ipairs(MAP[dest]) do
+				local tabs = Shell().content.tabs
+				if #MAP[dest] > 1 then
+					tabs.buttons[key]:Click()
+					eq(tabs:Active(), key, key)
+				else
+					isNil(tabs, dest .. ": one page, only the name")
+				end
+				local id = Shell().SplitKey(key)
+				eq(Shell().selected, id)
+				eq(Shell():KeyOf(id), key)
+				truthy(Shell().views[id].frame:IsVisible(), key .. " shows")
+				isNil(Shell().views[id].failed, key .. " built")
+				isNil(Shell().views[id].frame.pager, key .. ": no second row of navigation in the view")
+			end
 		end
 		Mock.Slash("/accord")
 		falsy(Win():IsShown())
 		for _, id in ipairs({ "roster", "professions", "reputation", "bank", "settings" }) do
 			Mock.Slash("/accord " .. id)
 			truthy(Win():IsShown(), "/accord " .. id)
-			eq(Shell().content.tabs:Active(), id, "/accord " .. id)
+			eq(Shell().selected, id, "/accord " .. id)
 			truthy(Shell().views[id].frame:IsVisible())
 		end
 		eq(#Mock.errors, 0)
 	end)
 
-	it("every view opens from its tab in the guild window too", function()
+	it("the active page is in its tab and its destination at a glance; the page is remembered as view:page", function()
+		Mock.Slash("/accord settings")
+		local tabs = Shell().content.tabs
+		eq(Shell().content.bar.title:GetText(), "Settings")
+		deepEq(tabs.order, { "settings:settings", "settings:share", "settings:info" })
+		eq(tabs.buttons["settings:settings"].label:GetText(), "General")
+		tabs.buttons["settings:info"]:Click()
+		eq(AzerothAccordCharDB.ui.lastView, "settings:info")
+		truthy(item("settings").active)
+		eq(A().SettingsView.frame.pageId, "info")
+		-- a view that changes its own page (a link of the Action Center): the row follows
+		Mock.Slash("/accord groups")
+		A().GroupsView:ShowMine()
+		eq(Shell().content.tabs:Active(), "groups:mine")
+		eq(AzerothAccordCharDB.ui.lastView, "groups:mine")
+		-- after /reload the same page opens
+		local saved = AzerothAccordCharDB
+		T.boot(function(M) guild() AzerothAccordCharDB = saved end)
+		Mock.Slash("/accord")
+		eq(Shell().selected, "groups")
+		eq(Shell().content.tabs:Active(), "groups:mine")
+	end)
+
+	it("an old remembered view (before M13.7) opens its page; one that cannot show falls back to the first", function()
+		T.boot(function(M) guild() AzerothAccordCharDB = { schemaVersion = 1, ui = { lastView = "events" } } end)
+		Mock.Slash("/accord")
+		eq(Shell().selected, "events")
+		eq(Shell().content.dest, "raid")
+		T.boot(function(M) guild() AzerothAccordCharDB = { schemaVersion = 1, ui = { lastView = "officers:queue" } } end)
+		Mock.Slash("/accord")
+		eq(Shell().selected, "actions", "a member cannot see the Officers: the first page of Home")
+	end)
+
+	it("the Officers icon only for those allowed", function()
+		Mock.Slash("/accord")
+		isNil(Shell().views.officers.frame)
+		falsy(item("officers"):IsShown())
+		T.boot(function(M) Mock.guild.Set{ name = "Accord", myRank = 0 } end)
+		Mock.Slash("/accord")
+		truthy(item("officers"):IsShown())
+		deepEq(rail().order, { "home", "guild", "raid", "groups", "professions", "economy", "community", "officers", "settings" })
+		item("officers"):Click()
+		local tabs = Shell().content.tabs
+		eq(Shell().content.bar.title:GetText(), "Officers")
+		truthy(#tabs.order >= 2)
+		for _, key in ipairs(tabs.order) do
+			tabs.buttons[key]:Click()
+			truthy(Shell().views.officers.frame:IsVisible(), key)
+			eq(A().OfficersView.pageId, select(2, Shell().SplitKey(key)))
+		end
+		eq(#Mock.errors, 0)
+	end)
+
+	it("every page opens from its tab in the guild window too", function()
 		Mock.communities.Open()
 		Tab().tab:Click()
-		local tabs = Shell().content.tabs
-		for _, id in ipairs(tabs.order) do
-			tabs.buttons[id]:Click()
-			truthy(Shell().views[id].frame:IsVisible(), id)
-			eq(Shell().views[id].frame:GetParent(), Shell().content.body)
+		for _, dest in ipairs(rail().order) do
+			item(dest):Click()
+			for _, p in ipairs(Shell():PageList(dest)) do
+				Shell():Select(p.key, true)
+				local view = Shell().views[p.view]
+				truthy(view.frame:IsVisible(), p.key)
+				eq(view.frame:GetParent(), Shell().content.body)
+			end
 		end
 		eq(#Mock.errors, 0)
 	end)
@@ -585,36 +695,50 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 		Shell().views = {}
 		local fail = true
 		Shell():RegisterView("roster", { label = "Roster", order = 1, build = function() end })
-		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function(f) if fail then error("broken") end end })
-		Mock.Slash("/accord bank")
-		local frame = Shell().views.bank.frame
+		Shell():RegisterView("reputation", { label = "Reputation", order = 4, build = function(f) if fail then error("broken") end end })
+		Mock.Slash("/accord reputation")
+		local frame = Shell().views.reputation.frame
 		eq(frame.errorTitle:GetText(), "This view could not be drawn")
 		contains(frame.errorText:GetText(), "clicking its tab again tries again")
 		Mock.ClearErrors()   -- the error went to the game's handler, as it should
 		fail = false
-		Shell().content.tabs.buttons.bank:Click()
-		isNil(Shell().views.bank.failed)
-		truthy(Shell().views.bank.frame ~= frame)
+		Shell().content.tabs.buttons.reputation:Click()
+		isNil(Shell().views.reputation.failed)
+		truthy(Shell().views.reputation.frame ~= frame)
 	end)
 
-	it("a view's badge puts its count on its tab and goes away at 0", function()
+	it("a view's badge is on its tab, the sum of its destination's on the rail, and goes away at 0", function()
 		Shell().views = {}
-		local n = 3
+		local n, m = 3, 2
 		Shell():RegisterView("roster", { label = "Roster", order = 1, build = function() end })
+		Shell():RegisterView("reputation", { label = "Reputation", order = 2, build = function() end, badge = function() return m end })
 		Shell():RegisterView("bank", { label = "Bank", order = 4, build = function() end, badge = function() return n end })
-		Mock.Slash("/accord")
+		Mock.Slash("/accord roster")
 		local tabs = Shell().content.tabs
-		eq(tabs.buttons.bank.label:GetText(), "Bank", "the count is a badge, not part of the label")
-		truthy(tabs.buttons.bank.badge:IsShown())
-		eq(tabs.buttons.bank.badge.label:GetText(), "3")
+		eq(tabs.buttons.reputation.label:GetText(), "Reputation", "the count is a badge, not part of the label")
+		eq(tabs.buttons.reputation.badge.label:GetText(), "2")
 		isNil(tabs.buttons.roster.badge)
-		n = 0
+		eq(item("economy").badge.label:GetText(), "3")
+		eq(item("guild").badge.label:GetText(), "2")
+		eq(item("guild").badge.tone, "err", "the M3 badge")
+		m, n = 4, 0
 		Shell():UpdateBadges()
-		falsy(tabs.buttons.bank.badge:IsShown())
+		eq(item("guild").badge.label:GetText(), "4")
+		falsy(item("economy").badge:IsShown())
 		n = 250
 		Shell():UpdateBadges()
-		eq(tabs.buttons.bank.badge.label:GetText(), "99+")
+		eq(item("economy").badge.label:GetText(), "99+")
 		eq(Shell().BadgeText({ badge = function() error("x") end }), nil, "a badge that raises shows nothing")
+	end)
+
+	it("a page's own badge: the applicants on My group, the open manual actions on Queue", function()
+		Mock.Slash("/accord")
+		local groups = Shell().views.groups
+		local list = groups.pageBadge
+		eq(type(list), "function")
+		eq(list("list"), 0)
+		eq(type(Shell().views.officers.pageBadge), "function")
+		eq(type(Shell().views.actions.pageBadge), "function")
 	end)
 
 	it("the sync state and Ago", function()
@@ -627,12 +751,16 @@ describe("tabs and views (SPEC-04 §2, ui-style.md §3)", function()
 		eq(Shell().Ago(3 * 86400), "3 d ago")
 	end)
 
-	it("in Italian: tabs, title bar and search box", function()
+	it("in Italian: the rail, the row, title bar and search box", function()
 		T.boot(function(M) M.player.locale = "itIT" guild() end)
 		Mock.communities.Open()
 		Tab().tab:Click()
 		local content = Shell().content
-		eq(content.tabs.buttons.settings.label:GetText(), "Impostazioni")
+		eq(content.rail.items.settings.name, "Impostazioni")
+		eq(content.rail.items.guild.name, "Gilda")
+		Shell():OpenView("settings")
+		eq(content.bar.title:GetText(), "Impostazioni")
+		eq(content.tabs.buttons["settings:settings"].label:GetText(), "Generali")
 		eq(content.bar.searchField.placeholder:GetText(), "Cerca")
 		eq(content.bar.popOut:GetLabel(), "Stacca")
 		content.bar.popOut:Click()
@@ -684,12 +812,12 @@ describe("the diagnostics box", function()
 	end)
 end)
 
-describe("more tabs than the bar has room for (M9.10)", function()
+describe("more pages than the row has room for (M9.10; the Guild destination, M13.7)", function()
 	before_boot(function(M) guild() end)
 
 	-- The mock measures a text at 6 points a letter and knows no anchored width: the width of the bar is given here.
 	local function open(width)
-		Mock.Slash("/accord")
+		Mock.Slash("/accord roster")
 		local tabs = Shell().content.tabs
 		tabs:SetWidth(width)
 		tabs:Layout()
@@ -709,25 +837,24 @@ describe("more tabs than the bar has room for (M9.10)", function()
 		return right
 	end
 
-	it("shows every view of the shipped switches when there is room, and no More tab", function()
+	it("shows every page of the destination when there is room, and no More tab", function()
 		local tabs = open(2000)
-		deepEq(tabs.order, { "actions", "roster", "professions", "reputation", "bank", "groups", "season", "events", "availability",
-			"raid", "handbook", "addons", "settings" })
+		deepEq(tabs.order, { "roster", "reputation", "mentors", "addons" })
 		deepEq(onBar(tabs), tabs.order)
 		isNil(tabs.more)
 	end)
 
 	it("puts what does not fit into the More menu, beside the search box and never over it", function()
-		local tabs = open(600)
+		local tabs = open(400)
 		truthy(tabs.more:IsShown())
 		eq(tabs.more.label:GetText(), "More")
 		eq(#onBar(tabs) + #tabs.overflow, #tabs.order)
 		truthy(#tabs.overflow > 0)
-		truthy(rightEnd(tabs) <= 600 - Shell().TabReserve(Shell().content), "ends before the search box")
+		truthy(rightEnd(tabs) <= 400 - Shell().TabReserve(Shell().content), "ends before the search box")
 	end)
 
 	it("every view without room opens from the menu and takes its place on the bar", function()
-		local tabs = open(600)
+		local tabs = open(400)
 		local hidden = {}
 		for i, id in ipairs(tabs.overflow) do hidden[i] = id end
 		for _, id in ipairs(hidden) do
@@ -743,15 +870,15 @@ describe("more tabs than the bar has room for (M9.10)", function()
 			eq(tabs:Active(), id)
 			truthy(tabs.buttons[id]:IsShown(), id .. " is on the bar while open")
 			truthy(Shell().views[id].frame:IsVisible(), id)
-			truthy(rightEnd(tabs) <= 600 - Shell().TabReserve(Shell().content), id)
+			truthy(rightEnd(tabs) <= 400 - Shell().TabReserve(Shell().content), id)
 		end
 		eq(#Mock.errors, 0)
 	end)
 
 	it("adds up the counts of the tabs behind More", function()
-		local tabs = open(600)
+		local tabs = open(400)
 		local last, before = tabs.order[#tabs.order], tabs.overflow[#tabs.overflow - 1]
-		eq(last, "settings")
+		eq(last, "addons")
 		tabs:SetBadge(last, "2")
 		tabs:SetBadge(before, "3")
 		eq(tabs.more.badge.label:GetText(), "5")
@@ -763,12 +890,12 @@ describe("more tabs than the bar has room for (M9.10)", function()
 	end)
 
 	it("keeps the room when the window grows or shrinks, and says Altro in Italian", function()
-		local tabs = open(600)
+		local tabs = open(400)
 		tabs:SetWidth(2000)
 		tabs:GetScript("OnSizeChanged")(tabs, 2000, 44)
 		falsy(tabs.more:IsShown())
 		eq(#onBar(tabs), #tabs.order)
 		T.boot(function(M) M.player.locale = "itIT" guild() end)
-		eq(open(600).more.label:GetText(), "Altro")
+		eq(open(400).more.label:GetText(), "Altro")
 	end)
 end)

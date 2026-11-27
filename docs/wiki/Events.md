@@ -8,7 +8,7 @@ The game calendar is the guild's shared ground for events. Accord **does not kee
 
 ## The Events view
 
-Open it with its tab or `/accord events`. It has two pages: **Events**, described here, and [**Rallies**](#pvp-and-world-rallies).
+Open it with its tab or `/accord events`. The [**Rallies**](#pvp-and-world-rallies) are described on this page too; from `v0.13.0` they are a page of the **Groups** icon of the rail.
 
 - **The event picker**: the guild's events of the game calendar from 7 days ago to 14 days ahead, **whoever created them** (an officer, the game's own window, another addon). Choosing one reads everybody's answers from the calendar.
 - **Your answer**: choose your **role** and press **Sign up**, **Tentative** or **Decline**. Accord writes the answer into the game calendar and says when it is saved. An answer you give in the game's calendar window shows in Accord too.
@@ -67,7 +67,7 @@ Only when your client has **no usable calendar** (the game gives no event list w
 
 ## PvP and world rallies
 
-A **rally** is a quick call to the guild: "PvP at the crossroads in 15 minutes". Open the **Rallies** page of the Events view.
+A **rally** is a quick call to the guild: "PvP at the crossroads in 15 minutes". Open the **Rallies** page of **Groups**.
 
 - **Calling one**: choose **PvP** or **World**, write the **meeting point in words** (at most 60 characters), choose when it starts (now to 2 hours) and how long it lasts (15 minutes to 2 hours), and press **Call a rally**. Any member with the addon may call one. You have **one open rally** at a time (a new one closes the older) and can call **at most 4 in an hour**.
 - **Changing it**: only the caller can, with **Change** (the start stays within 2 hours of the first call) and **Close**. Officers cannot change or remove somebody else's rally.

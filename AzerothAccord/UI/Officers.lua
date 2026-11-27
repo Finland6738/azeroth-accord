@@ -23,7 +23,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, tonumber = type, ipairs, pairs, tostring, tonumber
 local concat = table.concat
 
-View.PAGER_HEIGHT = 44
+View.CHANNEL_HEIGHT = 24      -- the line over the pages that says where officer data travels
 View.FILTER_HEIGHT = 44
 View.FOOTER = 36
 View.REFRESH_DELAY = 0.4
@@ -489,13 +489,13 @@ function View:ShowPage(id)
 	if not f then return true end
 	if not f.holders[id] then
 		local holder = CreateFrame("Frame", nil, f)
-		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.PAGER_HEIGHT)
+		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.CHANNEL_HEIGHT)
 		holder:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 		f.holders[id] = holder
 		def.build(holder, self)
 	end
 	for pid, holder in pairs(f.holders) do holder:SetShown(pid == id) end
-	f.pager:Select(id)
+	if ns.Shell then ns.Shell:PageShown("officers", id) end
 	self:Redraw()
 	return true
 end
@@ -503,14 +503,10 @@ end
 function View:Build(f)
 	self.frame = f
 	f.holders = {}
-	local items = {}
-	for _, p in ipairs(View.pages) do if shown(p) then items[#items + 1] = { id = p.id, text = p.label } end end
-	f.pager = Widgets.Segmented(f, items, function(id) if id ~= View.pageId then View:ShowPage(id) end end)
-	f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.channel = Widgets.Text(f, "Small", "text-3", "RIGHT")
-	f.channel:SetPoint("TOPLEFT", f.pager, "TOPRIGHT", 12, -2)
+	f.channel:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -2)
 	f.channel:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -2)
-	f.channel:SetWordWrap(true)
+	f.channel:SetWordWrap(false)
 	f:SetScript("OnShow", function()
 		if ns.Roster and not f.watching then f.watching = true ns.Roster:Watch() end
 		View:Redraw()
@@ -591,7 +587,15 @@ if ns.MemberCard then ns.MemberCard.AddSection("absence", 7.5, View.CardSection)
 if ns.Shell then
 	ns.Shell:RegisterView("officers", { label = L["VIEW_OFFICERS"], order = 80, search = true, visible = View.Allowed,
 		badge = function() return ns.OfficerOps and ns.OfficerOps:OpenCount() or 0 end,
-		onSearch = function(text) View:OnSearch(text) end, build = function(f) View:Build(f) end })
+		onSearch = function(text) View:OnSearch(text) end, build = function(f) View:Build(f) end,
+		-- the pages are tabs of the Officers destination (M13.7); the open manual actions are on Queue
+		pages = function()
+			local list = {}
+			for _, p in ipairs(View.pages) do if shown(p) then list[#list + 1] = { id = p.id, label = p.label } end end
+			return list
+		end,
+		page = function() return View.pageId end, showPage = function(id) View:ShowPage(id) end,
+		pageBadge = function(id) return id == "queue" and ns.OfficerOps and ns.OfficerOps:OpenCount() or 0 end })
 end
 
 if ns.addon then

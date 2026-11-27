@@ -1,7 +1,7 @@
 -- Bank view (SPEC-08 BANK-04, SPEC-04 §2). Lua 5.1.
 --
 -- The view shows the guild bank as the guild's addons last saw it (Data/Bank.lua: the newest snapshot of each tab that this
--- character's rank may see). It has modes, one chip each in its toolbar (Widgets.ChipRow); a mode is { label, order, available() -> bool,
+-- character's rank may see). It has modes, chosen in the "Show" menu of its toolbar (Widgets.ModeMenu, M13.7); a mode is { label, order, available() -> bool,
 -- build(frame), refresh(frame) } and later steps add theirs with View.AddMode (logs, donations, requests).
 --
 -- Tabs    a chip per tab (only the tabs this rank may see), the guild money, how old the tab is and who read it ("seen
@@ -414,9 +414,8 @@ View.AddMode("items", { label = L["BANK_MODE_ITEMS"], order = 20, build = items.
 ---------------------------------------------------------------------------------------------------------------------
 function View:Build(f)
 	self.frame = f
-	local bar = Widgets.ChipRow(f, function(id) View:SetMode(id) end)
+	local bar = Widgets.ModeMenu(f, function(id) View:SetMode(id) end, { label = L["NAV_SHOW"] })
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.bar = bar
 	-- every mode sits in one card of its own colour under the chips, with room around it (owner, 2026-11-27: the page
 	-- read as one mass of text); the modes fill the card's inside, View.CARD_PAD from its edge

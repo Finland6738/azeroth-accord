@@ -172,11 +172,13 @@ describe("the view", function()
 		contains(table.concat(Mock.PlainOutput(), " "), "Your like for Dan was not recorded")
 	end)
 
-	it("has a button per mode: Likes, Social, Someone new and Mentors (Groups only for officers)", function()
+	it("has its modes in a Show menu: Likes, Social, Someone new (Groups only for officers; Mentors is a page of Guild)", function()
 		open()
-		local shown = 0
-		for _, b in ipairs(V().frame.bar.buttons) do if b:IsShown() then shown = shown + 1 end end
-		eq(shown, 4)
+		eq(V().frame.bar.label:GetText(), "Show")
+		deepEq(V().frame.bar.ids, { "likes", "social", "new" })
+		V().frame.bar.select:Select("social")
+		eq(V().mode, "social")
+		eq(AzerothAccord.Shell.content.tabs:Active(), "reputation", "one row of tabs: the Guild pages")
 	end)
 end)
 

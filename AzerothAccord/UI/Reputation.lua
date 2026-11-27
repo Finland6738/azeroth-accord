@@ -1,8 +1,8 @@
 -- Reputation view (SPEC-07 LIKE-04, LIKE-08; SPEC-04 §2). Lua 5.1.
 --
--- The view has modes, one button each in its toolbar; a mode is { label, order, available() -> bool, build(frame),
+-- The view has modes, chosen in the "Show" menu of its toolbar (Widgets.ModeMenu, M13.7); a mode is { label, order, available() -> bool, build(frame),
 -- refresh(frame) } and later steps add theirs with View.AddMode (the social index, the group map, suggested teammates).
--- A mode that is not available (for example a part reserved to officers, SPEC-10 Q3) has no button.
+-- A mode that is not available (for example a part reserved to officers, SPEC-10 Q3) is not in the menu.
 --
 -- Likes (LIKE-08): one row per account of the guild, sorted by likes (or by name), visible to every member. The total of
 -- an account is the same on every one of its characters and never says who gave it (LIKE-04). A row shows the account's
@@ -350,9 +350,8 @@ end
 
 function View:Build(f)
 	self.frame = f
-	local bar = Widgets.ChipRow(f, function(id) View:SetMode(id) end)
+	local bar = Widgets.ModeMenu(f, function(id) View:SetMode(id) end, { label = L["NAV_SHOW"] })
 	bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.bar = bar
 	f.body = CreateFrame("Frame", nil, f)
 	f.body:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)

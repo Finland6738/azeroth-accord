@@ -440,22 +440,26 @@ describe("the view", function()
 		return View().frame.holders.inbox
 	end
 
-	it("is the first tab, opened by /accord inbox, with the count on it", function()
+	it("is the first page of Home, opened by /accord inbox, with the count on its tab and on the rail", function()
 		request(BOB, 1, "open")
 		settle()
 		open()
 		eq(Shell().selected, "actions")
 		eq(Shell():ViewList()[1].id, "actions")
-		local tab = Shell().content.tabs.buttons.actions
+		eq(Shell().content.rail.order[1], "home")
+		eq(Shell().content.bar.title:GetText(), "Home")
+		local tab = Shell().content.tabs.buttons["actions:inbox"]
 		eq(tab.label:GetText(), "Action Center")
 		eq(tab.badge.label:GetText(), "1")
+		eq(Shell().content.rail.items.home.badge.label:GetText(), "1")
+		isNil(View().frame.pager, "the pages are tabs of the shell's row (M13.7)")
 	end)
 
 	it("says that nothing waits when nothing does", function()
 		local page = open()
 		truthy(page.table.empty:IsShown())
 		eq(page.table.empty:GetText(), "Nothing waits for you.")
-		local tab = Shell().content.tabs.buttons.actions
+		local tab = Shell().content.tabs.buttons["actions:inbox"]
 		truthy(tab.badge == nil or not tab.badge:IsShown())
 	end)
 
@@ -601,7 +605,7 @@ describe("in Italian", function()
 		queue(BOB, "Bob", "demote")
 		Mock.Slash("/accord inbox")
 		Mock.Advance(1)
-		eq(Shell().content.tabs.buttons.actions.label:GetText(), "Centro azioni")
+		eq(Shell().content.tabs.buttons["actions:inbox"].label:GetText(), "Centro azioni")
 		notNil(find("Richiesta in banca: Linen Cloth x20"))
 		notNil(find("1 retrocessione da fare nel gioco"))
 		eq(#View().frame.holders.inbox.table:VisibleRows(), 2)

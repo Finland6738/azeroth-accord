@@ -80,7 +80,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
   - no third navigation row: what was a sub-category becomes filter chips or a "Category" menu;
   - the guild window's panel and the Accord window both use it; More disappears.
 - Done when:
-  - [ ] No view shows more than one row of tabs; every rail icon has its tooltip; the active view and page are visible at a glance.
+  - [x] No view shows more than one row of tabs; every rail icon has its tooltip; the active view and page are visible at a glance.
 
 ### M13.8 — Interface: sortable tables everywhere
 - Branch: `step/m13-8-tables`

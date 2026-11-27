@@ -2,7 +2,7 @@
 
 *English: [[Settings|Settings]]*
 
-Aprile con `/accord settings`, o dalla scheda **Impostazioni** del pannello. La stessa pagina è anche nella finestra delle impostazioni del gioco, sotto *Opzioni → AddOn → Azeroth Accord*. Una modifica fatta in un posto si vede subito nell'altro, e ogni modifica è salvata appena la fai.
+Aprile con `/accord settings`, o dall'icona **Impostazioni** in fondo alla barra di navigazione del pannello (le sue pagine: **Generali**, **Cosa condivido**, **Info**). La stessa pagina è anche nella finestra delle impostazioni del gioco, sotto *Opzioni → AddOn → Azeroth Accord*. Una modifica fatta in un posto si vede subito nell'altro, e ogni modifica è salvata appena la fai.
 
 La pagina scorre con la rotella del mouse.
 

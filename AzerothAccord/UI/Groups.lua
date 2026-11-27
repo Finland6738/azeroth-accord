@@ -522,13 +522,13 @@ function View:ShowPage(id)
 	if not f then return true end
 	if not f.holders[id] then
 		local holder = CreateFrame("Frame", nil, f)
-		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.PAGER_HEIGHT)
+		holder:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 		holder:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 		f.holders[id] = holder
 		def.build(holder, self)
 	end
 	for pid, holder in pairs(f.holders) do holder:SetShown(pid == id) end
-	f.pager:Select(id)
+	if ns.Shell then ns.Shell:PageShown("groups", id) end
 	self:Redraw()
 	return true
 end
@@ -536,8 +536,6 @@ end
 function View:Redraw()
 	local f = self.frame
 	if not f then return end
-	local n = model().ApplicantCount()
-	f.pager:SetItemText("mine", n > 0 and L["GRP_PAGE_MINE_COUNT"]:format(n) or L["GRP_PAGE_MINE"])
 	local holder, def = f.holders[self.pageId], pageOf(self.pageId)
 	if holder and def then def.refresh(holder, self) end
 end
@@ -563,10 +561,6 @@ end
 function View:Build(f)
 	self.frame = f
 	f.holders = {}
-	local items = {}
-	for i, p in ipairs(View.pages) do items[i] = { id = p.id, text = L[p.label] } end
-	f.pager = Widgets.Segmented(f, items, function(id) if id ~= View.pageId then View:ShowPage(id) end end)
-	f.pager:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f:SetScript("OnShow", function() opened(f) end)
 	f:SetScript("OnHide", function() watch(f, false) end)
 	self:ShowPage(self.pageId)
@@ -610,7 +604,15 @@ end
 if ns.Shell then
 	ns.Shell:RegisterView("groups", { label = L["VIEW_GROUPS"], order = 40, search = true, visible = enabled,
 		badge = function() return enabled() and model().ApplicantCount() or 0 end,
-		onSearch = function(text) View:Search(text) end, build = function(f) View:Build(f) end })
+		onSearch = function(text) View:Search(text) end, build = function(f) View:Build(f) end,
+		-- the three pages are tabs of the Groups destination (M13.7); the applicants waiting are on "My groups"
+		pages = function()
+			local list = {}
+			for i, p in ipairs(View.pages) do list[i] = { id = p.id, label = L[p.label] } end
+			return list
+		end,
+		page = function() return View.pageId end, showPage = function(id) View:ShowPage(id) end,
+		pageBadge = function(id) return id == "mine" and enabled() and model().ApplicantCount() or 0 end })
 end
 
 if ns.addon then

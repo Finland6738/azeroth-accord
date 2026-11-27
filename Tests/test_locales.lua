@@ -45,6 +45,7 @@ end
 local SAME = {
 	DIGEST_CHAT_LIKES_ONE = true, DIGEST_CHAT_LIKES = true,   -- "like" is the word in Italian too
 	HANDBOOK_TPL_CHAT = true,   -- "chat" too
+	NAV_HOME = true, NAV_RAID = true, NAV_COMMUNITY = true,   -- the names of the rail's destinations (ui-style §9.11)
 	TL_LINE = true, ONT_OTHER = true, TRI_NOTE_LINE = true, EXPORT_ROSTER = true, EXPORT_CSV = true, EXPORT_DISCORD = true,
 	RECRUIT_DISCORD = true, RECRUIT_TANK_ONE = true, RECRUIT_HEALER_ONE = true,   -- "Discord", "tank", "healer" in Italian too
 	MEN_TOPIC_PVP = true, MEN_MAIN = true, MEN_NEW_LINE = true,   -- M12.5
@@ -190,8 +191,12 @@ describe("an Italian client", function()
 		eq(#Mock.errors, 0)
 		local labels = {}
 		for _, v in ipairs(A.Shell:ViewList()) do labels[#labels + 1] = v.label end
-		deepEq(labels, { "Centro azioni", "Roster", "Professioni", "Reputazione", "Banca", "Gruppi", "Season", "Eventi",
-			"Disponibilità", "Raid", "Manuale", "Addon della gilda", "Ufficiali", "Impostazioni" })
+		deepEq(labels, { "Centro azioni", "Roster", "Professioni", "Reputazione", "Mentori", "Banca", "Gruppi", "Season", "Eventi",
+			"Raduni", "Raid", "Disponibilità", "Manuale", "Addon della gilda", "Ufficiali", "Impostazioni" })
+		-- the rail (M13.7): the destinations' names in Italian
+		local names = {}
+		for i, id in ipairs(A.Shell.content.rail.order) do names[i] = A.Shell.content.rail.items[id].name end
+		deepEq(names, { "Home", "Gilda", "Raid", "Gruppi", "Professioni", "Economia", "Community", "Ufficiali", "Impostazioni" })
 		A.Shell:OpenView("settings")
 		eq(A.SettingsView.frame.title:GetText(), "Contatti condivisi con la gilda")
 		eq(A.SettingsView.frame.mainTitle:GetText(), "Personaggio principale")

@@ -1,7 +1,8 @@
 -- MarketView: the "Market" view of the guild economy (M13.2; SPEC-17 §2.2). Lua 5.1.
--- The view has modes, one chip each in its toolbar when there are several; a mode is { label, order, available() -> bool,
--- build(frame), refresh(frame) }. The steps of M13 add theirs with View.AddMode: Orders (UI/Orders.lua, M13.2), then
--- Wishlist, Demand, Board and Goals. Only with the switch "econ" (Core/Features.lua): off, there is no tab.
+-- The view has modes, chosen in the "Show" menu of its toolbar when there are several (Widgets.ModeMenu, M13.7); a mode
+-- is { label, order, available() -> bool, build(frame), refresh(frame) }. The steps of M13 add theirs with View.AddMode:
+-- Wishlist, Demand and Board (Orders, M13.2, is a page of the Professions destination since M13.7). Only with the switch
+-- "econ" (Core/Features.lua): off, there is no tab.
 --   View.AddMode(id, def), View:SetMode(id), View:Open(mode), View:SetSearch(text), View:Changed()
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -16,7 +17,7 @@ View.TOOLBAR_HEIGHT = 40
 View.REFRESH_DELAY = 0.4
 
 View.modes = {}          -- id -> { id, label, order, available, build, refresh, frame }
-View.mode = "orders"
+View.mode = "wishlist"
 View.search = ""
 
 local function on() return ns.Features ~= nil and ns.Features.On("econ") end
@@ -57,9 +58,8 @@ end
 
 function View:Build(f)
 	self.frame = f
-	f.bar = Widgets.ChipRow(f, function(id) View:SetMode(id) end)
+	f.bar = Widgets.ModeMenu(f, function(id) View:SetMode(id) end, { label = L["NAV_SHOW"] })
 	f.bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.body = CreateFrame("Frame", nil, f)
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
@@ -72,7 +72,7 @@ function View:Redraw()
 	local current = self.modes[self.mode]
 	if not current or (current.available and not current.available()) then
 		current = list[1]
-		self.mode = current and current.id or "orders"
+		self.mode = current and current.id or "wishlist"
 	end
 	local items = {}
 	for i, m in ipairs(list) do items[i] = { id = m.id, text = m.label } end

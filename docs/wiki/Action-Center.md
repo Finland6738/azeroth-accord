@@ -4,7 +4,7 @@
 
 > **New in `v0.9.0`**. Nothing on this page has been checked in the real game.
 
-The **Action Center** is one list of the things that **wait for you**: you do not have to look through every view to find them. Open it with its tab, the first one of the Accord panel, or with `/accord inbox`.
+The **Action Center** is one list of the things that **wait for you**: you do not have to look through every view to find them. Open it with the **Home** icon, the first one of the rail of the Accord panel (it is the first page of Home), or with `/accord inbox`.
 
 It keeps nothing of its own and decides nothing for you. Every line is read from the view it belongs to: **click it** to open that view and act there. When the thing is done, the line is gone.
 

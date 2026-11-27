@@ -1,4 +1,4 @@
--- OrdersView: the "Orders" mode of the Market view, the "New order" window and the "Market" section of the member card
+-- OrdersView: the "Orders" page of the Professions destination (a mode of the Market view until M13.7), the "New order" window and the "Market" section of the member card
 -- (M13.2; SPEC-17 §3.5, §3.8, §8; SPEC-06 PRO-05). Lua 5.1.
 -- Chips choose whose orders are listed (For me, Mine, Everyone) and whether the closed ones show too. A row carries the
 -- next step of the viewer's side; a click on a row selects it and the bar under the table has every step it may take, a
@@ -7,7 +7,7 @@
 -- Nothing here changes the game (ECO-01): no trade, no mail, no crafting order of the game; Whisper only opens the chat
 -- box and the player writes and sends.
 --   View.StateText(row), View.StateToken(row), View.WaitingText(row), View.StepText(row)   plain texts, tested offline
---   View:Open(id)                         the Market view on Orders, on that order
+--   View:Open(id)                         the Orders page, on that order
 --   View:Press(id, action)                first click: "armed"; second: true, or false and a reason
 --   View:OpenNew(crafter, recipe, opts)   the New order window (opts = { from = an earlier request }); View:Place()
 --   View:Whisper(guid)
@@ -32,6 +32,7 @@ View.ICON = 20
 View.who = "all"             -- "forme" | "mine" | "all"
 View.closed = false
 View.selected = nil          -- the id of the selected order
+View.search = ""             -- the panel's search on this page
 View.armed = nil             -- { id, action }: the step clicked once
 
 local WHO = { "forme", "mine", "all" }
@@ -146,7 +147,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Steps
 ---------------------------------------------------------------------------------------------------------------------
-local function redraw() if ns.MarketView then ns.MarketView:Redraw() end end
+local function redraw() if View.Redraw then View:Redraw() end end
 
 function View:IsArmed(id, action)
 	local a = self.armed
@@ -197,21 +198,21 @@ local function otherSide(row)
 end
 
 function View:Open(id)
-	if not (O() and O().Enabled() and ns.MarketView) then return false end
+	if not (O() and O().Enabled() and ns.Shell) then return false end
 	local row = id and O():Get(id)
 	if row then
 		if (self.who == "forme" and not row.forMe) or (self.who == "mine" and not row.mine) then self.who = "all" end
 		if not row.open then self.closed = true end
 		self.selected, self.armed, self.error = row.id, nil, nil
-		ns.MarketView.search = ""
+		self.search = ""
 	end
-	local shown = ns.MarketView:Open("orders")
+	local shown = ns.Shell:OpenView("orders") and true or false
 	redraw()
 	return shown
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- The mode of the Market view
+-- The page (of the Professions destination since M13.7)
 ---------------------------------------------------------------------------------------------------------------------
 local function renderItem(cell, row, frame)
 	cell:SetText(L["ORD_ITEM"]:format(row.count, escape(row.recipeName)))
@@ -441,7 +442,7 @@ function mode.refresh(f)
 	f.table:ClearAllPoints()
 	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
 	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, View.BAR_HEIGHT + 4)
-	local search = ns.MarketView and ns.MarketView.search
+	local search = View.search
 	local list = O():List({ who = View.who, closed = View.closed, search = search })
 	View.rows = list
 	local selected = nil
@@ -452,9 +453,28 @@ function mode.refresh(f)
 	drawBar(f, selected)
 end
 
-if ns.MarketView then
-	ns.MarketView.AddMode("orders", { label = L["MARKET_MODE_ORDERS"], order = 10, build = mode.build, refresh = mode.refresh,
-		available = function() return O() ~= nil and O().Enabled() end })
+function View:Redraw()
+	local f = self.frame
+	if f and f:IsVisible() then mode.refresh(f) end
+end
+
+function View:SetSearch(text)
+	text = type(text) == "string" and text or ""
+	if text == self.search then return end
+	self.search = text
+	if self.frame and self.frame.table then self.frame.table.offset = 0 end
+	self:Redraw()
+end
+
+if ns.Shell then
+	ns.Shell:RegisterView("orders", { label = L["MARKET_MODE_ORDERS"], order = 22, dest = "professions", search = true,
+		visible = function() return O() ~= nil and O().Enabled() end,
+		build = function(f)
+			mode.build(f)
+			f:SetScript("OnShow", function() mode.refresh(f) end)
+			mode.refresh(f)
+		end,
+		onSearch = function(text) View:SetSearch(text) end })
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -635,6 +655,7 @@ if ns.addon then
 		ns.Bus:On("ORDERS_CHANGED", function()
 			if not (O() and O().Enabled()) then return end
 			if ns.MemberCard then ns.MemberCard:Refresh() end
+			View:Redraw()
 			if ns.MarketView then ns.MarketView:Changed() end
 		end)
 		ns.Bus:On("GUILD_CHANGED", function()

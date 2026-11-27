@@ -256,7 +256,7 @@ describe("the switch of M12, as shipped (M12.9)", function()
 		for _, set in ipairs({ "trials", "mentor" }) do truthy(A().Store.IsActive(set), set) end
 	end)
 
-	it("shows its commands and help lines, the Mentors mode, the Trials page and the sharing rows", function()
+	it("shows its commands and help lines, the Mentors page, the Trials page and the sharing rows", function()
 		Mock.Slash("/accord help")
 		local help = table.concat(Mock.PlainOutput(), "\n")
 		contains(help, "/accord recruit")
@@ -264,7 +264,7 @@ describe("the switch of M12, as shipped (M12.9)", function()
 		Mock.Slash("/accord recruit")
 		Mock.Slash("/accord welcome")
 		Mock.Slash("/accord reputation")
-		truthy(A().ReputationView:SetMode("mentors"))
+		truthy(A().Shell:OpenView("mentors"), "the Mentors page of Guild (M13.7)")
 		truthy(A().OfficersView:OpenPage("trials"))
 		local share = {}
 		for _, section in ipairs(A().ShareModel.Describe()) do share[section.id] = true end

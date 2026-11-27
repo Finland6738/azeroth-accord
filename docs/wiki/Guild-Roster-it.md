@@ -88,9 +88,9 @@ Gli ufficiali e il Guild Master possono seguire un nuovo membro **in prova**. Il
 - **Mentori suggeriti**: un terzo selettore della pagina elenca i nuovi membri (in prova, o entrati negli ultimi 30 giorni), prima il più vecchio, ognuno con fino a tre [[mentori|Likes-and-Social-Index-it]] che si sono offerti, il motivo (*2.0 h insieme*, *gioca con le stesse persone*, *stesso gruppo*, *di solito in linea alle stesse ore* o *Ancora nessun gioco insieme*) e **Sussurra** per entrambi. Un mentore è la prima scelta di al massimo tre nuovi membri. La scheda del nuovo membro mostra lo stesso, solo agli ufficiali.
 - **Per sempre**, come le note e la cronologia. Viaggiano come loro: **solo sul canale degli ufficiali**, mai con la gilda, mai in whisper a un membro, e solo quando il canale funziona (fino ad allora *Solo su questo computer finché il canale degli ufficiali non funziona*). Non sono nel tuo backup personale; *Cosa condivido* le conta soltanto. Se smetti di essere ufficiale, Accord le cancella dal tuo computer.
 
-## La scheda Ufficiali (solo ufficiali)
+## Le pagine degli Ufficiali (solo ufficiali)
 
-Gli ufficiali e il Guild Master hanno una scheda in più, **Ufficiali**, con tre pagine: **Inattivi**, **Coda** e **Cronologia**. I membri non vedono la scheda. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.
+Gli ufficiali e il Guild Master hanno un'icona in più nella barra di navigazione, **Ufficiali**, con le pagine **Inattivi**, **Coda** e **Cronologia** (e **Prove**). I membri non vedono l'icona. La riga in alto a destra dice se il **canale degli ufficiali** funziona; la casella di ricerca del pannello filtra per nome.
 
 ### Account inattivi
 

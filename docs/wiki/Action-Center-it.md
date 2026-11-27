@@ -4,7 +4,7 @@
 
 > **Novità della `v0.9.0`**. Nulla di questa pagina è stato verificato nel gioco vero.
 
-Il **Centro azioni** è un solo elenco delle cose che **ti aspettano**: non serve guardare ogni vista per trovarle. Si apre con la sua scheda, la prima del pannello Accord, o con `/accord inbox`.
+Il **Centro azioni** è un solo elenco delle cose che **ti aspettano**: non serve guardare ogni vista per trovarle. Si apre con l'icona **Home**, la prima della barra di navigazione del pannello Accord (è la prima pagina di Home), o con `/accord inbox`.
 
 Non salva nulla di suo e non decide niente al posto tuo. Ogni riga viene letta dalla vista a cui appartiene: **fai clic** per aprire quella vista e agire lì. Quando la cosa è fatta, la riga sparisce.
 

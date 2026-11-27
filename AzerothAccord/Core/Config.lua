@@ -41,7 +41,10 @@ Config.LIMITS = {
 	BANK_REQUEST_CLOSED_DAYS = 60,
 }
 
-Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "market", "groups", "season", "events", "availability", "raid", "handbook", "addons", "settings" }
+-- The views of the panel (UI/Shell.lua). char.ui.lastView holds one of them, or "view:page" for a page of a view that
+-- has pages (M13.7: "officers:queue", "settings:about").
+Config.VIEWS = { "actions", "roster", "professions", "reputation", "bank", "market", "groups", "season", "events", "availability", "raid",
+	"handbook", "addons", "settings", "officers", "mentors", "orders", "shopping", "rallies" }
 
 -- The personal look of the panel (docs/specs/ui-style.md §2), saved per account: UI/Theme.lua reads them.
 Config.THEMES = { "nebula", "aurora", "accord" }
@@ -79,7 +82,7 @@ Config.defaults = {
 }
 
 -- Rules by path (scope first). type: boolean | number | string | table | timestamp. number: min, max, integer.
--- string: enum, pattern, minLen, maxLen. optional: nil is allowed. A value that breaks a rule is reset to its default
+-- string: enum (with page: "option:word" too), pattern, minLen, maxLen. optional: nil is allowed. A value that breaks a rule is reset to its default
 -- (nil for optional values). timestamp: integer epoch >= 0; one in the future is clamped to now, not reset.
 local function posRule() return { type = "table", optional = true, validate = function(v) return Config.IsPos(v) end } end
 local function sizeRule() return { type = "table", optional = true, validate = function(v) return Config.IsSize(v) end } end
@@ -120,7 +123,7 @@ Config.rules = {
 	end },
 	["char.schemaVersion"] = { type = "number", min = 0, integer = true },
 	["char.ui"] = { type = "table" },
-	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS },
+	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS, page = true },
 	["char.ui.columns"] = { type = "table" },
 	["char.ui.sort"] = { type = "table" },
 	["char.ui.grouped"] = { type = "boolean" },
@@ -276,8 +279,10 @@ local function violation(rule, value)
 		if rule.max and value > rule.max then return "above " .. rule.max end
 	elseif t == "string" then
 		if rule.enum then
+			-- rule.page: "option:page" is allowed too, the page a word
+			local head = rule.page and value:match("^([^:]+):[%w_]+$") or value
 			local found = false
-			for _, option in ipairs(rule.enum) do if option == value then found = true end end
+			for _, option in ipairs(rule.enum) do if option == head then found = true end end
 			if not found then return "not an allowed value" end
 		end
 		if rule.minLen and #value < rule.minLen then return "too short" end

@@ -9,8 +9,8 @@ from mockup_scenes import (scene, MEMBERS, ranks, roster_cols, roster_row, roste
 
 
 def mode_bar(labels, on, extra=""):
-    """A row of filter chips, one per mode (Widgets.ChipRow): the selected one is tonal, with a check."""
-    return tools(*[chip(t, "sel" if i == on else "", small=True) for i, t in enumerate(labels)], right=extra)
+    """The "Show" menu of a view's modes (Widgets.ModeMenu, M13.7: no third row of navigation): its label and the mode chosen."""
+    return tools(f'<span style="font:500 13px/1 var(--body);color:var(--text-2)">{esc(T("NAV_SHOW"))}</span>', select(labels[on], 200, value=True), right=extra)
 
 
 # =====================================================================================================================
@@ -346,7 +346,8 @@ def scard(inner):
 
 
 def pager(on):
-    return seg([T("VIEW_SETTINGS"), T("ABOUT_TAB")], on, 'style="margin-bottom:12px"')
+    """The pages of Settings are tabs of the shell's row since M13.7: nothing in the page."""
+    return ""
 
 
 def settings_cards():
@@ -379,7 +380,7 @@ def settings_cards():
 
 
 def settings_page(offset=0):
-    return (f'<div class="rel">{pager(0)}<div style="position:absolute;left:0;top:44px;bottom:0;overflow:hidden;width:{PAGE}px">'
+    return (f'<div class="rel">{pager(0)}<div style="position:absolute;left:0;top:0;bottom:0;overflow:hidden;width:{PAGE}px">'
             f'<div style="margin-top:-{offset}px">{"".join(settings_cards())}</div></div></div>')
 
 
@@ -416,18 +417,18 @@ def about_cards(theme="nebula"):
 
 
 def about_page(theme="nebula", offset=0):
-    return (f'<div class="rel">{pager(1)}<div style="position:absolute;left:0;top:44px;bottom:0;overflow:hidden;width:{PAGE}px">'
+    return (f'<div class="rel">{pager(1)}<div style="position:absolute;left:0;top:0;bottom:0;overflow:hidden;width:{PAGE}px">'
             f'<div style="margin-top:-{offset}px">{"".join(about_cards(theme))}</div></div></div>')
 
 
 @scene("about", "Settings, Info: the logo, who made it and with whom (the dark NEBULA logo), then the links to copy and the licence")
 def s_about():
-    return full("settings", about_page("nebula"), peers=9, searchable=False)
+    return full("settings:info", about_page("nebula"), peers=9, searchable=False)
 
 
 @scene("about-aurora", "Settings, Info in the light theme Aurora: the credits with the light NEBULA logo, the links and the notices", theme="aurora")
 def s_about_aurora():
-    return full("settings", about_page("aurora", 214), peers=9, searchable=False)
+    return full("settings:info", about_page("aurora", 214), peers=9, searchable=False)
 
 
 @scene("diagnostics-box", "/accord debug: the report in a box, already selected, to paste into a bug report (no names)")
@@ -487,4 +488,4 @@ def s_it_settings():
 @scene("it-about", "Interfaccia italiana: la pagina Info con i crediti, i link da copiare e la licenza", lang="itIT")
 def s_it_about():
     with it_guild():
-        return full("settings", about_page("nebula"), peers=9, searchable=False)
+        return full("settings:info", about_page("nebula"), peers=9, searchable=False)

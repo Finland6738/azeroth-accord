@@ -89,9 +89,9 @@ Officers and the Guild Master can follow a new member **on trial**. The member s
 - **Suggested mentors**: a third tab of the page lists the new members (on trial, or joined in the last 30 days), the oldest first, each with up to three [[mentors|Likes-and-Social-Index]] who offered, why (*2.0 h together*, *plays with the same people*, *same group*, *usually online at the same hours*, or *No play together yet*) and **Whisper** for both. A mentor is the first choice of at most three new members. The new member's card shows the same, for officers only.
 - **Kept for ever**, like the notes and the timeline. They travel like them: **officer channel only**, never with the guild, never by whisper to a member, and only once the channel works (until then *Only on this computer until the officer channel works*). They are not in your personal backup; *What I share* only counts them. If you stop being an officer, Accord deletes them from your computer.
 
-## The Officers tab (officers only)
+## The Officers pages (officers only)
 
-Officers and the Guild Master have one more tab, **Officers**, with three pages: **Inactive**, **Queue** and **Timeline**. Members do not see the tab. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
+Officers and the Guild Master have one more icon on the rail, **Officers**, with the pages **Inactive**, **Queue** and **Timeline** (and **Trials**). Members do not see the icon. The line at the top right says whether the **officer channel** works; the search box of the panel filters by name.
 
 ### Inactive accounts
 

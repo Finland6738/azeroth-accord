@@ -6,11 +6,11 @@
 
 ## Guild recipes
 
-The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by name. WoW Forever does not tell addons the skill level a recipe needs, so the view does not show it.
+The **Professions** view (`/accord professions`, or the **Professions** icon of the rail, page **Recipes**) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by name. WoW Forever does not tell addons the skill level a recipe needs, so the view does not show it.
 
 - **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
 - **Click a member's profession** in the Roster table or on the member card: this list opens on that profession. For now a click on a character under a recipe opens nothing (the member's own list is switched off, see below).
-- The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Every profession you pick starts again on *Somebody can craft it*, and a click on the **Professions** tab always brings back this list with the profession menu. The search box filters by name.
+- The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Every profession you pick starts again on *Somebody can craft it*, and a click on the **Recipes** tab always brings back this list with the profession menu. The search box filters by name.
 - Hover a recipe to see the game's tooltip, right next to its name.
 - The line under the title says who shared the full list and how old it is.
 
@@ -42,7 +42,7 @@ Your own recipes are shared when you open your profession window with the addon:
 
 ## Who can craft
 
-Open the **Professions** view (`/accord professions`, or the **Professions** tab), click **Who can craft** and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back to the search** returns to the search, and **Guild recipes** to the guild's recipes.
+Open the **Professions** view (`/accord professions`, or the **Recipes** page of the **Professions** icon), click **Who can craft** and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back to the search** returns to the search, and **Guild recipes** to the guild's recipes.
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 
@@ -60,7 +60,7 @@ Next to every recipe of an **online** member (in their list, or under the recipe
 
 **Request craft** will open a **New order** window instead of only a whisper: choose the crafter (offline ones too: they see the order at their next login), how many, who brings the materials, a price in your own words, a note and, if you like, the day you need it by. *Also whisper* keeps the old message, off by default. The whole guild sees the order.
 
-The **Market** view (`/accord market`) lists the orders, *For me*, *Mine* or *Everyone*, and the closed ones on request. An order goes through **requested, accepted, in progress, ready, delivered**, or ends **cancelled**:
+The **Orders** page of **Professions** (a mode of the Market view before M13.7) lists the orders, *For me*, *Mine* or *Everyone*, and the closed ones on request. An order goes through **requested, accepted, in progress, ready, delivered**, or ends **cancelled**:
 
 | Who | Steps |
 |---|---|
@@ -75,7 +75,7 @@ An order nobody accepted expires after 14 days; one with a needed-by day, 7 days
 
 > **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
 
-In the **Market** view, the *Wishlist* chip holds what you would like to get. Add an item by pasting its link, typing its number, or typing the name of an item your game already knows; choose how many and for how many days (14 unless you say otherwise, 30 at most), and a note for the whole list if you like. You can wish for up to 30 items. **The whole guild sees your list**, and each entry goes away by itself after its days.
+In the **Market** view (`/accord market`, a page of **Economy**), *Wishlist* in its **Show** menu holds what you would like to get. Add an item by pasting its link, typing its number, or typing the name of an item your game already knows; choose how many and for how many days (14 unless you say otherwise, 30 at most), and a note for the whole list if you like. You can wish for up to 30 items. **The whole guild sees your list**, and each entry goes away by itself after its days.
 
 Below your list are the guild's wishes, by item, with who is online first. *I have some* opens the chat box with a whisper already typed ("Hi! I have Linen Cloth for your wishlist."): **you** send it. The *Yours* column says how many you own (bags, bank, mail and alts, see the [shopping list](#shopping-list)), so you know whether you can help. A wishlist has no price: it is not a sale.
 
@@ -91,7 +91,7 @@ The addon asks the game for a recipe's materials and never guesses them. If a li
 
 > **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
 
-In the guild recipes, **Shopping list** opens your own list, and every recipe has **Add to list** (one more at each click; you do not need to know the recipe). On the page you can also add from a profession and its recipes (the search box filters them), choose **how many times** to craft each recipe (1 to 999; a recipe that makes several pieces says how many come out), use **-**, **+** and **Remove**, or **Clear list**. Up to 50 recipes, of any profession. The list belongs to your computer: every character on it sees the same list.
+The **Shopping list** is a page of **Professions**; in the guild recipes, **Shopping list** opens it too, and every recipe has **Add to list** (one more at each click; you do not need to know the recipe). On the page you can also add from a profession and its recipes (the search box filters them), choose **how many times** to craft each recipe (1 to 999; a recipe that makes several pieces says how many come out), use **-**, **+** and **Remove**, or **Clear list**. Up to 50 recipes, of any profession. The list belongs to your computer: every character on it sees the same list.
 
 Accord adds up the materials the game gives for those recipes, one row per material: a bar of **owned / needed**, the numbers (`12 / 40`), what is **missing**, how many the **guild bank** showed at its last visit, and the auction **price** if you use Auctionator. Missing materials come first. Point at a row to see where you have them, each with its age: your bags, your bank, your mail, and your **alts** on the same realm and faction (as Accord last saw them on this computer; an alt that never opened its bank with Accord says *never read*). The guild bank is never added to what you own.
 
@@ -107,7 +107,7 @@ Nothing of the list or of your counts leaves your computer until you press one o
 
 > **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
 
-In the **Market** view, the *Board* chip holds the guild's *WTS* (selling) and *WTB* (buying) posts. **New post** asks whether you sell or buy, the item (a pasted link, its number, or the name of an item your game already knows), how many, for how many days (3 unless you say otherwise, 7 at most), a price in your own words and a note. You can have at most 10 open posts, and **the whole guild sees them**. A post cannot be edited: to change the price, withdraw it and post again. It disappears by itself when its days are over.
+In the **Market** view, *Board* in its **Show** menu holds the guild's *WTS* (selling) and *WTB* (buying) posts. **New post** asks whether you sell or buy, the item (a pasted link, its number, or the name of an item your game already knows), how many, for how many days (3 unless you say otherwise, 7 at most), a price in your own words and a note. You can have at most 10 open posts, and **the whole guild sees them**. A post cannot be edited: to change the price, withdraw it and post again. It disappears by itself when its days are over.
 
 If a post interests you, press **Deal**: the author sees your name (**Whisper** opens the chat box if you want to talk). Then you meet and trade **in the game, by hand**. When it is done, both confirm: the author picks you and presses **Deal done with ...**, you press **Deal done**. The deal is **closed only with both confirmations**; with one, the post stays open for everybody and says who is missing. Until the other one confirms you can **Take back** your confirmation or say **Not interested**. A closed deal stays visible for 7 days. Every step asks for a second click (**Confirm**).
 
