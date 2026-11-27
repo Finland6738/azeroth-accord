@@ -56,7 +56,7 @@
 
 ### M6.7 — Release checklist and v0.6.0
 - Branch: `step/m6-7-release`
-- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v0.6.0` (the tag waits for the owner; `v1.0.0` comes after the last milestone, M16 since 2026-11-26, [ADR 0020](../adr/0020-one-version-per-milestone.md)).
+- Scope: `docs/checklists/release.md` in game, wiki complete, READMEs, tag `v0.6.0` (the tag waits for the owner; `v1.0.0` comes after the last milestone, M17 since 2026-11-27, [ADR 0020](../adr/0020-one-version-per-milestone.md)).
 - Done when:
   - [x] [`docs/checklists/release.md`](../checklists/release.md) (the order of the checks M1 to M5 and this one, what is not known yet, the package, Settings and the game's settings window, Italian, performance and S11, errors and the report, the pictures, the workflow dry run and test tag, the owner's open decisions, the release steps), the wiki (every page with its images, the Settings page, FAQ, Installation, Reporting), both READMEs, the status of every document.
   - [ ] The in-game checks of M1 to M5 and of the release check pass; the changelog is promoted (`tools/release_notes.py --promote 0.6.0`); the tag `v0.6.0` (**not created**: it waits for the owner, [docs/RELEASING.md](../RELEASING.md)). The tag also waits for the ecosystem look, M6.8 to M6.18, whose checks M6.16 adds to the release checklist.

@@ -69,6 +69,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- Planning (owner, 2026-11-27):
+  - **M13 gains a shopping list** (new step M13.4; the later steps move by one, the check is M13.8). The materials of the recipes a player picks show as owned/needed, counting the bags, the bank, the alts and the mail, with the guild bank apart. An on/off switch breaks intermediate materials down. Prices come from Auctionator when installed. Buttons ask the guild (wishlist) or the guild bank (request) for what is missing.
+  - **New milestone M17, professions assistant** ([docs/roadmap/M17-professions.md](docs/roadmap/M17-professions.md)): a 1–300 route computed by Accord from a licence-verified thresholds table, plus the live best recipe. The levelling page and a tracker show owned/needed and a Create button. Gathering and Forever skills (Lockpicking, Camping, Merchant's Favor) get internal tables. Nothing points to a website, and other sites' guides are not copied without their author's permission.
+  - **`v1.0.0` now follows M17** (ADR 0020 update): M16.6 releases `v0.16.0` only.
+
+  Updated: ROADMAP, the roadmap index, M6, M15, M16, the backlog, RELEASING, SPEC-00 and SPEC-09.
+
 - **Material 3 rules adapted to Accord** ([ADR 0027](docs/adr/0027-material-3-rules-adapted-to-accord.md), [ui-style §9](docs/specs/ui-style.md#9-le-regole-di-material-3-adr-0027)), asked by the owner on 2026-11-27. Google's Material Design 3 now sets the interface's structure; the look of FDCP stays (colours of the three themes, fonts):
   - colour roles over Accord's tokens, plus five new ones (secondary container, inverse surface, on error);
   - state layers in the content's colour (8 / 10 / 10 / 16 %);

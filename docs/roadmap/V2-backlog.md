@@ -17,13 +17,15 @@ Ideas not yet planned, and what stays out of the addon. Every idea of the first 
 | Officer tools | [M8](M8-officer-tools.md) |
 | Kudos with a reason | [M14](M14-board-polls.md) |
 | Mentors for new members | [M12](M12-recruitment.md) |
+| Shopping list | [M13](M13-economy.md) (owner, 2026-11-27) |
+| Profession levelling | [M17](M17-professions.md) (owner, 2026-11-27): computed routes, owned/needed, tracker; no external links |
 | Guild quests | [M16](M16-quests.md) (owner, 2026-11-26); later, not in M16: objective progress, who already completed a quest, attunement quests, a login digest line for quests in common |
 
 ## Not planned
 
 | Idea | Notes |
 |---|---|
-| Guild auctions run by one officer's client | M13.6, only if the owner asks for it after M13.5 |
+| Guild auctions run by one officer's client | M13.7, only if the owner asks for it after M13.6 |
 
 ## Out of scope
 

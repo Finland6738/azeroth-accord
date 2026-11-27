@@ -17,10 +17,11 @@ One file per milestone; each file lists the **development steps** of that milest
 | **M10** | [M10-calendar-raids.md](M10-calendar-raids.md) | Season roster, sign-ups on the game calendar, Raid-Helper events from Discord, composition, availability, rallies; raid and loot addons detected, one source per datum | 10 | final check |
 | **M11** | [M11-loot-handbook.md](M11-loot-handbook.md) | Guild handbook pages; loot system and addon documented, detected in the guild, FDCP read through its API | 8 | final check |
 | **M12** | [M12-recruitment.md](M12-recruitment.md) | Recruitment, trials, onboarding, mentors; the Material 3 rules applied to the interface (ADR 0027) | 9 | final check |
-| **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, wishlist, buy and sell board, goals | 7 | final check |
+| **M13** | [M13-economy.md](M13-economy.md) | Craft orders, materials, shopping list, wishlist, buy and sell board, goals | 8 | final check |
 | **M14** | [M14-board-polls.md](M14-board-polls.md) | Board, MOTD history, polls, kudos | 6 | final check |
 | **M15** | [M15-community.md](M15-community.md) | Opt-in community features | 6 | final check |
-| **M16** | [M16-quests.md](M16-quests.md) | Guild quests: the quests in every guild character's log, who has each one; v1.0.0 | 6 | final check and full release check |
+| **M16** | [M16-quests.md](M16-quests.md) | Guild quests: the quests in every guild character's log, who has each one | 6 | final check |
+| **M17** | [M17-professions.md](M17-professions.md) | Professions assistant: a 1–300 route computed by Accord, owned/needed materials, a tracker with Create; gathering and Forever skills; v1.0.0 | 7 | final check and full release check |
 | — | [V2-backlog.md](V2-backlog.md) | Where the first ideas went, what is not planned, what stays out | — | — |
 
 **Releases.** The first is `v0.8.0` (2026-11-25), covering M1 to M8, tagged before the in-game checks by the owner's decision; `v0.1.0` to `v0.7.0` are not tagged. From M9 on, `v0.<N>.0` follows each completed milestone, with the unfinished pieces of later ones hidden ([RELEASING](../RELEASING.md)). M10 is complete in code (its switch is on since M10.10, in-game check pending); M11 is complete in code (its switch `raid` is on since M11.8, in-game check pending).
@@ -31,10 +32,10 @@ One file per milestone; each file lists the **development steps** of that milest
 flowchart LR
   M0[M0 Spike] --> M1[M1 Foundations] --> M2[M2 Roster] --> M3[M3 Professions] --> M4[M4 Reputation] --> M5[M5 Guild bank] --> M6[M6 Release]
   M6 --> M7[M7 Data trust] --> M8[M8 Officer tools] --> M9[M9 Action Center] --> M10[M10 Calendar and raids] --> M11[M11 Loot and handbook]
-  M11 --> M12[M12 Recruitment] --> M13[M13 Economy] --> M14[M14 Board and polls] --> M15[M15 Community] --> M16[M16 Quests] --> V1[v1.0.0]
+  M11 --> M12[M12 Recruitment] --> M13[M13 Economy] --> M14[M14 Board and polls] --> M15[M15 Community] --> M16[M16 Quests] --> M17[M17 Professions] --> V1[v1.0.0]
 ```
 
-Every milestone ends with its in-game check and its version, `v0.N.0`; fixes raise the last number; `v1.0.0` follows M16 ([ADR 0020](../adr/0020-one-version-per-milestone.md)). Each milestone from M7 on opens with a step that writes its specification in `docs/specs/` (SPEC-11 to SPEC-20), in Italian, before any code.
+Every milestone ends with its in-game check and its version, `v0.N.0`; fixes raise the last number; `v1.0.0` follows M17 ([ADR 0020](../adr/0020-one-version-per-milestone.md)). Each milestone from M7 on opens with a step that writes its specification in `docs/specs/` (SPEC-11 to SPEC-21), in Italian, before any code.
 
 M0 can change the plan: each check names the specs and ADRs it may revise. M1 may start on the specification's assumptions while the owner runs the probe; M0.8 then revises what the results contradict.
 

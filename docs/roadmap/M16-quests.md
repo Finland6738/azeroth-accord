@@ -1,6 +1,6 @@
 # M16 — Guild quests
 
-**Goal:** a **Quest** tab. It lists the quests active in the quest logs of every guild character, online and offline, with one row per quest. Each row shows the quest's ideal level range and who has it. The owner asked for it on 2026-11-26 and answered the design questions the same day (below). After M16 comes the release of `v1.0.0` ([ADR 0020](../adr/0020-one-version-per-milestone.md), update of 2026-11-26).
+**Goal:** a **Quest** tab. It lists the quests active in the quest logs of every guild character, online and offline, with one row per quest. Each row shows the quest's ideal level range and who has it. The owner asked for it on 2026-11-26 and answered the design questions the same day (below). After M16 comes [M17](M17-professions.md), the professions assistant, and then `v1.0.0` ([ADR 0020](../adr/0020-one-version-per-milestone.md), update of 2026-11-27).
 
 **Switched off until complete.** Everything of M16 ships behind a new switch `quests` in `AzerothAccord/Core/Features.lua`. The last step turns it on.
 
@@ -106,14 +106,13 @@
 - Done when:
   - [ ] Offline characters show the age of their data; Invite is offered only for online characters.
 
-## M16.6 — In-game check, `v0.16.0` and `v1.0.0`
+## M16.6 — In-game check and `v0.16.0`
 - Branch: `step/m16-6-release`
 - Scope:
   - `docs/checklists/M16.md`, and the switch `quests` turned on;
-  - the full release check of `docs/checklists/release.md`, run again over everything;
-  - the full test suite and CI back on (ADR 0012 point 9);
-  - the wiki and both READMEs complete.
+  - the wiki and both READMEs up to date.
+
+  The full release check, the full tests and `v1.0.0` moved to M17.7 (2026-11-27).
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.16.0`.
-  - [ ] The full release check passes and the owner tags `v1.0.0`.

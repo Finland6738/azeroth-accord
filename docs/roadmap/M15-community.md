@@ -53,7 +53,7 @@ Help requests, first planned here, are a listing type of the guild group finder 
   - `docs/checklists/M15.md`;
   - the wiki and both READMEs up to date.
 
-  The full release check and `v1.0.0` moved to M16.6 (2026-11-26).
+  The full release check and `v1.0.0` moved to M16.6 (2026-11-26), then to M17.7 (2026-11-27).
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.15.0`.

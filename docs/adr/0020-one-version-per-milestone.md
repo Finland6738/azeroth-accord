@@ -33,3 +33,7 @@ The owner changed points 1 and 5:
 ## Update (2026-11-26)
 
 The owner added milestone **M16** (guild quests, [M16](../roadmap/M16-quests.md)) after M15. Point 3 now reads "up to M16": M15 is released as `v0.15.0`, M16 as `v0.16.0`, and `v1.0.0` follows M16, whose last step runs the full release check.
+
+## Update (2026-11-27)
+
+The owner added milestone **M17** (professions assistant, [M17](../roadmap/M17-professions.md)) after M16. Point 3 now reads "up to M17": M16 is released as `v0.16.0`, M17 as `v0.17.0`, and `v1.0.0` follows M17, whose last step runs the full release check.
