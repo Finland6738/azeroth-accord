@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **The guild's key was unknown on WoW Forever** (owner's `/accord debug`, 2026-11-27: "guild key known: no" with 63 members read): without it Accord saves and shares nothing for the guild. `GetGuildInfo("player")` gave no name there, and the guild club's name was asked only when the function was missing. It is now asked whenever `GetGuildInfo` gives no name. `/accord debug` → *Accounts* also says why the own character was not registered (`own character: last registration …`).
+
 - **The member card no longer narrows the table** (owner, 2026-11-27). In the Accord window a click on a member opens the card as a **detail window of its own**, 340 points wide and as tall as the Accord window. It sits on the window's right, or on its left when the screen has no room, and follows the window when it moves. The table keeps its whole width. The guild window's panel keeps the card beside or over the table (`UI/MemberCard.lua`, wiki *Guild Roster*).
 
 - **Own profession levels read from the skill lines** (owner, 2026-11-27): the player's own professions now come with their **skill level**, as the game's Skills panel shows it ("Skinning 150/225"). They are read from `C_SkillInfo.GetNumSkillLines` / `GetSkillLineInfo` (primary professions only, not weapon skills or languages), falling back to `GetProfessions` / `GetProfessionInfo`. The roster updates on `SKILL_LINES_CHANGED`, so a level-up shows at once (`Compat.TradeSkill.OwnProfessions`).
