@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **The tab indicator jumped** (found in game, 2026-11-27): when a tab was chosen, the orange indicator slid from a place far to the left or right, even outside the window, before it came to rest. It started from the place it had in an earlier layout of the bar (another window width, tabs moved into More, the first open), or from where a slide still running had started. Now it slides only from a place measured in the same layout and never over a running slide; otherwise it simply appears under the tab (`Widgets.Tabs`, `Motion.Stop`).
+
 - **Mentor offers summarised apart from older clients** (`Net/Sync.lua`, `Net/Store.lua`): since v0.12.0 switched `recruit` on, the mentor offers (`mentor`, M12.5) shared the addon census's extra summary (`c`), which a v0.11.0 client computes for the census alone, so in a guild mixing v0.12.0 and v0.11.0 clients the two never agreed and kept repairing each other at every `HELLO`. The set now has a summary of its own, like the recipe catalogue's: `mn` in `HELLO` (sent even empty) and `DIGEST`, `mnb` in `BHELLO` (1 block), only with `recruit` on; nothing of it is pushed to, asked of or compared with a client that does not send those fields ([SPEC-02 §4](docs/specs/SPEC-02-network-protocol.md#4-sincronizzazione), [SPEC-16 §6.1](docs/specs/SPEC-16-recruitment-trials-mentors.md#61-linsieme-mentor)). A v0.12.0 client still disagrees on `c` with fixed ones until it is updated. New simulator test with a client that does not know the set (`Tests/test_mentors.lua`). **Not checked in the real game.**
 
 ### Documentation

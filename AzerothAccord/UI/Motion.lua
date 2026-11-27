@@ -145,6 +145,12 @@ end
 
 -- Slides a texture or frame by (dx, dy) in `duration` seconds and leaves it at its new anchor (the switch thumb, the
 -- tab indicator). `place(dx, dy)` sets the end position (the caller knows the anchors); without animations it runs at once.
+-- Stops a slide of `region` where it is (the caller puts the region where it belongs).
+function Motion.Stop(region)
+	local s = of(region)
+	if s.slide then s.slide.group:Stop() end
+end
+
 function Motion.Slide(region, dx, dy, duration, place)
 	duration = duration or Motion.BASE
 	local s = of(region)

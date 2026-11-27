@@ -502,16 +502,24 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		end
 		local w = max(24, b.content - 4)
 		local x = b.x + (b.w - w) / 2
+		local barW = bar:GetWidth() or 0
 		local function rest(px, pw)
 			ind:ClearAllPoints()
 			ind:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", px, 0)
 			ind:SetWidth(pw)
-			bar.ix, bar.iw = px, pw
+			bar.ix, bar.iw, bar.ixBarW = px, pw, barW
 		end
-		if fromX and ind:IsShown() and changed then
+		-- slide only from a place measured in the SAME layout, and not over a slide still running: an old place from
+		-- another width of the bar (the window resized, tabs moved into More, the first open) sent the indicator far
+		-- away, even outside the window, before it came back (found in game, 2026-11-27)
+		local sameLayout = bar.ixBarW == barW and fromX ~= nil and fromX >= 0 and (barW <= 0 or fromX <= barW)   -- 0: width unknown yet
+		if fromX and ind:IsShown() and changed and sameLayout and not ind.sliding then
 			rest(fromX, fromW or w)
-			Motion.Slide(ind, x - fromX, 0, Motion.BASE, function() rest(x, w) end)   -- 200 ms
+			ind.sliding = true
+			local started = Motion.Slide(ind, x - fromX, 0, Motion.BASE, function() ind.sliding = nil rest(x, w) end)   -- 200 ms
+			if not started then ind.sliding = nil end
 		else
+			if ind.sliding then Motion.Stop(ind) ind.sliding = nil end
 			rest(x, w)
 			local wasShown = ind:IsShown()
 			ind:Show()
