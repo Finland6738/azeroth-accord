@@ -48,6 +48,7 @@ local SAME = {
 	TL_LINE = true, ONT_OTHER = true, TRI_NOTE_LINE = true, EXPORT_ROSTER = true, EXPORT_CSV = true, EXPORT_DISCORD = true,
 	RECRUIT_DISCORD = true, RECRUIT_TANK_ONE = true, RECRUIT_HEALER_ONE = true,   -- "Discord", "tank", "healer" in Italian too
 	MEN_TOPIC_PVP = true, MEN_MAIN = true, MEN_NEW_LINE = true,   -- M12.5
+	SHOP_GUILD_ITEM = true, SHOP_TIMES = true, SHOP_PART = true, SHOP_PART_AGE = true, ORD_ITEM_OWNED = true,   -- M13.4: numbers only
 	COL_BATTLETAG = true,   -- "BattleTag" is Blizzard's word in Italian too
 	ADDONS_COL_NAME = true,   -- "Addon" in Italian too
 	ADDON_TITLE = true, WINDOW_TITLE = true, VIEW_ROSTER = true, COL_ADDON = true, ONLINE = true, FILTER_ONLINE = true, CARD_MAIN = true, CARD_ALT = true,

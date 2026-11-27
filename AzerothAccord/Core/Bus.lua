@@ -54,6 +54,11 @@
 --   WISHLIST_CHANGED(guid)                            Data/Wishlist.lua; a character's wishlist arrived or was written, M13.3.
 --   DEMAND_CHANGED()                                  Data/Demand.lua; the material demand may have changed (1 s after what
 --                                                     it is computed from), M13.3.
+--   INVENTORY_CHANGED(guid)                           Data/Inventory.lua; the bags, bank or mail of a character of this
+--                                                     account were read and changed, M13.4 (M17 listens too).
+--   PRICES_CHANGED()                                  Data/Prices.lua; Auctionator's price database changed, M13.4.
+--   SHOPPING_CHANGED()                                Data/Shopping.lua; the shopping list or what it is computed from
+--                                                     changed (0.2 s after), M13.4.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

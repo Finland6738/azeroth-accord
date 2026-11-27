@@ -150,6 +150,18 @@ local function fill(data, account, char)
 		data.sets.orders = data.orders
 		data.sets.wish = data.wish                   -- the wishlists (SPEC-17 §11)
 		account.reagents = data.reagents             -- invented materials, in the copy only
+		account.shopping = data.shopping             -- the shopping list and an invented inventory (M13.4), in the copy only
+		local C, inv = compat(), data.inventory
+		local function at(h) return h and state.enteredAt - h * 3600 or nil end
+		local me = C.Player.GUID()
+		if inv and me then
+			account.inventory = { [C.Player.RealmKey()] = {
+				[me] = { name = C.Player.FullName(), faction = C.Player.Faction(), bags = inv.me.bags, bank = inv.me.bank,
+					mail = inv.me.mail, bagsAt = at(inv.me.hoursAgo[1]), bankAt = at(inv.me.hoursAgo[2]), mailAt = at(inv.me.hoursAgo[3]) },
+				["Player-0-0000DE01"] = { name = inv.alt.name, faction = C.Player.Faction(), bags = inv.alt.bags, bank = inv.alt.bank,
+					bagsAt = at(inv.alt.hoursAgo[1]), bankAt = at(inv.alt.hoursAgo[2]) },
+			} }
+		end
 	end
 	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
 		data.sets.groups = data.groups.listings

@@ -72,8 +72,11 @@ Data\Trials.lua
 Data\Onboarding.lua
 Data\Mentors.lua
 Data\Reagents.lua
+Data\Inventory.lua
+Data\Prices.lua
 Data\Orders.lua
 Data\Wishlist.lua
+Data\Shopping.lua
 Data\Demand.lua
 Data\Digest.lua
 Data\GroupActivities.lua
@@ -124,6 +127,7 @@ UI\Market.lua
 UI\Orders.lua
 UI\Wishlist.lua
 UI\Demand.lua
+UI\Shopping.lua
 UI\Raid.lua
 UI\Season.lua
 UI\Recruit.lua

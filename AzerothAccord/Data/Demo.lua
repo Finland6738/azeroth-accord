@@ -533,6 +533,19 @@ function DemoData.Build(now)
 		D.reagents = {
 			[2663] = mats(2853, { 2840, 2 }),
 			[2330] = mats(118, { 2447, 1 }, { 765, 1 }, { 3371, 1 }),
+			-- the shopping list's (M13.4): a bolt of silk is an intermediate of the shirt
+			[3839] = mats(4305, { 4306, 4 }),
+			[3871] = mats(4334, { 4305, 3 }, { 2321, 1 }),
+			[3276] = mats(2581, { 2589, 2 }),
+		}
+
+		-- A shopping list of three recipes with an intermediate, and an invented inventory of two characters (SPEC-17 §11):
+		-- Core/Demo.lua puts them in the account copy only, under the connected character and one alt. No prices.
+		D.shopping = { list = { { recipe = 3871, n = 2, line = 197 }, { recipe = 3839, n = 2, line = 197 },
+			{ recipe = 3276, n = 10, line = 129 } }, breakdown = true }
+		D.inventory = {
+			me = { bags = { [4306] = 10, [2589] = 12, [2321] = 1 }, bank = { [4305] = 1 }, mail = {}, hoursAgo = { 0, 30, 2 } },
+			alt = { name = "Demo alt", bags = { [4306] = 6 }, bank = { [2589] = 4 }, hoursAgo = { 50, 120 } },
 		}
 
 		-- Three wishlists (SPEC-17 §11): the player's and two members'.

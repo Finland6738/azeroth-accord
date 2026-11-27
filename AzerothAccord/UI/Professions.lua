@@ -16,6 +16,8 @@
 --             recipe tooltip; the search box filters by name; the Category menu; the message when there is no list.
 -- With the switch "econ" (M13.2, SPEC-17 §3.5) Request craft opens the New order window (UI/Orders.lua), for members
 -- offline too, and a recipe of the catalogue says how many open orders ask for it.
+--   shopping  (M13.4, SPEC-17 §5.6, switch "econ") the player's shopping list, drawn by UI/Shopping.lua in its own frame;
+--             the catalogue's header has a "Shopping list" button and every recipe of it "Add to list".
 -- The header has a Back button (to the roster, the catalogue or the craft list, where the list was opened from), and in the
 -- recipe list and the catalogue a "Who can craft" button, in the craft list a "Guild recipes" button; the source and the
 -- age of the list are always in the header.
@@ -79,7 +81,8 @@ end
 local function syncSearchBox(self)
 	local box = searchBox()
 	if not box then return end
-	local text = self.mode == "craft" and self.craft.query or (self.mode == "catalogue" and self.cat.search) or self.model.search
+	local text = self.mode == "craft" and self.craft.query or (self.mode == "catalogue" and self.cat.search)
+		or (self.mode == "shopping" and (ns.ShoppingView and ns.ShoppingView.search or "")) or self.model.search
 	if (box:GetText() or "") ~= text then box:SetText(text) end
 end
 
@@ -88,8 +91,12 @@ function View:ResetScroll()
 	if self.frame and self.frame.table then self.frame.table.offset = 0 end
 end
 
+-- true while the shopping list can be shown (the switch "econ", M13.4).
+function View.ShoppingOn() return ns.ShoppingView ~= nil and ns.ShoppingView.Enabled() end
+
 function View:SetMode(mode)
-	if mode ~= "craft" and mode ~= "recipes" and mode ~= "catalogue" then return false end
+	if mode == "shopping" and not View.ShoppingOn() then return false end
+	if mode ~= "craft" and mode ~= "recipes" and mode ~= "catalogue" and mode ~= "shopping" then return false end
 	self.mode = mode
 	self:ResetScroll()
 	syncSearchBox(self)
@@ -170,7 +177,9 @@ end
 -- The text of the panel's search box changed.
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
-	if self.mode == "catalogue" then
+	if self.mode == "shopping" then
+		if ns.ShoppingView then ns.ShoppingView:SetSearch(text) end
+	elseif self.mode == "catalogue" then
 		if self.cat:SetSearch(text) then
 			self:ResetScroll()
 			self:Redraw()
@@ -247,6 +256,11 @@ local function build(self, f)
 	end })
 	head.cat:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.cat:Hide()
+	-- the shopping list (M13.4), next to "Who can craft" in the catalogue
+	head.shop = Widgets.Button(head, { text = L["SHOP_TITLE"], style = "tonal", dense = true, onClick = function() View:SetMode("shopping") end })
+	head.shop:SetPoint("LEFT", head.craft, "RIGHT", 8, 0)
+	head.shop:Hide()
+	Widgets.Tooltip.Attach(head.shop, { L["SHOP_TITLE"], L["SHOP_OPEN_TIP"] }, "BOTTOM")
 	Widgets.Tooltip.Attach(head.cat, function()
 		if View.mode == "recipes" then return { L["RV_ALL_MEMBERS"], L["RV_ALL_MEMBERS_TIP"] } end
 		return nil
@@ -304,6 +318,17 @@ local function build(self, f)
 	t:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	f.table = t
 	f.message = t.empty   -- the message in place of the rows
+end
+
+-- The frame of the shopping list (UI/Shopping.lua), made the first time it is shown.
+local function shopFrame(self)
+	local f = self.frame
+	if not f.shop then
+		f.shop = CreateFrame("Frame", nil, f)
+		f.shop:SetAllPoints(f)
+		ns.ShoppingView:Build(f.shop)
+	end
+	return f.shop
 end
 
 View.TIP_GAP = 12   -- points between the end of a name and its tooltip
@@ -438,6 +463,16 @@ function View.SetupRow(row)
 	row.request:SetPoint("RIGHT", row, "RIGHT", -8, 0)
 	row.request:Hide()
 	Widgets.Tooltip.Attach(row.request, function(b) return View.RequestTip(b:GetParent().data) end, "TOP")
+	-- "Add to list" on a recipe of the catalogue (M13.4, switch "econ"): one craft more in the shopping list
+	row.add = Widgets.Button(row, { text = L["SHOP_ADD_TO_LIST"], style = "tonal", width = 104, height = Widgets.HEIGHT.small,
+		onClick = function(b)
+			local d = b:GetParent().data
+			if d and ns.ShoppingView then ns.ShoppingView:Add(d.id, 1, View.cat.skillLine) end
+		end })
+	row.add:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.add:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+	row.add:Hide()
+	Widgets.Tooltip.Attach(row.add, { L["SHOP_ADD_TO_LIST"], L["SHOP_ADD_TO_LIST_TIP"] }, "TOP")
 	row:HookScript("OnEnter", function(self) View:ShowTooltip(self) end)
 	row:HookScript("OnLeave", function() Widgets.Tooltip.Hide() Widgets.Tooltip.HideItem() end)
 end
@@ -507,6 +542,7 @@ end
 
 -- The icon and the Request button, once the cells are filled.
 function View.UpdateRow(row, d)
+	row.add:SetShown(d.kind == "cat" and View.ShoppingOn())
 	if d.kind == "member" then
 		row.icon:Hide()
 		row.request:SetShown(canRequest(d.member.guid, d.member.online, d.member.isSelf))
@@ -638,10 +674,11 @@ local function redrawCatalogue(self)
 	f.head.craft:ClearAllPoints()
 	f.head.craft:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, 0)
 	f.head.craft:Show()
+	f.head.shop:SetShown(View.ShoppingOn())
 	f.bar.online:Hide()
 	local d = cat:Describe()
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 16, 0)
+	f.head.title:SetPoint("LEFT", View.ShoppingOn() and f.head.shop or f.head.craft, "RIGHT", 16, 0)
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.title:SetText(d.skillLine and L["CAT_TITLE_OF"]:format(d.profession) or L["CAT_TITLE"])
 	Theme.Text(f.head.title, "text-1")
@@ -678,7 +715,17 @@ function View:Redraw()
 	if self.mode == "recipes" and not self.model.guid then self.mode = "catalogue" end
 	-- the open orders of each recipe, said next to it in the catalogue (SPEC-17 §8)
 	self.orders = ordering() and self.mode == "catalogue" and ns.Orders:OpenByRecipe() or nil
-	if self.mode == "craft" then redrawCraft(self)
+	if self.mode == "shopping" and not View.ShoppingOn() then self.mode = "catalogue" end
+	local shopping = self.mode == "shopping"
+	f.head:SetShown(not shopping)
+	f.bar:SetShown(not shopping)
+	f.table:SetShown(not shopping)
+	if f.shop then f.shop:SetShown(shopping) end
+	if self.mode ~= "catalogue" then f.head.shop:Hide() end
+	if shopping then
+		shopFrame(self):Show()
+		ns.ShoppingView:Refresh()
+	elseif self.mode == "craft" then redrawCraft(self)
 	elseif self.mode == "catalogue" then redrawCatalogue(self)
 	else redrawRecipes(self) end
 	self.drawn = (self.drawn or 0) + 1

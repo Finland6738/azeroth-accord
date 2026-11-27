@@ -1102,6 +1102,100 @@ function Item.Request(itemID)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- Bags and bank (the inventory counts of M13.4, SPEC-17 §5.4): C_Container, with the old globals as the fallback
+---------------------------------------------------------------------------------------------------------------------
+local Container = {}
+Compat.Container = Container
+
+-- Enum.BagIndex of the Forever dump: Backpack 0, Bag_1..Bag_4 1-4, ReagentBag 5, Characterbanktab -2,
+-- CharacterBankTab_1..9 6-14, Accountbanktab -3, AccountBankTab_1..9 15-23. Which of them hold the bank on Forever is
+-- [verify] (SPEC-17 §13): the tabs first, the single container when no tab has slots.
+Container.BAGS = { 0, 1, 2, 3, 4, 5 }
+Container.BANK_TABS = { 6, 7, 8, 9, 10, 11, 12, 13, 14 }
+Container.BANK = -2
+Container.ACCOUNT_TABS = { 15, 16, 17, 18, 19, 20, 21, 22, 23 }
+Container.ACCOUNT = -3
+
+-- How many slots a bag has (0 when the client has no such bag).
+function Container.Slots(bag)
+	local v = first("C_Container.GetContainerNumSlots", bag)
+	if v == nil then v = first("GetContainerNumSlots", bag) end
+	return num(v) or 0
+end
+
+-- itemID, count of a slot, or nil when it is empty or unreadable.
+function Container.Item(bag, slot)
+	local v = first("C_Container.GetContainerItemInfo", bag, slot)
+	if type(v) == "table" and not IsSecret(v) then
+		local id, n = num(v.itemID), num(v.stackCount)
+		if id and n then return id, n end
+		return nil
+	end
+	local old = all("GetContainerItemInfo", bag, slot)   -- texture, count, locked, quality, readable, lootable, link, filtered, noValue, itemID
+	if old then
+		local id, n = num(old[10]), num(old[2])
+		if not id and str(old[7]) then id = tonumber(old[7]:match("item:(%d+)")) end
+		if id and n then return id, n end
+	end
+	return nil
+end
+
+-- { [itemID] = n } of some bags, and how many of them had slots.
+function Container.Count(bags, into)
+	local out, used = into or {}, 0
+	for _, bag in ipairs(bags) do
+		local slots = Container.Slots(bag)
+		if slots > 0 then
+			used = used + 1
+			for slot = 1, slots do
+				local id, n = Container.Item(bag, slot)
+				if id then out[id] = (out[id] or 0) + n end
+			end
+		end
+	end
+	return out, used
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- The mailbox (SPEC-17 §5.4; the globals are not described in the dump [verify], SPEC-10 R22)
+---------------------------------------------------------------------------------------------------------------------
+local Mail = {}
+Compat.Mail = Mail
+Mail.ATTACHMENTS = 16   -- ATTACHMENTS_MAX_RECEIVE when the client has none
+
+-- shown, total: the messages the inbox shows and the ones the server holds (total = shown when the client says one).
+function Mail.Count()
+	local v = all("GetInboxNumItems")
+	if not v then return 0, 0 end
+	local shown = num(v[1]) or 0
+	return shown, num(v[2]) or shown
+end
+
+-- { cod, daysLeft, hasItem } of a message, or nil.
+function Mail.Header(i)
+	local v = readable("GetInboxHeaderInfo", i)   -- packageIcon, stationeryIcon, sender, subject, money, CODAmount, daysLeft, hasItem...
+	if not v then return nil end
+	return { cod = num(v[6]) or 0, daysLeft = num(v[7]), hasItem = v[8] ~= nil and v[8] ~= false and v[8] ~= 0 }
+end
+
+-- itemID, count of an attachment, or nil.
+function Mail.Item(i, a)
+	local v = readable("GetInboxItem", i, a)   -- name, itemID, texture, count, quality, canUse
+	if not v then return nil end
+	local id, n = num(v[2]), num(v[4])
+	if not id then
+		local link = first("GetInboxItemLink", i, a)
+		id = str(link) and tonumber(link:match("item:(%d+)")) or nil
+	end
+	if id and n then return id, n end
+	return nil
+end
+
+function Mail.MaxAttachments()
+	return num(Resolve("ATTACHMENTS_MAX_RECEIVE")) or Mail.ATTACHMENTS
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Chat restrictions (SPEC-02 §5)
 ---------------------------------------------------------------------------------------------------------------------
 local Chat = {}
@@ -1672,6 +1766,9 @@ local CAPS = {
 	{ "tradeskill.GetRecipeInfo", "tradeskill", "C_TradeSkillUI.GetRecipeInfo" },
 	{ "tradeskill.GetCategoryInfo", "tradeskill", "C_TradeSkillUI.GetCategoryInfo", note = "[verify S4] not in the dump" },
 	{ "tradeskill.GetRecipeSchematic", "tradeskill", "C_TradeSkillUI.GetRecipeSchematic", note = "[verify] fields (SPEC-10 R21)" },
+	{ "inventory.GetContainerItemInfo", "inventory", "C_Container.GetContainerItemInfo", note = "bags and bank (SPEC-17 §5.4)" },
+	{ "inventory.GetInboxNumItems", "inventory", "GetInboxNumItems", note = "[verify] mail (SPEC-10 R22)" },
+	{ "inventory.GetInboxItem", "inventory", "GetInboxItem", note = "[verify] not described in the dump" },
 	{ "spell.GetSpellInfo", "spell", "C_Spell.GetSpellInfo" },
 	{ "spell.GetSpellLink", "spell", "C_Spell.GetSpellLink" },
 	{ "spell.RequestLoadSpellData", "spell", "C_Spell.RequestLoadSpellData" },

@@ -77,15 +77,31 @@ Un ordine che nessuno accetta scade dopo 14 giorni; uno con un giorno "entro", 7
 
 Nella vista **Mercato**, il chip *Desideri* raccoglie ciò che vorresti avere. Aggiungi un oggetto incollandone il link, scrivendone il numero o il nome di un oggetto che il tuo gioco conosce già; scegli quanti e per quanti giorni (14 se non dici altro, al massimo 30) e, se vuoi, una nota per tutta la lista. Puoi desiderare fino a 30 oggetti. **Tutta la gilda vede la tua lista**, e ogni voce sparisce da sola dopo i suoi giorni.
 
-Sotto la tua lista ci sono i desideri della gilda, per oggetto, con chi è online per primo. *Ne ho* apre la casella della chat con un sussurro già scritto ("Ciao! Ho Panno di lino per la tua lista dei desideri."): lo mandi **tu**. La lista non ha prezzi: non è una vendita.
+Sotto la tua lista ci sono i desideri della gilda, per oggetto, con chi è online per primo. *Ne ho* apre la casella della chat con un sussurro già scritto ("Ciao! Ho Panno di lino per la tua lista dei desideri."): lo mandi **tu**. La colonna *Tuoi* dice quanti ne hai (borse, banca, posta e alt, vedi la [lista della spesa](#la-lista-della-spesa)), così sai se puoi aiutare. La lista non ha prezzi: non è una vendita.
 
 ## La domanda di materiali
 
 > **In arrivo con la milestone M13, nascosta finché M13 non è completa.**
 
-Il chip *Domanda* somma i materiali che servono agli [ordini di crafting](#gli-ordini-di-crafting) aperti (richiesti, accettati o in lavorazione), una riga per materiale, con quanti ne mostrava la banca di gilda all'ultima visita. Passa su una riga per vedere quali ordini lo chiedono. Cambia da sola quando un ordine è pronto o chiuso.
+Il chip *Domanda* somma i materiali che servono agli [ordini di crafting](#gli-ordini-di-crafting) aperti (richiesti, accettati o in lavorazione), una riga per materiale, con quanti ne mostrava la banca di gilda all'ultima visita e quanti ne hai tu (*Tuoi*). Passa su una riga per vedere quali ordini lo chiedono. Cambia da sola quando un ordine è pronto o chiuso.
 
 L'addon chiede al gioco i materiali di una ricetta e non li inventa mai. Se una riga dice che alcuni materiali sono sconosciuti, apri una volta quella professione con un tuo personaggio. Gli obiettivi di gilda entreranno nella domanda quando arriveranno.
+
+## La lista della spesa
+
+> **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e quanto segue non è stato provato nel gioco.
+
+Nelle ricette della gilda, **Lista della spesa** apre la tua lista, e ogni ricetta ha **Alla lista** (una in più a ogni clic; non serve conoscere la ricetta). Nella pagina puoi aggiungere anche da una professione e dalle sue ricette (la casella di ricerca le filtra), scegliere **quante volte** creare ogni ricetta (da 1 a 999; una ricetta che dà più pezzi dice quanti ne escono), usare **-**, **+** e **Togli**, o **Svuota lista**. Fino a 50 ricette, di qualsiasi professione. La lista è del tuo computer: ogni personaggio vede la stessa.
+
+Accord somma i materiali che il gioco dà per quelle ricette, una riga per materiale: una barra **posseduti / necessari**, i numeri (`12 / 40`), quanti **mancano**, quanti ne mostrava la **banca di gilda** all'ultima visita e, se usi Auctionator, il **prezzo** d'asta. Prima i mancanti. Passa su una riga per vedere dove li hai, ognuno con la sua età: le tue borse, la tua banca, la tua posta e i tuoi **alt** dello stesso reame e fazione (come Accord li ha visti l'ultima volta su questo computer; un alt che non ha mai aperto la banca con Accord dice *mai letta*). La banca di gilda non si somma mai a ciò che possiedi.
+
+- **Scomponi i materiali intermedi**: un materiale che una ricetta crea (un rotolo di stoffa di seta) si sostituisce con ciò di cui è fatto, solo per la parte che non hai ancora. La riga del rotolo resta, attenuata, con "1 posseduti, 5 scomposti".
+- **Solo i mancanti**, **Conta gli alt** e **Conta la posta** cambiano ciò che si vede e si conta. La posta si legge quando apri la cassetta; il contrassegno non conta, e gli oggetti spediti a un alt contano quando quell'alt apre la cassetta.
+- La lista **si aggiorna mentre raccogli e compri**.
+- **Chiedi alla gilda** mette i materiali mancanti nella tua [lista dei desideri](#la-lista-dei-desideri), dopo una finestra che mostra esattamente che cosa vedrà la gilda.
+- **Chiedi alla banca** elenca i materiali mancanti che la banca di gilda mostra; **Richiedi** apre il modulo delle richieste della banca già compilato con l'oggetto, la quantità che ti manca (non oltre quanto mostra la banca) e il motivo "Lista della spesa: ...". Lo controlli e premi *Invia richiesta*, una richiesta per volta.
+
+Nulla della lista o dei tuoi conteggi lascia il tuo computer finché non premi uno di quei due pulsanti, e anche allora solo ciò che manca. Accord non compra, non spedisce e non sposta nulla. Se una riga dice che i materiali di alcune ricette sono sconosciuti, apri una volta quella professione con un personaggio di questo computer.
 
 ## Se manca qualcosa
 

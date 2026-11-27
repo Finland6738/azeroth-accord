@@ -251,7 +251,7 @@ describe("the demand (SPEC-17 §4.1)", function()
 		for _, line in ipairs(AzerothAccord.OrdersView.TipLines(O():Get(o.id))) do
 			if type(line) == "table" and line.text:find("Materials: ", 1, true) then found = line.text end
 		end
-		eq(found, "Materials: 2 × Peacebloom, 2 × Empty Vial")
+		eq(found, "Materials: 2 × Peacebloom (0/2), 2 × Empty Vial (0/2)", "with what the player owns (M13.4)")
 	end)
 end)
 

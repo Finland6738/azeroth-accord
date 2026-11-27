@@ -90,13 +90,17 @@ function View.StepText(row)
 	return L["ORD_STEP_" .. a.state:upper()]:format(escape(row.crafterName), ago(a.at))
 end
 
--- "Materials: 4 × Copper Bar, 2 × Linen Cloth" for `count` of a recipe, or nil while the game has not given them.
+-- "Materials: 4 × Copper Bar, 2 × Linen Cloth" for `count` of a recipe, or nil while the game has not given them. With
+-- the inventory (M13.4) each material says how many the player owns: "4 × Copper Bar (2/4)".
 function View.MaterialsText(recipe, count)
 	local mats = ns.Reagents and ns.Reagents:Ensure(recipe)
 	if not (mats and ns.Wishlist) then return nil end
 	local out = {}
+	local inv = ns.Inventory and ns.Inventory.Enabled() and ns.Inventory or nil
 	for i, slot in ipairs(mats.r) do
-		out[i] = L["ORD_ITEM"]:format(slot[2] * count, escape(ns.Wishlist.ItemName(slot[1])))
+		local need = slot[2] * count
+		out[i] = L["ORD_ITEM"]:format(need, escape(ns.Wishlist.ItemName(slot[1])))
+		if inv then out[i] = L["ORD_ITEM_OWNED"]:format(out[i], math.min(inv:Count(slot[1]).owned, need), need) end
 	end
 	return L["ORD_MATERIALS"]:format(table.concat(out, ", "))
 end
@@ -498,6 +502,15 @@ local function buildNew()
 	d.recipe = Widgets.Text(card, "BodyMedium", "text-1", "LEFT")
 	d.recipe:SetPoint("LEFT", d.icon, "RIGHT", 8, 0)
 	d.recipe:SetPoint("RIGHT", card, "RIGHT", -24, 0)
+	-- the materials with owned/needed (M13.4), in a tooltip over the recipe's line
+	d.recipeHit = CreateFrame("Frame", nil, card)
+	d.recipeHit:SetPoint("TOPLEFT", d.icon, "TOPLEFT", 0, 0)
+	d.recipeHit:SetPoint("BOTTOMRIGHT", d.recipe, "BOTTOMRIGHT", 0, 0)
+	d.recipeHit:EnableMouse(true)
+	Widgets.Tooltip.Attach(d.recipeHit, function()
+		local text = d.recipeId and View.MaterialsText(d.recipeId, tonumber(d.count:GetText()) or 1)
+		return text and { escape(O().RecipeName(d.recipeId)), { text = text, token = "text-2" } } or nil
+	end, "BOTTOM")
 	label("ORD_CRAFTER", 24, 90)
 	d.crafter = Widgets.Select(card, { width = w - 48, rows = 8, placeholder = L["ORD_CRAFTER"],
 		onSelect = function() paintCrafter(d) end })

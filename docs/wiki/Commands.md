@@ -10,6 +10,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord inbox` | Opens the **Action Center**, the list of what waits for you (see [[Action Center|Action-Center]]) *(M9.2, from `v0.9.0`)* |
 | `/accord groups` | Opens the **Groups** view, the guild's group finder (see [[Groups|Groups]]) *(M9.7, from `v0.9.0`)* |
 | `/accord market` | Opens the **Market** view with the craft orders, the wishlist and the material demand (see [[Professions and Recipes|Professions-and-Recipes]]) *(M13.2: hidden until M13 is complete, answers as an unknown command until then)* |
+| `/accord shopping` | Opens your **shopping list** in the Professions view (see [[Professions and Recipes|Professions-and-Recipes]]) *(M13.4: hidden until M13 is complete, answers as an unknown command until then)* |
 | `/accord addons` | Opens the **Guild addons** view: which addons the guild's members use (see [[Guild addons|Guild-Addons]]) *(M9.9, from `v0.9.0`)* |
 | `/accord season` | Opens the **Season** view: the season roster and your declaration (see [[Season roster|Season-Roster]]) *(M10.3, from `v0.10.0`)* |
 | `/accord recruit` | Opens the **recruitment text** to copy and post yourself, officers only (see [[Season roster|Season-Roster]]) *(M12.2, from `v0.12.0`)* |

@@ -70,6 +70,13 @@ local function renderItem(cell, row, frame)
 	end
 end
 
+-- How many of an item the player owns (bags, bank, mail and alts, SPEC-17 §5.4), "" for none.
+function View.YoursText(r)
+	local inv = ns.Inventory and ns.Inventory.Enabled() and ns.Inventory or nil
+	local n = inv and inv:Count(r.item).owned or 0
+	return n > 0 and tostring(n) or ""
+end
+
 local function columns()
 	local function col(id, key, opts)
 		opts.id, opts.title, opts.sortable = id, L[key], false
@@ -81,6 +88,9 @@ local function columns()
 		col("from", "DEMAND_COL_FROM", { flex = 1.2, text = View.FromText }),
 		col("bank", "DEMAND_COL_BANK", { flex = 1.2, text = View.BankText,
 			token = function(r) return r.bank and "text-2" or "text-3" end }),
+		-- what the player owns (M13.4, the inventory of this computer)
+		col("mine", "SHOP_COL_YOURS", { width = 80, mono = true, text = View.YoursText,
+			token = function() return "text-2" end }),
 	}
 end
 

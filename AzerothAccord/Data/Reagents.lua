@@ -12,6 +12,8 @@
 --   Reagents:Ensure(recipe)       the entry, asking the game when it is missing or of another build (a recipe it gave
 --                                 nothing for is asked again after RETRY seconds); nil when unknown
 --   Reagents:Queue(recipes)       reads many recipes, BATCH a second (the scan of an own profession)
+--   Reagents:Makers()             (M13.4) { byItem = { [item] = recipes making it }, lineOf = { [recipe] = skill line } }
+--   Reagents:MakerOf(item, line, makers)   (M13.4, SPEC-17 §5.3) the recipe that makes an intermediate, or nil
 -- Switch: Core/Features.lua "econ". Bus: REAGENTS_CHANGED(recipe) when an entry is new or changed.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -200,6 +202,49 @@ function Reagents:Queue(recipes)
 	end
 	if added > 0 and not state.running then step() end
 	return added
+end
+
+---------------------------------------------------------------------------------------------------------------------
+-- Intermediates (M13.4, SPEC-17 §5.3): which recipe makes an item
+---------------------------------------------------------------------------------------------------------------------
+-- { byItem = { [item] = { recipe, ... } }, lineOf = { [recipe] = skill line } } of the cache and the guild's catalogues,
+-- built once per computation (Shopping:Compute).
+function Reagents:Makers()
+	local byItem, lineOf = {}, {}
+	for recipe, e in pairs(cache(false) or {}) do
+		if type(e) == "table" and type(e.r) == "table" and int(e.out) then
+			local list = byItem[e.out] or {}
+			byItem[e.out] = list
+			list[#list + 1] = recipe
+		end
+	end
+	local RC = ns.RecipeCatalogue
+	for _, line in ipairs(RC and RC:Lines() or {}) do
+		local cat = RC:Get(line)
+		for _, id in ipairs(cat and cat.ids or {}) do if not lineOf[id] then lineOf[id] = line end end
+	end
+	return { byItem = byItem, lineOf = lineOf }
+end
+
+-- The recipe that makes `item`: one of the profession `line` first, then the others; with several, the one with the fewest
+-- different materials, then the lowest id (the same choice on every client). nil when no cached recipe makes it.
+function Reagents:MakerOf(item, line, makers)
+	makers = makers or self:Makers()
+	local best, bestKey
+	for _, recipe in ipairs(makers.byItem[item] or {}) do
+		local e = self:Get(recipe)
+		if e then
+			local key = { (line and makers.lineOf[recipe] == line) and 0 or 1, #e.r, recipe }
+			local better = not bestKey
+			if bestKey then
+				for i = 1, 3 do
+					if key[i] ~= bestKey[i] then better = key[i] < bestKey[i] break end
+				end
+			end
+			if better then best, bestKey = recipe, key end
+		end
+	end
+	return best
 end
 
 function Reagents:Reset() resetState() end

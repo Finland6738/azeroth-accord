@@ -48,6 +48,12 @@ A craft **order** you place (the recipe, how many, the crafter, who brings the m
 
 Your **wishlist** (the items, how many, until which day, whether an entry came from the shopping list, and your note) is sent to your guild, and everybody in the guild sees it. Entries expire by themselves, and an empty list is deleted 30 days after your last change. The material demand and the recipe materials stay on your computer and are never sent.
 
+## Shopping list and your counts
+
+> Coming with milestone M13, hidden until M13 is complete.
+
+Your **shopping list** and the **counts** of your bags, bank and mail (and those of your alts, read when each of them plays on this computer) stay **on this computer only**: they are never sent, never in a backup or an export, and *Clear guild data* leaves them. Only **Ask the guild** (the missing materials, into your wishlist) and **Ask the bank** (one bank request with a missing material) let anything out, and only what is missing. Auction prices are read from Auctionator, if you use it, when the page is drawn, and never saved or sent.
+
 ## Your addon list
 
 > From `v0.9.0`.

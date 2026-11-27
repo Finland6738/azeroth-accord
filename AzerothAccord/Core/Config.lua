@@ -103,6 +103,8 @@ Config.rules = {
 	["account.settings.shareAddons"] = { type = "boolean" },
 	["account.settings.shareAvailability"] = { type = "boolean" },
 	["account.reagents"] = { type = "table", optional = true },   -- the recipe materials the game gave (Data/Reagents.lua)
+	["account.inventory"] = { type = "table", optional = true },   -- bags, bank and mail of the account's characters (Data/Inventory.lua)
+	["account.shopping"] = { type = "table", optional = true },   -- the shopping list (Data/Shopping.lua)
 	["account.avail"] = { type = "table", optional = true },   -- the minutes online per hour of the week (Data/Availability.lua)
 	["account.settings.groupFilter"] = { type = "table", validate = function(v)
 		if v.fits ~= nil and type(v.fits) ~= "boolean" then return false end

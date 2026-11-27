@@ -14,6 +14,7 @@
 -- the item over stays manual (BANK-24), and so does paying a tip (BANK-26): the addon never moves items or gold.
 --
 -- Mode.ShowRequest(id, "inbox" | "requests") opens the view on one request (the Action Center, SPEC-13 §2.3).
+-- Mode.Prefill({ item, name, count, reason }) opens the form filled in (the shopping list's Ask the bank, SPEC-17 §5.8).
 --
 -- Mode.Choices, Mode.Resolve, Mode.BankLine, Mode.Submit, Mode.Rows, Mode.InboxRows and Mode.Act are plain functions
 -- (tested offline); the frames only draw and call them.
@@ -255,6 +256,26 @@ function Mode.ShowRequest(id, where)
 	end
 	if not (ns.Shell and ns.Shell:OpenView("bank")) then return false end
 	Mode.focus = id
+	View:Redraw()
+	return true
+end
+
+-- Opens the request form prefilled (the shopping list's "Ask the bank", SPEC-17 §5.8): a withdrawal of `item`, `count`
+-- (the caller gives min(missing, available)) and `reason`; the player checks it and presses Send. spec = { item, name,
+-- count, reason }. Returns true when the Bank view opened.
+function Mode.Prefill(spec)
+	if type(spec) ~= "table" or type(spec.item) ~= "number" then return false end
+	Mode.kind = "withdraw"
+	Mode.picked = { id = spec.item, text = spec.name or tostring(spec.item) }
+	Mode.prefill = { item = Mode.picked.text, amount = spec.count and tostring(spec.count) or "",
+		reason = ns.BankRequests.CleanText(spec.reason or ""):sub(1, ns.BankRequests.MAX_REASON) }
+	View.search = ""
+	local bar = ns.Shell and ns.Shell.content and ns.Shell.content.bar
+	if bar then bar.search:SetText("") end
+	Mode.onlyMine, Mode.showClosed = true, false
+	View.mode = "requests"
+	View.offset = 0
+	if not (ns.Shell and ns.Shell:OpenView("bank")) then return false end
 	View:Redraw()
 	return true
 end
@@ -592,6 +613,16 @@ end
 
 function mode.refresh(f)
 	Mode.noteText = function() return f.reason:GetText() end
+	local fill = Mode.prefill
+	if fill then   -- Ask the bank of the shopping list (Mode.Prefill)
+		Mode.prefill = nil
+		f.item:SetText(fill.item)
+		f.amount:SetText(fill.amount)
+		f.gift:SetText("")
+		f.reason:SetText(fill.reason)
+		f.status:SetText(L["BANKREQ_PREFILLED"])
+		Theme.Text(f.status, "text-2")
+	end
 	f.kinds:Select(Mode.kind)
 	f.tip:SetText(L["BANKREQ_TIP_" .. Mode.kind:upper()])
 	local withdraw = Mode.kind == "withdraw"

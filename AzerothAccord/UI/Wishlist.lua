@@ -160,6 +160,10 @@ local function guildColumns()
 			token = function(r) return r.online and "text-1" or "text-3" end }),
 		col("n", "WISH_COL_COUNT", { width = 80, mono = true, text = function(r) return tostring(r.n) end }),
 		col("left", "WISH_COL_UNTIL", { width = 96, text = untilText }),
+		-- what the player owns of it (M13.4): whether they can help
+		col("mine", "SHOP_COL_YOURS", { width = 72, mono = true, text = function(r)
+			return ns.DemandView and ns.DemandView.YoursText(r) or ""
+		end }),
 		col("action", nil, { width = 112, render = function(cell) cell:SetText("") end }),
 	}
 end

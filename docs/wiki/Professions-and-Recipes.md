@@ -77,15 +77,31 @@ An order nobody accepted expires after 14 days; one with a needed-by day, 7 days
 
 In the **Market** view, the *Wishlist* chip holds what you would like to get. Add an item by pasting its link, typing its number, or typing the name of an item your game already knows; choose how many and for how many days (14 unless you say otherwise, 30 at most), and a note for the whole list if you like. You can wish for up to 30 items. **The whole guild sees your list**, and each entry goes away by itself after its days.
 
-Below your list are the guild's wishes, by item, with who is online first. *I have some* opens the chat box with a whisper already typed ("Hi! I have Linen Cloth for your wishlist."): **you** send it. A wishlist has no price: it is not a sale.
+Below your list are the guild's wishes, by item, with who is online first. *I have some* opens the chat box with a whisper already typed ("Hi! I have Linen Cloth for your wishlist."): **you** send it. The *Yours* column says how many you own (bags, bank, mail and alts, see the [shopping list](#shopping-list)), so you know whether you can help. A wishlist has no price: it is not a sale.
 
 ## Material demand
 
 > **Coming with milestone M13, hidden until M13 is complete.**
 
-The *Demand* chip adds up the materials the open [craft orders](#craft-orders) need (requested, accepted or in progress), one row per material, with how many the guild bank showed at its last visit. Point at a row to see which orders ask for it. It changes by itself when an order is ready or closed.
+The *Demand* chip adds up the materials the open [craft orders](#craft-orders) need (requested, accepted or in progress), one row per material, with how many the guild bank showed at its last visit and how many you own (*Yours*). Point at a row to see which orders ask for it. It changes by itself when an order is ready or closed.
 
 The addon asks the game for a recipe's materials and never guesses them. If a line says some materials are unknown, open that profession once with any of your characters. Guild goals will join the demand when they arrive.
+
+## Shopping list
+
+> **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
+
+In the guild recipes, **Shopping list** opens your own list, and every recipe has **Add to list** (one more at each click; you do not need to know the recipe). On the page you can also add from a profession and its recipes (the search box filters them), choose **how many times** to craft each recipe (1 to 999; a recipe that makes several pieces says how many come out), use **-**, **+** and **Remove**, or **Clear list**. Up to 50 recipes, of any profession. The list belongs to your computer: every character on it sees the same list.
+
+Accord adds up the materials the game gives for those recipes, one row per material: a bar of **owned / needed**, the numbers (`12 / 40`), what is **missing**, how many the **guild bank** showed at its last visit, and the auction **price** if you use Auctionator. Missing materials come first. Point at a row to see where you have them, each with its age: your bags, your bank, your mail, and your **alts** on the same realm and faction (as Accord last saw them on this computer; an alt that never opened its bank with Accord says *never read*). The guild bank is never added to what you own.
+
+- **Break down intermediate materials**: a material that a recipe makes (a bolt of silk cloth) is replaced by what it is made of, only for the part you do not own yet. The bolt's row stays, dimmed, with "1 owned, 5 broken down".
+- **Missing only**, **Count alts** and **Count mail** change what is shown and counted. Mail is read when you open the mailbox; cash on delivery does not count, and items you mail to an alt count once that alt opens its mailbox.
+- The list **updates while you loot and buy**.
+- **Ask the guild** puts the missing materials in your [wishlist](#wishlist), after a window that shows exactly what the guild will see.
+- **Ask the bank** lists the missing materials the guild bank shows; **Request** opens the bank's request form already filled in with the item, the amount you miss (no more than the bank shows) and the reason "Shopping list: ...". You check it and press *Send request*, one request at a time.
+
+Nothing of the list or of your counts leaves your computer until you press one of those two buttons, and then only what is missing. Accord never buys, mails or moves anything. If a line says the materials of some recipes are unknown, open that profession once with any character of this computer.
 
 ## If something is missing
 

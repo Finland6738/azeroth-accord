@@ -47,6 +47,12 @@ Un **ordine** di crafting che fai (la ricetta, quanti, l'artigiano, chi porta i 
 
 La tua **lista dei desideri** (gli oggetti, quanti, fino a quale giorno, se una voce viene dalla lista della spesa, e la tua nota) va alla tua gilda, e la vede tutta la gilda. Le voci scadono da sole, e una lista vuota si cancella 30 giorni dopo l'ultima modifica. La domanda di materiali e i materiali delle ricette restano sul tuo computer e non si mandano mai.
 
+## Lista della spesa e i tuoi conteggi
+
+> In arrivo con la milestone M13, nascosta finché M13 non è completa.
+
+La tua **lista della spesa** e i **conteggi** di borse, banca e posta (e quelli dei tuoi alt, letti quando ognuno gioca su questo computer) restano **solo su questo computer**: non si mandano mai, non entrano in un backup né in un'esportazione, e *Cancella i dati della gilda* non li tocca. Solo **Chiedi alla gilda** (i materiali mancanti, nella tua lista dei desideri) e **Chiedi alla banca** (una richiesta alla banca con un materiale mancante) fanno uscire qualcosa, e solo ciò che manca. I prezzi d'asta si leggono da Auctionator, se lo usi, quando la pagina si disegna, e non si salvano né si mandano.
+
 ## L'elenco dei tuoi addon
 
 > Dalla `v0.9.0`.

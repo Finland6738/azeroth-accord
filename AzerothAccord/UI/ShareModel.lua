@@ -516,6 +516,12 @@ end
 Model.Add("wish", { set = "wish", feature = "econ", build = builders.wish, title = "SHARE_WISH",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_WISH" })
 
+-- the inventory counts and the shopping list (M13.4, SPEC-17 §11): listed to say that they stay on this computer
+Model.Add("inventory", { feature = "econ", title = "SHARE_INVENTORY", to = "SHARE_TO_LOCAL", when = "SHARE_WHEN_NEVER",
+	build = function() return { L["SHARE_INVENTORY_TEXT"] }, {} end })
+Model.Add("shopping", { feature = "econ", title = "SHARE_SHOPPING", to = "SHARE_TO_LOCAL", when = "SHARE_WHEN_NEVER",
+	build = function() return { L["SHARE_SHOPPING_TEXT"] }, {} end })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

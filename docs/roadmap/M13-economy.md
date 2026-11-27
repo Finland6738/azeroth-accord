@@ -47,7 +47,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
   - **Ask the guild** publishes the missing materials as the player's wishlist (M13.3); **Ask the bank** prefills a guild-bank request (M5, M8.7) with the missing materials only;
   - the list is private until one of those buttons; it updates while the player loots and buys.
 - Done when:
-  - [ ] Owned/needed is right for the bags, the bank and an alt; the breakdown switch changes the totals; the bank request holds only what is missing.
+  - [x] Owned/needed is right for the bags, the bank and an alt; the breakdown switch changes the totals; the bank request holds only what is missing.
 
 ### M13.5 — Buy and sell board
 - Branch: `step/m13-5-board`
