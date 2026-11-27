@@ -1,6 +1,6 @@
 # SPEC-16: Reclutamento, prove e mentori
 
-Specifica della milestone M12 ([roadmap](../roadmap/M12-recruitment.md)): il **testo di reclutamento**, costruito dalle mancanze del roster della season (M10, [SPEC-14](SPEC-14-calendar-raids-season.md)) e da una breve descrizione della gilda presa dal manuale (M11, [SPEC-15](SPEC-15-guild-handbook-loot.md)), da copiare a mano; le **prove** dei nuovi membri, seguite dagli ufficiali con note riservate e un promemoria alla fine; l'**accoglienza**, una lista di cose da fare per chi è appena entrato, che si spunta da sola; i **mentori**, un elenco di volontari, con le coppie suggerite agli ufficiali dal gioco di gruppo e dal grafo sociale. Ogni sezione dice il passo che la realizza (M12.2–M12.5; M12.6 è la prova e il rilascio `v0.12.0`). Le scelte che spettano al proprietario sono in [SPEC-10](SPEC-10-risks-open-questions.md) (Q34–Q38), con una proposta che il codice applica finché il proprietario non risponde. La decisione di architettura è [ADR 0026](../adr/0026-recruitment-copied-by-hand-trials-among-officers-mentors-opt-in.md).
+Specifica della milestone M12 ([roadmap](../roadmap/M12-recruitment.md)): il **testo di reclutamento**, costruito dalle mancanze del roster della season (M10, [SPEC-14](SPEC-14-calendar-raids-season.md)) e da una breve descrizione della gilda presa dal manuale (M11, [SPEC-15](SPEC-15-guild-handbook-loot.md)), da copiare a mano; le **prove** dei nuovi membri, seguite dagli ufficiali con note riservate e un promemoria alla fine; l'**accoglienza**, una lista di cose da fare per chi è appena entrato, che si spunta da sola; i **mentori**, un elenco di volontari, con le coppie suggerite agli ufficiali dal gioco di gruppo e dal grafo sociale. Ogni sezione dice il passo che la realizza (M12.2–M12.5; M12.9 è la prova e il rilascio `v0.12.0`). Le scelte che spettano al proprietario sono in [SPEC-10](SPEC-10-risks-open-questions.md) (Q34–Q38), con una proposta che il codice applica finché il proprietario non risponde. La decisione di architettura è [ADR 0026](../adr/0026-recruitment-copied-by-hand-trials-among-officers-mentors-opt-in.md).
 
 Nomi di codice, campi e testi dell'interfaccia in inglese (con la traduzione italiana in `itIT.lua`, [ADR 0015](../adr/0015-interface-and-documentation-languages.md)). Le ore dei record sono ore del server in secondi (`Compat.ServerTime()`); un **giorno** è il giorno UTC scritto `AAAAMMGG`, come in [SPEC-12](SPEC-12-officer-tools.md). Le lunghezze sono in **byte** UTF-8 (una lettera accentata italiana conta 2).
 
@@ -21,7 +21,7 @@ Valgono le regole di integrazione del proprietario ([SPEC-14 §1](SPEC-14-calend
 
 ### 2.1 L'interruttore `recruit`
 
-Tutto M12 è dietro un interruttore nuovo, **`recruit`**, in [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua), **spento** fino a M12.6. Spento: non si vede nulla di M12 (né il pulsante del testo di reclutamento, né la pagina *Trials*, né la carta dell'accoglienza, né la modalità *Mentors*), i comandi `/accord recruit` e `/accord welcome` rispondono come comandi sconosciuti, gli insiemi `trials` e `mentor` non si scrivono, non si accettano e non si mandano (`feature = "recruit"` nella definizione di `Net/Store.lua`), il fornitore `trials` del Centro azioni non c'è e nessun avviso parte.
+Tutto M12 è dietro un interruttore nuovo, **`recruit`**, in [`Core/Features.lua`](../../AzerothAccord/Core/Features.lua), **spento** fino a M12.9. Spento: non si vede nulla di M12 (né il pulsante del testo di reclutamento, né la pagina *Trials*, né la carta dell'accoglienza, né la modalità *Mentors*), i comandi `/accord recruit` e `/accord welcome` rispondono come comandi sconosciuti, gli insiemi `trials` e `mentor` non si scrivono, non si accettano e non si mandano (`feature = "recruit"` nella definizione di `Net/Store.lua`), il fornitore `trials` del Centro azioni non c'è e nessun avviso parte.
 
 `recruit` **non** accende altri interruttori (nessuna voce in `Features.IMPLIES`): ogni parte che usa M10 o M11 chiede il proprio interruttore e, se è spento, la parte manca e lo dice (le mancanze vogliono `season`, la descrizione `raid`, la riga del Centro azioni `actions`). Oggi sono tutti accesi. Come gli altri interruttori, i moduli chiedono `Features.On("recruit")` quando agiscono, mai una volta sola al caricamento. I test lo accendono e lo spengono (`Tests/test_features.lua` e i test di ogni passo, §9).
 
@@ -294,7 +294,7 @@ Stima per la gilda di 50 client di [SPEC-02 §4](SPEC-02-network-protocol.md#4-s
 
 ## 10. Cosa resta da verificare nel client
 
-Nella prova di M12.6 (`docs/checklists/M12.md`):
+Nella prova di M12.9 (`docs/checklists/M12.md`):
 
 - il criterio di uscita: un ufficiale copia un testo di reclutamento costruito dalle mancanze della season; un membro in prova compare nel Centro azioni quando la prova finisce; un nuovo membro vede la lista di benvenuto;
 - che la riga `chat` di 255 byte, con lettere accentate, entri intera nella casella della chat del gioco e in un canale, e il testo `discord` incollato in Discord;

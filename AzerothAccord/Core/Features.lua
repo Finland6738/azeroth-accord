@@ -26,7 +26,7 @@
 --          and `/accord welcome`, M12.4; the mentors, M12.5: the data set `mentor`, the Mentors mode of Reputation,
 --          the suggested pairs and the row of "What I share"). It turns on no other switch: each part asks `season`, `raid`
 --          or `actions` itself and says what is missing.
---          Off: nothing of it is shown, written, accepted or sent. Off until M12.6.
+--          Off: nothing of it is shown, written, accepted or sent. Off until M12.9.
 --   memberRecipes  one member's own recipe list in the Professions view (SPEC-06 §2.1). Off since 2026-11-27 (owner): a
 --          click on a member's profession shows the guild's recipes of that profession instead, and a crafter's row
 --          opens nothing. The code and its tests stay (the tests switch it on).

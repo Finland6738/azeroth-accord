@@ -3,6 +3,10 @@
 > Specifica del passo **M6.8**. Vale per M6.9 (media e font), M6.10 (tema), M6.11 (widget), M6.12 (finestra e schede),
 > M6.13 e M6.14 (viste), M6.15 (Info e crediti), M6.16 (anteprime). Decisione in
 > [ADR 0021](../adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md).
+>
+> **Dal 2026-11-27** la struttura (ruoli di colore, stati, forme, tipografia, misure dei componenti) segue le regole di
+> **Material 3** di [§9](#9-le-regole-di-material-3-adr-0027) ([ADR 0027](../adr/0027-material-3-rules-adapted-to-accord.md)):
+> dove §3 dice altro su misure e stati, vale §9.
 
 ## 0. Base e come si legge
 
@@ -354,3 +358,150 @@ disegnate nel nuovo aspetto, con gli strumenti di FDCP adattati (`tools/make_moc
 Restano disegni nel browser, **non screenshot**: ogni immagine lo dice nella striscia in basso. Quando il proprietario avrà gli
 screenshot veri, sostituiscono le anteprime vista per vista (ADR 0019, regola 6), e il controllo del rilascio
 ([`release.md`](../checklists/release.md), passo 7) confronta lo schermo con l'anteprima e con FDCP.
+
+## 9. Le regole di Material 3 (ADR 0027)
+
+Dal 2026-11-27 la **struttura** dell'interfaccia segue Material Design 3 ([m3.material.io](https://m3.material.io)),
+adattato a un addon usato con il mouse dentro il gioco ([ADR 0027](../adr/0027-material-3-rules-adapted-to-accord.md)).
+L'**aspetto** resta quello di FDCP (§0–§4: i tre temi, i loro valori, i font). Dove questa sezione e le precedenti dicono
+cose diverse su misure, stati, forme o componenti, vale **questa**. Le misure di M3 sono in dp; qui sono in **punti** del
+gioco. I valori di M3 citati sono stati letti sul sito il 2026-11-27 (ruoli di colore, stati, forme, tipografia, schede,
+pulsanti, chip, liste, dialog, menu, tooltip, badge, side sheet, pulsanti segmentati).
+
+### 9.1 Ruoli di colore
+
+Ogni parte di un widget usa un **ruolo**, mai un token scelto a occhio. Le coppie si usano solo come M3 le prevede: un
+colore *on-…* va sul suo contenitore, e la coppia rispetta 3:1 per gli elementi e 4,5:1 per il testo (§4.2).
+
+| Ruolo M3 | Token di Accord | Uso |
+|---|---|---|
+| surface | `bg` | fondo della finestra e del corpo delle viste |
+| surface container lowest / low | `bg` / `surface-1` | card piene, barra del titolo, side sheet |
+| surface container | `surface-2` | intestazioni di tabella, menu, campi |
+| surface container high | `surface-3` | contenitori annidati, tooltip ricchi |
+| surface container highest | `raised` | card piene in evidenza, binario dell'interruttore spento |
+| on surface | `text-1` | testo e icone principali |
+| on surface variant | `text-2` | testo secondario, etichette inattive delle schede, icone |
+| *(aggiunto da Accord)* | `text-3` | metadati e testo attenuato (ore, conteggi), mai per testo che si deve leggere per agire |
+| outline | `border-strong` | bordo dei campi e dei pulsanti contornati al passaggio |
+| outline variant | `border` (divisori: `border-subtle`) | bordo dei chip e dei pulsanti contornati, divisori, card contornate |
+| primary / on primary | `accent` / `on-accent` | pulsante pieno, indicatore della scheda, interruttore acceso, focus dei campi |
+| primary come testo | `accent-text` | etichetta della scheda attiva, colonna ordinata, pulsanti di testo, link |
+| secondary container / on secondary container | **nuovi**: `secondary-container` / `on-secondary-container` | chip filtro selezionati, segmento selezionato, pulsante tonale, riga selezionata |
+| tertiary | `accent-2` | accenti di complemento (gradiente del titolo con gli effetti) |
+| error / on error | `err` / **nuovo** `on-error` | errori, badge da azione (richieste della banca) |
+| inverse surface / inverse on surface | **nuovi**: `inverse-surface` / `inverse-on-surface` | tooltip semplici, snackbar |
+| scrim | `scrim` | velo dei dialog |
+
+I token nuovi hanno un valore per tema (Nebula, Aurora, Accord), scelto nel passo M12.6 e controllato da
+`Tests/test_theme.lua` con le regole di §4.2: `on-secondary-container` su `secondary-container` e `inverse-on-surface`
+su `inverse-surface` almeno 4,5:1, `secondary-container` distinguibile da `surface-1` (almeno 1,3:1, è un riempimento,
+non un bordo). `ok` e `warn` restano ruoli di Accord per gli stati, come oggi.
+
+### 9.2 Stati
+
+Uno **strato di stato** sta tra il contenitore e il contenuto, ha il **colore del contenuto** (il ruolo *on-…*, oppure
+il colore dell'etichetta o dell'icona se non c'è contenitore) e un'opacità fissa:
+
+| Stato | Opacità |
+|---|---|
+| passaggio del mouse | 8 % |
+| focus (tastiera, campo attivo) | 10 % |
+| pressione | 10 % |
+| trascinamento | 16 % |
+| disattivato | contenuto al 38 %, contenitore al 12 % di `text-1`, nessuno strato |
+
+Un solo strato per volta. Sostituisce gli strati **bianchi** all'8 % e al 12 % di M6.11 (`Widgets.HOVER`,
+`Widgets.PRESSED`): sul tema chiaro Aurora il bianco non si vedeva. La pressione resta anche come lieve rimpicciolimento
+(`Motion.Press`) se le animazioni sono accese.
+
+### 9.3 Forme
+
+La scala di M3: **0, 4, 8, 12, 16, 28, piena**. Ai media si aggiungono le fette mancanti (`rr_fill_4`, `rr_ring_4`,
+`rr_fill_16`, `rr_ring_16`, `rr_fill_28`, `rr_ring_28`); la "piena" è la pillola che c'è già.
+
+| Raggio | Componenti |
+|---|---|
+| 0 | tabelle (righe), divisori, barre |
+| 4 | menu, tooltip semplici, campi di testo, snackbar, riga selezionata |
+| 8 | chip, intestazione delle tabelle, piccoli contenitori |
+| 12 | card, finestra di Accord, tessere delle linguette nella finestra Gilda, tooltip ricchi |
+| 16 | side sheet (la scheda del membro) |
+| 28 | dialog |
+| piena | pulsanti, pulsanti segmentati, badge, interruttori, indicatore della scheda (in alto) |
+
+### 9.4 Tipografia
+
+I ruoli di M3, con i font di FDCP e, per testo e etichette, **un punto sotto** M3: è la misura del testo del gioco.
+
+| Ruolo M3 (misura M3) | Font di Accord | Misura in Accord | Uso |
+|---|---|---|---|
+| Headline small (24) | `Display` (Orbitron) | 22 | il titolo "AZEROTH ACCORD" |
+| Title large (22) | `H1` | 18 | titolo dei dialog e della scheda del membro |
+| Title medium (16, medio) | `H1` | 16 | titoli delle card |
+| Title small (14, medio) | `Tab`, `H2` | 14 | etichette delle schede, titoli delle sezioni |
+| Body large (16) | `Body` | 14 | testo lungo (manuale) |
+| Body medium (14) | `Body`, `BodyMedium` | 13 | testo e celle delle tabelle |
+| Body small (12) | `Small` | 11 | testo di aiuto, sottotitoli, tooltip |
+| Label large (14, medio) | `Button` | 13 | pulsanti, chip |
+| Label medium (12, medio) | `Eyebrow` | 11 | sopratitoli, intestazioni delle colonne |
+| Label small (11, medio) | `Th`, `MonoSmall` | 10 | badge, piccole etichette |
+
+Gli stili "enfatizzati" di M3 (più pesanti) servono solo per la scelta attiva: la scheda attiva, la riga selezionata,
+l'azione principale.
+
+### 9.5 Spaziatura, densità ed elevazione
+
+- **Griglia di 4 punti**: margini e spazi sono multipli di 4 (4, 8, 12, 16, 24). Margine della vista 16, spazio tra
+  card 12, padding delle card 16.
+- **Densità**: M3 toglie 4 punti per ogni gradino di densità. Accord usa il **gradino −2** per le tabelle, le barre degli
+  strumenti e i menu: controlli da 32 a 36 punti, righe di tabella da 32 a 36 (la riga di lista di M3 è di 56: troppo per
+  una gilda di 60 membri). L'area minima di clic è **32 punti**: i 48 di M3 sono per il dito.
+- **Elevazione tonale**: i livelli si fanno con i contenitori di superficie (§9.1), non con le ombre. L'**ombra** resta
+  solo per ciò che galleggia: la finestra di Accord, la scheda del membro, i menu, i dialog e i tooltip ricchi.
+
+### 9.6 Componenti
+
+| Componente | Misure (punti) | Colori e forma | Quando si usa |
+|---|---|---|---|
+| **Schede** (primarie) | alte 48; indicatore di 3 sotto l'etichetta, arrotondato in alto (3, 3, 0, 0), largo almeno 24 e rientrato di 2 per lato; divisore di 1 sotto la barra | etichetta attiva `accent-text`, inattive `text-2`; indicatore `accent`; divisore `border`; strato di stato sulla scheda; **nessun bagliore, nessun riempimento** | le viste di Accord (barra in alto) |
+| **Pulsante pieno** | alto 40 (36 nelle barre degli strumenti), padding 24 (16 con icona), etichetta Label large | `accent` / `on-accent`, forma piena; con gli effetti accesi il bagliore dell'accento | **una sola** azione principale per vista o dialog |
+| **Pulsante tonale** | come il pieno | `secondary-container` / `on-secondary-container` | azioni secondarie importanti (Esporta, Colonne) |
+| **Pulsante contornato** | come il pieno, bordo di 1 | bordo `border`, etichetta `text-2` | azioni alternative, "Annulla" |
+| **Pulsante di testo** | alto 40, padding 12 | etichetta `accent-text`, nessun contenitore | azioni minori nelle card e nei dialog |
+| **Pulsante icona** | 40 (32 denso), icona 20 | icona `text-2`, strato di stato rotondo | chiudi, mostra di più, cuore dei like |
+| **Chip filtro** | alto 32, padding 16 (8 con icona), icona 18, spazio 8 | spento: bordo `border`, etichetta `text-2`; acceso: `secondary-container`, nessun bordo, **spunta** a sinistra, etichetta `on-secondary-container`; raggio 8 | i filtri delle viste (Online, Solo main, Per account…) |
+| **Pulsanti segmentati** | alti 40 (32 densi), bordo 1, padding minimo 12, spazio 8 | segmento scelto `secondary-container` con spunta; forma piena | scelte esclusive da 2 a 5 voci (tema, font, modi di una vista) |
+| **Menu** (Select) | largo da 112 a 280, voce alta 48 (32 densa), padding 12 | `surface-2`, raggio 4, ombra | i menu a tendina (Tutte le classi…) |
+| **Campo di testo** | alto 40 (denso), raggio 4 | bordo `border`, al focus 2 punti `accent`; etichetta Body | ricerca, Discord, editor |
+| **Card** | padding 16, raggio 12 | piena `surface-1`, contornata `bg` + bordo `border`; ombra solo se galleggia | gruppi di contenuto |
+| **Tabella** (DataTable) | righe da 32 a 36, intestazione 32 | intestazione `surface-2` raggio 8, testo Label medium `text-3`; riga al passaggio: strato 8 % di `text-1`; riga scelta `secondary-container` | elenchi lunghi (roster, banca, registri) |
+| **Side sheet** (scheda del membro) | largo fino a 400 (oggi 340), padding 24 (16 denso), intestazione 72 | `surface-1`, raggio 16, ombra | il dettaglio di un elemento accanto alla lista |
+| **Dialog** | largo da 280 a 560, padding 24, spazio 8 tra i pulsanti | `surface-3`, raggio 28, `scrim` dietro; titolo Title large | conferme, scelte che bloccano |
+| **Tooltip semplice** | alto almeno 24, padding 8 | `inverse-surface` / `inverse-on-surface`, raggio 4, Body small | il nome di un'icona o un breve aiuto |
+| **Tooltip ricco** | padding 16, spazio 8 | `surface-3`, raggio 12, titolo e testo | spiegazioni con più righe |
+| **Badge** | piccolo: punto di 6; grande: alto 16, largo fino a 34, padding 4 | `err` / `on-error`, forma piena | cose da fare (richieste della banca, conteggi) |
+| **Interruttore** | binario 52 × 32, maniglia 16 spenta, 24 accesa | acceso: binario `accent`, maniglia `on-accent`; spento: binario `raised`, bordo 2 `border-strong` | impostazioni sì/no |
+| **Barra di avanzamento** (ThinBar) | binario 4 | `accent` su `surface-3` | caricamenti, timer |
+| **Snackbar** (toast) | raggio 4 | `inverse-surface` / `inverse-on-surface` | conferme brevi |
+| **Divisore** | 1 | `border-subtle` | separare righe e sezioni |
+
+### 9.7 Cosa non si prende da M3
+
+- I **colori dinamici** e la palette di base di M3: valgono i tre temi di §4.
+- **Roboto**: restano i font di FDCP (M3 permette un carattere del marchio).
+- Le aree di clic da 48 e le righe di lista da 56: Accord è denso (§9.5).
+- Le animazioni "a molla" di M3 Expressive: restano le dissolvenze brevi di `Motion` (100–250 ms), spente con le animazioni.
+- Il pulsante "elevato" e il FAB: Accord non li usa.
+
+### 9.8 Come si applica
+
+1. **M12.6, base**: i token nuovi in `UI/Theme.lua` per i tre temi (con i test di contrasto); gli strati di stato con
+   il colore del contenuto; le fette di forma 4, 16 e 28 (`tools/make_media.py`); i ruoli tipografici di §9.4.
+2. **M12.7, componenti**: `UI/Widgets/` secondo §9.6 (schede, pulsanti con i quattro tipi, chip filtro, segmentati,
+   menu, campi, card, tabella, side sheet, dialog, tooltip, badge, interruttore, snackbar); i test dei widget.
+3. **M12.8, viste**: ogni vista usa il componente giusto (un solo pulsante pieno, i filtri come chip, la riga scelta in
+   `secondary-container`), le anteprime di §8 e il wiki rifatti.
+
+Da questo momento ogni modifica grafica, anche una correzione, segue questa sezione. Una regola che il gioco non permette
+si annota qui, con il motivo.

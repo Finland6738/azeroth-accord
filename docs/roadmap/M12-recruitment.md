@@ -49,8 +49,39 @@
 - Done when:
   - [x] Only opted-in members are suggested; a member can leave the list at any time.
 
-### M12.6 — In-game check and release
-- Branch: `step/m12-6-check`
+### M12.6 — Material 3: the base
+- Branch: `step/m12-6-m3-base`
+- Spec: [ui-style §9](../specs/ui-style.md#9-le-regole-di-material-3-adr-0027); [ADR 0027](../adr/0027-material-3-rules-adapted-to-accord.md)
+- Scope:
+  - the new colour roles in `UI/Theme.lua` for the three themes: `secondary-container`, `on-secondary-container`, `inverse-surface`, `inverse-on-surface` and `on-error`, with their contrast tests;
+  - state layers in the content's colour (hover 8 %, focus and pressed 10 %, dragged 16 %, disabled 38 % / 12 %) in place of the white layers;
+  - the shape slices 4, 16 and 28 (`tools/make_media.py`) and the radius of each component;
+  - the type roles of ui-style §9.4.
+- Done when:
+  - [ ] Every theme passes the contrast rules for the new roles; a hovered button on Aurora shows a darker, not a whiter, layer.
+
+### M12.7 — Material 3: the components
+- Branch: `step/m12-7-m3-components`
+- Spec: ui-style §9.6
+- Scope: `UI/Widgets/` as ui-style §9.6 says:
+  - tabs (48 points, a 3-point rounded indicator, no glow and no fill);
+  - buttons (filled, tonal, outlined, text) and icon buttons;
+  - filter chips with a check mark, and segmented buttons;
+  - menus, text fields, cards, the table, the member card as a side sheet, dialogs, plain and rich tooltips, badges, the switch and the snackbar.
+- Done when:
+  - [ ] The widget tests check each component's measurements, roles and states as in ui-style §9.6.
+
+### M12.8 — Material 3: the views
+- Branch: `step/m12-8-m3-views`
+- Spec: ui-style §9
+- Scope:
+  - every view uses the right component: one filled button per view, filters as chips, the selected row in `secondary-container`;
+  - the design previews (ui-style §8), README images and the wiki pages (EN and IT) are redrawn.
+- Done when:
+  - [ ] No view uses a token or a size outside ui-style §9; the previews show the new look.
+
+### M12.9 — In-game check and release
+- Branch: `step/m12-9-check`
 - Scope: `docs/checklists/M12.md` and the README status. The owner releases `v0.12.0`.
 - Done when:
   - [ ] The checklist exists.

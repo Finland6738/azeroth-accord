@@ -65,6 +65,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- **Material 3 rules adapted to Accord** ([ADR 0027](docs/adr/0027-material-3-rules-adapted-to-accord.md), [ui-style §9](docs/specs/ui-style.md#9-le-regole-di-material-3-adr-0027)), asked by the owner on 2026-11-27. Google's Material Design 3 now sets the interface's structure; the look of FDCP stays (colours of the three themes, fonts):
+  - colour roles over Accord's tokens, plus five new ones (secondary container, inverse surface, on error);
+  - state layers in the content's colour (8 / 10 / 10 / 16 %);
+  - the shape scale 0/4/8/12/16/28/full;
+  - type roles, a 4-point grid and a denser variant for a mouse UI;
+  - each component's measurements: tabs, buttons, filter chips, menus, side sheet, dialogs, tooltips, badges, switch.
+
+  The M12 roadmap gains three steps that apply them (M12.6 base, M12.7 components, M12.8 views); the in-game check of M12 is now M12.9.
+
 - The owner accepted SPEC-10 Q39 as proposed (2026-11-26): while the availability maps are first exchanged and mentor offers change, up to 600 B/min per client on average and 2816 B/min for the busiest one; the other traffic limits do not change. SPEC-09, SPEC-10 and SPEC-16 say so; nothing changes in the addon.
 
 - The owner accepted SPEC-10 Q34-Q38 as proposed (2026-11-26):
