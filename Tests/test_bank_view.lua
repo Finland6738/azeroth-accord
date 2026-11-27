@@ -185,15 +185,32 @@ describe("the view", function()
 		open()
 		V():SetMode("items")
 		local f = V().modes.items.frame
-		local rows = shown(f.area.rows)
+		local rows = shown(f.table.rows)
 		eq(#rows, 3)
-		eq(rows[1].name:GetText(), "Linen Cloth"); eq(rows[1].total:GetText(), "60")
-		contains(rows[1].where:GetText(), "Consumables x20")
+		eq(rows[1].cells.item:GetText(), "Linen Cloth"); eq(rows[1].cells.total:GetText(), "60")
+		contains(rows[1].cells.where:GetText(), "Consumables x20")
 		AzerothAccord.Shell:OnSearch("sword")
-		eq(#shown(f.area.rows), 1)
-		eq(shown(f.area.rows)[1].name:GetText(), "Sword of the Bear")
+		eq(#shown(f.table.rows), 1)
+		eq(shown(f.table.rows)[1].cells.item:GetText(), "Sword of the Bear")
 		AzerothAccord.Shell:OnSearch("nothing here")
-		truthy(f.message:IsShown()); contains(f.message:GetText(), "No item or tab matches")
+		truthy(f.table.empty:IsShown()); contains(f.table.empty:GetText(), "No item or tab matches")
+	end)
+
+	it("the Items headers sort both ways and the order is remembered for the character (ui-style 9.9)", function()
+		open()
+		V():SetMode("items")
+		local t = V().modes.items.frame.table
+		local function names()
+			local out = {}
+			for _, r in ipairs(shown(t.rows)) do out[#out + 1] = r.cells.item:GetText() end
+			return out
+		end
+		deepEq(t.heads[1].col.id, "item")
+		t.heads[2]:Click()
+		deepEq(names(), { "Sword of the Bear", "Minor Healing Potion", "Linen Cloth" })
+		t.heads[2]:Click()
+		deepEq(names(), { "Linen Cloth", "Minor Healing Potion", "Sword of the Bear" })
+		deepEq(A().Config:Get("char.ui.tableSort")["bank.items"], { id = "total", desc = true })
 	end)
 
 	it("a search typed in the Tabs mode moves to the list", function()
@@ -209,11 +226,11 @@ describe("the view", function()
 		V():SetMode("items")
 		local f = V().modes.items.frame
 		local names = {}
-		for _, r in ipairs(shown(f.area.rows)) do names[#names + 1] = r.name:GetText() end
+		for _, r in ipairs(shown(f.table.rows)) do names[#names + 1] = r.cells.item:GetText() end
 		contains(table.concat(names, "|"), "loading")
 		Mock.Advance(2)
 		names = {}
-		for _, r in ipairs(shown(f.area.rows)) do names[#names + 1] = r.name:GetText() end
+		for _, r in ipairs(shown(f.table.rows)) do names[#names + 1] = r.cells.item:GetText() end
 		contains(table.concat(names, "|"), "Minor Healing Potion")
 	end)
 

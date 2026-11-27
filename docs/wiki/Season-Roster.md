@@ -20,7 +20,7 @@ Open it with its tab or `/accord season`.
 - **At the top**: the **source** of the season roster (*Accord* or *FDCP*), the season picker and **Open FDCP** while Finland Dragon Credit Points is loaded on your computer. The source is one choice for the whole guild: officers and the Guild Master change it with a click, everybody else sees it locked (see [[Raid and loot addons|Raid-and-Loot-Addons]]).
 - **Officers and the Guild Master** write a name and press **Open season**: the season starts today, and the season open until then is closed. **Close season** closes the current one without opening another. Nobody else opens or closes a season.
 - **Your declaration**: choose MS1 and its role, MS2 and OS (or *none*), write a note if you want, and press **Declare**; or press **Not sure yet**. A second click confirms, because the declaration holds for the season.
-- **The list**: every declaration of the chosen season, with class, MS1, MS2, OS and the note.
+- **The list**: a table of every declaration of the chosen season: name, class, MS1, MS2, OS and the note. Click a column title to sort it; the counts by role are a table too.
 
 ## Roles, gaps and who is missing
 

@@ -227,17 +227,18 @@ end
 
 local function columns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 		return opts
 	end
 	return {
-		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem }),
+		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem, value = function(r) return r.recipeName end }),
 		col("buyer", "ORD_COL_BUYER", { flex = 1, text = function(r) return escape(r.buyerName) end }),
 		col("crafter", "ORD_COL_CRAFTER", { flex = 1, text = function(r) return escape(r.crafterName) end }),
 		col("state", "ORD_COL_STATE", { flex = 1.2, text = View.StateText, token = View.StateToken }),
 		col("mats", "ORD_COL_MATS", { width = 80, text = function(r) return View.MatsText(r.mats) end }),
 		col("price", "ORD_COL_PRICE", { width = 80, mono = true, text = function(r) return escape(r.price or "") end }),
-		col("age", "ORD_COL_AGE", { width = 64, text = function(r) return ago(r.created) end }),
+		col("age", "ORD_COL_AGE", { width = 64, text = function(r) return ago(r.created) end,
+			value = function(r) return r.created and -r.created end }),
 		col("action", nil, { width = 112, render = function(cell) cell:SetText("") end }),
 	}
 end
@@ -426,7 +427,7 @@ function mode.build(f)
 	f.earlier.lines = {}
 	f.earlier:Hide()
 	buildBar(f)
-	f.table = Widgets.DataTable(f, columns(), { rowHeight = View.ROW_HEIGHT, pool = 20, maxPool = 60,
+	f.table = Widgets.DataTable(f, columns(), { rowHeight = View.ROW_HEIGHT, pool = 20, maxPool = 60, memory = "orders",
 		emptyText = L["ORD_EMPTY"], rowSetup = setupRow, rowUpdate = updateRow,
 		isSelected = function(d) return d.id == View.selected end,
 		onRowClick = function(d) View:Select(d.id) end })

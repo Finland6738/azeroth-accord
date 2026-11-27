@@ -102,15 +102,19 @@ def s_groups():
 
 @scene("reputation-someone-new", "Reputation, Someone new: guildmates online you have played with least; Whisper and Invite are your clicks")
 def s_new():
-    rows = ""
     data = [("Hollis", "SHAMAN", 60, 5, "Winterspring"), ("Quill", "WARLOCK", 60, 0, "Ironforge"), ("Orrin", "PALADIN", 59, 8, "Orgrimmar"), ("Wren", "HUNTER", 60, 12, "E. Plaguelands"),
             ("Zephyr", "DRUID", 60, 21, "Darnassus"), ("Ulric", "WARRIOR", 60, 27, "Burning Steppes")]
+    data.sort(key=lambda d: d[3])
+    rows = ""
     for n, c, lv, mins, z in data:
         together = T("NEW_NEVER") if mins == 0 else T("NEW_MINUTES", mins)
-        rows += (f'<tr><td style="width:190px">{badge(c)}{name(n, c)}</td><td class="muted">{esc(T("NEW_DETAIL", lv, z, together))}</td>'
+        rows += (f'<tr><td style="width:190px">{badge(c)}{name(n, c)}</td><td class="mono" style="width:60px;text-align:right">{lv}</td>'
+                 f'<td class="muted">{esc(z)}</td><td class="muted" style="width:120px">{esc(together)}</td>'
                  f'<td style="width:206px;text-align:right">{btn(T("NEW_WHISPER"), "outlined", small=True, extra="style=width:90px")} {btn(T("NEW_INVITE"), small=True, extra="style=width:90px")}</td></tr>')
+    head = (f'<th style="text-align:left">{esc(T("COL_NAME"))}</th><th style="text-align:right">{esc(T("COL_LEVEL"))}</th>'
+            f'<th style="text-align:left">{esc(T("COL_ZONE"))}</th><th class="sorted asc" style="text-align:left">{esc(T("NEW_COL_TOGETHER"))}</th><th></th>')
     body = (f'<div class="rel">{rep_modes(3)}<div class="muted small" style="margin:0 0 8px 2px">{esc(T("NEW_EXPLAIN", 5, 30))}</div>'
-            f'<table class="tbl tall"><tbody>{rows}</tbody></table></div>')
+            f'<table class="tbl tall"><thead><tr class="small muted">{head}</tr></thead><tbody>{rows}</tbody></table></div>')
     return full("reputation", body, peers=9)
 
 
@@ -304,9 +308,11 @@ def s_bank_requests_aurora():
 
 @scene("bank-inbox", "Bank, Inbox (officers): what waits for a decision, the counters, and a chat line per new request")
 def s_bank_inbox():
-    head = "".join(f'<th style="{style}">{esc(T(key))}</th>' for key, style in (
-        ("BANKREQ_COL_DATE", "width:150px;text-align:left"), ("BANKREQ_COL_WHO", "width:130px;text-align:left"), ("BANKREQ_COL_ITEM", "text-align:left"),
-        ("BANKREQ_COL_COUNT", "width:60px;text-align:right"), ("BANKREQ_COL_GIFT", "width:80px;text-align:right")))
+    head = "".join(f'<th class="{kind}" style="{style}">{esc(T(key))}</th>' for key, kind, style in (
+        ("BANKREQ_COL_DATE", "sorted asc", "width:130px;text-align:left"), ("BANKREQ_COL_WHO", "", "width:110px;text-align:left"),
+        ("BANKREQ_COL_ITEM", "", "text-align:left"), ("BANKREQ_COL_COUNT", "", "width:50px;text-align:right"),
+        ("BANKREQ_COL_GIFT", "", "width:70px;text-align:right"), ("BANKREQ_COL_STATUS", "", "width:80px;text-align:left"),
+        ("BANKREQ_COL_DETAIL", "", "text-align:left")))
     rows = ""
     waiting = [r for r in REQS if r[4] in ("open", "approved")]
     for n, c, kind, what, st, note, when in reversed(waiting):
@@ -320,13 +326,12 @@ def s_bank_inbox():
         gift = money(GIFTS[n]) if n in GIFTS else "-"
         rows += (f'<tr><td class="muted mono small">{esc(DATES[n])}</td><td>{badge(c)}{name(n, c)}</td><td>{esc(item)}</td>'
                  f'<td class="mono" style="text-align:right">{esc(qty)}</td><td class="mono gold" style="text-align:right">{esc(gift)}</td>'
-                 f'<td rowspan="2" style="width:230px;text-align:right">{acts}</td></tr>'
-                 f'<tr><td class="{STATUS_COLOR[st]} small">{esc(T("BANKREQ_STATUS_" + st.upper()))}</td><td colspan="4" class="{cls} small">{looks}</td></tr>')
-    sorts = tools(chip(T("BANKREQ_SORT_OLDEST"), "sel", True), chip(T("BANKREQ_SORT_NEWEST"), "", True), chip(T("BANKREQ_SORT_GIFT"), "", True))
+                 f'<td class="{STATUS_COLOR[st]} small">{esc(T("BANKREQ_STATUS_" + st.upper()))}</td><td class="{cls} small">{looks}</td>'
+                 f'<td style="width:200px;text-align:right">{acts}</td></tr>')
     chat = ('<div style="position:absolute;left:46px;bottom:74px;width:520px;padding:8px 10px;background:rgba(0,0,0,.62);border-radius:4px;font:13px/1.5 \'Segoe UI\',Arial,sans-serif;color:#fff;z-index:40">'
             f'<div><span style="color:#d4af37">{esc(T("ADDON_TITLE"))}</span> {esc(T("BANKNOTE_NEW", "Fenwick", "Thorium Bar x20"))}</div>'
             f'<div><span style="color:#d4af37">{esc(T("ADDON_TITLE"))}</span> {esc(T("BANKNOTE_NEW", "Lyra", "Runecloth x200"))}</div></div>')
-    body = (f'<div class="muted small" style="margin:0 0 8px 2px">{esc(T("BANKREQ_INBOX_EXPLAIN"))}</div>{sorts}'
+    body = (f'<div class="muted small" style="margin:0 0 8px 2px">{esc(T("BANKREQ_INBOX_EXPLAIN"))}</div>'
             f'<table class="tbl"><thead><tr class="small muted">{head}<th></th></tr></thead><tbody>{rows}</tbody></table>')
     return bank_frame(6, body, badge_n=3) + chat
 

@@ -24,7 +24,7 @@ The first card sets how Azeroth Accord looks. The choice is saved **per account*
 | Open Accord inside the guild window | on / off: off, the Accord tab of the guild window opens the larger Accord window in its place; on, Accord opens inside the guild window, which is smaller | off |
 | Font | **Accord's fonts** (Orbitron, Outfit, JetBrains Mono) or the **game font** | Accord's fonts |
 
-Hover a switch for a short explanation. A font the game has not loaded yet shows everywhere after `/reload` (the game reads new font files only then). Class colours and item colours are the game's own and do not change with the theme; on the light theme a player's name is dark and the small square next to it carries the class colour.
+Hover a switch for a short explanation. A font the game has not loaded yet shows everywhere after `/reload` (the game reads new font files only then). Class colours and item colours are the game's own and do not change with the theme; on the light theme a player's name is dark and the mark next to it (the role icon, or the small square) carries the class colour.
 
 ## Contacts shared with your guild
 

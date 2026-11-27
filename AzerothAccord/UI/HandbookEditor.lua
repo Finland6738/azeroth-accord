@@ -362,6 +362,25 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Revisions
 ---------------------------------------------------------------------------------------------------------------------
+local REVISION_TABLE = 35 + Editor.REVISION_ROWS * Editor.REVISION_ROW   -- the header and the rows
+
+local function revisionColumns()
+	local function token(r) return r.lost and "warn" or "text-1" end
+	return {
+		{ id = "rev", title = L["HANDBOOK_COL_REV"], width = 90, mono = true, value = function(r) return r.rev end,
+			text = function(r) return tostring(r.rev) end, token = token },
+		{ id = "author", title = L["HANDBOOK_COL_AUTHOR"], flex = 1, text = function(r) return book().NameOf(r.author) end,
+			token = token },
+		{ id = "date", title = L["HANDBOOK_COL_DATE"], width = 140, mono = true, value = function(r) return r.time or 0 end,
+			text = function(r) return date("%Y-%m-%d %H:%M", r.time or 0) end, token = token },
+		{ id = "size", title = L["HANDBOOK_COL_SIZE"], width = 80, align = "RIGHT", mono = true,
+			value = function(r) return #(r.body or "") end, text = function(r) return group(#(r.body or "")) end, token = token },
+		{ id = "state", title = L["HANDBOOK_COL_STATE"], width = 90, token = token, text = function(r)
+			if r.current then return L["HANDBOOK_REV_CURRENT"] end
+			return r.lost and L["HANDBOOK_REV_LOST"] or ""
+		end },
+	}
+end
 local function buildRevisions(f)
 	local p = CreateFrame("Frame", nil, f)
 	p:SetPoint("TOPLEFT", f.list, "TOPRIGHT", View.GAP, 0)
@@ -373,28 +392,22 @@ local function buildRevisions(f)
 	p.note = Widgets.Text(p, "Small", "text-3", "LEFT")
 	p.note:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -28)
 	p.note:SetText(L["HANDBOOK_REV_NOTE"])
-	p.rows = {}
-	for i = 1, Editor.REVISION_ROWS do
-		local b = CreateFrame("Button", nil, p)
-		local y = -46 - (i - 1) * Editor.REVISION_ROW
-		b:SetHeight(Editor.REVISION_ROW)
-		b:SetPoint("TOPLEFT", p, "TOPLEFT", 0, y)
-		b:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, y)
-		b.selected = Widgets.Selection(b)
-		Widgets.RowHover(b)
-		b.label = Widgets.Text(b, "Small", "text-1", "LEFT")
-		b.label:SetPoint("LEFT", b, "LEFT", 8, 0)
-		b.label:SetPoint("RIGHT", b, "RIGHT", -8, 0)
-		b.label:SetWordWrap(false)
-		b:SetScript("OnClick", function(self)
-			local r, v = self.revision, View.revisions
-			if not (r and v) then return end
+	p.table = Widgets.DataTable(p, revisionColumns(), { rowHeight = Editor.REVISION_ROW, pool = Editor.REVISION_ROWS,
+		maxPool = Editor.REVISION_ROWS + 4, memory = "handbook.revisions", sort = { id = "rev", desc = true },
+		isSelected = function(d)
+			local pick = View.revisions and View.revisions.pick
+			return pick ~= nil and (d == pick or (d.current and pick.current) == true)
+		end,
+		onRowClick = function(r)
+			local v = View.revisions
+			if not v then return end
 			v.rev, v.time, v.author, v.error = r.rev, r.time, r.author, nil
 			Editor:PaintRevisions()
-		end)
-		p.rows[i] = b
-	end
-	local top = -52 - Editor.REVISION_ROWS * Editor.REVISION_ROW
+		end })
+	p.table:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -46)
+	p.table:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, -46)
+	p.table:SetHeight(REVISION_TABLE)
+	local top = -52 - REVISION_TABLE
 	p.name = Widgets.Text(p, "H2", "text-1", "LEFT")
 	p.name:SetPoint("TOPLEFT", p, "TOPLEFT", 0, top)
 	p.name:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, top)
@@ -439,21 +452,7 @@ function Editor:PaintRevisions()
 	-- a past revision stays chosen, also once it is dismissed or another arrives
 	if not pick.current then v.rev, v.time, v.author = pick.rev, pick.time, pick.author end
 	p.title:SetText(L["HANDBOOK_REV_TITLE"]:format(list[1].title))
-	for i, b in ipairs(p.rows) do
-		local r = list[i]
-		b.revision = r
-		b:SetShown(r ~= nil)
-		if r then
-			local text = L["HANDBOOK_REV_ROW"]:format(r.rev, book().NameOf(r.author), date("%Y-%m-%d %H:%M", r.time or 0),
-				group(#(r.body or "")))
-			if r.current then text = text .. " · " .. L["HANDBOOK_REV_CURRENT"]
-			elseif r.lost then text = text .. " · " .. L["HANDBOOK_REV_LOST"] end
-			b.label:SetText(text)
-			local on = r == pick or (r.current and pick.current) == true
-			Theme.Text(b.label, on and "on-secondary-container" or r.lost and "warn" or "text-1")
-			b.selected:SetShown(on)
-		end
-	end
+	p.table:SetData(list, true)
 	p.name:SetText(pick.title)
 	preview(p.pane, pick.body or "")
 	p.status:SetText(v.error or "")
@@ -530,7 +529,7 @@ end
 -- The arrows of the chosen page, in the place of its mark.
 function Editor:Row(f, b, item, searching)
 	local show = not searching and not item.deleted and item.mark ~= "over" and item.id ~= nil
-		and item.id == View.selected and not View.revisions and writer()
+		and item.id == View.selected and not View.revisions and writer() and View:OwnOrder()
 	if show and not b.up then
 		b.up = arrow(b, "HANDBOOK_MOVE_UP", "arrow_up", -1)
 		b.down = arrow(b, "HANDBOOK_MOVE_DOWN", "arrow_down", 1)
@@ -638,6 +637,7 @@ local function hideAll(f)
 	f.reader:Hide()
 	f.empty:Hide()
 	f.markAll:Hide()
+	f.sort:Hide()
 	if f.newPage then f.newPage:Hide() f.writers:Hide() f.stale:Hide() f.seed:Hide() end
 	if f.revPanel then f.revPanel:Hide() end
 end

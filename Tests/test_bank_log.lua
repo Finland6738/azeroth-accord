@@ -372,7 +372,7 @@ describe("the log, donations and money modes", function()
 		Mock.Slash("/accord bank")
 		V():SetMode("log")
 		local f = V().modes.log.frame
-		local rows = shown(f.area.rows)
+		local rows = shown(f.table.rows)
 		eq(#rows, 3)
 		eq(rows[1].cells.name:GetText(), "Bob"); eq(rows[1].cells.kind:GetText(), "Deposit")
 		eq(rows[1].cells.detail:GetText(), "Linen Cloth x20"); eq(rows[1].cells.tab:GetText(), "Consumables")
@@ -380,7 +380,7 @@ describe("the log, donations and money modes", function()
 		eq(rows[2].cells.kind:GetText(), "Withdrawal"); eq(rows[2].cells.detail:GetText(), "Minor Healing Potion x3")
 		eq(rows[3].cells.tab:GetText(), "Money"); eq(rows[3].cells.detail:GetText(), "2g 50s")
 		A().Shell:OnSearch("potion")
-		eq(#shown(f.area.rows), 1)
+		eq(#shown(f.table.rows), 1)
 	end)
 
 	it("the donations list ranks accounts and the buttons change the window and the order", function()
@@ -388,13 +388,13 @@ describe("the log, donations and money modes", function()
 		Mock.Slash("/accord bank")
 		V():SetMode("donations")
 		local f = V().modes.donations.frame
-		local rows = shown(f.area.rows)
+		local rows = shown(f.table.rows)
 		eq(#rows, 1); eq(rows[1].cells.name:GetText(), "Bob"); eq(rows[1].cells.gold:GetText(), "2g 50s"); eq(rows[1].cells.items:GetText(), "20 items")
 		f.picks.window.buttons[3]:Click()
 		eq(f.picks.window.buttons[3].label:GetText(), "All time"); truthy(f.picks.window.buttons[3]:IsSelected())
 		isNil(f.picks.sort, "the order is the headers', not buttons (2026-11-27)")
 		local items
-		for _, b in ipairs(f.head.buttons) do if b.key == "items" then items = b end end
+		for _, b in ipairs(f.table.heads) do if b.col.id == "items" then items = b end end
 		items:Click()
 		eq(A().BankLogView.sort, "items")
 		truthy(items.arrow:IsShown(), "the sorted header has its arrow")
@@ -406,14 +406,14 @@ describe("the log, donations and money modes", function()
 		V():SetMode("log")
 		local f = V().modes.log.frame
 		local titles = {}
-		for i, b in ipairs(f.head.buttons) do titles[i] = b.label:GetText() end
+		for i, b in ipairs(f.table.heads) do titles[i] = b.label:GetText() end
 		deepEq(titles, { "WHEN", "TAB", "WHO", "WHAT", "ITEM OR AMOUNT" })
 		local who
-		for _, b in ipairs(f.head.buttons) do if b.key == "name" then who = b end end
+		for _, b in ipairs(f.table.heads) do if b.col.id == "name" then who = b end end
 		who:Click()
-		local first = shown(f.area.rows)[1].cells.name:GetText()
+		local first = shown(f.table.rows)[1].cells.name:GetText()
 		who:Click()
-		local again = shown(f.area.rows)[1].cells.name:GetText()
+		local again = shown(f.table.rows)[1].cells.name:GetText()
 		truthy(first <= again, "ascending, then descending")
 	end)
 
@@ -433,7 +433,7 @@ describe("the log, donations and money modes", function()
 		truthy(f.chart:IsShown())
 		contains(f.high:GetText(), "40s")
 		eq(#shown(f.chart.bars) > 0, true)
-		notNil(f.head, "the money log as a table under the chart")
+		notNil(f.table, "the money log as a table under the chart")
 		A().GuildKey:Data().bank.history = {}
 		V():Redraw()
 		truthy(f.chartMessage:IsShown())

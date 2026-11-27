@@ -26,6 +26,7 @@ View.NAME_WIDTH = 160           -- the name column carries the class mark and, g
 View.DEFAULT_WIDTH = 888        -- the width assumed before the frame has a size
 View.COUNT_WIDTH = 130          -- room kept for the count at the right of the first toolbar line
 View.INDENT = 14                -- an alt of an account is drawn this far in
+View.ROLE_ICON = 14          -- the role icon before a name (ui-style §9.10: 14 inside a text)
 View.ALL = "*"                  -- the id of "all" in the filter selects
 
 View.model = nil                -- the RosterModel in use (one per session)
@@ -206,6 +207,7 @@ local function rowTip(row)
 	local d = row.data
 	if not d then return nil end
 	local lines = { d.entry.name or "?" }
+	lines[#lines + 1] = Model.RoleLine(d.entry, View.season)
 	if d.kind == "group" then lines[#lines + 1] = L["ROW_TIP_GROUP"]:format(d.count) end
 	if d.entry.notInGuild and d.entry.altGuild then   -- the cell is narrow: the whole line, and where it comes from (M7.3)
 		lines[#lines + 1] = ns.Provenance.AltGuildText(d.entry.altGuild)
@@ -261,7 +263,16 @@ local function fillProfessionButtons(self, row, data)
 	end
 end
 
--- How far the name is pushed right: the +/- slot (when grouped) and the indent of an alt, then the class mark.
+-- The role icon in the class colour of the game; on the light theme a darker shade, so a white class still shows.
+local function paintRoleIcon(icon, themeId)
+	local r, g, b = classColor(icon.classFile)
+	local theme = ns.Theme.themes[themeId or ns.Theme.Current()]
+	local k = (theme and not theme.dark) and 0.7 or 1
+	icon:SetVertexColor(r * k, g * k, b * k, 1)
+end
+
+-- How far the name is pushed right: the +/- slot (when grouped) and the indent of an alt, then the mark (the role icon,
+-- or the class square of a member without a role).
 local function nameOffset(self, data)
 	local slot = self:Model().grouped and 18 or 0
 	return slot + (data.depth or 0) * View.INDENT
@@ -302,6 +313,11 @@ end
 
 local function rowSetup(row)
 	row.mark = Widgets.ClassMark(row, 10)
+	row.role = row:CreateTexture(nil, "ARTWORK")
+	row.role:SetTexture(ns.Assets.textures.icons.path)
+	row.role:SetSize(View.ROLE_ICON, View.ROLE_ICON)
+	row.role:Hide()
+	Theme.Call(row.role, paintRoleIcon)
 	row.expander = CreateFrame("Button", nil, row)
 	row.expander:SetSize(18, View.ROW_HEIGHT)
 	row.expander:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
@@ -334,10 +350,24 @@ local function rowUpdate(row, data)
 	else
 		row.expander:Hide()
 	end
-	-- the class mark: the game's colour for the class of the character
+	-- before the name, in the class colour of the game: the icon of the member's role (the public note, else the season
+	-- declaration), else the square of the class
+	local at = pos1.x + indent + (grouped and 18 or 0)
+	local role = Model.Role(e, self.season)
 	row.mark:ClearAllPoints()
-	row.mark:SetPoint("LEFT", row, "LEFT", pos1.x + indent + (grouped and 18 or 0), 0)
-	if e.classFile then Widgets.PaintClassMark(row.mark, classColor(e.classFile)) else Widgets.ClearClassMark(row.mark) end
+	row.mark:SetPoint("LEFT", row, "LEFT", at, 0)
+	row.role:ClearAllPoints()
+	row.role:SetPoint("LEFT", row, "LEFT", at - 2, 0)
+	if role then
+		Widgets.ClearClassMark(row.mark)
+		row.role:SetTexCoord(ns.Assets.IconCoords("role_" .. role))
+		row.role.classFile = e.classFile
+		paintRoleIcon(row.role)
+		row.role:Show()
+	else
+		row.role:Hide()
+		if e.classFile then Widgets.PaintClassMark(row.mark, classColor(e.classFile)) else Widgets.ClearClassMark(row.mark) end
+	end
 	fillProfessionButtons(self, row, data)
 end
 
@@ -415,6 +445,7 @@ function View:Redraw()
 	t:SetSortMark(model.sort.key, model.sort.desc)
 	local members = #model:Members()
 	t:SetEmptyText(members == 0 and L["ROSTER_EMPTY"] or L["ROSTER_NO_MATCH"])
+	self.season = Model.Season()
 	t:SetData(rows)
 	f.toolbar.count:SetText(L["ROSTER_COUNT"]:format(#rows, members))
 	self.drawn = (self.drawn or 0) + 1
@@ -468,6 +499,7 @@ if ns.addon then
 		end
 		ns.Bus:On("ROSTER_UPDATED", refresh)
 		ns.Bus:On("ACCOUNTS_UPDATED", refresh)
+		ns.Bus:On("SEASON_CHANGED", refresh)   -- the role of a member without one in the note
 		ns.Bus:On("ROLE_CHANGED", function()
 			local bar = View.frame and View.frame.toolbar
 			if not bar then return end

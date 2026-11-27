@@ -12,6 +12,7 @@ Open it with the **Handbook** tab or `/accord handbook`. `/accord handbook rules
 
 - **On the left**, the pages in the order the guild gave them. Click one to read it.
 - **On the right**, the page, with when it was last changed and by whom.
+- **Sort by**, over the list, orders the pages by the handbook's own order (the default), by title or by the last change; choose the same order again to reverse it.
 - **Links** in the text open another page, sometimes at one of its headings; **Back** returns to where you were. A grey link leads to a page that does not exist or is not published. A link to the season opens the [[Season|Season-Roster]] view.
 - **Web addresses**: click one to get it in a box, then press Ctrl+C. The game cannot open a browser.
 - **Search**: type at least 2 characters in the search box at the top right. Titles and lines of the pages are searched, ignoring capitals and accents; click a result to open the page at that line.
@@ -31,7 +32,7 @@ What you have read stays on your computer, shared by your characters: nobody els
 Writers are the Guild Master, the officers and the ranks the officers choose. Only they see the buttons below. They also see the pages that are still **templates** (members do not) and any page **Over the limit** of 20.
 
 - **New page** (under the list) and **Edit** (under the page) open the editor. It does not open in combat.
-- Choose the selected page's place in the list with the **arrows** next to it.
+- Choose the selected page's place in the list with the **arrows** next to it (they show while the list is in the page order).
 - **Delete** removes a page for the whole guild; a second click, **Confirm**, does it.
 - **Writers** (officers only) chooses the ranks that write besides the officers. If the guild renames or moves a chosen rank, choose it again: the view says so.
 
@@ -64,6 +65,6 @@ Type the `|` as it is: it is saved as `¦`. Item links, icons and colours are re
 
 ### Revisions
 
-**Revisions** lists the versions **this computer has seen** (the current one and the last 5): older ones are never sent between players. Click one to read it; **Restore** writes it as a new revision, for everybody. A deleted page is under **Deleted pages** at the bottom of the list, where you can restore it the same way.
+**Revisions** lists the versions **this computer has seen** (the current one and the last 5): older ones are never sent between players. They are a table (revision, author, date, size, state), sortable by its titles. Click one to read it; **Restore** writes it as a new revision, for everybody. A deleted page is under **Deleted pages** at the bottom of the list, where you can restore it the same way.
 
 If two writers save the same revision at once, the later one stays. Only the writer whose text was replaced is told, by a notice and an [[Action Center|Action-Center]] line that opens that text: **Restore** it or **Dismiss** the line.

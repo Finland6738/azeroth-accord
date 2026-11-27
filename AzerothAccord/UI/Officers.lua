@@ -334,18 +334,25 @@ end
 
 local function inactiveColumns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, L[key], false
+		opts.id, opts.title = id, L[key]
 		opts.text = function(a) return View.InactiveText(a, id) end
 		return opts
 	end
 	return {
-		col("name", "COL_INA_MAIN", { flex = 2 }),
-		col("chars", "COL_INA_CHARS", { width = 50, align = "RIGHT", mono = true }),
-		col("rank", "COL_INA_RANK", { flex = 1 }),
-		col("days", "COL_INA_DAYS", { width = 48, align = "RIGHT", mono = true }),
-		col("tier", "COL_INA_TIER", { width = 80 }),
-		col("last", "COL_INA_LAST", { flex = 2 }),
-		col("away", "COL_INA_AWAY", { flex = 1.5 }),
+		col("name", "COL_INA_MAIN", { flex = 2, value = function(a) return a.name end }),
+		col("chars", "COL_INA_CHARS", { width = 50, align = "RIGHT", mono = true, value = function(a) return #a.chars end }),
+		col("rank", "COL_INA_RANK", { flex = 1, value = function(a) return a.rankIndex or a.rankName end }),
+		col("days", "COL_INA_DAYS", { width = 48, align = "RIGHT", mono = true, value = function(a) return a.days end }),
+		col("tier", "COL_INA_TIER", { width = 80, value = function(a) return not a.away and a.tier or nil end }),
+		-- by how long ago: the ones seen now first
+		col("last", "COL_INA_LAST", { flex = 2, value = function(a)
+			if a.unknown then return nil end
+			if a.online then return 0 end
+			return a.last and now() - a.last
+		end }),
+		col("away", "COL_INA_AWAY", { flex = 1.5, value = function(a)
+			return (a.away or a.back) and a.absence and a.absence.day or nil
+		end }),
 	}
 end
 
@@ -376,6 +383,7 @@ local function buildInactive(f, self)
 	f.unknown = toggle("unknown", L["INA_SHOW_UNKNOWN"])
 	f.unknown:SetPoint("LEFT", f.away, "RIGHT", 6, 0)
 	f.table = Widgets.DataTable(f, inactiveColumns(), { emptyText = L["INA_EMPTY"], onRowClick = rowMenu,
+		memory = "officers.inactive",
 		rowSetup = function(row)
 			Widgets.Tooltip.Attach(row, function(r) return r.data and View.InactiveTip(r.data) or nil end, "LEFT")
 		end })
@@ -406,11 +414,12 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function timelineColumns()
 	local function col(id, key, opts, text)
-		opts.id, opts.title, opts.sortable, opts.text = id, L[key], false, text
+		opts.id, opts.title, opts.text = id, L[key], text
 		return opts
 	end
 	return {
-		col("when", "COL_TL_WHEN", { flex = 1.5, mono = true }, function(r) return ns.Timeline.WhenText(r.ev) end),
+		col("when", "COL_TL_WHEN", { flex = 1.5, mono = true, value = function(r) return r.ev.b end },
+			function(r) return ns.Timeline.WhenText(r.ev) end),
 		col("name", "COL_TL_NAME", { flex = 1 }, function(r) return escape(r.name) end),
 		col("event", "COL_TL_EVENT", { flex = 2.5 }, function(r) return ns.Timeline.WhatText(r.ev) end),
 	}
@@ -438,7 +447,7 @@ local function buildTimeline(f, self)
 	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true,
 		onClick = function() self:OpenExport("timeline") end })
 	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -View.FILTER_HEIGHT)
-	f.table = Widgets.DataTable(f, timelineColumns(), { emptyText = L["TLP_EMPTY"],
+	f.table = Widgets.DataTable(f, timelineColumns(), { emptyText = L["TLP_EMPTY"], memory = "officers.timeline",
 		rowSetup = function(row)
 			Widgets.Tooltip.Attach(row, function(r)
 				return r.data and ns.TimelineCard and ns.TimelineCard.TipOf(r.data.ev) or nil

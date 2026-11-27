@@ -136,17 +136,20 @@ local function renderItem(list)
 end
 
 local function col(id, key, opts)
-	opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+	opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 	return opts
 end
 
 local function untilText(r) return View.LeftText(r.left) end
+local function itemName(r) return r.itemName end
+local function count(r) return r.n end
+local function left(r) return r.left end
 
 local function ownColumns()
 	return {
-		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem("own") }),
-		col("n", "WISH_COL_COUNT", { width = 80, mono = true, text = function(r) return tostring(r.n) end }),
-		col("left", "WISH_COL_UNTIL", { width = 96, text = untilText }),
+		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem("own"), value = itemName }),
+		col("n", "WISH_COL_COUNT", { width = 80, mono = true, text = function(r) return tostring(r.n) end, value = count }),
+		col("left", "WISH_COL_UNTIL", { width = 96, text = untilText, value = left }),
 		col("source", nil, { flex = 1, text = function(r) return r.source == "sl" and L["WISH_FROM_LIST"] or "" end,
 			token = function() return "text-3" end }),
 		col("action", nil, { width = 112, render = function(cell) cell:SetText("") end }),
@@ -155,11 +158,11 @@ end
 
 local function guildColumns()
 	return {
-		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem("guild") }),
+		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem("guild"), value = itemName }),
 		col("who", "WISH_COL_WHO", { flex = 1, text = function(r) return escape(r.name) end,
 			token = function(r) return r.online and "text-1" or "text-3" end }),
-		col("n", "WISH_COL_COUNT", { width = 80, mono = true, text = function(r) return tostring(r.n) end }),
-		col("left", "WISH_COL_UNTIL", { width = 96, text = untilText }),
+		col("n", "WISH_COL_COUNT", { width = 80, mono = true, text = function(r) return tostring(r.n) end, value = count }),
+		col("left", "WISH_COL_UNTIL", { width = 96, text = untilText, value = left }),
 		-- what the player owns of it (M13.4): whether they can help
 		col("mine", "SHOP_COL_YOURS", { width = 72, mono = true, text = function(r)
 			return ns.DemandView and ns.DemandView.YoursText(r) or ""
@@ -223,7 +226,7 @@ function mode.build(f)
 	f.status:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.status:SetWordWrap(false)
 	label(f, "WISH_MINE", 60)
-	f.own = Widgets.DataTable(f, ownColumns(), { rowHeight = View.ROW_HEIGHT, pool = 6, maxPool = 30,
+	f.own = Widgets.DataTable(f, ownColumns(), { rowHeight = View.ROW_HEIGHT, pool = 6, maxPool = 30, memory = "market.wishes",
 		emptyText = L["WISH_MINE_EMPTY"],
 		rowSetup = setup("WISH_REMOVE", "text", function(d) View:Remove(d.item) end),
 		rowUpdate = function(row, d) setIcon(row, d, "own") end })
@@ -236,6 +239,7 @@ function mode.build(f)
 	f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -y)
 	label(f, "WISH_GUILD", y + 44)
 	f.guild = Widgets.DataTable(f, guildColumns(), { rowHeight = View.ROW_HEIGHT, pool = 14, maxPool = 60,
+		memory = "market.guildwishes",
 		emptyText = L["WISH_GUILD_EMPTY"],
 		rowSetup = setup("WISH_HAVE", "tonal", function(d) View:Offer(d) end, View.Tip),
 		rowUpdate = function(row, d)

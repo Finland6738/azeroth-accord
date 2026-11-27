@@ -26,7 +26,8 @@
 | Area | Cosa offre |
 |---|---|
 | **Scheda Accord** | Una quinta tab sotto Chat, Membri, Vantaggi e Info; lo stesso pannello si apre anche in una finestra a parte (`/accord`) |
-| **Roster esteso** | Tabella ordinabile e filtrabile: livello, classe, grado, zona, ultimo accesso, professione 1 e 2, like, indice sociale, contatti |
+| **Roster esteso** | Tabella ordinabile e filtrabile: livello, classe, grado, zona, ultimo accesso, professione 1 e 2, like, indice sociale, contatti; prima di ogni nome l'icona del ruolo (tank, danni, guaritore, dalla nota pubblica o dalla dichiarazione della season) nel colore della classe |
+| **Elenchi ordinabili** *(dalla `v0.13.0`)* | Ogni elenco a colonne è una tabella che si ordina con un clic sui titoli, gli elenchi senza colonne hanno un menu *Ordina per*, e ogni elenco ricorda il proprio ordine per ogni personaggio |
 | **Alt** | Clic su un personaggio: tutti i personaggi dello stesso account Battle.net sul reame, senza chiedere |
 | **Contatti** | BattleTag e Discord di ogni membro con l'addon, copia con un clic, richiesta d'amicizia BattleTag nativa |
 | **Professioni** | Ricette della gilda: tutte le ricette di una professione, il livello richiesto e chi nella gilda può crearle; clic sulla professione di un membro: le sue ricette, imparate e mancanti; ricerca "chi sa fare…"; richiesta di crafting |

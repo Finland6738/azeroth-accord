@@ -4,7 +4,8 @@
 --     cliques), the active accounts and the communities;
 --   * a simple drawing (a card): each community a circle of dots in a colour of the theme (one per player, the name on hover, a click opens the
 --     card), larger circles for larger communities;
---   * the list of communities: their players (by time together), minutes inside and minutes with the rest of the guild.
+--   * the table of the communities (ui-style §9.9): their players (by time together), minutes inside and minutes with
+--     the rest of the guild.
 -- View.Lines(map) is a plain function (tested offline); the frames only draw it.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -27,7 +28,7 @@ local function nameOf(key)
 	return key
 end
 
--- The summary and list lines of a map: { { text, heading, muted } }.
+-- The summary lines of a map, then one row of the table per community: { { text, heading, muted, table, cells } }.
 function View.Lines(map)
 	local out = {}
 	if not map then
@@ -44,8 +45,10 @@ function View.Lines(map)
 		end
 		local more = #c.members - #names
 		local who = table.concat(names, ", ") .. (more > 0 and L["MAP_MORE"]:format(more) or "")
-		out[#out + 1] = { text = L["MAP_GROUP"]:format(i, #c.members, who), community = i }
-		out[#out + 1] = { text = L["MAP_GROUP_TIME"]:format(hours(c.inside), hours(c.outside)), muted = true }
+		out[#out + 1] = { table = "groups", text = L["MAP_GROUP"]:format(i, #c.members, who), community = i,
+			cells = { n = tostring(i), size = tostring(#c.members), who = who, inside = hours(c.inside),
+				outside = hours(c.outside) },
+			keys = { inside = c.inside, outside = c.outside } }
 	end
 	return out
 end
@@ -67,14 +70,25 @@ function mode.build(f)
 	f.canvas:SetHeight(220)
 	f.canvas.parts = Theme.Panel(f.canvas, { radius = "medium", fill = "surface-1", border = false, highlight = true })
 	f.canvas.dots, f.canvas.labels = {}, {}
-	f.list = CreateFrame("Frame", nil, f)
+	f.list = Widgets.Sheet(f, { rowHeight = View.ROW_HEIGHT, defaultRows = 16,
+		paint = function(fs, l)
+			fs:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
+			Theme.Text(fs, l.heading and "text-1" or l.muted and "text-3" or "text-2")
+		end,
+		tables = { groups = {
+			columns = {
+				-- the number of the community, in its colour of the drawing
+				{ id = "n", title = "#", width = 40, align = "RIGHT", mono = true,
+					token = function(l) return tokenOf(l.community) end },
+				{ id = "size", title = L["MAP_COL_PLAYERS"], width = 80, align = "RIGHT", mono = true },
+				{ id = "who", title = L["MAP_COL_WHO"], flex = 1 },
+				{ id = "inside", title = L["MAP_COL_INSIDE"], width = 110, align = "RIGHT", mono = true },
+				{ id = "outside", title = L["MAP_COL_OUTSIDE"], width = 110, align = "RIGHT", mono = true },
+			},
+			memory = "reputation.groups",
+		} } })
 	f.list:SetPoint("TOPLEFT", f.canvas, "BOTTOMLEFT", 4, -10)
 	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -4, 0)
-	f.list:SetClipsChildren(true)
-	f.list:EnableMouseWheel(true)
-	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * 3) end)
-	f.list.lines = {}
-	f.offset = 0
 end
 
 local function dot(canvas, i)
@@ -130,32 +144,9 @@ function View:Draw(f, map)
 	for i = n + 1, #canvas.dots do canvas.dots[i]:Hide() end
 	for i = #layout.circles + 1, #canvas.labels do canvas.labels[i]:Hide() end
 	self.dotsShown = n
-	-- the list
 	local lines = View.Lines(map)
 	self.shown = lines
-	local list = f.list
-	local h = list:GetHeight() or 0
-	local visible = h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 16
-	f.offset = max(0, min(f.offset or 0, max(0, #lines - visible)))
-	local drawn = max(0, min(visible, #lines - f.offset))
-	for i = 1, drawn do
-		local l = lines[f.offset + i]
-		local fs = list.lines[i]
-		if not fs then
-			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
-			list.lines[i] = fs
-		end
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", list, "TOPLEFT", l.muted and l.community == nil and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
-		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
-		fs:SetText(l.text)
-		fs:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
-		if l.heading then Theme.Text(fs, "text-1")
-		elseif l.community then Theme.Text(fs, tokenOf(l.community))
-		else Theme.Text(fs, l.muted and "text-3" or "text-2") end
-		fs:Show()
-	end
-	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+	f.list:SetLines(lines)
 end
 
 function mode.refresh(f)
@@ -164,10 +155,7 @@ end
 
 function View:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	f.offset = max(0, (f.offset or 0) + delta)
-	mode.refresh(f)
-	return true
+	return f ~= nil and f.list:Scroll(delta)
 end
 
 if ns.ReputationView then

@@ -85,9 +85,18 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- The page
 ---------------------------------------------------------------------------------------------------------------------
+-- The sort keys of the columns that are not sorted by their text.
+local VALUES = {
+	name = function(r) return r.name end,
+	start = function(r) return r.rec.start end,
+	ends = function(r) return r.rec.ends end,
+	closed = function(r) return r.rec.closed end,
+	left = function(r) return not r.left and r.daysLeft or nil end,   -- who left the guild goes last
+	notes = function(r) return r.notes or 0 end,
+}
 local function columns(tab)
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, L[key], false
+		opts.id, opts.title, opts.value = id, L[key], VALUES[id]
 		opts.text = function(r) return View.RowText(r, id) end
 		return opts
 	end
@@ -116,7 +125,7 @@ local function buildPage(f, officers)
 	f.tabs:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -officers.FILTER_HEIGHT)
 	f.tabs:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	f.shownTab = View.tab
-	f.table = Widgets.DataTable(f, columns(View.tab), { emptyText = L["TRI_EMPTY_OPEN"],
+	f.table = Widgets.DataTable(f, columns(View.tab), { emptyText = L["TRI_EMPTY_OPEN"], memory = "officers.trials",
 		onRowClick = function(row) View:Open(row.id) end })
 	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -2 * officers.FILTER_HEIGHT)
 	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)

@@ -24,7 +24,7 @@ La prima card decide come appare Azeroth Accord. La scelta è salvata **per acco
 | Apri Accord dentro la finestra della gilda | sì / no: no, la scheda Accord della finestra della gilda apre al suo posto la finestra di Accord, più grande; sì, Accord si apre dentro la finestra della gilda, che è più piccola | no |
 | Carattere | **Caratteri di Accord** (Orbitron, Outfit, JetBrains Mono) o **Carattere del gioco** | Caratteri di Accord |
 
-Passa il mouse su un interruttore per una breve spiegazione. Un carattere che il gioco non ha ancora caricato si vede ovunque dopo `/reload` (il gioco legge i nuovi file di caratteri solo allora). I colori delle classi e degli oggetti sono quelli del gioco e non cambiano con il tema; nel tema chiaro il nome di un giocatore è scuro e il quadratino accanto porta il colore della classe.
+Passa il mouse su un interruttore per una breve spiegazione. Un carattere che il gioco non ha ancora caricato si vede ovunque dopo `/reload` (il gioco legge i nuovi file di caratteri solo allora). I colori delle classi e degli oggetti sono quelli del gioco e non cambiano con il tema; nel tema chiaro il nome di un giocatore è scuro e il segno accanto (l'icona del ruolo, o il quadratino) porta il colore della classe.
 
 ## Contatti condivisi con la gilda
 

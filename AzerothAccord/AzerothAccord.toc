@@ -100,6 +100,7 @@ UI\Motion.lua
 UI\Widgets\Core.lua
 UI\Widgets\Controls.lua
 UI\Widgets\DataTable.lua
+UI\Widgets\Sheet.lua
 UI\Widgets\ThinBar.lua
 UI\Widgets\Tooltip.lua
 UI\Widgets\Provenance.lua

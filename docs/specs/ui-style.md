@@ -584,6 +584,28 @@ Nulla di questo è provato nel client vero.
 - **Gli elenchi a card senza colonne** (pagine del manuale, annunci della bacheca) hanno un menu **"Ordina per"** con lo stesso comportamento: la voce scelta e poi crescente o decrescente.
 - L'ordinamento scelto si ricorda per vista e personaggio, come nel Roster.
 
+**Realizzazione (M13.8).**
+
+- **Tabella** (`Widgets.DataTable`): un clic ordina crescente, il secondo decrescente; le righe senza valore (vuoto) vanno
+  **in fondo nei due versi**; a parità resta l'ordine dato dalla vista. Con `memory` la scelta è salvata in
+  `char.ui.tableSort[<tabella>]`; il Roster continua con `char.ui.sort`. `sort` è l'ordine iniziale con la sua freccia;
+  senza, vale l'ordine dei dati, senza freccia. `level` tiene le righe annidate sotto la propria (i creatori sotto la
+  ricetta, gli account sotto la fascia nella revisione).
+- **Senza clic**: le colonne dei pulsanti, delle icone senza titolo e il posto in classifica (`#` di Like e Donazioni,
+  che segue l'ordine scelto).
+- **Menu "Ordina per"** (`Widgets.SortMenu`): le pagine del manuale (ordine del manuale, titolo, ultima modifica; le
+  frecce per spostare una pagina ci sono solo nell'ordine del manuale) e i mentori suggeriti (suggeriti, nome, entrata).
+- **Pagine miste** (`Widgets.Sheet`): Season, Eventi, Raid, Raduni, l'indice Sociale e la Mappa dei gruppi sono pagine
+  di righe di testo in cui ogni elenco a colonne è una tabella alta quanto le righe che mostra; la rotella scorre la
+  pagina intera. La pagina del loot ha la tabella dei costi.
+- **Non sono tabelle**: i paragrafi di nomi separati da virgole (risposte, formazione, chi manca, disponibilità), le
+  schede, il riepilogo all'accesso, la lista di benvenuto e le impostazioni (moduli, non elenchi). La griglia della
+  disponibilità è un grafico.
+- La lista delle richieste in banca ha la colonna **Quando**; quella in arrivo non ha più i chip di ordinamento e sta su
+  una riga per richiesta.
+
+Non provato nel client vero.
+
 ### 9.10 Icone: Material Symbols (proprietario, 2026-11-27)
 
 - **Tutte le icone dell'interfaccia propria di Accord** vengono da **Material Symbols Rounded** di Google (licenza **Apache 2.0**, compatibile con GPL-3, citata in `docs/third-party.md` e nei crediti). Sono **vuote** (outlined) di norma, **piene** (filled) per lo stato attivo: la vista scelta, l'interruttore acceso, il filtro scelto.
@@ -605,11 +627,17 @@ Nulla di questo è provato nel client vero.
   filled)` accetta i nomi di Accord (`cross`, `bell`, `hammer` → `construction`…) e quelli di Material Symbols; un'icona
   senza variante piena risponde con quella vuota. I nove nomi della mappa di §9.11 **sono confermati**: esistono tutti.
 - **Ruoli**: `role_tank` (`shield`), `role_damage` (`swords`), `role_healer` (`medical_services`: `healing`, i cerotti
-  incrociati, a 14–16 px si confonde con le spade), vuoti e pieni. Il roster li userà in un passo successivo.
+  incrociati, a 14–16 px si confonde con le spade), vuoti e pieni. Il **roster** (M13.8, proprietario, 2026-11-27) li usa
+  al posto del quadratino prima del nome: icona vuota da 14 nel colore della classe (più scuro nel tema chiaro). Il ruolo
+  è la **prima parola di ruolo** della nota pubblica, parola intera, maiuscole o minuscole: `tank` → tank; `heal`,
+  `healer`, `healing`, `cura`, `curatore`, `guaritore` → guaritore; `dps`, `dd`, `melee`, `ranged`, `caster`, `damage` →
+  danni. Senza, vale il ruolo di MS1 della dichiarazione del personaggio per la season corrente (solo con Accord come
+  fonte, [Q55](SPEC-10-risks-open-questions.md)); senza nessuno dei due resta il quadratino. La riga del roster e la
+  scheda del membro dicono il ruolo e da dove viene.
 - **Stato attivo**: la scheda della vista scelta ha l'icona piena. Interruttori e chip non hanno un'icona propria oltre
   alla spunta, che è uguale nelle due varianti.
 - **Misure**: 20 punti in schede e pulsanti (anche il cuore dei like e la croce sulla finestra della gilda), 18 nei chip
-  e nei menu, 14 le icone dentro un testo, 12 la freccia dell'ordinamento (le tabelle si rivedono in M13.8).
+  e nei menu, 14 le icone dentro un testo, 12 la freccia dell'ordinamento.
 
 Non provato nel client vero.
 

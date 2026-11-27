@@ -2,7 +2,7 @@
 -- A mode of the Reputation view for every member: guildmates who are ONLINE now, of a compatible level (at most
 -- LEVEL_GAP levels apart), with whom the player played less than NEW_MINUTES in the last 30 days (the account graph of the
 -- social index: all characters of both players count), one row per player (their character that is online, the closest
--- in level). The fewest minutes first. Each row has Whisper (opens the chat box with "/w Name": the player writes and sends)
+-- in level). The fewest minutes first, until a header sorts the table (ui-style §9.9). Each row has Whisper (opens the chat box with "/w Name": the player writes and sends)
 -- and Invite (C_PartyInfo.InviteUnit: a click of the player). The addon never sends anything by itself.
 -- Suggest.List(opts) is a plain function of the roster and the social result (tested offline).
 local ADDON_NAME, ns = ...
@@ -11,8 +11,8 @@ local Suggest = {}
 ns.Suggest, ns.modules = Suggest, ns.modules or {}
 ns.modules.Suggest = Suggest
 
-local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
-local type, ipairs, pairs, tostring, floor, max, min, abs = type, ipairs, pairs, tostring, math.floor, math.max, math.min, math.abs
+local L, Widgets = ns.L, ns.Widgets
+local type, ipairs, pairs, tostring, abs = type, ipairs, pairs, tostring, math.abs
 
 Suggest.LEVEL_GAP = 5
 Suggest.NEW_MINUTES = 30
@@ -89,66 +89,48 @@ function Suggest.MinutesText(minutes)
 	return L["NEW_MINUTES"]:format(minutes)
 end
 
+local function columns(f)
+	local function muted() return "text-3" end
+	return {
+		{ id = "name", title = L["COL_NAME"], flex = 1.4, value = function(s) return s.name end,
+			render = function(cell, s, row) ns.ReputationView.RenderName(f.table, 1, cell, s, row) end },
+		{ id = "level", title = L["COL_LEVEL"], width = 56, align = "RIGHT", mono = true,
+			value = function(s) return s.level end, text = function(s) return tostring(s.level) end },
+		{ id = "zone", title = L["COL_ZONE"], flex = 1.2, text = function(s) return s.zone or "?" end, token = muted },
+		{ id = "together", title = L["NEW_COL_TOGETHER"], flex = 1, value = function(s) return s.minutes or 0 end,
+			text = function(s) return Suggest.MinutesText(s.minutes) end, token = muted },
+		{ id = "actions", title = "", width = 200, sortable = false, text = function() return "" end },
+	}
+end
+
+local function rowSetup(row)
+	row.mark = Widgets.ClassMark(row, 8)
+	row.invite = Widgets.Button(row, { text = L["NEW_INVITE"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
+		onClick = function(b) Suggest:Invite(b:GetParent().data.guid) end })
+	row.invite:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.invite:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "outlined", width = 90, height = Widgets.HEIGHT.small,
+		onClick = function(b) Suggest:Whisper(b:GetParent().data.guid) end })
+	row.whisper:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -8, 0)
+end
+
 function mode.build(f)
 	Suggest.frame = f
 	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["NEW_EXPLAIN"]:format(Suggest.LEVEL_GAP, Suggest.NEW_MINUTES))
-	f.area = CreateFrame("Frame", nil, f)
-	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -40)
-	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.area:SetClipsChildren(true)
-	f.area.rows = {}
-	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-	f.message:SetPoint("CENTER", f.area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
-end
-
-local function newRow(area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(Suggest.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * Suggest.ROW_HEIGHT)
-	row.mark = Widgets.ClassMark(row, 8)
-	row.mark:SetPoint("LEFT", row, "LEFT", 8, 0)
-	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
-	row.name:SetPoint("LEFT", row.mark, "RIGHT", 8, 0)
-	row.name:SetWidth(130)
-	row.detail = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.detail:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
-	row.detail:SetPoint("RIGHT", row, "RIGHT", -200, 0)
-	row.invite = Widgets.Button(row, { text = L["NEW_INVITE"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
-		onClick = function(b) Suggest:Invite(b:GetParent().guid) end })
-	row.invite:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "outlined", width = 90, height = Widgets.HEIGHT.small,
-		onClick = function(b) Suggest:Whisper(b:GetParent().guid) end })
-	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -8, 0)
-	Widgets.RowHover(row)
-	area.rows[i] = row
-	return row
+	f.table = Widgets.DataTable(f, columns(f), { rowHeight = Suggest.ROW_HEIGHT, pool = Suggest.LIMIT, maxPool = 30,
+		memory = "reputation.new", sort = { id = "together" }, emptyText = L["NEW_NONE"], rowSetup = rowSetup })
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -40)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 end
 
 function mode.refresh(f)
 	local list = Suggest.List()
 	Suggest.shown = list
-	local h = f.area:GetHeight() or 0
-	local visible = h >= Suggest.ROW_HEIGHT and floor(h / Suggest.ROW_HEIGHT) or Suggest.LIMIT
-	local drawn = min(#list, visible)
-	for i = 1, drawn do
-		local s = list[i]
-		local row = f.area.rows[i] or newRow(f.area, i)
-		row.guid = s.guid
-		row.name:SetText(s.name)
-		Widgets.PaintName(row.name, s.classFile)
-		local c = RAID_CLASS_COLORS and s.classFile and RAID_CLASS_COLORS[s.classFile]
-		if c then Widgets.PaintClassMark(row.mark, c.r, c.g, c.b) else Widgets.ClearClassMark(row.mark) end
-		row.detail:SetText(L["NEW_DETAIL"]:format(s.level, s.zone or "?", Suggest.MinutesText(s.minutes)))
-		row:Show()
-	end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	f.message:SetShown(#list == 0)
-	f.message:SetText(L["NEW_NONE"])
+	f.table:SetData(list, true)
 end
 
 if ns.ReputationView then

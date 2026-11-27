@@ -81,18 +81,21 @@ describe("the suggestions", function()
 		truthy(A().ReputationView:SetMode("new"))
 		local f = N().frame
 		local shown = {}
-		for _, row in ipairs(f.area.rows) do if row:IsShown() then shown[#shown + 1] = row end end
+		for _, row in ipairs(f.table.rows) do if row:IsShown() then shown[#shown + 1] = row end end
 		eq(#shown, 2)
-		eq(shown[1].name:GetText(), "Bobalt")
-		eq(shown[1].detail:GetText(), "level 59, Ironforge - together: never")
-		eq(shown[2].detail:GetText(), "level 58, Winterspring - together: 20 min")
+		eq(shown[1].cells.name:GetText(), "Bobalt")
+		local function line(row)
+			return row.cells.level:GetText() .. " " .. row.cells.zone:GetText() .. " " .. row.cells.together:GetText()
+		end
+		eq(line(shown[1]), "59 Ironforge never")
+		eq(line(shown[2]), "58 Winterspring 20 min")
 		shown[2].invite:Click()
 		deepEq(Mock.group.invites, { "Dan" })
-		falsy(f.message:IsShown())
+		falsy(f.table.empty:IsShown())
 		for _, m in ipairs(Mock.guild.members) do m.online = false end
 		Mock.Fire("GUILD_ROSTER_UPDATE")
 		A().Roster:MarkDirty()
 		A().ReputationView:Redraw()
-		truthy(f.message:IsShown())
+		truthy(f.table.empty:IsShown())
 	end)
 end)

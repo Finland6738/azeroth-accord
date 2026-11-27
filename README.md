@@ -27,7 +27,8 @@
 | Area | What you get |
 |---|---|
 | **Accord tab** | A fifth tab under Chat, Roster, Guild Benefits and Guild Info; the same panel can pop out in its own window (`/accord`) |
-| **Extended roster** | Sortable, filterable table: level, class, rank, zone, last online, profession 1 and 2, likes, social index, contacts |
+| **Extended roster** | Sortable, filterable table: level, class, rank, zone, last online, profession 1 and 2, likes, social index, contacts; before each name an icon of the role (tank, damage, healer, from the public note or the season declaration) in the class colour |
+| **Sortable lists** *(from `v0.13.0`)* | Every list with columns is a table sorted by a click on its titles, lists without columns have a *Sort by* menu, and each list remembers its order for every character |
 | **Alts** | Click a character to see every character of the same Battle.net account on the realm, without asking |
 | **Contacts** | BattleTag and Discord of every member using the addon, one click to copy, native "Add BattleTag friend" |
 | **Professions** | Guild recipes: every recipe of a profession, its required level and who in the guild can craft it; click a member's profession to see their recipes, learned and missing; search "who can craft…"; send a craft request |

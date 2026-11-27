@@ -48,6 +48,12 @@ The panel has **two levels of navigation**, the same in the guild window and in 
 - **From `v0.12.0`**: no new tab, but the [[recruitment text|Season-Roster]] in the Season view, the **Trials** page of Officers ([[Guild Roster|Guild-Roster]]), the [[welcome checklist|Action-Center]] and the **Mentors** mode of Reputation (a page of Guild from `v0.13.0`) ([[Likes and Social Index|Likes-and-Social-Index]]).
 - **The views of the first release, `v0.8.0`**: **Roster**, **Professions**, **Reputation**, **Bank**, **Settings** (officers also have **Officers**, with the inactive players, the queue of actions to do by hand and the roster timeline: see [[Guild Roster|Guild-Roster]]). The **Roster** view comes with the roster version, and the **Settings** view (see [[Settings|Settings]]; the same page is in the game's settings window) with the release version; see [[Guild Roster|Guild-Roster]]. The **Professions** view (a member's recipe list, opened from the roster) comes with the professions version; see [[Professions and Recipes|Professions-and-Recipes]]. The **Reputation** view (likes, one row per player sorted by likes, with the Like button; your social index; the group map for officers; *Someone new* to play with) comes with the reputation version; see [[Likes and Social Index|Likes-and-Social-Index]]. The **Bank** view (the guild bank tab by tab, its money, a searchable list of items) comes with the bank version (officers also see the number of waiting requests on the tab); see [[Guild Bank|Guild-Bank]].
 
+## Sorting the lists
+
+- **Every list with columns is a table**: click a column title to sort it, click it again to reverse. The sorted title is in the accent colour with an arrow. Rows with nothing in that column go last; columns that hold buttons have no sort.
+- **Lists without columns** (the handbook's pages, the suggested mentors) have a **Sort by** button: choose the order in its menu, and choose it again to reverse it.
+- Each list **remembers its order for every character**.
+
 ## Buttons, filters and rows
 
 The controls look and behave the same in every view (the rules of Google's Material 3, drawn with Accord's themes):

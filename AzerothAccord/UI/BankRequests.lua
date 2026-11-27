@@ -10,8 +10,9 @@
 -- rejection. The tooltip of a row shows the tip (to those who may see it) and the history (who moved it and when).
 --
 -- The Inbox mode is the officers' list (BANK-27): date and time, requester, item, quantity and tip of the requests that
--- wait, sorted by date (oldest or newest first) or by tip, with the "looks delivered" and "looks paid" proposals. Handing
--- the item over stays manual (BANK-24), and so does paying a tip (BANK-26): the addon never moves items or gold.
+-- wait, oldest first until a header sorts the table (ui-style §9.9, M13.8), with the "looks delivered" and "looks paid"
+-- proposals. Handing the item over stays manual (BANK-24), and so does paying a tip (BANK-26): the addon never moves
+-- items or gold.
 --
 -- Mode.ShowRequest(id, "inbox" | "requests") opens the view on one request (the Action Center, SPEC-13 §2.3).
 -- Mode.Prefill({ item, name, count, reason }) opens the form filled in (the shopping list's Ask the bank, SPEC-17 §5.8).
@@ -34,9 +35,7 @@ Mode.onlyMine = false
 Mode.showClosed = false
 Mode.FORM_HEIGHT = 184
 Mode.picked = nil               -- { id, text }: the bank item chosen from the list, while the box still shows its text
-Mode.inboxSort = "oldest"       -- BankInbox.SORTS
-Mode.INBOX_ROW = 44
-Mode.INBOX_TOP = 96             -- the explanation, the sort chips and the column titles above the officers' list
+Mode.INBOX_TOP = 28             -- the explanation above the officers' list
 Mode.PICKER_ROWS = 7
 Mode.DATE_FORMAT = "%Y-%m-%d %H:%M"   -- the local date and time of a request in the officers' list
 
@@ -249,14 +248,14 @@ function Mode.ShowRequest(id, where)
 	if bar then bar.search:SetText("") end
 	if where == "requests" then Mode.onlyMine, Mode.showClosed = true, false end
 	View.mode = where
-	View.offset = 0
-	local rows = where == "inbox" and Mode.InboxRows({ sort = Mode.inboxSort }) or Mode.Rows({ onlyMine = true })
-	for i, r in ipairs(rows) do
-		if r.id == id then View.offset = i - 1 break end
-	end
+	View:ResetScroll()
 	if not (ns.Shell and ns.Shell:OpenView("bank")) then return false end
 	Mode.focus = id
 	View:Redraw()
+	local t = View:Table()
+	for i, r in ipairs(t and t:GetData() or {}) do   -- in the order of the table, sorted or not
+		if r.id == id then t:SetOffset(i - 1) break end
+	end
 	return true
 end
 
@@ -274,7 +273,7 @@ function Mode.Prefill(spec)
 	if bar then bar.search:SetText("") end
 	Mode.onlyMine, Mode.showClosed = true, false
 	View.mode = "requests"
-	View.offset = 0
+	View:ResetScroll()
 	if not (ns.Shell and ns.Shell:OpenView("bank")) then return false end
 	View:Redraw()
 	return true
@@ -303,64 +302,21 @@ function Mode.TooltipLines(d)
 	return lines
 end
 
--- A cell of a row stays on its line: what does not fit is cut (the tooltip of the row says it whole).
-local function oneLine(...)
-	for i = 1, select("#", ...) do
-		local fs = select(i, ...)
-		if fs.SetWordWrap then fs:SetWordWrap(false) end
-	end
-end
-
 -- The three buttons of a row (cancel and the officer's moves), `width` wide, at its right end.
-local function addButtons(row, width, height)
+local function addButtons(row, width)
 	row.buttons = {}
 	for n = 1, 3 do
-		local b = Widgets.Button(row, { style = "tonal", width = width, height = height, onClick = function(self)
+		local b = Widgets.Button(row, { style = "tonal", width = width, height = Widgets.HEIGHT.small, onClick = function(self)
 			local d = self:GetParent().data
 			if not (d and self.action) then return end
 			local ok, why = Mode.Act(d.id, self.action, Mode.noteText and Mode.noteText() or nil)
 			if not ok then print_(L["BANKREQ_ERR_ACT"]:format(tostring(why))) end
 			View:Redraw()
 		end })
+		b:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
 		b:SetPoint("RIGHT", row, "RIGHT", -(4 + (3 - n) * (width + 4)), 0)
 		row.buttons[n] = b
 	end
-end
-
--- A row of an area: a button of the area's row height, with its tooltip and hover.
-local function baseRow(area, i)
-	local height = area.rowHeight or View.ROW_HEIGHT
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(height)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * height)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * height)
-	Widgets.Tooltip.Attach(row, function(self) return Mode.TooltipLines(self.data) end, "RIGHT")
-	Widgets.RowHover(row)
-	row.focus = Widgets.Selection(row)   -- the request the Action Center opened: the selected row
-	area.rows[i] = row
-	return row
-end
-
-local function newRow(area, i)
-	local row = baseRow(area, i)
-	row.status = Widgets.Text(row, "Small", "text-2", "LEFT")
-	row.status:SetPoint("LEFT", row, "LEFT", 6, 0)
-	row.status:SetWidth(74)
-	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
-	row.name:SetPoint("LEFT", row.status, "RIGHT", 4, 0)
-	row.name:SetWidth(96)
-	row.kind = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.kind:SetPoint("LEFT", row.name, "RIGHT", 4, 0)
-	row.kind:SetWidth(66)
-	row.what = Widgets.Text(row, "Body", "accent-text", "LEFT")
-	row.what:SetPoint("LEFT", row.kind, "RIGHT", 4, 0)
-	row.what:SetWidth(170)
-	row.reason = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.reason:SetPoint("LEFT", row.what, "RIGHT", 4, 0)
-	row.reason:SetWidth(130)
-	oneLine(row.name, row.what, row.reason)
-	addButtons(row, 80, Widgets.HEIGHT.small)
-	return row
 end
 
 local BUTTON_TEXT = { cancel = "BANKREQ_CANCEL", approved = "BANKREQ_APPROVE", rejected = "BANKREQ_REJECT", fulfilled = "BANKREQ_FULFILL" }
@@ -381,71 +337,88 @@ local function fillButtons(row, d)
 	end
 end
 
--- The texts of the selected row are on-secondary-container; the others keep their own colours.
-local function paintRow(row, d, tokens)
-	local on = Mode.focus == d.id
-	row.focus:SetShown(on)
-	for key, token in pairs(tokens) do Theme.Text(row[key], on and "on-secondary-container" or token) end
-end
-
-local function fillRow(row, d)
-	row.data = d
-	row.status:SetText(d.statusText)
-	Theme.Text(row.status, STATUS_TOKEN[d.status] or "text-2")
-	row.name:SetText(d.name or "?")
-	row.kind:SetText(d.kindText)
-	row.what:SetText(d.what)
+---------------------------------------------------------------------------------------------------------------------
+-- The columns (both lists, ui-style §9.9)
+---------------------------------------------------------------------------------------------------------------------
+-- The reason of a request, after the tip for those who may see it.
+function Mode.ReasonText(d)
 	local reason = d.reason or ""
-	if d.tipText then
-		local tip = L["BANKREQ_GIFT_SHORT"]:format(d.tipText)
-		reason = reason ~= "" and (tip .. " - " .. reason) or tip
-	end
-	row.reason:SetText(reason)
-	fillButtons(row, d)
-	paintRow(row, d, { status = STATUS_TOKEN[d.status] or "text-2", name = "text-1", kind = "text-3", what = "accent-text",
-		reason = "text-3" })
-	row:Show()
+	if not d.tipText then return reason end
+	local tip = L["BANKREQ_GIFT_SHORT"]:format(d.tipText)
+	return reason ~= "" and (tip .. " - " .. reason) or tip
 end
 
--- The list under the form (or at the top of a mode without one): virtual rows and the empty-list message.
-local function buildArea(f, top)
-	local area = CreateFrame("Frame", nil, f)
-	area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	area:SetClipsChildren(true)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area:SetScript("OnHide", function() Mode.focus = nil end)
-	area.rows = {}
-	f.area = area
-	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
+-- The last column of the officers' list: the proposals, else the kind and the reason.
+function Mode.DetailText(d)
+	local hints = {}
+	if d.suggestion then hints[#hints + 1] = Mode.SuggestionText(d.suggestion) end
+	if d.paid then hints[#hints + 1] = Mode.PaidText(d.paid) end
+	if #hints > 0 then return table.concat(hints, "   "), true end
+	return d.reason and (d.kindText .. " - " .. d.reason) or d.kindText, false
 end
 
-local function visibleRows(area)
-	local h = area and area:GetHeight() or 0
-	local row = area and area.rowHeight or View.ROW_HEIGHT
-	if not h or h < row then return View.DEFAULT_ROWS end
-	return max(1, floor(h / row))
+local function field(key) return function(d) return d[key] end end
+local function created(d) return d.created end
+local function statusColumn(width)
+	return { id = "status", title = L["BANKREQ_COL_STATUS"], width = width, text = field("statusText"),
+		token = function(d) return STATUS_TOKEN[d.status] or "text-2" end }
+end
+local function buttonsColumn(width)
+	return { id = "actions", title = "", width = width, sortable = false, text = function() return "" end }
+end
+
+local function requestColumns()
+	return {
+		{ id = "date", title = L["BANKREQ_COL_WHEN"], width = 80, text = field("ago"), value = created,
+			token = function() return "text-3" end },
+		statusColumn(88),
+		{ id = "name", title = L["BANKREQ_COL_WHO"], flex = 1, text = function(d) return d.name or "?" end },
+		{ id = "kind", title = L["BANKREQ_COL_KIND"], width = 76, text = field("kindText"),
+			token = function() return "text-3" end },
+		{ id = "what", title = L["BANKREQ_COL_ITEM"], flex = 1.5, text = field("what"),
+			token = function() return "accent-text" end },
+		{ id = "reason", title = L["BANKREQ_REASON"], flex = 1.2, text = Mode.ReasonText, token = function() return "text-3" end },
+		buttonsColumn(256),
+	}
+end
+
+local function inboxColumns()
+	return {
+		{ id = "date", title = L["BANKREQ_COL_DATE"], width = 120, mono = true, text = field("dateText"), value = created,
+			token = function() return "text-3" end },
+		{ id = "name", title = L["BANKREQ_COL_WHO"], flex = 1, text = function(d) return d.name or "?" end },
+		{ id = "what", title = L["BANKREQ_COL_ITEM"], flex = 1.3, text = field("itemText"),
+			token = function() return "accent-text" end },
+		{ id = "count", title = L["BANKREQ_COL_COUNT"], width = 44, align = "RIGHT", mono = true, text = field("countText"),
+			value = function(d) return d.itemID and (d.count or 1) or nil end },
+		{ id = "gift", title = L["BANKREQ_COL_GIFT"], width = 64, align = "RIGHT", mono = true, text = field("giftText"),
+			value = function(d) return d.tip end, token = function() return "accent-text" end },
+		statusColumn(80),
+		{ id = "detail", title = L["BANKREQ_COL_DETAIL"], flex = 1.6, text = function(d) return (Mode.DetailText(d)) end,
+			token = function(d) return select(2, Mode.DetailText(d)) and "accent-text" or "text-3" end },
+		buttonsColumn(244),
+	}
+end
+
+-- A mode's table of requests: the buttons and the tooltip on each row, the one the Action Center opened selected.
+local function buildTable(f, columns, memory, sort, buttonWidth, top)
+	f.table = Widgets.DataTable(f, columns, { rowHeight = View.ROW_HEIGHT, pool = 12, maxPool = 60, memory = memory,
+		sort = sort, isSelected = function(d) return Mode.focus == d.id end,
+		rowSetup = function(row)
+			addButtons(row, buttonWidth)
+			Widgets.Tooltip.Attach(row, function(self) return Mode.TooltipLines(self.data) end, "RIGHT")
+		end,
+		rowUpdate = fillButtons })
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	f.table:SetScript("OnHide", function() Mode.focus = nil end)
 end
 
 local function drawRows(f, rows, emptyText)
-	View.rowsShown = rows
-	local total, visible = #rows, visibleRows(f.area)
-	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
-	local drawn = max(0, min(visible + 1, total - View.offset))
-	local make, fill = f.area.newRow or newRow, f.area.fillRow or fillRow
-	for i = 1, drawn do fill(f.area.rows[i] or make(f.area, i), rows[View.offset + i]) end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	if total == 0 then
-		f.message:SetText(emptyText)
-		f.message:Show()
-	else
-		f.message:Hide()
-	end
-	return total
+	f.table:SetEmptyText(emptyText)
+	f.table:SetData(rows, true)
+	View.rowsShown = f.table:GetData()
+	return #rows
 end
 
 local function caption(parent, text)
@@ -595,19 +568,19 @@ function mode.build(f)
 	buildPicker(f)
 	f.mine = Widgets.Chip(f, { text = L["BANKREQ_ONLY_MINE"], onClick = function(chip)
 		chip:SetSelected(not chip:IsSelected())
-		Mode.onlyMine = chip:IsSelected() View.offset = 0 View:Redraw()
+		Mode.onlyMine = chip:IsSelected() View:ResetScroll() View:Redraw()
 	end })
 	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Mode.FORM_HEIGHT + 38)
 	f.closed = Widgets.Chip(f, { text = L["BANKREQ_SHOW_CLOSED"], onClick = function(chip)
 		chip:SetSelected(not chip:IsSelected())
-		Mode.showClosed = chip:IsSelected() View.offset = 0 View:Redraw()
+		Mode.showClosed = chip:IsSelected() View:ResetScroll() View:Redraw()
 	end })
 	f.closed:SetPoint("LEFT", f.mine, "RIGHT", 8, 0)
 	-- what Send answered, on the line of the filters
 	f.status = Widgets.Text(f, "Small", "text-2", "LEFT")
 	f.status:SetPoint("LEFT", f.closed, "RIGHT", 16, 0)
 	f.status:SetPoint("RIGHT", f, "RIGHT", -4, 0)
-	buildArea(f, Mode.FORM_HEIGHT)
+	buildTable(f, requestColumns(), "bank.requests", { id = "date", desc = true }, 80, Mode.FORM_HEIGHT)
 	Mode.noteText = function() return f.reason:GetText() end
 end
 
@@ -688,105 +661,20 @@ function Mode.InboxRows(opts)
 	return out
 end
 
--- The columns of the officers' list: the left ones from the left edge, quantity and tip before the buttons.
-local COL = { date = 6, dateWidth = 108, name = 118, nameWidth = 90, item = 212, count = 36, gift = 62, buttons = 3 * 80 + 8 }
-
--- The five cells of a line (a row, or the column titles) on `parent`, into `row`.
-local function cells(parent, row, font, token, y)
-	row.date = Widgets.Text(parent, font or "MonoSmall", token or "text-3", "LEFT")
-	row.date:SetPoint("TOPLEFT", parent, "TOPLEFT", COL.date, y)
-	row.date:SetWidth(COL.dateWidth)
-	row.name = Widgets.Text(parent, font or "BodyMedium", token or "text-1", "LEFT")
-	row.name:SetPoint("TOPLEFT", parent, "TOPLEFT", COL.name, y)
-	row.name:SetWidth(COL.nameWidth)
-	row.gift = Widgets.Text(parent, font or "MonoMedium", token or "accent-text", "RIGHT")
-	row.gift:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -COL.buttons, y)
-	row.gift:SetWidth(COL.gift)
-	row.count = Widgets.Text(parent, font or "MonoMedium", token or "text-1", "RIGHT")
-	row.count:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -(COL.buttons + COL.gift + 6), y)
-	row.count:SetWidth(COL.count)
-	row.what = Widgets.Text(parent, font or "Body", token or "accent-text", "LEFT")
-	row.what:SetPoint("TOPLEFT", parent, "TOPLEFT", COL.item, y)
-	row.what:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -(COL.buttons + COL.gift + COL.count + 14), y)
-	oneLine(row.date, row.name, row.what, row.count, row.gift)
-end
-
--- Two lines: the five columns, then the status and the reason (or the proposals).
-local function newInboxRow(area, i)
-	local row = baseRow(area, i)
-	cells(row, row, nil, nil, -7)
-	row.status = Widgets.Text(row, "Small", "text-2", "LEFT")
-	row.status:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", COL.date, 7)
-	row.status:SetWidth(COL.dateWidth)
-	row.reason = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.reason:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", COL.name, 7)
-	row.reason:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -COL.buttons, 7)
-	oneLine(row.status, row.reason)
-	addButtons(row, 76, Widgets.HEIGHT.small)
-	return row
-end
-
-local function fillInboxRow(row, d)
-	row.data = d
-	row.date:SetText(d.dateText)
-	row.name:SetText(d.name or "?")
-	row.what:SetText(d.itemText)
-	row.count:SetText(d.countText)
-	row.gift:SetText(d.giftText)
-	row.status:SetText(d.statusText)
-	Theme.Text(row.status, STATUS_TOKEN[d.status] or "text-2")
-	local hints = {}
-	if d.suggestion then hints[#hints + 1] = Mode.SuggestionText(d.suggestion) end
-	if d.paid then hints[#hints + 1] = Mode.PaidText(d.paid) end
-	if #hints > 0 then
-		row.reason:SetText(table.concat(hints, "   "))
-		Theme.Text(row.reason, "accent-text")
-	else
-		row.reason:SetText(d.reason and (d.kindText .. " - " .. d.reason) or d.kindText)
-		Theme.Text(row.reason, "text-3")
-	end
-	fillButtons(row, d)
-	paintRow(row, d, { date = "text-3", name = "text-1", what = "accent-text", count = "text-1", gift = "accent-text",
-		status = STATUS_TOKEN[d.status] or "text-2", reason = #hints > 0 and "accent-text" or "text-3" })
-	row:Show()
-end
-
 local inbox = {}
-local SORT_TEXT = { oldest = "BANKREQ_SORT_OLDEST", newest = "BANKREQ_SORT_NEWEST", tip = "BANKREQ_SORT_GIFT" }
 
 function inbox.build(f)
 	f.explain = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANKREQ_INBOX_EXPLAIN"])
-	f.sorts = Widgets.ChipRow(f, function(id) Mode.inboxSort = id View.offset = 0 View:Redraw() end)
-	f.sorts:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -24)
-	f.sorts:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -24)
-	local items = {}
-	for i, id in ipairs(ns.BankInbox and ns.BankInbox.SORTS or {}) do items[i] = { id = id, text = L[SORT_TEXT[id]] } end
-	f.sorts:SetItems(items, Mode.inboxSort)
-	f.head = CreateFrame("Frame", nil, f)
-	f.head:SetHeight(32)
-	f.head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -(Mode.INBOX_TOP - 34))
-	f.head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -(Mode.INBOX_TOP - 34))
-	f.head.fill = Theme.Slice(f.head, "rr_fill_8", "surface-2", "BACKGROUND")
-	f.head.fill:SetAllPoints(f.head)
-	f.columns = {}
-	cells(f.head, f.columns, "label-medium", "text-3", -10)
-	f.columns.date:SetText(L["BANKREQ_COL_DATE"])
-	f.columns.name:SetText(L["BANKREQ_COL_WHO"])
-	f.columns.what:SetText(L["BANKREQ_COL_ITEM"])
-	f.columns.count:SetText(L["BANKREQ_COL_COUNT"])
-	f.columns.gift:SetText(L["BANKREQ_COL_GIFT"])
-	buildArea(f, Mode.INBOX_TOP)
-	f.area.rowHeight, f.area.newRow, f.area.fillRow = Mode.INBOX_ROW, newInboxRow, fillInboxRow
+	buildTable(f, inboxColumns(), "bank.inbox", { id = "date" }, 76, Mode.INBOX_TOP)
 	Mode.noteText = Mode.noteText or function() return "" end
 end
 
 function inbox.refresh(f)
 	Mode.noteText = function() return Mode.inboxNote or "" end
-	f.sorts:Select(Mode.inboxSort)
-	local rows = Mode.InboxRows({ search = View.search, sort = Mode.inboxSort })
+	local rows = Mode.InboxRows({ search = View.search })
 	return drawRows(f, rows, View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKREQ_INBOX_EMPTY"])
 end
 

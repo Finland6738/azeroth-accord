@@ -75,7 +75,7 @@ Config.defaults = {
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
-		ui = { lastView = "roster", columns = {}, sort = {}, grouped = false },   -- windowPos, windowSize: nil until the user moves it
+		ui = { lastView = "roster", columns = {}, sort = {}, tableSort = {}, grouped = false },   -- windowPos, windowSize: nil until the user moves it
 		outbox = {},         -- messages waiting at logout, sent again at the next login (Net/Transport.lua, SPEC-02 §5)
 		groups = { next = 0, apps = {}, mine = {} },   -- the group finder (SPEC-13 §6.5): ids, applications; Data/Groups.lua
 	},
@@ -126,6 +126,13 @@ Config.rules = {
 	["char.ui.lastView"] = { type = "string", enum = Config.VIEWS, page = true },
 	["char.ui.columns"] = { type = "table" },
 	["char.ui.sort"] = { type = "table" },
+	["char.ui.tableSort"] = { type = "table", validate = function(v)   -- the remembered sorts (UI/Widgets/DataTable.lua)
+		for key, s in pairs(v) do
+			if type(key) ~= "string" or type(s) ~= "table" or type(s.id) ~= "string"
+				or (s.desc ~= nil and type(s.desc) ~= "boolean") then return false end
+		end
+		return true
+	end },
 	["char.ui.grouped"] = { type = "boolean" },
 	["char.ui.windowPos"] = posRule(),
 	["char.ui.windowSize"] = sizeRule(),

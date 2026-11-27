@@ -93,7 +93,7 @@ describe("for a member", function()
 		contains(lines[2].text, "Social index:")
 		eq(lines[#lines].text, "Each member sees their own index; officers see everyone's.")
 		local shown = {}
-		for _, fs in ipairs(UI().frame.lines) do if fs:IsShown() then shown[#shown + 1] = fs.text:GetText() end end
+		for _, fs in ipairs(UI().frame.sheet.lines) do if fs:IsShown() then shown[#shown + 1] = fs:GetText() end end
 		eq(shown[1], "Your social index")
 	end)
 end)
@@ -116,8 +116,9 @@ describe("for an officer", function()
 		isNil(rows[7].index)
 		Mock.Slash("/accord reputation")
 		A().ReputationView:SetMode("social")
-		local target
-		for _, fs in ipairs(UI().frame.lines) do if fs:IsShown() and fs.key == BOB then target = fs end end
+		local t, target = UI().frame.sheet:Table("social"), nil
+		notNil(t, "everyone in a table")
+		for _, row in ipairs(t:VisibleRows()) do if row.data.key == BOB then target = row end end
 		notNil(target)
 		target:Click()
 		eq(Card().entry.guid, BOB)

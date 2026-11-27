@@ -17,7 +17,7 @@
 ### Giving a like
 
 - On a guildmate's **member card** (click their row in the Roster): the *Likes* section shows the total of the player and **[Like this player]**. Click it, then click again within a few seconds to confirm: a like cannot be taken back.
-- In the **Reputation** view (`/accord reputation`), mode **Likes** (the modes are in the **Show** menu at the top of the view): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. Click the headers to sort by name or likes; the search box finds a player by any of their characters; clicking a row opens their card.
+- In the **Reputation** view (`/accord reputation`), mode **Likes** (the modes are in the **Show** menu at the top of the view): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. It is a table: click a column title to sort by name, number of characters or likes; the search box finds a player by any of their characters; clicking a row opens their card.
 - After that the row says *pending* (no officer with the addon online yet) or *liked*. Your own characters say *you*.
 - The **Likes** column of the Roster shows each player's total: green when you liked them, grey while your like is pending.
 - If an officer's addon refuses a like (it is one of your own characters, or the player left the guild), the chat says why.
@@ -57,7 +57,7 @@ The groups are found automatically from the minutes played together in the last 
 
 ## Play with someone new
 
-The **Someone new** mode of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself.
+The **Someone new** mode of the Reputation view suggests guildmates who are **online now**, within **5 levels** of you, with whom you played **less than 30 minutes** in the last 30 days (all your characters and all theirs count), one row per player, those you never played with first. **Whisper** opens the chat box with `/w Name` for you to write; **Invite** sends them a party invitation. The addon never sends anything by itself. The suggestions are a table (name, level, zone, time together), sortable by its titles; the **Social** list of officers and the list of groups of the **Groups** mode are tables too, and so is the **Mentors** page.
 
 ![Reputation, Someone new: guildmates online now of a similar level that you have played with the least, with Whisper and Invite](../specs/mockups/previews/reputation-someone-new.webp)
 

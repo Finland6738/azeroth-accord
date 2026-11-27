@@ -24,6 +24,44 @@ local HUGE = math.huge
 local function lower(s) return type(s) == "string" and s:lower() or "" end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The role of a member (the icon before the name, owner 2026-11-27)
+---------------------------------------------------------------------------------------------------------------------
+local SEASON_ROLES = { tank = "tank", healer = "healer", melee = "damage", ranged = "damage" }
+
+-- The role of MS1 in the character's own declaration of the season `season` (Accord's declarations only), or nil.
+local function declaredRole(guid, season)
+	local Se = ns.Season
+	if not (Se and season and guid and Se.Enabled() and Se.Source() == "accord") then return nil end
+	local rec = ns.Store:Get(Se.SET, Se.EntryId(season.n, guid))
+	local ms1 = rec and not rec.del and rec.ms1
+	return ms1 and SEASON_ROLES[ms1.role] or nil
+end
+
+-- The season whose declarations count, or nil: asked once per drawing, not once per row.
+function Model.Season()
+	return ns.Season and ns.Season.Enabled() and ns.Season:Current() or nil
+end
+
+-- "tank" | "healer" | "damage" and where it comes from ("note": the first role word of the public note, else "season":
+-- MS1 of the declaration for `season`, Model.Season()); nil without either.
+function Model.Role(entry, season)
+	if type(entry) ~= "table" then return nil end
+	local role = ns.Roster and ns.Roster.RoleFromNote(entry.note)
+	if role then return role, "note" end
+	role = declaredRole(entry.guid, season)
+	if role then return role, "season" end
+	return nil
+end
+
+-- "Role: healer (from the public note)", or nil.
+function Model.RoleLine(entry, season)
+	local role, source = Model.Role(entry, season)
+	if not role then return nil end
+	-- locale-key: ROLE_TANK ROLE_HEALER ROLE_DAMAGER ROLE_FROM_NOTE ROLE_FROM_SEASON
+	return L["CARD_ROLE"]:format(L["ROLE_" .. (role == "damage" and "DAMAGER" or role:upper())], L["ROLE_FROM_" .. source:upper()])
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Columns (SPEC-05 §1). `available` is false until the module that fills the column exists: contacts come with M2.5,
 -- likes and the social index with M4.
 ---------------------------------------------------------------------------------------------------------------------

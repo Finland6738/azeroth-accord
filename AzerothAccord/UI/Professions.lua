@@ -222,6 +222,25 @@ local function research(self)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The sort keys of the table (ui-style §9.9): a recipe, or a crafter under it
+---------------------------------------------------------------------------------------------------------------------
+function View.NameKey(d) return d.kind == "member" and d.member.name or d.name end
+
+-- A recipe by the level it asks for; a crafter by the skill.
+function View.DetailKey(d)
+	if d.kind == "member" then return d.member.rank end
+	return d.level
+end
+
+-- A recipe by how many can craft it; a crafter by being online; a member's recipe by being known.
+function View.NoteKey(d)
+	if d.kind == "recipe" or d.kind == "cat" then return d.count end
+	if d.kind == "member" then return d.member.online and 1 or 0 end
+	if d.learned == false then return 0 end
+	return d.known and 2 or 1
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Building
 ---------------------------------------------------------------------------------------------------------------------
 local function categoryChoices(self)
@@ -302,13 +321,18 @@ local function build(self, f)
 
 	-- The one table of both lists: recipe (an icon and a name, or a crafter), details, status, and the request button.
 	local columns = {
-		{ id = "name", title = L["RV_COL_RECIPE"], flex = 1.4, sortable = false, render = function(cell, d, row) View.RenderName(cell, d, row) end },
-		{ id = "detail", title = L["RV_COL_DETAILS"], flex = 1.6, sortable = false, render = function(cell, d) View.RenderDetail(cell, d) end },
-		{ id = "note", title = L["RV_COL_STATUS"], width = 140, align = "RIGHT", sortable = false, render = function(cell, d) View.RenderNote(cell, d) end },
+		{ id = "name", title = L["RV_COL_RECIPE"], flex = 1.4, value = View.NameKey,
+			render = function(cell, d, row) View.RenderName(cell, d, row) end },
+		{ id = "detail", title = L["RV_COL_DETAILS"], flex = 1.6, value = View.DetailKey,
+			render = function(cell, d) View.RenderDetail(cell, d) end },
+		{ id = "note", title = L["RV_COL_STATUS"], width = 140, align = "RIGHT", value = View.NoteKey,
+			render = function(cell, d) View.RenderNote(cell, d) end },
 		{ id = "action", title = "", width = 116, sortable = false, render = function(cell) cell:SetText("") end },
 	}
 	local t = Widgets.DataTable(f, columns, {
-		rowHeight = View.ROW_HEIGHT, pool = View.POOL, maxPool = 80,
+		rowHeight = View.ROW_HEIGHT, pool = View.POOL, maxPool = 80, memory = "professions.recipes",
+		-- the crafters stay under their recipe, an account's alts under its first character
+		level = function(d) return d.kind == "member" and 1 + (d.depth or 0) or 0 end,
 		onRowClick = function(d, row) View:RowClicked(row) end,
 		rowSetup = function(row) View.SetupRow(row) end,
 		rowUpdate = function(row, d) View.UpdateRow(row, d) end,

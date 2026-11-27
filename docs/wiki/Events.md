@@ -14,6 +14,7 @@ Open it with its tab or `/accord events`. The [**Rallies**](#pvp-and-world-ralli
 - **Your answer**: choose your **role** and press **Sign up**, **Tentative** or **Decline**. Accord writes the answer into the game calendar and says when it is saved. An answer you give in the game's calendar window shows in Accord too.
 - **The answers**: who signed up, who is tentative and who declined, with the role each one chose in Accord, and the roles signed up so far (tank, healer, melee, ranged).
 - **Open game calendar** opens the game's own calendar window.
+- The **list of events** under the buttons is a table (when, event, where it comes from): click a title to sort it, click an event to choose it. The **Rallies** page ends with a table of **all rallies** (start, kind, meeting point, who called it, how many come, state), also sortable, where a click chooses one.
 
 ## Your role
 

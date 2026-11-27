@@ -79,20 +79,27 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function listColumns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 		opts.text = opts.text or function(row) return model().Text(row, id) end
 		opts.token = opts.token or function(row) return row.status == "open" and "text-1" or "text-3" end
 		return opts
 	end
 	return {
-		col("kind", "GRP_COL_KIND", { width = 96 }),
+		col("kind", "GRP_COL_KIND", { width = 96, value = function(row) return model().KindText(row.rec.kind) end }),
 		col("activity", "GRP_COL_ACTIVITY", { flex = 3 }),
-		col("levels", "GRP_COL_LEVELS", { width = 56, mono = true }),
-		col("roles", "GRP_COL_ROLES", { width = 104 }),
-		col("size", "GRP_COL_SIZE", { width = 48, mono = true }),
+		col("levels", "GRP_COL_LEVELS", { width = 56, mono = true, value = function(row) return row.rec.min end }),
+		-- by how many players the group still needs
+		col("roles", "GRP_COL_ROLES", { width = 104, value = function(row)
+			if row.status ~= "open" then return nil end
+			local n = 0
+			for _, count in pairs(row.rec.need) do n = n + count end
+			return n
+		end }),
+		col("size", "GRP_COL_SIZE", { width = 48, mono = true, value = function(row) return row.rec.have end }),
 		col("leader", "GRP_COL_LEADER", { flex = 2 }),
-		col("age", "GRP_COL_AGE", { width = 72, mono = true }),
-		col("left", "GRP_COL_LEFT", { width = 72, mono = true }),
+		col("age", "GRP_COL_AGE", { width = 72, mono = true, value = function(row) return -row.rec.created end }),
+		col("left", "GRP_COL_LEFT", { width = 72, mono = true,
+			value = function(row) return row.status == "open" and row.rec.ends or nil end }),
 		col("state", "GRP_COL_STATE", { flex = 2, token = function(row)
 			if row.app or row.mine then return "accent-text" end
 			return "text-3"
@@ -176,7 +183,7 @@ local function buildList(f, self)
 	f.roles = CreateFrame("Frame", nil, f)
 	f.roles:SetSize(300, View.CHIP_HEIGHT)
 	f.detail = buildDetail(f, self)
-	f.table = Widgets.DataTable(f, listColumns(), { emptyText = L["GRP_EMPTY"],
+	f.table = Widgets.DataTable(f, listColumns(), { emptyText = L["GRP_EMPTY"], memory = "groups.list",
 		onRowClick = function(row) self:Choose(row.id) end,
 		isSelected = function(data) return data.id == self.selected end,
 		rowSetup = function(row)
@@ -402,7 +409,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function applicantColumns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 		opts.text = opts.text or function(a) return model().ApplicantText(a, id) end
 		return opts
 	end
@@ -412,10 +419,11 @@ local function applicantColumns()
 			Widgets.PaintName(fs, a.classFile)
 		end }),
 		col("class", "GRP_COL_CLASS", { flex = 1 }),
-		col("level", "GRP_COL_LEVEL", { width = 52, mono = true }),
-		col("role", "GRP_COL_ROLE", { width = 96 }),
+		col("level", "GRP_COL_LEVEL", { width = 52, mono = true, value = function(a) return a.level end }),
+		col("role", "GRP_COL_ROLE", { width = 96, value = function(a) return model().RoleText(a.role) end }),
 		col("comment", "GRP_COL_COMMENT", { flex = 3, token = function() return "text-2" end }),
-		col("age", "GRP_COL_AGE", { width = 72, mono = true, token = function() return "text-3" end }),
+		col("age", "GRP_COL_AGE", { width = 72, mono = true, token = function() return "text-3" end,
+			value = function(a) return -a.at end }),
 		col("buttons", nil, { width = 176, text = function() return "" end }),
 	}
 end
@@ -456,6 +464,7 @@ local function buildMine(f, self)
 	f.game:SetPoint("RIGHT", f.close, "LEFT", -8, 0)
 	Widgets.Tooltip.Attach(f.game, function() local b = model().GameButton() return b and b.tip or nil end, "LEFT")
 	f.table = Widgets.DataTable(f, applicantColumns(), { emptyText = L["GRP_NO_APPLICANTS"], rowHeight = 36,
+		memory = "groups.applicants",
 		rowSetup = function(row)
 			applicantRow(self, row)
 			Widgets.Tooltip.Attach(row, function(r)

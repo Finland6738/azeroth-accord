@@ -283,7 +283,7 @@ end
 -- The page
 ---------------------------------------------------------------------------------------------------------------------
 local function col(id, key, opts)
-	opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+	opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 	return opts
 end
 
@@ -298,12 +298,12 @@ end
 
 local function recipeColumns()
 	return {
-		col("recipe", "RV_COL_RECIPE", { flex = 2, render = function(cell, d, row)
+		col("recipe", "RV_COL_RECIPE", { flex = 2, value = function(d) return d.name end, render = function(cell, d, row)
 			cell:SetText(escape(d.name))
 			Theme.Text(cell, d.resolved and "text-1" or "text-3")
 			placeAfterIcon(View.frame.recipes, cell, row)
 		end }),
-		col("n", "SHOP_COL_TIMES", { width = 150, mono = true, text = function(d)
+		col("n", "SHOP_COL_TIMES", { width = 150, mono = true, value = function(d) return d.n end, text = function(d)
 			return d.made and d.made > 1 and L["SHOP_TIMES_PIECES"]:format(d.n, d.n * d.made) or L["SHOP_TIMES"]:format(d.n)
 		end }),
 		col("action", nil, { width = 196, render = function(cell) cell:SetText("") end }),
@@ -312,7 +312,7 @@ end
 
 local function materialColumns()
 	return {
-		col("item", "ORD_COL_ITEM", { flex = 2, render = function(cell, r, row)
+		col("item", "ORD_COL_ITEM", { flex = 2, value = function(r) return r.name end, render = function(cell, r, row)
 			cell:SetText(escape(r.name))
 			local info = ns.Compat.Item.Info(r.item)
 			if r.broken > 0 and r.missing == 0 then Theme.Text(cell, "text-3")
@@ -321,14 +321,17 @@ local function materialColumns()
 			placeAfterIcon(View.frame.mats, cell, row)
 		end }),
 		col("bar", nil, { width = 120, render = function(cell) cell:SetText("") end }),
-		col("count", "SHOP_COL_OWNED", { width = 90, mono = true, align = "RIGHT", text = View.CountText }),
-		col("missing", "SHOP_COL_MISSING", { width = 150, text = View.MissingText,
+		col("count", "SHOP_COL_OWNED", { width = 90, mono = true, align = "RIGHT", text = View.CountText,
+			value = function(r) return r.owned end }),
+		col("missing", "SHOP_COL_MISSING", { width = 150, text = View.MissingText, value = function(r) return r.missing end,
 			token = function(r) return r.missing > 0 and "err" or (r.broken > 0 and "text-3" or "ok") end }),
-		col("bank", "SHOP_COL_BANK", { width = 90, text = View.BankText, token = function(r)
+		col("bank", "SHOP_COL_BANK", { width = 90, text = View.BankText, value = function(r) return r.guildBank end,
+			token = function(r)
 			local old = r.guildBankAt and now() - r.guildBankAt > (ns.Provenance.DIM_DAYS.bank or 7) * 86400
 			return old and "text-3" or "text-2"
 		end }),
-		col("price", "SHOP_COL_PRICE", { width = 100, align = "RIGHT", text = View.PriceText, token = function(r)
+		col("price", "SHOP_COL_PRICE", { width = 100, align = "RIGHT", text = View.PriceText,
+			value = function(r) return r.price end, token = function(r)
 			return (r.priceAge and r.priceAge > ns.Prices.STALE) and "text-3" or "text-2"
 		end }),
 	}
@@ -440,7 +443,7 @@ function View:Build(f)
 	f.clear:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -48)
 	-- the recipes
 	f.recipes = Widgets.DataTable(f, recipeColumns(), { rowHeight = View.ROW_HEIGHT, pool = 4, maxPool = 20,
-		emptyText = L["SHOP_LIST_EMPTY"], rowSetup = recipeSetup,
+		emptyText = L["SHOP_LIST_EMPTY"], rowSetup = recipeSetup, memory = "shopping.recipes",
 		rowUpdate = function(row, d) setIcon(row, d, View.frame.recipes) end })
 	f.recipes:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -92)
 	f.recipes:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -92)
@@ -467,7 +470,7 @@ function View:Build(f)
 	Widgets.Tooltip.Attach(f.mail, { L["SHOP_COUNT_MAIL"], L["SHOP_COUNT_MAIL_TIP"] }, "BOTTOM")
 	-- the materials
 	f.mats = Widgets.DataTable(f, materialColumns(), { rowHeight = View.ROW_HEIGHT, pool = 12, maxPool = 60,
-		emptyText = L["SHOP_MATS_EMPTY"], rowSetup = materialSetup, rowUpdate = materialUpdate })
+		emptyText = L["SHOP_MATS_EMPTY"], rowSetup = materialSetup, rowUpdate = materialUpdate, memory = "shopping.materials" })
 	f.mats:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y - 44)
 	f.mats:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 52)
 	-- the footer

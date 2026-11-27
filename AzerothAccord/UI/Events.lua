@@ -326,7 +326,11 @@ local function importLines(out, m)
 		if r.roles.bench[role] > 0 then parts[#parts + 1] = L["RH_ROLE_BENCH"]:format(r.roles.bench[role]) end
 		if r.season then parts[#parts + 1] = L["RH_ROLE_SEASON"]:format(r.season[role]) end
 		if r.target then parts[#parts + 1] = L["SEASON_COUNT_TARGET"]:format(r.target[role]) end
-		out[#out + 1] = { text = concat(parts, View.SEP), indent = true }
+		local tentative, bench = r.roles.tentative[role], r.roles.bench[role]
+		out[#out + 1] = { text = concat(parts, View.SEP), indent = true, table = "events.roles",
+			cells = { role = L["SEASON_FIELD_" .. role:upper()], signed = tostring(r.roles.signed[role]),
+				tentative = tostring(tentative), bench = tostring(bench), season = r.season and tostring(r.season[role]) or "",
+				target = r.target and tostring(r.target[role]) or "" } }
 	end
 	if r.roles.unknown > 0 then add(L["RH_ROLE_UNKNOWN"]:format(r.roles.unknown), "muted") end
 	for _, state in ipairs(ns.RaidHelper.STATE_ORDER) do
@@ -366,7 +370,11 @@ local function eventLine(e, chosen)
 	if e.addonOnly then parts[#parts + 1] = L["EVENTS_NOT_IN_GAME"] end
 	if e.discordOnly then parts[#parts + 1] = e.game and L["RH_LIST_DISCORD"] or L["RH_LIST_DISCORD_ONLY"]
 	elseif e.importId then parts[#parts + 1] = L["RH_LIST_LINKED"] end
-	return { text = concat(parts, View.SEP), member = true, selected = chosen or nil }
+	local from = {}
+	for i = 3, #parts do from[#from + 1] = parts[i] end
+	return { text = concat(parts, View.SEP), member = true, selected = chosen or nil, table = "events.list", key = e.key,
+		cells = { when = whenText(e.start), title = e.title or "?", from = concat(from, View.SEP) },
+		keys = { when = e.start } }
 end
 
 -- { { text, heading?, sub?, muted?, warn?, indent? } } for a model.
@@ -461,6 +469,27 @@ function View.PlaceChoices(m)
 			text = L["LINEUP_OFFER"]:format(short(o.person.name), roleText(o.role), placeText(o.person.place)) }
 	end
 	return out
+end
+
+-- The tables of the lines (ui-style §9.9): the events (a click chooses one) and the roles of an import.
+local function tables()
+	local function column(id, key, opts)
+		opts = opts or { flex = 1 }
+		opts.id, opts.title = id, L[key]
+		return opts
+	end
+	local function number(id, key, width) return column(id, key, { width = width or 90, align = "RIGHT", mono = true }) end
+	return {
+		["events.list"] = { memory = "events.list", columns = {
+			column("when", "EVENTS_COL_WHEN", { width = 150, mono = true }), column("title", "EVENTS_COL_TITLE", { flex = 2 }),
+			column("from", "EVENTS_COL_FROM", { flex = 1.4 }) },
+			isSelected = function(l) return l.selected == true end,
+			onRowClick = function(l) View:Choose(l.key) end },
+		["events.roles"] = { memory = "events.roles", columns = {
+			column("role", "SEASON_COL_ROLE", { flex = 1 }), number("signed", "EVENTS_COL_SIGNED"),
+			number("tentative", "EVENTS_COL_TENTATIVE"), number("bench", "EVENTS_COL_BENCH"),
+			number("season", "EVENTS_COL_SEASON", 120), number("target", "SEASON_COL_TARGET") } },
+	}
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -655,11 +684,6 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames
 ---------------------------------------------------------------------------------------------------------------------
-local function visibleRows(list)
-	local h = list and list:GetHeight() or 0
-	return h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 16
-end
-
 function View:Build(f)
 	self.frame = f
 	f.picker = Widgets.Select(f, { width = 320, rows = 8, onSelect = function(id)
@@ -746,13 +770,10 @@ function View:Build(f)
 	f.write:SetPoint("LEFT", f.takeOut, "RIGHT", 8, 0)
 	f.message = Widgets.Text(f, "Small", "text-3", "LEFT")
 
-	f.list = CreateFrame("Frame", nil, f)
+	f.list = Widgets.Sheet(f, { rowHeight = View.ROW_HEIGHT, wheelStep = View.WHEEL_STEP, tables = tables(),
+		paint = function(fs, l) ns.RaidView.PaintLine(fs, l) end,
+		indent = function(l) return ns.RaidView.LineIndent(l) end })
 	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.list:SetClipsChildren(true)
-	f.list:EnableMouseWheel(true)
-	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	f.list.lines, f.list.marks = {}, {}
-	f.offset = 0
 	f:SetScript("OnShow", function()
 		if ns.Calendar.Enabled() then ns.Calendar:Start() end
 		View:Redraw()
@@ -854,57 +875,12 @@ function View:Redraw()
 
 	local lines = View.Lines(m)
 	self.shown = lines
-	local list = f.list
-	local visible = visibleRows(list)
-	f.offset = max(0, min(f.offset or 0, max(0, #lines - visible)))
-	local drawn = max(0, min(visible, #lines - f.offset))
-	for i = 1, drawn do
-		local l = lines[f.offset + i]
-		local fs = list.lines[i]
-		if not fs then
-			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
-			fs:SetWordWrap(false)
-			list.lines[i] = fs
-		end
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", list, "TOPLEFT", (l.indent or l.member) and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
-		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
-		fs:SetText(l.text)
-		fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
-		if l.heading then Theme.Text(fs, "text-1")
-		elseif l.warn then Theme.Text(fs, "warn")
-		elseif l.muted then Theme.Text(fs, "text-3")
-		elseif l.selected then Theme.Text(fs, "on-secondary-container")
-		else Theme.Text(fs, "text-2") end
-		fs:Show()
-		-- the chosen person of the line-up: the selected row
-		local mark = list.marks[i]
-		if l.selected and not mark then
-			mark = Widgets.Selection(list)
-			list.marks[i] = mark
-		end
-		if mark then
-			mark:ClearAllPoints()
-			mark:SetPoint("TOPLEFT", list, "TOPLEFT", 4, -(i - 1) * View.ROW_HEIGHT + 2)
-			mark:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", 0, -i * View.ROW_HEIGHT + 2)
-			mark:SetShown(l.selected == true)
-		end
-	end
-	for i = drawn + 1, #list.lines do
-		list.lines[i]:Hide()
-		if list.marks[i] then list.marks[i]:Hide() end
-	end
+	f.list:SetLines(lines)
 end
 
 function View:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	local total = self.shown and #self.shown or 0
-	local target = max(0, min((f.offset or 0) + delta, max(0, total - visibleRows(f.list))))
-	if target == f.offset then return false end
-	f.offset = target
-	self:Redraw()
-	return true
+	return f ~= nil and f.list:Scroll(delta)
 end
 
 function View:Changed()

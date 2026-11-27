@@ -74,6 +74,8 @@ local function detailsSection(e)
 		if e.online then lines[#lines + 1] = line(L["CARD_ONLINE"])
 		else lines[#lines + 1] = line(L["CARD_LAST_ONLINE"]:format(Model.LastOnlineText(e.lastOnlineHours)), true) end
 		if e.rankName then lines[#lines + 1] = line(L["CARD_RANK"]:format(e.rankName)) end
+		local role = Model.RoleLine(e, Model.Season())
+		if role then lines[#lines + 1] = line(role) end
 		if e.note and e.note ~= "" then lines[#lines + 1] = line(L["CARD_NOTE"]:format(e.note)) end
 		-- the officers' note only for those the game lets read it (the client may hand it over anyway)
 		local canView = ns.Compat and ns.Compat.Guild.CanViewOfficerNote()

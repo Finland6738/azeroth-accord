@@ -100,7 +100,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function columns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil   -- a column without a title has no sort
 		opts.text = opts.text or function(r) return View.Text(r, id) end
 		return opts
 	end
@@ -110,7 +110,8 @@ local function columns()
 		col("title", "ACT_COL_WHAT", { flex = 3 }),
 		col("detail", "ACT_COL_DETAIL", { flex = 2, token = function() return "text-3" end }),
 		col("who", "ACT_COL_WHO", { flex = 1 }),
-		col("age", "ACT_COL_AGE", { width = 80, mono = true, token = function() return "text-3" end }),
+		col("age", "ACT_COL_AGE", { width = 80, mono = true, token = function() return "text-3" end,
+			value = function(r) return -r.time end }),
 		col("done", nil, { width = 80, text = function() return "" end }),
 	}
 end
@@ -205,7 +206,7 @@ local function buildInbox(f, self)
 		self.filter = id
 		self:Redraw()
 	end)
-	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ACT_EMPTY"], rowHeight = 36,
+	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ACT_EMPTY"], rowHeight = 36, memory = "actions.inbox",
 		onRowClick = function(r) ns.Actions:Open(r) end,
 		rowSetup = function(row) setupRow(self, row) end, rowUpdate = updateRow })
 	placeInbox(f, 0)
@@ -246,7 +247,7 @@ end
 
 local function noticeColumns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 		opts.text = opts.text or function(e) return View.NoticeText(e, id) end
 		return opts
 	end
@@ -256,7 +257,7 @@ local function noticeColumns()
 		col("module", "NOTICE_COL_MODULE", { flex = 1, token = third }),
 		col("text", "NOTICE_COL_TEXT", { flex = 4, token = function(e) return e.read and "text-3" or "text-1" end }),
 		col("muted", nil, { width = 60, token = third }),
-		col("age", "NOTICE_COL_AGE", { width = 80, mono = true, token = third }),
+		col("age", "NOTICE_COL_AGE", { width = 80, mono = true, token = third, value = function(e) return -e.time end }),
 	}
 end
 
@@ -299,7 +300,7 @@ local function buildNotices(f, self)
 		self:Redraw()
 	end })
 	f.markAll:SetPoint("RIGHT", f.clear, "LEFT", -8, 0)
-	f.table = Widgets.DataTable(f, noticeColumns(), { emptyText = L["NOTICE_EMPTY"],
+	f.table = Widgets.DataTable(f, noticeColumns(), { emptyText = L["NOTICE_EMPTY"], memory = "actions.notices",
 		onRowClick = function(e) ns.Notify:Open(e) self:Redraw() end,
 		rowSetup = function(row)
 			row.mark = row:CreateTexture(nil, "ARTWORK")

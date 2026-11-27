@@ -184,9 +184,13 @@ local function memberLine(e)
 	if e.ms1 then parts[#parts + 1] = L["RAID_MS1"]:format(spec(e.ms1)) end
 	if e.ms2 then parts[#parts + 1] = L["RAID_MS2"]:format(spec(e.ms2)) end
 	if e.os then parts[#parts + 1] = L["RAID_OS"]:format(spec(e.os)) end
-	if e.status == "TRIAL" then parts[#parts + 1] = L["RAID_TRIAL"]
-	elseif e.status == "INACTIVE" then parts[#parts + 1] = L["RAID_INACTIVE"] end
-	return { text = concat(parts, View.SEP), member = e.name }
+	local status = ""
+	if e.status == "TRIAL" then status = L["RAID_TRIAL"]
+	elseif e.status == "INACTIVE" then status = L["RAID_INACTIVE"] end
+	if status ~= "" then parts[#parts + 1] = status end
+	return { text = concat(parts, View.SEP), member = e.name, table = "raid.pool",
+		cells = { name = short(e.name), class = className or "", role = e.role and code("ROLE", e.role) or "",
+			ms1 = e.ms1 and spec(e.ms1) or "", ms2 = e.ms2 and spec(e.ms2) or "", os = e.os and spec(e.os) or "", status = status } }
 end
 View.MemberLine = memberLine
 
@@ -216,7 +220,11 @@ local function rulesLines(out, r)
 	if #cats > 0 then out[#out + 1] = { text = L["RULES_COSTS"] } end
 	for _, c in ipairs(cats) do
 		local row = r.costs[c]
-		out[#out + 1] = { text = L["RULES_COST"]:format(code("CATEGORY", c), cellText(row[3]), cellText(row[4]), cellText(row[5])), indent = true }
+		local function key(v) return type(v) == "number" and v or "" end   -- "council" and none sort last
+		out[#out + 1] = { text = L["RULES_COST"]:format(code("CATEGORY", c), cellText(row[3]), cellText(row[4]), cellText(row[5])),
+			indent = true, table = "raid.costs",
+			cells = { category = code("CATEGORY", c), blue = cellText(row[3]), purple = cellText(row[4]), orange = cellText(row[5]) },
+			keys = { blue = key(row[3]), purple = key(row[4]), orange = key(row[5]) } }
 	end
 	local rm = r.responseMultiplier
 	if rm and (rm.MS or rm.OS or rm.TMOG) then
@@ -261,13 +269,15 @@ local function holderLine(w)
 	local name = short(w.name)
 	if w.own then name = (w.shared and L["ADDONS_YOU"] or L["ADDONS_YOU_NOT_SHARED"]):format(name) end
 	local parts = { name, w.version or L["ADDONS_NO_VERSION"] }
-	local chars = w.chars or {}
+	local chars, others = w.chars or {}, ""
 	if #chars > 1 or (chars[1] and chars[1] ~= w.name) then
 		local list = {}
 		for i, c in ipairs(chars) do list[i] = short(c) end
-		parts[#parts + 1] = L["INTEG_CHARS"]:format(concat(list, ", "))
+		others = concat(list, ", ")
+		parts[#parts + 1] = L["INTEG_CHARS"]:format(others)
 	end
-	return { text = concat(parts, View.SEP), indent = true }
+	return { text = concat(parts, View.SEP), indent = true, table = "raid.holders",
+		cells = { name = name, version = w.version or L["ADDONS_NO_VERSION"], chars = others } }
 end
 View.HolderLine = holderLine
 
@@ -372,6 +382,39 @@ function View.Lines(m)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The tables of the lines (ui-style §9.9), also those of the Season view and the loot page
+---------------------------------------------------------------------------------------------------------------------
+local function column(id, key, opts)
+	opts = opts or { flex = 1 }
+	opts.id, opts.title = id, L[key]
+	return opts
+end
+local function number(id, key, width) return column(id, key, { width = width or 90, align = "RIGHT", mono = true }) end
+
+View.Tables = {
+	["raid.pool"] = { memory = "raid.pool", columns = {
+		column("name", "COL_NAME", { flex = 1.4 }), column("class", "COL_CLASS"), column("role", "SEASON_COL_ROLE"),
+		column("ms1", "SEASON_MS1"), column("ms2", "SEASON_MS2"), column("os", "SEASON_OS"),
+		column("status", "RAID_COL_STATUS", { width = 90 }) } },
+	["raid.holders"] = { memory = "raid.holders", columns = {
+		column("name", "COL_NAME", { flex = 1.4 }), column("version", "RAID_COL_VERSION", { width = 120 }),
+		column("chars", "RAID_COL_CHARS", { flex = 2 }) } },
+	["raid.costs"] = { memory = "raid.costs", columns = {
+		column("category", "RAID_COL_CATEGORY", { flex = 1 }), number("blue", "RAID_COL_BLUE"),
+		number("purple", "RAID_COL_PURPLE"), number("orange", "RAID_COL_ORANGE") } },
+}
+
+-- A line of text of a sheet: its font and colour, and where it starts.
+function View.PaintLine(fs, l)
+	fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
+	if l.heading then Theme.Text(fs, "text-1")
+	elseif l.warn then Theme.Text(fs, "warn")
+	elseif l.muted then Theme.Text(fs, "text-3")
+	else Theme.Text(fs, "text-2") end
+end
+function View.LineIndent(l) return (l.indent or l.member) and 12 or 0 end
+
+---------------------------------------------------------------------------------------------------------------------
 -- The member card
 ---------------------------------------------------------------------------------------------------------------------
 function View.CardSection(e)
@@ -429,21 +472,12 @@ function View:Build(f)
 	f.open:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.who = Widgets.Text(f, "Small", "text-3", "RIGHT")
 	f.who:SetPoint("TOPRIGHT", f.open, "BOTTOMRIGHT", 0, -10)
-	f.list = CreateFrame("Frame", nil, f)
+	f.list = Widgets.Sheet(f, { rowHeight = View.ROW_HEIGHT, wheelStep = View.WHEEL_STEP, paint = View.PaintLine,
+		indent = View.LineIndent, tables = View.Tables })
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.HEADER)
 	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.list:SetClipsChildren(true)
-	f.list:EnableMouseWheel(true)
-	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	f.list.lines = {}
-	f.offset = 0
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
-end
-
-local function visibleRows(list)
-	local h = list and list:GetHeight() or 0
-	return h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 16
 end
 
 function View:Redraw()
@@ -466,30 +500,7 @@ function View:Redraw()
 	if self.lootShown then self:DrawLoot(f) end
 	local lines = View.Lines(m)
 	self.shown = lines
-	local list = f.list
-	local visible = visibleRows(list)
-	f.offset = max(0, min(f.offset or 0, max(0, #lines - visible)))
-	local drawn = max(0, min(visible, #lines - f.offset))
-	for i = 1, drawn do
-		local l = lines[f.offset + i]
-		local fs = list.lines[i]
-		if not fs then
-			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
-			fs:SetWordWrap(false)
-			list.lines[i] = fs
-		end
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", list, "TOPLEFT", (l.indent or l.member) and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
-		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
-		fs:SetText(l.text)
-		fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
-		if l.heading then Theme.Text(fs, "text-1")
-		elseif l.warn then Theme.Text(fs, "warn")
-		elseif l.muted then Theme.Text(fs, "text-3")
-		else Theme.Text(fs, "text-2") end
-		fs:Show()
-	end
-	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+	f.list:SetLines(lines)
 end
 
 -- true when this character can read the handbook's loot page: then the loot page opens there.
@@ -529,13 +540,7 @@ end
 
 function View:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	local total = self.shown and #self.shown or 0
-	local target = max(0, min((f.offset or 0) + delta, max(0, total - visibleRows(f.list))))
-	if target == f.offset then return false end
-	f.offset = target
-	self:Redraw()
-	return true
+	return f ~= nil and f.list:Scroll(delta)
 end
 
 -- The data changed: one redraw after the burst, only while the view is visible.

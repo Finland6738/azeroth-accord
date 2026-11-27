@@ -20,7 +20,7 @@ Aprila con la sua scheda o con `/accord season`.
 - **In alto**: la **fonte** del roster della season (*Accord* o *FDCP*), la scelta della season e **Apri FDCP** quando Finland Dragon Credit Points è caricato sul tuo computer. La fonte è una sola scelta per tutta la gilda: gli ufficiali e il Guild Master la cambiano con un clic, tutti gli altri la vedono bloccata (vedi [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]).
 - **Gli ufficiali e il Guild Master** scrivono un nome e premono **Apri season**: la season comincia oggi, e quella aperta fino ad allora si chiude. **Chiudi season** chiude quella corrente senza aprirne un'altra. Nessun altro apre o chiude una season.
 - **La tua dichiarazione**: scegli MS1 e il suo ruolo, MS2 e OS (o *nessuna*), scrivi una nota se vuoi e premi **Dichiara**; oppure premi **Non ancora sicuro**. Un secondo clic conferma, perché la dichiarazione vale per tutta la season.
-- **L'elenco**: tutte le dichiarazioni della season scelta, con classe, MS1, MS2, OS e la nota.
+- **L'elenco**: una tabella con tutte le dichiarazioni della season scelta: nome, classe, MS1, MS2, OS e la nota. Clicca il titolo di una colonna per ordinarla; anche i conteggi per ruolo sono una tabella.
 
 ## Ruoli, mancanze e chi non ha dichiarato
 

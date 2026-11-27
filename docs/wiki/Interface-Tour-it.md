@@ -48,6 +48,12 @@ Il pannello ha **due livelli di navigazione**, uguali nella finestra della gilda
 - **Dalla `v0.12.0`**: nessuna scheda nuova, ma il [[testo di reclutamento|Season-Roster-it]] nella vista Season, la pagina **Prove** degli Ufficiali ([[Roster di gilda|Guild-Roster-it]]), la [[lista di benvenuto|Action-Center-it]] e la modalità **Mentori** della Reputazione (una pagina di Gilda dalla `v0.13.0`) ([[Like e indice sociale|Likes-and-Social-Index-it]]).
 - **Le viste del primo rilascio, `v0.8.0`**: **Roster**, **Professioni**, **Reputazione**, **Banca**, **Impostazioni**. La vista **Roster** arriva con la versione del roster e la vista **Impostazioni** (vedi [[Impostazioni|Settings-it]]; la stessa pagina è nella finestra delle impostazioni del gioco) con la versione di rilascio; vedi [[Roster di gilda|Guild-Roster-it]]. La vista **Professioni** (l'elenco delle ricette di un membro, aperto dal roster) arriva con la versione delle professioni; vedi [[Professioni e ricette|Professions-and-Recipes-it]]. La vista **Reputazione** (i like, una riga per giocatore ordinata per like, con il pulsante Like; il tuo indice sociale; la mappa dei gruppi per gli ufficiali; *Qualcuno di nuovo* con cui giocare) arriva con la versione della reputazione; vedi [[Like e indice sociale|Likes-and-Social-Index-it]]. La vista **Banca** (la banca di gilda scheda per scheda, il suo denaro, un elenco di oggetti con ricerca) arriva con la versione della banca (gli ufficiali vedono sulla scheda anche il numero di richieste in attesa); vedi [[Banca di gilda|Guild-Bank-it]]. Gli ufficiali hanno anche la scheda **Ufficiali**, con i giocatori inattivi e la cronologia del roster (vedi [[Roster di gilda|Guild-Roster-it]]).
 
+## Ordinare gli elenchi
+
+- **Ogni elenco a colonne è una tabella**: clicca il titolo di una colonna per ordinarla, cliccalo di nuovo per invertire. Il titolo ordinato è nel colore d'accento, con una freccia. Le righe senza nulla in quella colonna vanno in fondo; le colonne con i pulsanti non si ordinano.
+- **Gli elenchi senza colonne** (le pagine del manuale, i mentori suggeriti) hanno un pulsante **Ordina per**: scegli l'ordine nel suo menu, e sceglilo di nuovo per invertirlo.
+- Ogni elenco **ricorda il proprio ordine per ogni personaggio**.
+
 ## Pulsanti, filtri e righe
 
 I controlli hanno lo stesso aspetto e lo stesso comportamento in ogni vista (le regole di Material 3 di Google, disegnate con i temi di Accord):

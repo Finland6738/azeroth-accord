@@ -294,17 +294,18 @@ describe("the Requests mode", function()
 
 	it("opens a request from the form, and lists it with its status", function()
 		local f = open()
-		contains(f.message:GetText(), "No open requests")
+		contains(f.table.empty:GetText(), "No open requests")
 		f.item:SetText("|cffffffff|Hitem:2589::::::::60:::::|h[Linen Cloth]|h|r")
 		f.amount:SetText("20")
 		f.reason:SetText("for the raid")
 		f.send:Click()
 		eq(f.item:GetText(), "", "the form is cleared")
 		contains(f.status:GetText(), "Request sent")
-		local rows = shown(f.area.rows)
+		local rows = shown(f.table.rows)
 		eq(#rows, 1)
-		eq(rows[1].status:GetText(), "Open"); eq(rows[1].name:GetText(), "Testchar"); eq(rows[1].kind:GetText(), "Withdraw")
-		eq(rows[1].what:GetText(), "Linen Cloth x20"); eq(rows[1].reason:GetText(), "for the raid")
+		eq(rows[1].cells.status:GetText(), "Open"); eq(rows[1].cells.name:GetText(), "Testchar")
+		eq(rows[1].cells.kind:GetText(), "Withdraw")
+		eq(rows[1].cells.what:GetText(), "Linen Cloth x20"); eq(rows[1].cells.reason:GetText(), "for the raid")
 		eq(rows[1].buttons[1]:GetLabel(), "Cancel"); falsy(rows[1].buttons[2]:IsShown())
 	end)
 
@@ -337,22 +338,22 @@ describe("the Requests mode", function()
 	it("Cancel cancels the player's own open request and hides it", function()
 		local f = open()
 		f.amount:SetText("5"); f.send:Click()
-		f.area.rows[1].buttons[1]:Click()
+		f.table.rows[1].buttons[1]:Click()
 		eq(S():Get("bankreq", ME .. ":1").status, "cancelled")
-		eq(#shown(f.area.rows), 0)
+		eq(#shown(f.table.rows), 0)
 		f.closed:Click()
-		eq(#shown(f.area.rows), 1)
-		eq(shown(f.area.rows)[1].status:GetText(), "Cancelled")
+		eq(#shown(f.table.rows), 1)
+		eq(shown(f.table.rows)[1].cells.status:GetText(), "Cancelled")
 	end)
 
 	it("a member sees the requests of others, but only the buttons of their own", function()
 		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "donation",
 			status = "open", itemID = LINEN, count = 9, created = GetServerTime(), history = {} }
 		local f = open()
-		local rows = shown(f.area.rows)
-		eq(#rows, 1); eq(rows[1].name:GetText(), "Bob"); falsy(rows[1].buttons[1]:IsShown())
+		local rows = shown(f.table.rows)
+		eq(#rows, 1); eq(rows[1].cells.name:GetText(), "Bob"); falsy(rows[1].buttons[1]:IsShown())
 		f.mine:Click()
-		eq(#shown(f.area.rows), 0, "only mine")
+		eq(#shown(f.table.rows), 0, "only mine")
 	end)
 
 	it("an officer sees Approve, Reject and Fulfilled, and the reason box is the reason of a rejection", function()
@@ -360,12 +361,12 @@ describe("the Requests mode", function()
 		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw",
 			status = "open", itemID = LINEN, count = 9, created = GetServerTime(), history = { { s = "open", by = BOB, t = GetServerTime() } } }
 		local f = open()
-		local row = shown(f.area.rows)[1]
+		local row = shown(f.table.rows)[1]
 		eq(row.buttons[1]:GetLabel(), "Approve"); eq(row.buttons[2]:GetLabel(), "Reject"); eq(row.buttons[3]:GetLabel(), "Fulfilled")
 		row.buttons[1]:Click()
 		eq(S():Get("bankreq", BOB .. ":1").status, "approved")
-		row = shown(f.area.rows)[1]
-		eq(row.status:GetText(), "Approved"); eq(row.buttons[1]:GetLabel(), "Reject"); eq(row.buttons[2]:GetLabel(), "Fulfilled")
+		row = shown(f.table.rows)[1]
+		eq(row.cells.status:GetText(), "Approved"); eq(row.buttons[1]:GetLabel(), "Reject"); eq(row.buttons[2]:GetLabel(), "Fulfilled")
 		f.reason:SetText("sorry, out of stock")
 		row.buttons[1]:Click()
 		eq(S():Get("bankreq", BOB .. ":1").status, "rejected")
@@ -377,7 +378,7 @@ describe("the Requests mode", function()
 		S():Records("bankreq")[BOB .. ":1"] = { id = BOB .. ":1", author = BOB, rev = 1, time = GetServerTime(), requester = BOB, kind = "withdraw",
 			status = "open", itemID = LINEN, count = 9, reason = "gear", created = GetServerTime(), history = { { s = "open", by = BOB, t = GetServerTime() - 7200 } } }
 		local f = open()
-		local row = shown(f.area.rows)[1]
+		local row = shown(f.table.rows)[1]
 		A().Widgets.Tooltip.Show(row, A().BankRequestsView.TooltipLines(row.data), "RIGHT")
 		local lines = A().Widgets.Tooltip.Lines()
 		eq(lines[2], "gear"); eq(lines[3], "Open by Bob, 2 h ago")
@@ -677,8 +678,8 @@ describe("the form picks from the bank", function()
 		local rec = S():Get("bankreq", ME .. ":1")
 		eq(rec.itemID, LINEN); eq(rec.count, 35); eq(rec.tip, 5 * GOLD)
 		eq(f.item:GetText(), ""); eq(f.gift:GetText(), "")
-		local row = f.area.rows[1]
-		contains(row.reason:GetText(), "tip 5g")
+		local row = f.table.rows[1]
+		contains(row.cells.reason:GetText(), "tip 5g")
 		contains(A().BankRequestsView.TooltipLines(row.data)[2].text, "Tip: 5g")
 	end)
 

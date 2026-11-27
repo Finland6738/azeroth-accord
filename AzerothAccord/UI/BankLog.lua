@@ -72,189 +72,52 @@ function Mode.DonationRows()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
--- A list mode: virtual rows with columns
+-- A list mode: a Widgets.DataTable (docs/specs/ui-style.md §9.9, M13.8)
 ---------------------------------------------------------------------------------------------------------------------
-local function visibleRows(area)
-	local h = area and area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
-end
-
--- def = { columns = { { key, title, width, font (a Theme font id), token, justify, value = function(d) -> sort key }, ... },
---   rows() -> list, fill(row, data), empty, sort = { key, desc } (the first order), renumber (place = position after sorting),
---   onSort(key, desc) (told when a header is clicked) }
--- A header row over the columns, in the DataTable's look: a click on a title sorts by that column, a second click reverses;
--- the sorted title is in accent-text with an arrow (owner, 2026-11-27: headers that sort instead of sorting buttons).
-local HEAD_H = 32
-local function sortRows(rows, def, key, desc)
-	local col
-	for _, c in ipairs(def.columns) do if c.key == key then col = c end end
-	if not col then return rows end
-	local value = col.value or function(d) return d[key] end
-	local keyed = {}
-	for i, d in ipairs(rows) do
-		local v = value(d)
-		if type(v) == "string" then v = v:lower() end
-		keyed[i] = { d = d, v = v, i = i }
-	end
-	table.sort(keyed, function(a, b)
-		if a.v == nil or b.v == nil then
-			if (a.v == nil) ~= (b.v == nil) then return b.v == nil end   -- nothing to sort by: last
-			return a.i < b.i
-		end
-		if type(a.v) ~= type(b.v) then a.v, b.v = tostring(a.v), tostring(b.v) end
-		if a.v ~= b.v then
-			if desc then return a.v > b.v end
-			return a.v < b.v
-		end
-		return a.i < b.i
-	end)
-	local out = {}
-	for i, k in ipairs(keyed) do out[i] = k.d end
-	return out
-end
-Mode.SortRows = sortRows
-
+-- def = { columns (of the table), rows() -> list, empty() -> text, sort = { id, desc } (the first order), memory,
+--   toolbar(frame) -> the table's top, beforeRefresh(frame), prepare(sorted), onSorted(id, desc) }
 local function listMode(def)
-	local mode = { sortKey = def.sort and def.sort.key, sortDesc = def.sort and def.sort.desc or false }
-
-	local function header(f, top)
-		local head = CreateFrame("Frame", nil, f)
-		head:SetHeight(HEAD_H)
-		head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
-		head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -top)
-		head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
-		head.fill:SetAllPoints(head)
-		head.buttons = {}
-		local x = 6
-		for _, c in ipairs(def.columns) do
-			local b = CreateFrame("Button", nil, head)
-			b:SetHeight(HEAD_H)
-			b:SetPoint("LEFT", head, "LEFT", x, 0)
-			if c.width then b:SetWidth(c.width) else b:SetPoint("RIGHT", head, "RIGHT", -4, 0) end
-			b.label = Widgets.Text(b, "label-medium", "text-3", c.justify or "LEFT")
-			b.label:SetAllPoints(b)
-			b.label:SetText((c.title or ""):upper())
-			b.arrow = b:CreateTexture(nil, "OVERLAY")
-			b.arrow:SetTexture(ns.Assets.textures.icons.path)
-			b.arrow:SetSize(12, 12)
-			b.arrow:Hide()
-			b.key, b.justify = c.key, c.justify or "LEFT"
-			b:SetScript("OnClick", function()
-				if mode.sortKey == c.key then mode.sortDesc = not mode.sortDesc
-				else mode.sortKey, mode.sortDesc = c.key, c.descFirst == true end
-				View.offset = 0
-				if def.onSort then def.onSort(mode.sortKey, mode.sortDesc) end
-				View:Redraw()
-			end)
-			head.buttons[#head.buttons + 1] = b
-			x = x + (c.width or 0) + 8
-		end
-		f.head = head
-		return head
-	end
-
-	local function paintHeader(f)
-		for _, b in ipairs(f.head and f.head.buttons or {}) do
-			local on = b.key == mode.sortKey
-			Theme.Text(b.label, on and "accent-text" or "text-3")
-			if on then
-				b.arrow:SetTexCoord(ns.Assets.IconCoords(mode.sortDesc and "arrow_down" or "arrow_up"))
-				Theme.Tint(b.arrow, "accent-text")
-				b.arrow:ClearAllPoints()
-				local w = b.label:GetStringWidth() or 0
-				if b.justify == "RIGHT" then b.arrow:SetPoint("RIGHT", b, "RIGHT", -w - 4, 0)
-				else b.arrow:SetPoint("LEFT", b, "LEFT", w + 4, 0) end
-				b.arrow:Show()
-			else
-				b.arrow:Hide()
-			end
-		end
-	end
-	mode.paintHeader = paintHeader
-	local function newRow(area, i)
-		local row = CreateFrame("Button", nil, area)
-		row:SetHeight(View.ROW_HEIGHT)
-		row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-		row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-		row.cells = {}
-		local prev
-		for n, c in ipairs(def.columns) do
-			local fs = Widgets.Text(row, c.font or "Body", c.token or "text-1", c.justify or "LEFT")
-			if prev then fs:SetPoint("LEFT", prev, "RIGHT", 8, 0) else fs:SetPoint("LEFT", row, "LEFT", 6, 0) end
-			if c.width then fs:SetWidth(c.width) else fs:SetPoint("RIGHT", row, "RIGHT", -4, 0) end
-			row.cells[c.key] = fs
-			prev = fs
-		end
-		Widgets.RowHover(row)
-		area.rows[i] = row
-		return row
-	end
+	local mode = {}
 
 	function mode.build(f)
 		local top = 4
 		if def.toolbar then top = def.toolbar(f) end
-		local head = header(f, top)
-		local area = CreateFrame("Frame", nil, f)
-		area:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -4)
-		area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-		area:SetClipsChildren(true)
-		area:EnableMouseWheel(true)
-		area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-		area:SetScript("OnSizeChanged", function() View:Redraw() end)
-		area.rows = {}
-		f.area = area
-		f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-		f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-		f.message:SetWidth(380)
+		f.table = Widgets.DataTable(f, def.columns, { rowHeight = View.ROW_HEIGHT, pool = 14, maxPool = 60,
+			sort = def.sort, memory = def.memory, prepare = def.prepare, onSorted = def.onSorted })
+		f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top)
+		f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 	end
 
 	function mode.refresh(f)
 		if def.beforeRefresh then def.beforeRefresh(f) end
 		local rows = def.rows()
-		if mode.sortKey then rows = sortRows(rows, def, mode.sortKey, mode.sortDesc) end
-		if def.renumber then for i, d in ipairs(rows) do d.place = i end end
-		paintHeader(f)
-		View.rowsShown = rows
-		local total, visible = #rows, visibleRows(f.area)
-		View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
-		local drawn = max(0, min(visible + 1, total - View.offset))
-		for i = 1, drawn do
-			local row = f.area.rows[i] or newRow(f.area, i)
-			row.data = rows[View.offset + i]
-			def.fill(row, row.data)
-			row:Show()
-		end
-		for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-		if total == 0 then
-			f.message:SetText(def.empty())
-			f.message:Show()
-		else
-			f.message:Hide()
-		end
-		return total
+		f.table:SetEmptyText(def.empty())
+		f.table:SetData(rows, true)
+		View.rowsShown = f.table:GetData()
+		return #rows
 	end
 	return mode
 end
+
+local function field(key) return function(d) return d[key] end end
+local function muted() return "text-3" end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Log
 ---------------------------------------------------------------------------------------------------------------------
 local logMode = listMode({
 	columns = {
-		{ key = "when", title = L["BANKLOG_COL_WHEN"], width = 80, font = "MonoSmall", token = "text-3", value = function(d) return d.t end, descFirst = true },
-		{ key = "tab", title = L["BANKLOG_COL_TAB"], width = 90, font = "Small", token = "text-3", value = function(d) return d.tabName end },
-		{ key = "name", title = L["BANKLOG_COL_WHO"], width = 140, font = "BodyMedium" },
-		{ key = "kind", title = L["BANKLOG_COL_WHAT"], width = 90, font = "Small", value = function(d) return d.text end },
-		{ key = "detail", title = L["BANKLOG_COL_DETAIL"], token = "text-2" } },
-	sort = { key = "when", desc = true },
+		{ id = "when", title = L["BANKLOG_COL_WHEN"], width = 96, mono = true, text = field("when"), token = muted,
+			value = field("t") },
+		{ id = "tab", title = L["BANKLOG_COL_TAB"], width = 110, text = field("tabName"), token = muted },
+		{ id = "name", title = L["BANKLOG_COL_WHO"], width = 150, text = field("name") },
+		{ id = "kind", title = L["BANKLOG_COL_WHAT"], width = 110, text = field("text"),
+			token = function(d) return d.kind == "withdraw" and "err" or (d.kind == "deposit" and "ok" or "text-3") end },
+		{ id = "detail", title = L["BANKLOG_COL_DETAIL"], flex = 1, text = field("detail"),
+			token = function() return "text-2" end },
+	},
+	sort = { id = "when", desc = true }, memory = "bank.log",
 	rows = function() return Mode.LogRows({ search = View.search }) end,
-	fill = function(row, d)
-		row.cells.when:SetText(d.when); row.cells.tab:SetText(d.tabName); row.cells.name:SetText(d.name)
-		row.cells.kind:SetText(d.text)
-		Theme.Text(row.cells.kind, d.kind == "withdraw" and "err" or (d.kind == "deposit" and "ok" or "text-3"))
-		row.cells.detail:SetText(d.detail)
-	end,
 	empty = function() return View.search ~= "" and L["BANK_NO_MATCH"] or L["BANKLOG_EMPTY"] end,
 })
 View.AddMode("log", { label = L["BANK_MODE_LOG"], order = 30, build = logMode.build, refresh = logMode.refresh, search = true })
@@ -284,27 +147,31 @@ local donationMode = listMode({
 	toolbar = function(f)
 		-- the period is a choice of what to count, so it stays as chips; the order is the headers' (2026-11-27)
 		pickRow(f, "window", { { "d30", L["BANKLOG_D30"] }, { "d365", L["BANKLOG_D365"] }, { "all", L["BANKLOG_ALL"] } },
-			function() return Mode.window end, function(v) Mode.window = v View.offset = 0 end)
+			function() return Mode.window end, function(v) Mode.window = v View:ResetScroll() end)
 		return 40
 	end,
 	beforeRefresh = refreshPicks,
 	columns = {
-		{ key = "place", title = "#", width = 28, font = "MonoSmall", token = "text-3", justify = "RIGHT" },
-		{ key = "name", title = L["BANKLOG_COL_WHO"], width = 160, font = "BodyMedium" },
-		{ key = "gold", title = L["BANKLOG_COL_GOLD"], width = 120, font = "MonoMedium", token = "accent-text", justify = "RIGHT", descFirst = true },
-		{ key = "items", title = L["BANKLOG_COL_ITEMS"], width = 90, font = "Mono", justify = "RIGHT", descFirst = true },
-		{ key = "deposits", title = L["BANKLOG_COL_DEPOSITS"], font = "Small", token = "text-3", descFirst = true } },
-	sort = { key = "gold", desc = true },
-	renumber = true,
-	onSort = function(key) if key == "gold" or key == "items" then Mode.sort = key end end,
-	rows = Mode.DonationRows,
-	fill = function(row, d)
-		row.cells.place:SetText(tostring(d.place))
-		row.cells.name:SetText(d.name); Widgets.PaintName(row.cells.name, d.classFile)
-		row.cells.gold:SetText(d.gold > 0 and View.MoneyText(d.gold) or "-")
-		row.cells.items:SetText(d.items > 0 and L["BANKLOG_ITEMS_N"]:format(d.items) or "-")
-		row.cells.deposits:SetText(L["BANKLOG_DEPOSITS"]:format(d.deposits))
+		-- the place in the order shown: it follows the sort, so it has none of its own
+		{ id = "place", title = "#", width = 40, align = "RIGHT", mono = true, sortable = false, token = muted,
+			text = function(d) return tostring(d.place or "") end },
+		{ id = "name", title = L["BANKLOG_COL_WHO"], flex = 1, text = field("name"),
+			render = function(cell, d) cell:SetText(d.name) Widgets.PaintName(cell, d.classFile) end },
+		{ id = "gold", title = L["BANKLOG_COL_GOLD"], width = 140, align = "RIGHT", mono = true, value = field("gold"),
+			text = function(d) return d.gold > 0 and View.MoneyText(d.gold) or "-" end,
+			token = function() return "accent-text" end },
+		{ id = "items", title = L["BANKLOG_COL_ITEMS"], width = 110, align = "RIGHT", mono = true, value = field("items"),
+			text = function(d) return d.items > 0 and L["BANKLOG_ITEMS_N"]:format(d.items) or "-" end },
+		{ id = "deposits", title = L["BANKLOG_COL_DEPOSITS"], width = 130, align = "RIGHT", value = field("deposits"),
+			text = function(d) return L["BANKLOG_DEPOSITS"]:format(d.deposits) end, token = muted },
+	},
+	sort = { id = "gold", desc = true }, memory = "bank.donations",
+	prepare = function(rows) for i, d in ipairs(rows) do d.place = i end end,
+	onSorted = function(id)
+		if id == "gold" or id == "items" then Mode.sort = id end
+		View:Redraw()
 	end,
+	rows = Mode.DonationRows,
 	empty = function() return L["BANKLOG_NO_DONATIONS"] end,
 })
 View.AddMode("donations", {
@@ -400,17 +267,17 @@ local moneyMode = listMode({
 	toolbar = buildChart,
 	beforeRefresh = drawChart,
 	columns = {
-		{ key = "when", title = L["BANKLOG_COL_WHEN"], width = 80, font = "MonoSmall", token = "text-3", value = function(d) return d.t end, descFirst = true },
-		{ key = "name", title = L["BANKLOG_COL_WHO"], width = 160, font = "BodyMedium" },
-		{ key = "kind", title = L["BANKLOG_COL_WHAT"], width = 110, font = "Small", value = function(d) return d.text end },
-		{ key = "amount", title = L["BANKLOG_COL_AMOUNT"], width = 130, font = "MonoMedium", token = "accent-text", justify = "RIGHT", descFirst = true } },
-	sort = { key = "when", desc = true },
+		{ id = "when", title = L["BANKLOG_COL_WHEN"], width = 96, mono = true, text = field("when"), token = muted,
+			value = field("t") },
+		{ id = "name", title = L["BANKLOG_COL_WHO"], flex = 1, text = field("name") },
+		{ id = "kind", title = L["BANKLOG_COL_WHAT"], width = 140, text = field("text"), token = function(d)
+			return (d.kind == "withdraw" or d.kind == "repair") and "err" or (d.kind == "deposit" and "ok" or "text-3")
+		end },
+		{ id = "amount", title = L["BANKLOG_COL_AMOUNT"], width = 150, align = "RIGHT", mono = true, value = field("amount"),
+			text = function(d) return View.MoneyText(d.amount) end, token = function() return "accent-text" end },
+	},
+	sort = { id = "when", desc = true }, memory = "bank.money",
 	rows = Mode.MoneyRows,
-	fill = function(row, d)
-		row.cells.when:SetText(d.when); row.cells.name:SetText(d.name); row.cells.kind:SetText(d.text)
-		Theme.Text(row.cells.kind, (d.kind == "withdraw" or d.kind == "repair") and "err" or (d.kind == "deposit" and "ok" or "text-3"))
-		row.cells.amount:SetText(View.MoneyText(d.amount))
-	end,
 	empty = function() return L["BANKLOG_NO_MONEY"] end,
 })
 

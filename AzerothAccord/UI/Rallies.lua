@@ -55,6 +55,7 @@ function View.Model(id)
 		if e.rec.id == id then m.chosen = e end
 	end
 	m.chosen = m.chosen or m.rallies[1]
+	for _, e in ipairs(m.rallies) do e.coming = #Rm:Answers(e.rec.id).yes end
 	if m.chosen then
 		local rec = m.chosen.rec
 		local answers = Rm:Answers(rec.id)
@@ -97,6 +98,15 @@ function View.Lines(m)
 	end
 	names(L["RALLY_COMING_LIST"], m.coming)
 	names(L["RALLY_NOT_COMING_LIST"], m.notComing)
+	-- every rally held, as a table (ui-style §9.9): a click chooses one
+	add(L["RALLY_LIST"], "sub")
+	for _, other in ipairs(m.rallies) do
+		local r = other.rec
+		local cells = { when = ns.Rallies.Clock(r.start), kind = View.KindText(r.kind), where = r.text, by = name(r.author),
+			coming = tostring(other.coming or 0), state = View.StateText(r, other.status, m.now) }
+		out[#out + 1] = { table = "rallies.list", key = r.id, selected = r.id == rec.id, cells = cells, keys = { when = r.start },
+			text = concat({ cells.when, cells.kind, cells.where, cells.by }, " · ") }
+	end
 	return out
 end
 
@@ -151,16 +161,28 @@ end
 
 function View:Choose(id)
 	self.chosen = id
-	if self.frame then self.frame.offset = 0 end
+	if self.frame then self.frame.list.offset = 0 end
 	self:Redraw()
 end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Frames
 ---------------------------------------------------------------------------------------------------------------------
-local function visibleRows(list)
-	local h = list and list:GetHeight() or 0
-	return h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 10
+-- The table of the rallies held (ui-style §9.9).
+local function tables()
+	local function column(id, key, opts)
+		opts.id, opts.title = id, L[key]
+		return opts
+	end
+	return {
+		["rallies.list"] = { memory = "rallies.list", columns = {
+			column("when", "RALLY_COL_WHEN", { width = 80, mono = true }), column("kind", "RALLY_COL_KIND", { width = 70 }),
+			column("where", "RALLY_COL_WHERE", { flex = 2 }), column("by", "RALLY_COL_BY", { flex = 1 }),
+			column("coming", "RALLY_COL_COMING", { width = 80, align = "RIGHT", mono = true }),
+			column("state", "RALLY_COL_STATE", { flex = 1.4 }) },
+			isSelected = function(l) return l.selected == true end,
+			onRowClick = function(l) View:Choose(l.key) end },
+	}
 end
 
 local function opened(f)
@@ -225,14 +247,13 @@ function View:Build(f)
 	f.no = Widgets.Button(f, { text = L["RALLY_NOT_COMING"], style = "outlined", dense = true, onClick = function() View:Answer("no") end })
 	f.no:SetPoint("LEFT", f.yes, "RIGHT", 8, 0)
 
-	f.list = CreateFrame("Frame", nil, f)
+	f.list = Widgets.Sheet(f, { rowHeight = View.ROW_HEIGHT, wheelStep = View.WHEEL_STEP, defaultRows = 10,
+		tables = tables(), paint = function(fs, l)
+			fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
+			Theme.Text(fs, l.heading and "text-1" or l.muted and "text-3" or "text-2")
+		end, indent = function(l) return l.indent and 12 or 0 end })
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -232)
 	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.list:SetClipsChildren(true)
-	f.list:EnableMouseWheel(true)
-	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	f.list.lines = {}
-	f.offset = 0
 	f:SetScript("OnShow", function() opened(f) end)
 	f:SetScript("OnHide", function() closed(f) end)
 	opened(f)   -- the shell builds the page on screen: no OnShow comes first
@@ -280,40 +301,12 @@ function View:Redraw()
 
 	local lines = View.Lines(m)
 	self.shown = lines
-	local list = f.list
-	local visible = visibleRows(list)
-	f.offset = max(0, min(f.offset or 0, max(0, #lines - visible)))
-	local drawn = max(0, min(visible, #lines - f.offset))
-	for i = 1, drawn do
-		local l = lines[f.offset + i]
-		local fs = list.lines[i]
-		if not fs then
-			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
-			fs:SetWordWrap(false)
-			list.lines[i] = fs
-		end
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", list, "TOPLEFT", l.indent and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
-		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
-		fs:SetText(l.text)
-		fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
-		if l.heading then Theme.Text(fs, "text-1")
-		elseif l.muted then Theme.Text(fs, "text-3")
-		else Theme.Text(fs, "text-2") end
-		fs:Show()
-	end
-	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+	f.list:SetLines(lines)
 end
 
 function View:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	local total = self.shown and #self.shown or 0
-	local target = max(0, min((f.offset or 0) + delta, max(0, total - visibleRows(f.list))))
-	if target == f.offset then return false end
-	f.offset = target
-	self:Redraw()
-	return true
+	return f ~= nil and f.list:Scroll(delta)
 end
 
 -- Opens the Rallies page (the Groups destination since M13.7), with rally `id` chosen (the notice, the row of the

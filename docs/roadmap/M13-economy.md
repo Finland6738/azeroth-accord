@@ -88,9 +88,10 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Scope (owner, 2026-11-27):
   - every list with columns uses `Widgets.DataTable` with a header whose click sorts ascending, then descending, with the arrow;
   - the hand-made lists (Bank, Bank log and requests, Events, Rallies, Mentors, Demand, Board, Raid, Season and the others) are migrated;
-  - card lists without columns get a "Sort by" menu with the same behaviour.
+  - card lists without columns get a "Sort by" menu with the same behaviour;
+  - with it (owner, 2026-11-27): the roster mark before a name becomes the role icon in the class colour.
 - Done when:
-  - [ ] Every column header of every table sorts both ways; no hand-made columnar list is left.
+  - [x] Every column header of every table sorts both ways; no hand-made columnar list is left.
 
 ### M13.9 — Guild goals
 - Branch: `step/m13-9-goals`

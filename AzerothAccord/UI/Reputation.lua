@@ -4,7 +4,8 @@
 -- refresh(frame) } and later steps add theirs with View.AddMode (the social index, the group map, suggested teammates).
 -- A mode that is not available (for example a part reserved to officers, SPEC-10 Q3) is not in the menu.
 --
--- Likes (LIKE-08): one row per account of the guild, sorted by likes (or by name), visible to every member. The total of
+-- Likes (LIKE-08): a table with one row per account of the guild, by likes until a header sorts it (ui-style §9.9),
+-- visible to every member. The total of
 -- an account is the same on every one of its characters and never says who gave it (LIKE-04). A row shows the account's
 -- main (or its character in the guild with the highest level), how many of its characters are in the guild, its place,
 -- the total, and what the player can do: [Like] (a second click within LIKE_CONFIRM seconds gives it: a like cannot be
@@ -23,28 +24,20 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
 View.ROW_HEIGHT = 36
-View.HEAD_HEIGHT = 32
 View.TOOLBAR_HEIGHT = 40
-View.DEFAULT_ROWS = 14
-View.WHEEL_STEP = 3
+View.MARK = 16                 -- the room of the class mark before a name
 View.REFRESH_DELAY = 0.4
 View.LIKE_CONFIRM = 8          -- seconds a first click on [Like] waits for the second one
 View.HEART_WIDTH, View.CONFIRM_WIDTH = 32, 100   -- the Like button: a heart, then "Confirm" while armed
 
 View.modes = {}                -- id -> { id, label, order, available, build, refresh, frame }
 View.mode = "likes"
-View.sort = { key = "likes", desc = true }
+View.sort = { key = "likes", desc = true }   -- the order of LikeRows
 View.search = ""
-View.offset = 0
 View.armed = nil               -- { guid, at }: the [Like] clicked once
 
 local function lower(s) return type(s) == "string" and s:lower() or "" end
 local function now() return ns.Compat and ns.Compat.Now() or 0 end
-local function classColor(classFile)
-	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
-	if c then return c.r, c.g, c.b end
-	return 1, 1, 1
-end
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Modes
@@ -68,11 +61,18 @@ function View:ModeList()
 	return list
 end
 
+-- Every table starts from its top again (a new mode, a new search).
+function View:ResetScroll()
+	for _, m in pairs(self.modes) do
+		if m.frame and m.frame.table then m.frame.table.offset = 0 end
+	end
+end
+
 function View:SetMode(id)
 	local m = self.modes[id]
 	if not m or (m.available and not m.available()) then return false end
 	self.mode = id
-	self.offset = 0
+	self:ResetScroll()
 	if self.frame then self:Redraw() end
 	return true
 end
@@ -187,65 +187,62 @@ local likes = {}
 
 local function likesRows() return View.LikeRows({ search = View.search, sort = View.sort }) end
 
-function likes.SortBy(key)
-	if View.sort.key == key then View.sort.desc = not View.sort.desc
-	else View.sort = { key = key, desc = key == "likes" } end
-	View.offset = 0
-	View:Redraw()
+local function paintMark(mark, classFile)
+	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
+	if c then Widgets.PaintClassMark(mark, c.r, c.g, c.b) else Widgets.ClearClassMark(mark) end
 end
 
-local function newRow(area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(View.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.place = Widgets.Text(row, "MonoSmall", "text-3", "RIGHT")
-	row.place:SetPoint("LEFT", row, "LEFT", 4, 0)
-	row.place:SetWidth(28)
-	row.mark = Widgets.ClassMark(row, 8)
-	row.mark:SetPoint("LEFT", row.place, "RIGHT", 10, 0)
-	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
-	row.name:SetPoint("LEFT", row.mark, "RIGHT", 8, 0)
-	row.name:SetWidth(140)
-	row.chars = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.chars:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
-	row.chars:SetWidth(110)
-	-- one line each: a long Forever name is cut with dots, never wrapped onto the next row (found in game, 2026-11-26)
-	for _, fs in ipairs({ row.name, row.chars }) do
-		if fs.SetWordWrap then fs:SetWordWrap(false) end
-		if fs.SetMaxLines then fs:SetMaxLines(1) end
+-- The name cell of a row with a class mark before it: the cell moves right of the mark (`column` is its index).
+function View.RenderName(t, column, cell, d, row)
+	cell:SetText(d.name)
+	Widgets.PaintName(cell, d.classFile)
+	local pos = t and t.pos and t.pos[column]
+	if pos then
+		cell:ClearAllPoints()
+		cell:SetWidth(max(pos.w - View.MARK - 8, 1))
+		cell:SetPoint("LEFT", row, "LEFT", pos.x + View.MARK, 0)
+		row.mark:ClearAllPoints()
+		row.mark:SetPoint("LEFT", row, "LEFT", pos.x, 0)
 	end
-	row.total = Widgets.Text(row, "MonoMedium", "accent-text", "RIGHT")
-	row.total:SetPoint("LEFT", row.chars, "RIGHT", 6, 0)
-	row.total:SetWidth(50)
+	paintMark(row.mark, d.classFile)
+end
+
+local function likeColumns(f)
+	local function muted() return "text-3" end
+	return {
+		-- the place by likes: sorting by the likes is sorting by it
+		{ id = "place", title = "#", width = 40, align = "RIGHT", mono = true, sortable = false, token = muted,
+			text = function(d) return tostring(d.place) end },
+		{ id = "name", title = L["REP_COL_NAME"], flex = 1.5, value = function(d) return d.name end,
+			render = function(cell, d, row) View.RenderName(f.table, 2, cell, d, row) end },
+		{ id = "chars", title = L["REP_COL_CHARS"], flex = 1, value = function(d) return d.chars end, token = muted,
+			text = function(d) return d.chars > 1 and L["REP_CHARS"]:format(d.chars) or "" end },
+		{ id = "likes", title = L["REP_COL_LIKES"], width = 80, align = "RIGHT", mono = true,
+			value = function(d) return d.total end, text = function(d) return tostring(d.total) end,
+			token = function() return "accent-text" end },
+		{ id = "action", title = "", width = 128, sortable = false, text = function() return "" end },
+	}
+end
+
+local function likeSetup(row)
+	row.mark = Widgets.ClassMark(row, 8)
 	-- the Like button is a heart (owner, 2026-11-26); armed, it says "Confirm" until the second click
 	row.like = Widgets.Button(row, { text = "", style = "tonal", width = View.HEART_WIDTH, height = Widgets.HEIGHT.small,
 		onClick = function(b) View:LikeClicked(b:GetParent().data.guid) end })
+	row.like:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
 	row.like.heart = row.like:CreateTexture(nil, "OVERLAY")
 	row.like.heart:SetTexture(ns.Assets.textures.icons.path)
 	row.like.heart:SetTexCoord(ns.Assets.IconCoords("heart"))
 	row.like.heart:SetSize(20, 20)
 	row.like.heart:SetPoint("CENTER", row.like, "CENTER", 0, 0)
 	Theme.Tint(row.like.heart, "on-secondary-container")
-	row.like:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
+	row.like:SetPoint("RIGHT", row, "RIGHT", -8, 0)
 	Widgets.Tooltip.Attach(row.like, { L["REP_LIKE"], L["REP_LIKE_TIP"] }, "RIGHT")
-	row.state = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.state:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
-	row:SetScript("OnClick", function(self) View:OpenCard(self.data) end)
-	Widgets.RowHover(row)
-	area.rows[i] = row
-	return row
+	row.state = Widgets.Text(row, "Small", "text-3", "RIGHT")
+	row.state:SetPoint("RIGHT", row, "RIGHT", -8, 0)
 end
 
-local function fillRow(row, d)
-	row.data = d
-	row.place:SetText(tostring(d.place))
-	row.name:SetText(d.name)
-	Widgets.PaintName(row.name, d.classFile)
-	local c = RAID_CLASS_COLORS and d.classFile and RAID_CLASS_COLORS[d.classFile]
-	if c then Widgets.PaintClassMark(row.mark, c.r, c.g, c.b) else Widgets.ClearClassMark(row.mark) end
-	row.chars:SetText(d.chars > 1 and L["REP_CHARS"]:format(d.chars) or "")
-	row.total:SetText(tostring(d.total))
+local function likeUpdate(row, d)
 	if d.state == "can" then
 		local armed = View:IsArmed(d.guid)
 		row.like:SetLabel(armed and L["REP_CONFIRM"] or "")
@@ -261,18 +258,6 @@ local function fillRow(row, d)
 		Theme.Text(row.state, token)
 		row.state:Show()
 	end
-	row:Show()
-end
-
--- A header button of the list (the look of the DataTable header: Th, text-3; accent-text with an arrow when sorted).
-local function headButton(head, text, width, onClick)
-	local b = CreateFrame("Button", nil, head)
-	b:SetSize(width, View.HEAD_HEIGHT)
-	b.label = Widgets.Text(b, "label-medium", "text-3", "LEFT")
-	b.label:SetPoint("LEFT", b, "LEFT", 0, 0)
-	b.label:SetText(text)
-	b:SetScript("OnClick", onClick)
-	return b
 end
 
 function likes.build(f)
@@ -280,61 +265,19 @@ function likes.build(f)
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["REP_LIKES_EXPLAIN"])
-	local head = CreateFrame("Frame", nil, f)
-	head:SetHeight(View.HEAD_HEIGHT)
-	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
-	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -36)
-	head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
-	head.fill:SetAllPoints(head)
-	head.name = headButton(head, L["REP_COL_NAME"], 150, function() likes.SortBy("name") end)
-	head.name:SetPoint("LEFT", head, "LEFT", 58, 0)
-	head.likes = headButton(head, L["REP_COL_LIKES"], 50, function() likes.SortBy("likes") end)
-	head.likes:SetPoint("LEFT", head, "LEFT", 320, 0)
-	head.likes.label:ClearAllPoints()
-	head.likes.label:SetPoint("RIGHT", head.likes, "RIGHT", 0, 0)   -- over the right-aligned totals
-	f.head = head
-	local area = CreateFrame("Frame", nil, f)
-	area:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -2)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area:SetClipsChildren(true)   -- the last row is drawn even when it is cut
-	area.rows = {}
-	f.area = area
-	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
-end
-
--- The sorted column of the header in accent-text.
-local function paintHead(head)
-	Theme.Text(head.name.label, View.sort.key == "name" and "accent-text" or "text-3")
-	Theme.Text(head.likes.label, View.sort.key == "likes" and "accent-text" or "text-3")
-end
-
-local function visibleRows(area)
-	local h = area and area:GetHeight() or 0
-	if not h or h < View.ROW_HEIGHT then return View.DEFAULT_ROWS end
-	return max(1, floor(h / View.ROW_HEIGHT))
+	f.table = Widgets.DataTable(f, likeColumns(f), { rowHeight = View.ROW_HEIGHT, pool = 14, maxPool = 60,
+		memory = "reputation.likes", sort = { id = "likes", desc = true }, rowSetup = likeSetup, rowUpdate = likeUpdate,
+		onRowClick = function(d) View:OpenCard(d) end })
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 end
 
 function likes.refresh(f)
 	local rows = likesRows()
-	View.rowsShown = rows
-	paintHead(f.head)
-	local total, visible = #rows, visibleRows(f.area)
-	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
-	local drawn = max(0, min(visible + 1, total - View.offset))
-	for i = 1, drawn do fillRow(f.area.rows[i] or newRow(f.area, i), rows[View.offset + i]) end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	if total == 0 then
-		f.message:SetText(View.search ~= "" and L["REP_NO_MATCH"] or L["REP_EMPTY"])
-		f.message:Show()
-	else
-		f.message:Hide()
-	end
-	return total
+	f.table:SetEmptyText(View.search ~= "" and L["REP_NO_MATCH"] or L["REP_EMPTY"])
+	f.table:SetData(rows, true)
+	View.rowsShown = f.table:GetData()
+	return #rows
 end
 
 View.AddMode("likes", { label = L["REP_MODE_LIKES"], order = 10, build = likes.build, refresh = likes.refresh, search = true })
@@ -392,22 +335,19 @@ function View:Redraw()
 end
 
 function View:Scroll(delta)
-	local total = self.rowsShown and #self.rowsShown or 0
 	local m = self.modes[self.mode]
-	local area = m and m.frame and m.frame.area
-	local limit = max(0, total - visibleRows(area))
-	local target = max(0, min((self.offset or 0) + delta, limit))
-	if target == self.offset then return false end
-	self.offset = target
-	self:Redraw()
-	return true
+	local t = m and m.frame and m.frame.table
+	if not t then return false end
+	local before = t.offset
+	t:SetOffset(before + delta)
+	return t.offset ~= before
 end
 
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
 	if text == self.search then return end
 	self.search = text
-	self.offset = 0
+	self:ResetScroll()
 	self:Redraw()
 end
 
@@ -477,7 +417,8 @@ if ns.addon then
 		ns.Bus:On("ROSTER_UPDATED", changed)
 		ns.Bus:On("ACCOUNTS_UPDATED", changed)
 		ns.Bus:On("GUILD_CHANGED", function()
-			View.search, View.offset, View.armed = "", 0, nil
+			View.search, View.armed = "", nil
+			View:ResetScroll()
 			if View.frame then View:Redraw() end
 		end)
 	end

@@ -77,6 +77,28 @@ function Roster.ClassName(classFile)
 end
 
 ---------------------------------------------------------------------------------------------------------------------
+-- The role written in a public note (the roster's role icon, owner 2026-11-27)
+---------------------------------------------------------------------------------------------------------------------
+Roster.ROLE_WORDS = {
+	tank = "tank",
+	heal = "healer", healer = "healer", healing = "healer", cura = "healer", curatore = "healer", guaritore = "healer",
+	dps = "damage", dd = "damage", melee = "damage", ranged = "damage", caster = "damage", damage = "damage",
+}
+
+-- "tank", "healer" or "damage": the first role word of `note`, read from the left, as a whole word in any case; nil
+-- when there is none. Letters outside ASCII belong to their word; the punctuation of UTF-8 (dashes, quotes, dots)
+-- separates words like any other.
+function Roster.RoleFromNote(note)
+	if type(note) ~= "string" then return nil end
+	local text = note:gsub("\226[\128\129][\128-\191]", " "):gsub("\194[\128-\191]", " ")
+	for word in text:gmatch("[%w\128-\255]+") do
+		local role = Roster.ROLE_WORDS[word:lower()]
+		if role then return role end
+	end
+	return nil
+end
+
+---------------------------------------------------------------------------------------------------------------------
 -- Shared data (ADR 0010: it fills the gaps the native source leaves)
 ---------------------------------------------------------------------------------------------------------------------
 -- guid -> { { id = skillLine, name, rank, maxRank, source = "shared", time }, ... } from the `recipes` records

@@ -53,12 +53,16 @@ end
 local function shownRows()
 	local out = {}
 	local f = V().modes.likes.frame
-	for _, row in ipairs(f.area.rows) do if row:IsShown() then out[#out + 1] = row end end
+	for _, row in ipairs(f.table.rows) do if row:IsShown() then out[#out + 1] = row end end
 	return out
 end
 
 local function rowOf(name)
-	for _, row in ipairs(shownRows()) do if row.name:GetText() == name then return row end end
+	for _, row in ipairs(shownRows()) do if row.cells.name:GetText() == name then return row end end
+end
+
+local function head(id)
+	for _, b in ipairs(V().modes.likes.frame.table.heads) do if b.col.id == id then return b end end
 end
 
 describe("the rows", function()
@@ -112,14 +116,14 @@ describe("the view", function()
 		truthy(V().frame:IsVisible())
 		local rows = shownRows()
 		eq(#rows, 5)
-		eq(rows[1].name:GetText(), "Bob"); eq(rows[1].total:GetText(), "2"); eq(rows[1].place:GetText(), "1")
-		eq(rows[1].chars:GetText(), "2 characters")
+		eq(rows[1].cells.name:GetText(), "Bob"); eq(rows[1].cells.likes:GetText(), "2"); eq(rows[1].cells.place:GetText(), "1")
+		eq(rows[1].cells.chars:GetText(), "2 characters")
 		truthy(rows[1].like:IsShown())
 		eq(rows[1].like:GetLabel(), "", "the Like button is a heart")
 		truthy(rows[1].like.heart:IsShown())
 		eq(rows[1].like.heart:GetWidth(), 20)
 		deepEq(rows[1].like.heart._texCoord, { A().Assets.IconCoords("heart") }, "outlined: not given yet")
-		falsy(rows[1].name:CanWordWrap(), "a long name is cut, never wrapped")
+		falsy(rows[1].cells.name:CanWordWrap(), "a long name is cut, never wrapped")
 		falsy(rowOf("Testchar").like:IsShown())
 		eq(rowOf("Testchar").state:GetText(), "you")
 	end)
@@ -149,13 +153,13 @@ describe("the view", function()
 
 	it("sorts from the header and filters from the panel's search box", function()
 		open()
-		V().modes.likes.frame.head.name:Click()
-		eq(shownRows()[1].name:GetText(), "Bob")
-		V().modes.likes.frame.head.name:Click()
-		eq(shownRows()[1].name:GetText(), "Testchar")
+		head("name"):Click()
+		eq(shownRows()[1].cells.name:GetText(), "Bob")
+		head("name"):Click()
+		eq(shownRows()[1].cells.name:GetText(), "Testchar")
 		Mock.TypeInto(A().Shell.content.bar.search, "dan")
 		eq(#shownRows(), 1)
-		eq(shownRows()[1].name:GetText(), "Dan")
+		eq(shownRows()[1].cells.name:GetText(), "Dan")
 	end)
 
 	it("a click on a row opens the member card in the roster", function()

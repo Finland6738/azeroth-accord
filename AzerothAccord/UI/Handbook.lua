@@ -1,6 +1,6 @@
 -- Handbook view: the page list and the reader of the guild handbook (M11.3, SPEC-15 §5). Lua 5.1.
 --
--- Left   the pages in their order, each with its mark (Updated; for a writer also Template and Over the limit), or the
+-- Left   a "Sort by" menu (ui-style §9.9: page order, title or last change), then the pages, each with its mark (Updated; for a writer also Template and Over the limit), or the
 --        results while the search box of the panel holds 2 characters or more; under them "Mark all as read".
 -- Right  Back (after a link), the title, "Updated <date> by <name>", and the text in a frame that scrolls: one SimpleHTML
 --        per block (Data/HandbookText.lua), so the reader knows where each heading and line is. A link to a page the
@@ -31,6 +31,7 @@ View.HEADER = 60            -- the reader's title and its line
 View.WIDTH = 420            -- the text's width while the frame has none yet
 View.WHEEL_STEP = 40
 View.LIST_BOTTOM = 44       -- the room under the list for "Mark all as read"
+View.LIST_TOP = 40          -- the room over the list for "Sort by"
 
 View.search = ""
 View.history = {}
@@ -60,6 +61,24 @@ function View.Rows()
 		for _, rec in ipairs(over) do add(rec, "over") end
 	end
 	return rows, byId
+end
+
+-- The pages of the list in the chosen order: "order" (the handbook's own), "title" or "updated" (the last change).
+function View.SortedRows(rows, order, desc)
+	if order == "title" then return Widgets.Sorted(rows, function(r) return r.title end, desc) end
+	if order == "updated" then return Widgets.Sorted(rows, function(r) return r.rec.time end, desc) end
+	if not desc then return rows end
+	local out = {}
+	for i = #rows, 1, -1 do out[#out + 1] = rows[i] end
+	return out
+end
+
+-- The pages show in the handbook's own order (the writers' arrows move them only then).
+function View:OwnOrder()
+	local sort = self.frame and self.frame.sort
+	if not sort then return true end
+	local order, desc = sort:Get()
+	return order == "order" and not desc
 end
 
 -- What a link or a web address of a page shows: its label, and the target when it can be followed.
@@ -181,9 +200,10 @@ end
 local function drawList(f, rows)
 	local results = View.Results(rows)
 	View.results = results
-	local items = results or rows
+	local items = results or View.SortedRows(rows, f.sort:Get())
 	local editor = ns.HandbookEditor
-	if editor and not results then items = editor:ListItems(rows) end
+	if editor and not results then items = editor:ListItems(items) end
+	f.sort:SetShown(results == nil)
 	local selected = View.revisions and View.revisions.id or View.selected
 	local height = results and View.RESULT_HEIGHT or View.ROW_HEIGHT
 	for i, item in ipairs(items) do
@@ -406,7 +426,7 @@ local function layout(f)
 	local width = f:GetWidth() or 0
 	local list = (width > 0 and width < View.NARROW) and View.LIST_NARROW or View.LIST_WIDTH
 	f.list:ClearAllPoints()
-	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.LIST_TOP)
 	f.list:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, f.listBottom or View.LIST_BOTTOM)
 	f.list:SetWidth(list)
 	f.list.page:SetWidth(list)
@@ -430,6 +450,7 @@ function View:Redraw()
 	local empty = #rows == 0 and not (editor and #editor:ListItems(rows) > 0)
 	f.empty:SetShown(#rows == 0 and not self.revisions)
 	f.list:SetShown(not empty)
+	if empty then f.sort:Hide() end
 	f.markAll:SetShown(not empty)
 	f.markAll:SetEnabled(#book():Updated() > 0)
 	if empty then
@@ -550,6 +571,11 @@ function View:Build(f)
 	f.empty:SetPoint("TOP", f, "TOP", 0, -60)
 	f.empty:SetText(L["HANDBOOK_EMPTY"])
 	f.list = scroller(f)
+	f.sort = Widgets.SortMenu(f, { label = L["SORT_BY"], memory = "handbook.pages", items = {
+		{ id = "order", text = L["HANDBOOK_SORT_ORDER"] }, { id = "title", text = L["HANDBOOK_SORT_TITLE"] },
+		{ id = "updated", text = L["HANDBOOK_SORT_UPDATED"] } },
+		onChange = function() View:Redraw() end })
+	f.sort:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.note = Widgets.Text(f.list.page, "Small", "text-3", "LEFT")
 	f.markAll = Widgets.Button(f, { text = L["HANDBOOK_MARK_ALL"], style = "outlined", dense = true,
 		onClick = function() book():MarkAllRead() end })

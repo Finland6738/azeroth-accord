@@ -16,7 +16,7 @@
 ### Dare un like
 
 - Sulla **scheda del membro** di un compagno (clicca la sua riga nel Roster): la sezione *Like* mostra il totale del giocatore e **[Dai un like]**. Cliccalo, poi clicca di nuovo entro pochi secondi per confermare: un like non si può ritirare.
-- Nella vista **Reputazione** (`/accord reputation`), modalità **Like** (le modalità sono nel menu **Mostra** in alto nella vista): ogni giocatore della gilda, una riga per giocatore con tutti i suoi personaggi insieme, ordinata per like. Clicca **Like** due volte su una riga. Clicca le intestazioni per ordinare per nome o per like; la casella di ricerca trova un giocatore da uno qualsiasi dei suoi personaggi; cliccare una riga apre la sua scheda.
+- Nella vista **Reputazione** (`/accord reputation`), modalità **Like** (le modalità sono nel menu **Mostra** in alto nella vista): ogni giocatore della gilda, una riga per giocatore con tutti i suoi personaggi insieme, ordinata per like. Clicca **Like** due volte su una riga. È una tabella: clicca il titolo di una colonna per ordinare per nome, numero di personaggi o like; la casella di ricerca trova un giocatore da uno qualsiasi dei suoi personaggi; cliccare una riga apre la sua scheda.
 - Dopo la riga dice *in attesa* (ancora nessun ufficiale con l'addon online) o *dato*. I tuoi personaggi dicono *tu*.
 - La colonna **Like** del Roster mostra il totale di ogni giocatore: verde quando gli hai dato un like, grigio finché il tuo like è in attesa.
 - Se l'addon di un ufficiale rifiuta un like (è uno dei tuoi personaggi, o il giocatore ha lasciato la gilda), la chat dice perché.
@@ -56,7 +56,7 @@ I gruppi si trovano in automatico dai minuti giocati insieme negli ultimi 30 gio
 
 ## Gioca con qualcuno di nuovo
 
-La modalità **Qualcuno di nuovo** della vista Reputazione suggerisce compagni di gilda **online adesso**, a non più di **5 livelli** da te, con cui hai giocato **meno di 30 minuti** negli ultimi 30 giorni (contano tutti i tuoi personaggi e tutti i loro), una riga per giocatore, prima quelli con cui non hai mai giocato. **Sussurra** apre la casella della chat con `/w Nome` da completare; **Invita** manda loro un invito al gruppo. L'addon non invia mai nulla da solo.
+La modalità **Qualcuno di nuovo** della vista Reputazione suggerisce compagni di gilda **online adesso**, a non più di **5 livelli** da te, con cui hai giocato **meno di 30 minuti** negli ultimi 30 giorni (contano tutti i tuoi personaggi e tutti i loro), una riga per giocatore, prima quelli con cui non hai mai giocato. **Sussurra** apre la casella della chat con `/w Nome` da completare; **Invita** manda loro un invito al gruppo. L'addon non invia mai nulla da solo. I suggerimenti sono una tabella (nome, livello, zona, tempo insieme) ordinabile dai titoli; sono tabelle anche l'elenco **Sociale** degli ufficiali, l'elenco dei gruppi della modalità **Gruppi** e la pagina **Mentori**.
 
 ![Reputazione, Qualcuno di nuovo: compagni online adesso di livello simile con cui hai giocato meno, con Sussurra e Invita](../specs/mockups/previews/reputation-someone-new.webp)
 

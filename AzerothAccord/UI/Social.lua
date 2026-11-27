@@ -5,7 +5,7 @@
 --                 five players played with most with their share (SOC-05); "not enough data" under 5 hours (SOC-04).
 --   Roster        the Social column (the index, a dash under 5 hours), only for those who may see the others' index.
 --   Reputation    a "Social" mode: the player's own index with the same breakdown, and for those who may see the others a
---                 list of every player by index.
+--                 table of every player, by index until a header sorts it (ui-style §9.9).
 -- Who sees what is Social:CanSee / CanSeeOthers (Data/Social.lua): the SPEC-10 Q3 proposal, everyone their own, officers
 -- and the Guild Master everyone's, until the owner answers Q3.
 --
@@ -108,40 +108,43 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local mode = {}
 
-local function line(f, i)
-	local fs = f.lines[i]
-	if fs then return fs end
-	fs = CreateFrame("Button", nil, f.scroll)
-	fs:SetHeight(UI.ROW_HEIGHT)
-	fs.text = Widgets.Text(fs, "Body", "text-1", "LEFT")
-	fs.text:SetPoint("LEFT", fs, "LEFT", 4, 0)
-	fs.text:SetPoint("RIGHT", fs, "RIGHT", 0, 0)
-	fs.extra = Widgets.Text(fs, "MonoSmall", "text-3", "RIGHT")
-	fs.extra:SetPoint("RIGHT", fs, "RIGHT", -4, 0)
-	Widgets.Tooltip.Attach(fs, function(self) return self.tip end, "RIGHT")
-	Widgets.RowHover(fs)
-	fs:SetScript("OnClick", function(self)
-		if self.key and ns.ReputationView then ns.ReputationView:OpenCard({ guid = self.key }) end
-	end)
-	f.lines[i] = fs
-	return fs
+local function paintLine(fs, l)
+	fs:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
+	Theme.Text(fs, l.heading and "text-1" or l.muted and "text-3" or "text-2")
+end
+
+local function playerTable()
+	local function mono(id, key, width)
+		return { id = id, title = L[key], width = width, align = "RIGHT", mono = true }
+	end
+	return {
+		columns = {
+			{ id = "name", title = L["REP_COL_NAME"], flex = 1.4, render = function(cell, l)
+				cell:SetText(l.cells.name)
+				Widgets.PaintName(cell, l.classFile)
+			end },
+			mono("index", "SOC_COL_INDEX", 80), mono("effective", "SOC_COL_EFFECTIVE", 90),
+			mono("partners", "SOC_COL_PARTNERS", 90), mono("time", "SOC_COL_TIME", 120),
+		},
+		memory = "reputation.social",
+		onRowClick = function(l) if ns.ReputationView then ns.ReputationView:OpenCard({ guid = l.key }) end end,
+		rowSetup = function(row)
+			Widgets.Tooltip.Attach(row, function(r) return r.data and r.data.tip or nil end, "RIGHT")
+		end,
+	}
 end
 
 function mode.build(f)
 	f.card = Widgets.Card(f, {})
 	f.card:SetAllPoints(f)
-	f.scroll = CreateFrame("Frame", nil, f.card)
-	f.scroll:SetPoint("TOPLEFT", f.card, "TOPLEFT", 20, -16)
-	f.scroll:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -20, 12)
-	f.scroll:SetClipsChildren(true)
-	f.scroll:EnableMouseWheel(true)
-	f.scroll:SetScript("OnMouseWheel", function(_, delta) UI:Scroll(-delta * 3) end)
-	f.lines = {}
-	f.offset = 0
+	f.sheet = Widgets.Sheet(f.card, { rowHeight = UI.ROW_HEIGHT, defaultRows = 20, paint = paintLine,
+		tables = { social = playerTable() } })
+	f.sheet:SetPoint("TOPLEFT", f.card, "TOPLEFT", 20, -16)
+	f.sheet:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -20, 12)
 	UI.frame = f
 end
 
--- The lines of the mode: the own section, then the list of everyone (officers).
+-- The lines of the mode: the own section, then the table of everyone (officers).
 function UI.ModeLines()
 	local out = {}
 	local me = ns.Compat and ns.Compat.Player.GUID()
@@ -155,8 +158,13 @@ function UI.ModeLines()
 		out[#out + 1] = { text = L["SOC_LIST_NOTE"], muted = true }
 		for i, r in ipairs(rows) do
 			if i > UI.LIST_MAX then break end
-			out[#out + 1] = { text = r.name, classFile = r.classFile, key = r.key, tip = UI.Tip(),
-				extra = r.index and L["SOC_LIST_ROW"]:format(r.index, r.effective, r.partners) or L["SOC_LIST_LOW"]:format(hours(r.minutes)) }
+			out[#out + 1] = { table = "social", text = r.name, classFile = r.classFile, key = r.key, tip = UI.Tip(),
+				-- under the 5 hours there is no index (SOC-04): a dash, sorted last
+				cells = { name = r.name, index = r.index and tostring(r.index) or "-",
+					effective = r.index and ("%.1f"):format(r.effective) or "-",
+					partners = r.index and tostring(r.partners) or "-", time = hours(r.minutes) },
+				keys = { index = r.index or "", effective = r.index and r.effective or "",
+					partners = r.index and r.partners or "", time = r.minutes or 0 } }
 		end
 	else
 		out[#out + 1] = { text = " " }
@@ -168,36 +176,12 @@ end
 function mode.refresh(f)
 	local list = UI.ModeLines()
 	UI.shown = list
-	local h = f.scroll:GetHeight() or 0
-	local visible = h >= UI.ROW_HEIGHT and floor(h / UI.ROW_HEIGHT) or 20
-	f.offset = max(0, min(f.offset or 0, max(0, #list - visible)))
-	local drawn = max(0, min(visible, #list - f.offset))
-	for i = 1, drawn do
-		local l = list[f.offset + i]
-		local fs = line(f, i)
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", f.scroll, "TOPLEFT", l.extra and 12 or 0, -(i - 1) * UI.ROW_HEIGHT)
-		fs:SetPoint("TOPRIGHT", f.scroll, "TOPRIGHT", 0, -(i - 1) * UI.ROW_HEIGHT)
-		fs.text:SetText(l.text)
-		fs.text:SetFontObject(Theme.Font(l.heading and "H2" or "Body"))
-		if l.heading then Theme.Text(fs.text, "text-1")
-		elseif l.classFile then Widgets.PaintName(fs.text, l.classFile)
-		else Theme.Text(fs.text, l.muted and "text-3" or "text-2") end
-		fs.extra:SetText(l.extra or "")
-		fs.tip, fs.key = l.tip, l.key
-		fs:EnableMouse(l.tip ~= nil or l.key ~= nil)
-		fs.hover:SetShown(l.key ~= nil)   -- only a player opens something
-		fs:Show()
-	end
-	for i = drawn + 1, #f.lines do f.lines[i]:Hide() end
+	f.sheet:SetLines(list)
 end
 
 function UI:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	f.offset = max(0, (f.offset or 0) + delta)
-	mode.refresh(f)
-	return true
+	return f ~= nil and f.sheet:Scroll(delta)
 end
 
 if ns.ReputationView then

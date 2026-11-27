@@ -14,6 +14,7 @@ Aprila con la sua scheda o con `/accord events`. Anche i [**Raduni**](#raduni-pv
 - **La tua risposta**: scegli il tuo **ruolo** e premi **Iscriviti**, **Forse** o **Rifiuta**. Accord scrive la risposta nel calendario del gioco e ti dice quando è salvata. Anche una risposta data nella finestra del calendario del gioco compare in Accord.
 - **Le risposte**: chi si è iscritto, chi ha detto forse e chi ha rifiutato, con il ruolo che ognuno ha scelto in Accord, e i ruoli iscritti finora (tank, healer, melee, ranged).
 - **Apri il calendario del gioco** apre la finestra del calendario del gioco.
+- L'**elenco degli eventi** sotto i pulsanti è una tabella (quando, evento, da dove viene): clicca un titolo per ordinarla, clicca un evento per sceglierlo. La pagina **Raduni** finisce con una tabella di **tutti i raduni** (inizio, tipo, punto di incontro, chi l'ha chiamato, quanti vengono, stato), anch'essa ordinabile, dove un clic ne sceglie uno.
 
 ## Il tuo ruolo
 

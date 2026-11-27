@@ -79,14 +79,15 @@ end
 
 local function columns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, L[key], false
+		opts.id, opts.title = id, L[key]
 		return opts
 	end
 	return {
-		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem }),
+		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem, value = function(r) return r.itemName end }),
 		col("need", "DEMAND_COL_NEED", { width = 96, mono = true, text = function(r) return tostring(r.need) end }),
-		col("from", "DEMAND_COL_FROM", { flex = 1.2, text = View.FromText }),
-		col("bank", "DEMAND_COL_BANK", { flex = 1.2, text = View.BankText,
+		col("from", "DEMAND_COL_FROM", { flex = 1.2, text = View.FromText,
+			value = function(r) return #r.orders + #r.goals end }),
+		col("bank", "DEMAND_COL_BANK", { flex = 1.2, text = View.BankText, value = function(r) return r.bank end,
 			token = function(r) return r.bank and "text-2" or "text-3" end }),
 		-- what the player owns (M13.4, the inventory of this computer)
 		col("mine", "SHOP_COL_YOURS", { width = 80, mono = true, text = View.YoursText,
@@ -103,7 +104,7 @@ function mode.build(f)
 	f.note:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.note:SetWordWrap(false)
 	f.table = Widgets.DataTable(f, columns(), { rowHeight = View.ROW_HEIGHT, pool = 20, maxPool = 60,
-		emptyText = L["DEMAND_EMPTY"],
+		emptyText = L["DEMAND_EMPTY"], memory = "market.demand", sort = { id = "item" },
 		rowSetup = function(row)
 			row.icon = row:CreateTexture(nil, "ARTWORK")
 			row.icon:SetSize(View.ICON, View.ICON)

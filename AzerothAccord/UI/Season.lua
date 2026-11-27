@@ -127,7 +127,10 @@ local function entryLine(row)
 		if r.os then parts[#parts + 1] = L["RAID_OS"]:format(pickText(r.os)) end
 	end
 	if r.note then parts[#parts + 1] = L["SEASON_NOTE_LINE"]:format(r.note) end
-	return { text = concat(parts, View.SEP), member = row.name }
+	return { text = concat(parts, View.SEP), member = row.name, table = "season.entries",
+		cells = { name = short(row.name or row.guid), class = className or "",
+			ms1 = r.unsure and L["SEASON_UNSURE"] or pickText(r.ms1) or "", ms2 = not r.unsure and pickText(r.ms2) or "",
+			os = not r.unsure and pickText(r.os) or "", note = r.note or "" } }
 end
 View.EntryLine = entryLine
 
@@ -193,7 +196,11 @@ local function countLines(out, m, add)
 				if not m.noMS2 then parts[#parts + 1] = L["SEASON_COUNT_COVER"]:format(g.cover) end
 			end
 		end
-		out[#out + 1] = { text = concat(parts, View.SEP), indent = true, warn = g ~= nil and g.missing > 0 or nil }
+		out[#out + 1] = { text = concat(parts, View.SEP), indent = true, warn = g ~= nil and g.missing > 0 or nil,
+			table = "season.roles",
+			cells = { role = L["SEASON_FIELD_" .. role:upper()], ms1 = tostring(c.ms1[role]),
+				ms2 = not m.noMS2 and tostring(c.ms2[role]) or "", target = g and tostring(g.target) or "",
+				missing = g and tostring(g.missing) or "", cover = g and not m.noMS2 and tostring(g.cover) or "" } }
 	end
 	nameLines(out, L["SEASON_UNSURE_NAMES"], c.unsure)
 	nameLines(out, L["SEASON_NOROLE_NAMES"], c.unknown)
@@ -255,6 +262,29 @@ function View.Lines(m)
 		end
 	end
 	if m.addons and ns.RaidView.AddonsLines then ns.RaidView.AddonsLines(out, m, add) end
+	return out
+end
+
+-- The tables of the lines (ui-style §9.9): the declarations and the counts per role, with those of the Raid view.
+local function tables()
+	local function column(id, key, opts)
+		opts = opts or { flex = 1 }
+		opts.id, opts.title = id, L[key]
+		return opts
+	end
+	local function number(id, key, width) return column(id, key, { width = width or 90, align = "RIGHT", mono = true }) end
+	local function warn(l) return l.warn and "warn" or nil end
+	local out = {
+		["season.entries"] = { memory = "season.entries", columns = {
+			column("name", "COL_NAME", { flex = 1.2 }), column("class", "COL_CLASS", { flex = 0.8 }),
+			column("ms1", "SEASON_MS1"), column("ms2", "SEASON_MS2"), column("os", "SEASON_OS"),
+			column("note", "SEASON_COL_NOTE", { flex = 1.4 }) } },
+		["season.roles"] = { memory = "season.roles", columns = {
+			column("role", "SEASON_COL_ROLE", { flex = 1, token = warn }), number("ms1", "SEASON_MS1", 70),
+			number("ms2", "SEASON_MS2", 70), number("target", "SEASON_COL_TARGET"),
+			number("missing", "SEASON_COL_MISSING"), number("cover", "SEASON_COL_COVER", 140) } },
+	}
+	for key, spec in pairs(ns.RaidView and ns.RaidView.Tables or {}) do out[key] = spec end
 	return out
 end
 
@@ -404,13 +434,10 @@ function View:Build(f)
 	f.saveNote:SetPoint("LEFT", f.save, "RIGHT", 8, 0)
 	f.message = Widgets.Text(f, "Small", "text-3", "LEFT")
 
-	f.list = CreateFrame("Frame", nil, f)
+	f.list = Widgets.Sheet(f, { rowHeight = View.ROW_HEIGHT, wheelStep = View.WHEEL_STEP, tables = tables(),
+		paint = function(fs, l) ns.RaidView.PaintLine(fs, l) end,
+		indent = function(l) return ns.RaidView.LineIndent(l) end })
 	f.list:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.list:SetClipsChildren(true)
-	f.list:EnableMouseWheel(true)
-	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	f.list.lines = {}
-	f.offset = 0
 	f:SetScript("OnShow", function() View:Redraw() end)
 	self:Redraw()
 end
@@ -507,11 +534,6 @@ function View:SaveNote()
 	self:Say(rec and L["SEASON_SAVED"] or View.ReasonText(why))
 	self:Redraw()
 	return rec, why
-end
-
-local function visibleRows(list)
-	local h = list and list:GetHeight() or 0
-	return h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 16
 end
 
 local function fillForm(f, own, class)
@@ -613,41 +635,12 @@ function View:Redraw()
 
 	local lines = View.Lines(m)
 	self.shown = lines
-	local list = f.list
-	local visible = visibleRows(list)
-	f.offset = max(0, min(f.offset or 0, max(0, #lines - visible)))
-	local drawn = max(0, min(visible, #lines - f.offset))
-	for i = 1, drawn do
-		local l = lines[f.offset + i]
-		local fs = list.lines[i]
-		if not fs then
-			fs = Widgets.Text(list, "Body", "text-1", "LEFT")
-			fs:SetWordWrap(false)
-			list.lines[i] = fs
-		end
-		fs:ClearAllPoints()
-		fs:SetPoint("TOPLEFT", list, "TOPLEFT", (l.indent or l.member) and 12 or 0, -(i - 1) * View.ROW_HEIGHT)
-		fs:SetPoint("RIGHT", list, "RIGHT", 0, 0)
-		fs:SetText(l.text)
-		fs:SetFontObject(Theme.Font(l.heading and "H2" or l.sub and "BodyMedium" or "Body"))
-		if l.heading then Theme.Text(fs, "text-1")
-		elseif l.warn then Theme.Text(fs, "warn")
-		elseif l.muted then Theme.Text(fs, "text-3")
-		else Theme.Text(fs, "text-2") end
-		fs:Show()
-	end
-	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+	f.list:SetLines(lines)
 end
 
 function View:Scroll(delta)
 	local f = self.frame
-	if not f then return false end
-	local total = self.shown and #self.shown or 0
-	local target = max(0, min((f.offset or 0) + delta, max(0, total - visibleRows(f.list))))
-	if target == f.offset then return false end
-	f.offset = target
-	self:Redraw()
-	return true
+	return f ~= nil and f.list:Scroll(delta)
 end
 
 function View:Changed()

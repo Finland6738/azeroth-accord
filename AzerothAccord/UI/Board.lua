@@ -218,16 +218,19 @@ end
 
 local function columns()
 	local function col(id, key, opts)
-		opts.id, opts.title, opts.sortable = id, key and L[key] or "", false
+		opts.id, opts.title, opts.sortable = id, key and L[key] or "", key ~= nil
 		return opts
 	end
 	return {
-		col("kind", "BRD_COL_KIND", { width = 56, render = renderKind }),
-		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem }),
-		col("price", "ORD_COL_PRICE", { width = 96, mono = true, text = function(r) return escape(r.price or "") end }),
+		col("kind", "BRD_COL_KIND", { width = 56, render = renderKind, value = function(r) return View.KindText(r.kind) end }),
+		col("item", "ORD_COL_ITEM", { flex = 2, render = renderItem, value = function(r) return r.itemName end }),
+		-- the price is the author's own words: by the number it starts with, else as text
+		col("price", "ORD_COL_PRICE", { width = 96, mono = true, text = function(r) return escape(r.price or "") end,
+			value = function(r) return r.price and (tonumber(r.price:match("^%s*(%d+)")) or r.price) end }),
 		col("author", "BRD_COL_AUTHOR", { flex = 1, text = function(r) return escape(r.authorName) end,
 			token = function(r) return r.online and "text-1" or "text-3" end }),
-		col("until", "WISH_COL_UNTIL", { width = 80, text = View.UntilText }),
+		col("until", "WISH_COL_UNTIL", { width = 80, text = View.UntilText,
+			value = function(r) return r.state ~= "closed" and r.left or nil end }),
 		col("status", "BRD_COL_STATUS", { flex = 2, text = View.StatusText, token = View.StatusToken }),
 		col("action", nil, { width = 112, render = function(cell) cell:SetText("") end }),
 	}
@@ -428,7 +431,7 @@ function mode.build(f)
 	f.warning.text:SetPoint("RIGHT", f.warning.ok, "LEFT", -8, 0)
 	f.warning.text:SetText(L["BRD_WARNING"])
 	buildBar(f)
-	f.table = Widgets.DataTable(f, columns(), { rowHeight = View.ROW_HEIGHT, pool = 20, maxPool = 60,
+	f.table = Widgets.DataTable(f, columns(), { rowHeight = View.ROW_HEIGHT, pool = 20, maxPool = 60, memory = "market.board",
 		emptyText = L["BRD_EMPTY"], rowSetup = setupRow, rowUpdate = updateRow,
 		isSelected = function(d) return d.id == View.selected end,
 		onRowClick = function(d) View:Select(d.id) end })

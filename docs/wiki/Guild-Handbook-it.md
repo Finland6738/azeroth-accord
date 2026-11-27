@@ -12,6 +12,7 @@ Si apre con la scheda **Manuale** o con `/accord handbook`. `/accord handbook ru
 
 - **A sinistra**, le pagine nell'ordine dato dalla gilda. Un clic la apre.
 - **A destra**, la pagina, con quando è stata cambiata l'ultima volta e da chi.
+- **Ordina per**, sopra l'elenco, mette le pagine nell'ordine del manuale (di base), per titolo o per ultima modifica; scegli di nuovo lo stesso ordine per invertirlo.
 - **I collegamenti** nel testo aprono un'altra pagina, a volte su una sua intestazione; **Indietro** torna dove eri. Un collegamento grigio porta a una pagina che non c'è o non è pubblicata. Un collegamento alla season apre la vista [[Season|Season-Roster-it]].
 - **Indirizzi web**: un clic li mette in una casella, poi premi Ctrl+C. Il gioco non può aprire un browser.
 - **Ricerca**: scrivi almeno 2 caratteri nella casella di ricerca in alto a destra. Si cerca nei titoli e nelle righe delle pagine, senza badare a maiuscole e accenti; un clic su un risultato apre la pagina a quella riga.
@@ -31,7 +32,7 @@ Quello che hai letto resta sul tuo computer, condiviso tra i tuoi personaggi: ne
 Scrivono il Guild Master, gli ufficiali e i gradi che gli ufficiali scelgono. Solo loro vedono i pulsanti qui sotto. Vedono anche le pagine che sono ancora **modelli** (i membri no) e le pagine **Oltre il limite** di 20.
 
 - **Nuova pagina** (sotto l'elenco) e **Modifica** (sotto la pagina) aprono l'editor. In combattimento non si apre.
-- Le **frecce** accanto alla pagina scelta ne cambiano il posto nell'elenco.
+- Le **frecce** accanto alla pagina scelta ne cambiano il posto nell'elenco (compaiono quando l'elenco è nell'ordine del manuale).
 - **Elimina** toglie una pagina per tutta la gilda; serve un secondo clic su **Conferma**.
 - **Scrittori** (solo ufficiali) sceglie i gradi che scrivono oltre agli ufficiali. Se la gilda rinomina o sposta un grado scelto, va scelto di nuovo: la vista lo dice.
 
@@ -64,6 +65,6 @@ La `|` si digita così com'è: viene salvata come `¦`. Al salvataggio i link ag
 
 ### Revisioni
 
-**Revisioni** elenca le versioni **viste da questo computer** (quella attuale e le ultime 5): le vecchie non viaggiano mai tra giocatori. Un clic la mostra; **Ripristina** la scrive come revisione nuova, per tutti. Una pagina eliminata sta sotto **Pagine eliminate** in fondo all'elenco, e si ripristina allo stesso modo.
+**Revisioni** elenca le versioni **viste da questo computer** (quella attuale e le ultime 5): le vecchie non viaggiano mai tra giocatori. Sono una tabella (revisione, autore, data, dimensione, stato), ordinabile dai titoli. Un clic la mostra; **Ripristina** la scrive come revisione nuova, per tutti. Una pagina eliminata sta sotto **Pagine eliminate** in fondo all'elenco, e si ripristina allo stesso modo.
 
 Se due scrittori salvano insieme la stessa revisione, resta la più recente. Solo chi si è visto sostituire il testo viene avvisato, con un avviso e una riga del [[Centro azioni|Action-Center-it]] che apre quel testo: **Ripristina** lo riscrive, **Ignora** toglie la riga.

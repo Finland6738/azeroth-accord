@@ -10,6 +10,7 @@
 -- Items   one row per item over every visible tab: its total, and the tabs and counts it is in; the panel's search box
 --         filters by item name, item id or tab name. The name of an item the client has not loaded yet is asked for and
 --         the row is filled in when it arrives (GET_ITEM_INFO_RECEIVED).
+-- Every list of the modes is a Widgets.DataTable in the mode frame's `table` (docs/specs/ui-style.md §9.9, M13.8).
 --
 -- View.ItemRows, View.SlotGrid and the text helpers are plain functions (tested offline); the frames only draw them.
 local ADDON_NAME, ns = ...
@@ -24,8 +25,6 @@ local concat, sort = table.concat, table.sort
 
 View.ROW_HEIGHT = 36
 View.TOOLBAR_HEIGHT = 40
-View.DEFAULT_ROWS = 12
-View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.COLUMNS, View.ROWS, View.CELL = 14, 7, 34
 View.MAX_REQUESTS_PER_REFRESH = 20     -- item names asked for in one redraw
@@ -35,7 +34,7 @@ View.modes = {}                -- id -> { id, label, order, available, build, re
 View.mode = "tabs"
 View.tab = nil                 -- the tab shown in the Tabs mode
 View.search = ""
-View.offset = 0
+View.ICON = 20
 
 local function lower(s) return type(s) == "string" and s:lower() or "" end
 local function now() return ns.Compat and ns.Compat.ServerTime() or 0 end
@@ -180,11 +179,24 @@ function View:ModeList()
 	return list
 end
 
+-- Every list starts from its top again (a new mode, a new search).
+function View:ResetScroll()
+	for _, m in pairs(self.modes) do
+		if m.frame and m.frame.table then m.frame.table.offset = 0 end
+	end
+end
+
+-- The table of the mode shown, or nil.
+function View:Table()
+	local m = self.modes[self.mode]
+	return m and m.frame and m.frame.table or nil
+end
+
 function View:SetMode(id)
 	local m = self.modes[id]
 	if not m or (m.available and not m.available()) then return false end
 	self.mode = id
-	self.offset = 0
+	self:ResetScroll()
 	if self.frame then self:Redraw() end
 	return true
 end
@@ -299,67 +311,24 @@ View.AddMode("tabs", { label = L["BANK_MODE_TABS"], order = 10, build = tabs.bui
 ---------------------------------------------------------------------------------------------------------------------
 local items = {}
 
-local function newRow(area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(View.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.icon = row:CreateTexture(nil, "ARTWORK")
-	row.icon:SetSize(20, 20)
-	row.icon:SetPoint("LEFT", row, "LEFT", 6, 0)
-	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
-	row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
-	row.name:SetWidth(210)
-	row.total = Widgets.Text(row, "MonoMedium", "accent-text", "RIGHT")
-	row.total:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
-	row.total:SetWidth(56)
-	row.where = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.where:SetPoint("LEFT", row.total, "RIGHT", 12, 0)
-	row.where:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row:SetScript("OnEnter", function(self)
-		local d = self.data
-		if not (d and GameTooltip) then return end
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		if not pcall(GameTooltip.SetHyperlink, GameTooltip, View.Hyperlink(d.itemID)) then GameTooltip:SetText(tostring(d.itemID)) end
-		GameTooltip:Show()
-	end)
-	row:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
-	Widgets.RowHover(row)
-	area.rows[i] = row
-	return row
-end
-
-local function fillRow(row, d)
-	row.data = d
-	if d.icon then row.icon:SetTexture(d.icon) end
-	row.name:SetText(d.name or L["BANK_ITEM_LOADING"]:format(d.itemID))
-	View.PaintQuality(row.name, d.quality)
-	row.total:SetText(tostring(d.total))
-	row.where:SetText(View.TabsText(d))
-	row:Show()
-end
-
--- The header of the item list, in the look of the DataTable's (surface-2, Th, text-3), over the same columns as the rows.
-local function itemsHeader(f)
-	local head = CreateFrame("Frame", nil, f)
-	head:SetHeight(32)
-	head:SetPoint("TOPLEFT", f.explain, "BOTTOMLEFT", -4, -8)
-	head:SetPoint("RIGHT", f, "RIGHT", 0, 0)
-	head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
-	head.fill:SetAllPoints(head)
-	local function label(text, x, width, justify)
-		local fs = Widgets.Text(head, "label-medium", "text-3", justify or "LEFT")
-		fs:SetPoint("LEFT", head, "LEFT", x, 0)
-		fs:SetWidth(width)
-		fs:SetText(text:upper())
-		return fs
-	end
-	-- the same x as a row: icon 6 + 20 + 8, the name 210, the total 6 + 56, the tabs 12 after it
-	head.item = label(L["BANK_COL_ITEM"], 34, 210)
-	head.total = label(L["BANK_COL_TOTAL"], 34 + 210 + 6, 56, "RIGHT")
-	head.where = label(L["BANK_COL_WHERE"], 34 + 210 + 6 + 56 + 12, 200)
-	f.head = head
-	return head
+local function itemColumns(f)
+	return {
+		{ id = "item", title = L["BANK_COL_ITEM"], flex = 2, value = function(d) return d.name or "~" end,   -- not loaded: last
+			render = function(cell, d, row)
+				cell:SetText(d.name or L["BANK_ITEM_LOADING"]:format(d.itemID))
+				View.PaintQuality(cell, d.quality)
+				local pos = f.table and f.table.pos and f.table.pos[1]
+				if pos then
+					cell:ClearAllPoints()
+					cell:SetWidth(max(pos.w - View.ICON - 16, 1))
+					cell:SetPoint("LEFT", row, "LEFT", pos.x + View.ICON + 8, 0)
+				end
+			end },
+		{ id = "total", title = L["BANK_COL_TOTAL"], width = 80, align = "RIGHT", mono = true,
+			value = function(d) return d.total end, text = function(d) return tostring(d.total) end,
+			token = function() return "accent-text" end },
+		{ id = "where", title = L["BANK_COL_WHERE"], flex = 3, text = View.TabsText, token = function() return "text-3" end },
+	}
 end
 
 function items.build(f)
@@ -367,44 +336,36 @@ function items.build(f)
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANK_ITEMS_EXPLAIN"])
-	local head = itemsHeader(f)
-	local area = CreateFrame("Frame", nil, f)
-	area:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, -4)
-	area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	area:SetClipsChildren(true)
-	area:EnableMouseWheel(true)
-	area:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	area:SetScript("OnSizeChanged", function() View:Redraw() end)
-	area.rows = {}
-	f.area = area
-	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-	f.message:SetPoint("CENTER", area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
-end
-
--- How many rows an area shows: `area.rowHeight` for a mode whose rows are taller than ROW_HEIGHT.
-local function visibleRows(area)
-	local h = area and area:GetHeight() or 0
-	local row = area and area.rowHeight or View.ROW_HEIGHT
-	if not h or h < row then return View.DEFAULT_ROWS end
-	return max(1, floor(h / row))
+	f.table = Widgets.DataTable(f, itemColumns(f), { rowHeight = View.ROW_HEIGHT, pool = 14, maxPool = 60,
+		memory = "bank.items", sort = { id = "item" },
+		rowSetup = function(row)
+			row.icon = row:CreateTexture(nil, "ARTWORK")
+			row.icon:SetSize(View.ICON, View.ICON)
+			row:HookScript("OnEnter", function(self)
+				local d = self.data
+				if not (d and GameTooltip) then return end
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+				if not pcall(GameTooltip.SetHyperlink, GameTooltip, View.Hyperlink(d.itemID)) then GameTooltip:SetText(tostring(d.itemID)) end
+				GameTooltip:Show()
+			end)
+			row:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+		end,
+		rowUpdate = function(row, d)
+			local pos = f.table.pos and f.table.pos[1]
+			row.icon:ClearAllPoints()
+			row.icon:SetPoint("LEFT", row, "LEFT", pos and pos.x or 8, 0)
+			if d.icon then row.icon:SetTexture(d.icon) row.icon:Show() else row.icon:Hide() end
+		end })
+	f.table:SetPoint("TOPLEFT", f.explain, "BOTTOMLEFT", -4, -8)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
 end
 
 function items.refresh(f)
 	local rows = View.ItemRows({ search = View.search })
-	View.rowsShown = rows
-	local total, visible = #rows, visibleRows(f.area)
-	View.offset = max(0, min(View.offset or 0, max(0, total - visible)))
-	local drawn = max(0, min(visible + 1, total - View.offset))
-	for i = 1, drawn do fillRow(f.area.rows[i] or newRow(f.area, i), rows[View.offset + i]) end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	if total == 0 then
-		f.message:SetText(View.search ~= "" and L["BANK_NO_MATCH"] or L["BANK_EMPTY"])
-		f.message:Show()
-	else
-		f.message:Hide()
-	end
-	return total
+	f.table:SetEmptyText(View.search ~= "" and L["BANK_NO_MATCH"] or L["BANK_EMPTY"])
+	f.table:SetData(rows, true)
+	View.rowsShown = f.table:GetData()
+	return #rows
 end
 
 View.AddMode("items", { label = L["BANK_MODE_ITEMS"], order = 20, build = items.build, refresh = items.refresh, search = true })
@@ -458,22 +419,18 @@ function View:Redraw()
 end
 
 function View:Scroll(delta)
-	local total = self.rowsShown and #self.rowsShown or 0
-	local m = self.modes[self.mode]
-	local area = m and m.frame and m.frame.area
-	local limit = max(0, total - visibleRows(area))
-	local target = max(0, min((self.offset or 0) + delta, limit))
-	if target == self.offset then return false end
-	self.offset = target
-	self:Redraw()
-	return true
+	local t = self:Table()
+	if not t then return false end
+	local before = t.offset
+	t:SetOffset(before + delta)
+	return t.offset ~= before
 end
 
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
 	if text == self.search then return end
 	self.search = text
-	self.offset = 0
+	self:ResetScroll()
 	if text ~= "" and self.mode == "tabs" and self.modes.items then self.mode = "items" end   -- a search looks at the list
 	self:Redraw()
 end
@@ -509,7 +466,8 @@ if ns.addon then
 		ns.Bus:On("ROSTER_UPDATED", changed)
 		ns.Bus:On("ROLE_CHANGED", changed)
 		ns.Bus:On("GUILD_CHANGED", function()
-			View.search, View.offset, View.tab, asked = "", 0, nil, {}
+			View.search, View.tab, asked = "", nil, {}
+			View:ResetScroll()
 			if View.frame then View:Redraw() end
 		end)
 	end

@@ -144,7 +144,7 @@ local function buildDetail(f)
 	d.note:SetPoint("TOPLEFT", d, "TOPLEFT", 14, -32)
 	d.note:SetPoint("RIGHT", d, "RIGHT", -110, 0)
 	if d.note.SetWordWrap then d.note:SetWordWrap(false) end
-	d.table = Widgets.DataTable(d, whoColumns(), { pool = 8, emptyText = "" })
+	d.table = Widgets.DataTable(d, whoColumns(), { pool = 8, emptyText = "", memory = "addons.who" })
 	d.table:SetPoint("TOPLEFT", d, "TOPLEFT", 8, -52)
 	d.table:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", -8, 8)
 	d:Hide()
@@ -215,7 +215,8 @@ function View:Build(f)
 	f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -22)
 	f.note:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	f.detail = buildDetail(f)
-	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ADDONS_EMPTY"],
+	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ADDONS_EMPTY"], memory = "addons.list",
+		sort = { id = "users", desc = true },
 		onRowClick = function(row) View:Choose(row.folder) end,
 		-- the add-on whose users are shown below; the player's own ones have their name in accent-text
 		isSelected = function(row) return row.folder == View.selected end,
@@ -223,7 +224,6 @@ function View:Build(f)
 			Widgets.Tooltip.Attach(row, function(r) return r.data and View.TipLines(r.data) or nil end, "LEFT")
 		end })
 	place(f)
-	f.table:SortBy("users", true)
 	f:SetScript("OnShow", function() watch(f, true) View:Redraw() end)
 	f:SetScript("OnHide", function() watch(f, false) end)
 	watch(f, true)

@@ -8,16 +8,26 @@
 -- Budget (a 1000-member roster, SPEC-09): :SetData / :SortBy / scrolling touch at most `pool` rows and create no region;
 -- a sort computes each row's key once and sorts an index list. The pool grows only when the window gets taller.
 --
+-- Sorting (docs/specs/ui-style.md §9.9, M13.8): every column that has a meaning to sort by is clickable, ascending first,
+-- then descending, with the arrow. Rows without a sort key (nil or "") go last in both directions; ties keep the order
+-- the caller gave. With opts.memory the choice is remembered per character (char.ui.tableSort[memory]).
+--
 -- columns: { { id, title (translated), width? (fixed, in points), flex? (share of the free width), align? "LEFT" | "RIGHT" |
 --   "CENTER", sortable? (default true), mono? (numbers), text = function(data) -> string, token? = function(data) -> token,
 --   value? = function(data) -> sort key (default: the text), render? = function(cell, data, row) (custom cell) } }
 -- opts: { rowHeight (32), headerHeight (32), pool (rows made, 40), maxPool (100), emptyText, onRowClick(data, row),
 --   rowSetup(row) (a row is created), rowUpdate(row, data) (a row is filled),
+--   sort = { id, desc } (the first order and its arrow), memory = "view.table" (the remembered sort),
+--   level(data) -> 0, 1, 2... (M13.8: a row belongs to the row before it of a lower level: a sort orders the rows of one
+--   level under their parent and keeps each with its own), prepare(sorted) (the rows in their order, before they are drawn), onSorted(id, desc) (after a
+--   click on a header sorted the table), onWheel(delta) (the wheel goes to the caller, e.g. a sheet), noScrollbar,
 --   isSelected(data) -> bool (M12.7: the selected rows; see :SetSelected),
 --   onSort(id) (M6.13: the CALLER sorts: a click on a header calls it instead of sorting, :SetData keeps the order it is
 --   given and :SetSortMark paints the arrow; the Roster sorts its rows in its own model, grouped by account) }
 -- Methods: :SetData(list, keepOffset?), :SortBy(id, descending), :SetSortMark(id, descending), :Refresh(), :SetOffset(n), :VisibleRows(),
---   :GetData(), :GetSort(), :SetEmptyText(text), :Capacity(), :Layout(), :SetColumns(columns) (M6.13: another set of
+--   :GetData(), :GetSort(), :Click(id) (as a click on the header), :SetWindow(visible, skip) (a fixed number of rows from
+--   the `skip`-th, for a table inside a scrolling sheet; a row's cells are also reached by column id, row.cells[id]), :SetEmptyText(text), :Capacity(), :Layout(),
+--   :SetColumns(columns) (M6.13: another set of
 --   columns, e.g. the Roster's column chooser; call :SetData or :Refresh after it),
 --   :SetSelected(data | function(data) -> bool | nil), :IsSelected(data). A selected row shows its plain cells in
 --   on-secondary-container; a cell with `render` keeps the colour the caller gives it.
@@ -33,9 +43,83 @@ local function textOf(col, data)
 end
 
 local function keyOf(col, data)
-	if col.value then return col.value(data) end
-	local v = textOf(col, data)
-	return tonumber(v) or v:lower()
+	local v
+	if col.value then
+		v = col.value(data)
+	else
+		v = textOf(col, data)
+		v = tonumber(v) or v
+	end
+	if type(v) == "string" then
+		if v == "" then return nil end
+		return v:lower()
+	end
+	if type(v) == "boolean" then return v and 1 or 0 end
+	return v
+end
+
+-- A stable order of `list` by value(item): numbers before texts, texts without case, items without a value (nil or "")
+-- last in both directions, ties in the order given. Returns a new list (M13.8, also for the "Sort by" menus).
+function Widgets.Sorted(list, value, descending)
+	local col = { value = value }
+	local order = {}
+	for i, d in ipairs(list) do order[i] = { d = d, i = i, k = keyOf(col, d) } end
+	table.sort(order, function(a, b)
+		if a.k ~= b.k then
+			if a.k == nil or b.k == nil then return b.k == nil end
+			local ta, tb = type(a.k), type(b.k)
+			local less
+			if ta ~= tb then less = ta == "number" else less = a.k < b.k end
+			if descending then return not less end
+			return less
+		end
+		return a.i < b.i
+	end)
+	local out = {}
+	for i, o in ipairs(order) do out[i] = o.d end
+	return out
+end
+
+-- The remembered sorts (docs/specs/ui-style.md §9.9): char.ui.tableSort[key] = { id, desc }, per view and character.
+local Memory = {}
+Widgets.SortMemory = Memory
+function Memory.Get(key)
+	local all = ns.Config and ns.Config:Get("char.ui.tableSort")
+	local v = type(all) == "table" and key and all[key]
+	if type(v) == "table" and type(v.id) == "string" then return v.id, v.desc == true end
+	return nil
+end
+function Memory.Set(key, id, descending)
+	if not (ns.Config and key) then return false end
+	local all = {}
+	for k, v in pairs(ns.Config:Get("char.ui.tableSort") or {}) do all[k] = v end
+	all[key] = { id = id, desc = descending and true or false }
+	return ns.Config:Set("char.ui.tableSort", all)
+end
+
+-- Sorts nested rows (opts.level): the rows of the lowest level of `list` are ordered, each followed by what was under it,
+-- sorted the same way.
+local function sortTree(list, col, descending, level)
+	local value = function(d) return keyOf(col, d) end
+	if not level then return Widgets.Sorted(list, value, descending) end
+	if #list == 0 then return {} end
+	local top = level(list[1])
+	for _, d in ipairs(list) do top = min(top, level(d)) end
+	local blocks, current = {}, nil
+	for _, d in ipairs(list) do
+		if current and level(d) > top then
+			current.children[#current.children + 1] = d
+		else
+			current = { head = d, children = {} }
+			blocks[#blocks + 1] = current
+		end
+	end
+	local out = {}
+	for _, b in ipairs(Widgets.Sorted(blocks, function(b) return value(b.head) end, descending)) do
+		out[#out + 1] = b.head
+		for _, d in ipairs(sortTree(b.children, col, descending, level)) do out[#out + 1] = d end
+	end
+	return out
 end
 
 function Widgets.DataTable(parent, columns, opts)
@@ -128,9 +212,7 @@ function Widgets.DataTable(parent, columns, opts)
 	local function setHead(b, c)
 		b.col = c
 		-- a column that says sortable = false has no click at all
-		b:SetScript("OnClick", c.sortable ~= false and function()
-			if opts.onSort then opts.onSort(c.id) else t:SortBy(c.id) end
-		end or nil)
+		b:SetScript("OnClick", c.sortable ~= false and function() t:Click(c.id) end or nil)
 		b.label:SetText((c.title or ""):upper())
 		b:Show()
 	end
@@ -166,6 +248,9 @@ function Widgets.DataTable(parent, columns, opts)
 
 	-- the cells a row needs for the current columns (created once, re-fonted when a column is mono or not; extra cells hide)
 	function t.ensureCells(r)
+		for key in pairs(r.cells) do
+			if type(key) == "string" then r.cells[key] = nil end
+		end
 		for ci, c in ipairs(columns) do
 			local fs = r.cells[ci]
 			if not fs then
@@ -179,6 +264,7 @@ function Widgets.DataTable(parent, columns, opts)
 				fs:SetFontObject(Theme.Font(c.mono and "Mono" or "Body"))
 				fs:Show()
 			end
+			r.cells[c.id] = r.cells[ci]   -- also by the column's id
 		end
 		for ci = #columns + 1, #r.cells do r.cells[ci]:Hide() end
 	end
@@ -239,6 +325,7 @@ function Widgets.DataTable(parent, columns, opts)
 	end
 
 	function t:Capacity()
+		if self.window then return min(#self.rows, self.window) end
 		local h = self.list:GetHeight() or 0
 		if h < rowH then h = rowH * 14 end
 		return min(#self.rows, max(floor(h / rowH), 1))
@@ -268,9 +355,13 @@ function Widgets.DataTable(parent, columns, opts)
 		return false
 	end
 
+	local function columnOf(id)
+		for _, c in ipairs(columns) do if c.id == id then return c end end
+		return nil
+	end
+
 	function t:SortBy(id, descending)
-		local col
-		for _, c in ipairs(columns) do if c.id == id then col = c end end
+		local col = columnOf(id)
 		if not col then return false end
 		if descending == nil then descending = (self.sortId == id) and not self.sortDesc or false end
 		self.sortId, self.sortDesc = id, descending
@@ -278,24 +369,38 @@ function Widgets.DataTable(parent, columns, opts)
 			paintSort(id, descending)
 			return true
 		end
-		local order = {}
-		for i, d in ipairs(self.data) do order[i] = { d = d, i = i, k = keyOf(col, d) } end
-		table.sort(order, function(a, b)
-			if a.k ~= b.k then
-				local ta, tb = type(a.k), type(b.k)
-				local less
-				if ta ~= tb then less = ta == "number" else less = a.k < b.k end
-				if descending then return not less end
-				return less
-			end
-			return a.i < b.i
-		end)
-		self.sorted = {}
-		for i, o in ipairs(order) do self.sorted[i] = o.d end
+		self.sorted = sortTree(self.data, col, descending, opts.level)
+		if opts.prepare then opts.prepare(self.sorted) end
 		paintSort(id, descending)
 		self.offset = 0
 		self:Refresh()
 		return true
+	end
+
+	-- A click on the header of `id`: the caller sorts (opts.onSort), or the table does and remembers it.
+	function t:Click(id)
+		local col = columnOf(id)
+		if not col or col.sortable == false then return false end
+		if opts.onSort then opts.onSort(id) return true end
+		self:SortBy(id)
+		if opts.memory then Memory.Set(opts.memory, self.sortId, self.sortDesc) end
+		if opts.onSorted then opts.onSorted(self.sortId, self.sortDesc) end
+		return true
+	end
+
+	-- The remembered sort, else the first one, once the columns have it.
+	local function restore()
+		local id, desc = Memory.Get(opts.memory)
+		local col = id and columnOf(id)
+		if not (col and col.sortable ~= false) and opts.sort then id, desc = opts.sort.id, opts.sort.desc end
+		if id and columnOf(id) then t:SetSortMark(id, desc) end
+	end
+
+	-- Exactly `visible` rows from the `skip`-th (a table inside a scrolling sheet, which gives it that height).
+	function t:SetWindow(visible, skip)
+		self.window = visible
+		for i = #self.rows + 1, visible do self.rows[i] = newRow(i) end
+		self:SetOffset(skip or 0)
 	end
 
 	-- Another set of columns (the cells and the header buttons are reused, the extra ones hide).
@@ -306,6 +411,7 @@ function Widgets.DataTable(parent, columns, opts)
 		for i = #columns + 1, #self.heads do self.heads[i]:Hide() end
 		for _, r in ipairs(self.rows) do t.ensureCells(r) end
 		if self.sortId and not self:SetSortMark(self.sortId, self.sortDesc) then self.sortId = nil end
+		if not self.sortId and not opts.onSort then restore() end
 		self:Layout()
 	end
 
@@ -321,6 +427,7 @@ function Widgets.DataTable(parent, columns, opts)
 		else
 			self.sorted = {}
 			for i, d in ipairs(self.data) do self.sorted[i] = d end
+			if opts.prepare then opts.prepare(self.sorted) end
 			if not (opts.onSort or keepOffset) then self.offset = 0 end   -- a caller that sorts keeps the place in its list (Refresh clamps it)
 			self:Refresh()
 		end
@@ -334,7 +441,7 @@ function Widgets.DataTable(parent, columns, opts)
 
 	local function paintScroll(total, cap)
 		local s = t.scroll
-		if total <= cap then s:Hide(); return end
+		if total <= cap or opts.noScrollbar then s:Hide(); return end
 		local h = (t.list:GetHeight() or 0) - 4
 		if h <= 0 then h = cap * rowH end
 		local size = max(h * cap / total, 12)
@@ -394,8 +501,11 @@ function Widgets.DataTable(parent, columns, opts)
 		return selected ~= nil and data == selected
 	end
 
-	t.list:SetScript("OnMouseWheel", function(_, delta) t:SetOffset(t.offset - delta * 3) end)
+	t.list:SetScript("OnMouseWheel", function(_, delta)
+		if opts.onWheel then opts.onWheel(delta) else t:SetOffset(t.offset - delta * 3) end
+	end)
 	t:SetScript("OnSizeChanged", function() grow(); t:Layout(); t:Refresh() end)
+	if not opts.onSort then restore() end
 	t:Layout()
 	return t
 end

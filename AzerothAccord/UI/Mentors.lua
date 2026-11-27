@@ -1,10 +1,12 @@
 -- MentorsView: the "Mentors" page of the Guild destination (a mode of the Reputation view until M13.7), the dialog of the own offer, and, for the officers, the mentors
 -- suggested to the new members: the third tab of the Trials page and a section of the member card (M12.5; SPEC-16 §6).
 -- Lua 5.1.
+-- The list is a table (ui-style §9.9); the suggestions, grouped by new member, have a "Sort by" menu.
 -- The list is for every member; the pairs only for who may see them (Mentors.CanSeePairs). Only with the switch "recruit".
 -- Whisper opens the chat box with "/w Name": the player writes and sends, the addon sends nothing (RC-01, SOC-20).
 --   View.ListRows(opts)          the offers the mode shows: opts = { topic, search }
---   View.PairLines(data, search) the lines of the suggestions: { { text, heading, muted, guid (Whisper) } }
+--   View.PairLines(data, search, order, desc)   the lines of the suggestions: { { text, heading, muted, guid (Whisper) } },
+--                                the new members in the suggested order, by name or by the day they joined
 --   View.Reasons(candidate)      why a mentor is suggested
 --   View:Offer() / View:Leave()  one click each
 --   View:OpenDialog()            the own offer: View:Toggle(topic), View:Save(note)
@@ -22,9 +24,9 @@ local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tost
 View.ROW_HEIGHT = 44
 View.LINE_HEIGHT = 36
 View.TOP = 84                  -- the own offer and the topic filter
+View.MARK = 16                 -- the room of the class mark before a name
 View.WIDTH, View.HEIGHT = 460, 330
 View.topic = nil               -- the topic filter (nil: all)
-View.offset = 0
 View.search = ""             -- the panel's search on this page
 
 local function M() return ns.Mentors end
@@ -82,8 +84,18 @@ local function mentorText(c)
 	return L[c.first and "MEN_FIRST" or "MEN_ALSO"]:format(escape(c.name), View.Reasons(c))
 end
 
+-- The new members of the suggestions in the chosen order ("suggested": the data's own).
+local function ordered(rows, order, desc)
+	if order == "name" then return Widgets.Sorted(rows, function(r) return tostring(r.name) end, desc) end
+	if order == "joined" then return Widgets.Sorted(rows, function(r) return r.joined end, desc) end
+	if not desc then return rows end
+	local out = {}
+	for i = #rows, 1, -1 do out[#out + 1] = rows[i] end
+	return out
+end
+
 -- The lines of the suggestions; `search` filters by the name of the new member or of a mentor.
-function View.PairLines(data, search)
+function View.PairLines(data, search, order, desc)
 	local out = {}
 	local needle = search and search ~= "" and search:lower() or nil
 	local function matches(row)
@@ -99,7 +111,7 @@ function View.PairLines(data, search)
 	end
 	if data.computing then out[#out + 1] = { text = L["MEN_PAIRS_COMPUTING"], muted = true } end
 	if data.mentors == 0 then out[#out + 1] = { text = L["MEN_PAIRS_NO_MENTOR"], muted = true } end
-	for _, row in ipairs(data.rows) do
+	for _, row in ipairs(ordered(data.rows, order, desc)) do
 		if matches(row) then
 			out[#out + 1] = { text = newcomerText(row), heading = true, guid = row.guid }
 			local first = false
@@ -252,6 +264,35 @@ end
 
 local mode = {}
 
+local function listColumns(f)
+	local function muted() return "text-3" end
+	return {
+		{ id = "name", title = L["MEN_COL_NAME"], flex = 1.1, value = function(m) return m.name end,
+			render = function(cell, m, row) ns.ReputationView.RenderName(f.table, 1, cell, m, row) end },
+		{ id = "topics", title = L["MEN_COL_TOPICS"], flex = 1.6, token = function() return "text-2" end,
+			text = function(m)
+				local topics = View.TopicsText(m.topics)
+				if m.main ~= m.name then topics = L["MEN_MAIN"]:format(m.main) .. " · " .. topics end
+				return topics
+			end },
+		{ id = "note", title = L["MEN_COL_NOTE"], flex = 1.4, text = function(m) return escape(m.note or "") end, token = muted },
+		{ id = "online", title = L["MEN_COL_STATUS"], width = 80, value = function(m) return m.online and 0 or 1 end,
+			text = function(m) return L[m.online and "MEN_ONLINE" or "MEN_OFFLINE"] end,
+			token = function(m) return m.online and "ok" or "text-3" end },
+		{ id = "whisper", title = "", width = 106, sortable = false, text = function() return "" end },
+	}
+end
+
+local function rowSetup(row)
+	row.mark = Widgets.ClassMark(row, 8)
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
+		onClick = function(b) View:Whisper(b:GetParent().data.guid) end })
+	row.whisper:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
+	row.whisper:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+end
+
+local function rowUpdate(row, m) row.whisper:SetShown(not m.own) end
+
 function mode.build(f)
 	View.frame = f
 	f.own = Widgets.Text(f, "Body", "text-1", "LEFT")
@@ -267,74 +308,22 @@ function mode.build(f)
 	f.edit:SetPoint("RIGHT", f.leave, "LEFT", -8, 0)
 	f.filter = Widgets.ChipRow(f, function(id)
 		View.topic = id ~= "all" and id or nil
-		View.offset = 0
+		if f.table then f.table.offset = 0 end
 		View:Redraw()
 	end)
 	f.filter:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -44)
 	f.filter:SetPoint("RIGHT", f, "RIGHT", 0, 0)
-	f.area = CreateFrame("Frame", nil, f)
-	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOP)
-	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)
-	f.area:SetClipsChildren(true)
-	f.area:EnableMouseWheel(true)
-	f.area:SetScript("OnMouseWheel", function(_, delta)
-		View.offset = max(0, View.offset - delta)
-		View:Redraw()
-	end)
-	f.area.rows = {}
-	f.message = Widgets.Text(f, "Body", "text-3", "CENTER")
-	f.message:SetPoint("CENTER", f.area, "CENTER", 0, 0)
-	f.message:SetWidth(380)
+	f.table = Widgets.DataTable(f, listColumns(f), { rowHeight = View.ROW_HEIGHT, pool = 10, maxPool = 60,
+		memory = "mentors.list", rowSetup = rowSetup, rowUpdate = rowUpdate,
+		onRowClick = function(m)
+			if ns.ReputationView then ns.ReputationView:OpenCard({ guid = m.guid }) end
+		end })
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOP)
+	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)
 	f.foot = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.foot:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 4, 2)
 	f.foot:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.foot:SetWordWrap(false)
-end
-
-local function newRow(area, i)
-	local row = CreateFrame("Button", nil, area)
-	row:SetHeight(View.ROW_HEIGHT)
-	row:SetPoint("TOPLEFT", area, "TOPLEFT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * View.ROW_HEIGHT)
-	row.mark = Widgets.ClassMark(row, 8)
-	row.mark:SetPoint("TOPLEFT", row, "TOPLEFT", 8, -10)
-	row.name = Widgets.Text(row, "BodyMedium", "text-1", "LEFT")
-	row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 24, -6)
-	row.name:SetWidth(140)
-	row.topics = Widgets.Text(row, "Small", "text-2", "LEFT")
-	row.topics:SetPoint("TOPLEFT", row, "TOPLEFT", 170, -7)
-	row.topics:SetPoint("RIGHT", row, "RIGHT", -180, 0)
-	row.topics:SetWordWrap(false)
-	row.note = Widgets.Text(row, "Small", "text-3", "LEFT")
-	row.note:SetPoint("TOPLEFT", row, "TOPLEFT", 24, -25)
-	row.note:SetPoint("RIGHT", row, "RIGHT", -180, 0)
-	row.note:SetWordWrap(false)
-	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
-		onClick = function(b) View:Whisper(b:GetParent().guid) end })
-	row.whisper:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row.online = Widgets.Text(row, "Small", "text-3", "RIGHT")
-	row.online:SetPoint("RIGHT", row.whisper, "LEFT", -10, 0)
-	row:SetScript("OnClick", function(self)
-		if ns.ReputationView then ns.ReputationView:OpenCard({ guid = self.guid }) end
-	end)
-	Widgets.RowHover(row)
-	area.rows[i] = row
-	return row
-end
-
-local function fillRow(row, m)
-	row.guid = m.guid
-	row.name:SetText(m.name)
-	Widgets.PaintName(row.name, m.classFile)
-	local c = RAID_CLASS_COLORS and m.classFile and RAID_CLASS_COLORS[m.classFile]
-	if c then Widgets.PaintClassMark(row.mark, c.r, c.g, c.b) else Widgets.ClearClassMark(row.mark) end
-	local topics = View.TopicsText(m.topics)
-	if m.main ~= m.name then topics = L["MEN_MAIN"]:format(m.main) .. " · " .. topics end
-	row.topics:SetText(topics)
-	row.note:SetText(escape(m.note or ""))
-	say(row.online, L[m.online and "MEN_ONLINE" or "MEN_OFFLINE"], m.online and "ok" or "text-3")
-	row.whisper:SetShown(not m.own)
-	row:Show()
 end
 
 function mode.refresh(f)
@@ -350,14 +339,8 @@ function mode.refresh(f)
 	local search = View.search
 	local list = View.ListRows({ topic = View.topic, search = search })
 	View.shown = list
-	local h = f.area:GetHeight() or 0
-	local visible = h >= View.ROW_HEIGHT and floor(h / View.ROW_HEIGHT) or 8
-	View.offset = max(0, min(View.offset, max(0, #list - visible)))
-	local drawn = max(0, min(visible, #list - View.offset))
-	for i = 1, drawn do fillRow(f.area.rows[i] or newRow(f.area, i), list[View.offset + i]) end
-	for i = drawn + 1, #f.area.rows do f.area.rows[i]:Hide() end
-	f.message:SetShown(#list == 0)
-	f.message:SetText(L[(View.topic or (search and search ~= "")) and "MEN_NO_MATCH" or "MEN_EMPTY"])
+	f.table:SetEmptyText(L[(View.topic or (search and search ~= "")) and "MEN_NO_MATCH" or "MEN_EMPTY"])
+	f.table:SetData(list, true)
 	f.foot:SetText(L["MEN_EXPLAIN"])
 end
 
@@ -370,7 +353,8 @@ end
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
 	if text == self.search then return end
-	self.search, self.offset = text, 0
+	self.search = text
+	if self.frame and self.frame.table then self.frame.table.offset = 0 end
 	self:Redraw()
 end
 
@@ -432,9 +416,20 @@ function View.BuildPairs(parent)
 	local f = CreateFrame("Frame", nil, parent)
 	f.help = Widgets.Text(f, "Small", "text-3", "LEFT")
 	f.help:SetPoint("TOPLEFT", f, "TOPLEFT", 4, 0)
-	f.help:SetPoint("RIGHT", f, "RIGHT", -4, 0)
+	f.help:SetPoint("RIGHT", f, "RIGHT", -230, 0)
 	f.help:SetWordWrap(true)
 	f.help:SetText(L["MEN_PAIRS_HELP"])
+	-- grouped by new member, without columns: a "Sort by" menu (ui-style §9.9)
+	f.sort = Widgets.SortMenu(f, { label = L["SORT_BY"], memory = "mentors.pairs", items = {
+		{ id = "suggested", text = L["MEN_SORT_SUGGESTED"] }, { id = "name", text = L["MEN_SORT_NAME"] },
+		{ id = "joined", text = L["MEN_SORT_JOINED"] } },
+		onChange = function()
+			if not f.data then return end
+			f.offset = 0
+			f.list = View.PairLines(f.data, f.search, f.sort:Get())
+			drawLines(f)
+		end })
+	f.sort:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.area = CreateFrame("Frame", nil, f)
 	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -36)
 	f.area:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
@@ -452,7 +447,8 @@ end
 -- Computes and draws the suggestions; returns how many new members there are.
 function View.RefreshPairs(f, search)
 	local data = M():Pairs()
-	f.list = View.PairLines(data, search)
+	f.data, f.search = data, search
+	f.list = View.PairLines(data, search, f.sort:Get())
 	drawLines(f)
 	return #data.rows
 end
@@ -494,7 +490,8 @@ if ns.addon then
 			if M() and M().CanSeePairs() and ns.OfficersView then ns.OfficersView:Changed() end
 		end)
 		ns.Bus:On("GUILD_CHANGED", function()
-			View.topic, View.offset, View.error = nil, 0, nil
+			View.topic, View.error = nil, nil
+			if View.frame and View.frame.table then View.frame.table.offset = 0 end
 			if View.dialog then View.dialog:Close() end
 		end)
 	end

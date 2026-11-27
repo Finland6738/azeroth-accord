@@ -84,7 +84,7 @@ end
 -- The Queue page
 ---------------------------------------------------------------------------------------------------------------------
 local function column(id, key, opts, text, token)
-	opts.id, opts.title, opts.sortable, opts.text, opts.token = id, L[key], false, text, token
+	opts.id, opts.title, opts.text, opts.token = id, L[key], text, token
 	return opts
 end
 
@@ -97,7 +97,7 @@ local function queueColumns()
 		col("name", "COL_OPS_NAME", { flex = 1.5 }),
 		col("op", "COL_OPS_ACTION", { flex = 1.5 }),
 		col("hand", "COL_OPS_HAND", { flex = 2 }),
-		col("added", "COL_OPS_ADDED", { flex = 1 }),
+		col("added", "COL_OPS_ADDED", { flex = 1, value = function(e) return -e.created end }),
 		col("status", "COL_OPS_STATUS", { width = 90 }),
 	}
 end
@@ -108,7 +108,7 @@ local function buildQueue(f, self)
 	f.help:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.help:SetWordWrap(true)
 	f.help:SetText(L["OPS_QUEUE_HELP"])
-	f.table = Widgets.DataTable(f, queueColumns(), { emptyText = L["OPS_QUEUE_EMPTY"],
+	f.table = Widgets.DataTable(f, queueColumns(), { emptyText = L["OPS_QUEUE_EMPTY"], memory = "officers.queue",
 		onRowClick = function(e) self:OpenEntry(e.n) end })
 	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.FILTER_HEIGHT)
 	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 20)
@@ -263,14 +263,15 @@ function View.CharRows(draft, t)
 	for _, guid in ipairs(draft.account.chars) do
 		local e = ns.Roster:ByGUID(guid)
 		if e then
-			local last
-			if e.online then last = L["ONLINE"]
+			local last, ago
+			if e.online then last, ago = L["ONLINE"], 0
 			else
 				local seen = ns.Inactivity.LastSeen(guid, e, nil, nil, t)
-				last = seen and ns.Provenance.AgeText(t - seen) or L["INA_UNKNOWN"]
+				ago = seen and t - seen
+				last = ago and ns.Provenance.AgeText(ago) or L["INA_UNKNOWN"]
 			end
 			out[#out + 1] = { guid = guid, name = escape(e.short or e.name), rank = e.rankName and escape(e.rankName) or "",
-				level = e.level, last = last, choice = View.ChoiceText(ops().ChoiceOf(draft, guid)),
+				level = e.level, last = last, ago = ago, choice = View.ChoiceText(ops().ChoiceOf(draft, guid)),
 				own = draft.per[guid] ~= nil }
 		end
 	end
@@ -479,25 +480,29 @@ end
 
 local function buildStep2(f, self, w)
 	f.accounts = Widgets.DataTable(f, {
-		column("account", "COL_OPS_ACCOUNT", { flex = 2 },
+		-- the headers of the tiers keep their place (no sort value): a sort orders the accounts under each one
+		column("account", "COL_OPS_ACCOUNT", { flex = 2, value = function(d) return d.draft and d.draft.account.name end },
 			function(d) return d.header or escape(d.draft.account.name) end,
 			function(d) return d.header and "accent-text" or nil end),
-		column("days", "COL_INA_DAYS", { width = 60, align = "RIGHT", mono = true },
+		column("days", "COL_INA_DAYS", { width = 60, align = "RIGHT", mono = true,
+			value = function(d) return d.draft and d.draft.account.days end },
 			function(d) return d.draft and d.draft.account.days and tostring(d.draft.account.days) or "" end),
-		column("choice", "COL_OPS_ACTION", { flex = 2 }, function(d) return d.draft and View.DraftText(d.draft) or "" end),
-	}, { onRowClick = function(d) if d.draft then self:SelectAccount(d.draft.account.key) end end })
+		column("choice", "COL_OPS_ACTION", { flex = 2, value = function(d) return d.draft and View.DraftText(d.draft) end },
+			function(d) return d.draft and View.DraftText(d.draft) or "" end),
+	}, { memory = "officers.review", level = function(d) return d.header and 0 or 1 end,
+		onRowClick = function(d) if d.draft then self:SelectAccount(d.draft.account.key) end end })
 	f.accounts:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.accounts:SetSize(w, 164)
 	f.selected = label(f, "BodyMedium", "text-1", 0, 172, w)
 	f.chars = Widgets.DataTable(f, {
 		column("name", "COL_OPS_NAME", { flex = 1.5 }, function(d) return d.name end),
 		column("rank", "COL_INA_RANK", { flex = 1 }, function(d) return d.rank end),
-		column("level", "COL_OPS_LEVEL", { width = 50, align = "RIGHT", mono = true },
+		column("level", "COL_OPS_LEVEL", { width = 50, align = "RIGHT", mono = true, value = function(d) return d.level end },
 			function(d) return d.level and tostring(d.level) or "" end),
-		column("last", "COL_INA_LAST", { flex = 1 }, function(d) return d.last end),
+		column("last", "COL_INA_LAST", { flex = 1, value = function(d) return d.ago end }, function(d) return d.last end),
 		column("choice", "COL_OPS_ACTION", { flex = 1.5 }, function(d) return d.choice end,
 			function(d) return not d.own and "text-3" or nil end),
-	}, { onRowClick = function(d, row) charMenu(self, d, row) end })
+	}, { memory = "officers.reviewchars", onRowClick = function(d, row) charMenu(self, d, row) end })
 	f.chars:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -192)
 	f.chars:SetSize(w, 132)
 	f.events = label(f, "Small", "text-3", 0, 332, w)
@@ -526,7 +531,7 @@ local function buildStep3(f, self, w)
 			function(d) return d.muted and "text-3" or nil end),
 		column("what", "COL_OPS_ACTION", { flex = 2.5 }, function(d) return d.text end,
 			function(d) return d.muted and "text-3" or nil end),
-	}, { emptyText = L["OPS_NOTHING"] })
+	}, { memory = "officers.reviewplan", emptyText = L["OPS_NOTHING"] })
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -52)
 	f.list:SetSize(w, 390)
 end

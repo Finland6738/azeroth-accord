@@ -280,6 +280,37 @@ local function paintForm(w, what, width)
 	return f
 end
 
+-- The table of FDCP's costs, `y` below the top: every row shown, as high as they are. Returns the height it takes.
+local function costsTable(w, rows, y, x)
+	local t = w.costs
+	if not t then
+		local columns = {}
+		for i, c in ipairs(ns.RaidView.Tables["raid.costs"].columns) do
+			local id, col = c.id, {}
+			for k, v in pairs(c) do col[k] = v end
+			col.text = function(l) return l.cells[id] end
+			col.value = function(l)
+				local key = l.keys and l.keys[id]
+				if key ~= nil then return key end
+				return l.cells[id]
+			end
+			columns[i] = col
+		end
+		t = Widgets.DataTable(w, columns, { pool = 1, memory = "raid.costs", noScrollbar = true, onWheel = function() end })
+		w.costs = t
+	end
+	local height = 35 + #rows * 32
+	t:ClearAllPoints()
+	t:SetPoint("TOPLEFT", w, "TOPLEFT", x, -y)
+	t:SetPoint("TOPRIGHT", w, "TOPRIGHT", 0, -y)
+	t:SetHeight(height)
+	t.window = #rows
+	t:SetData(rows, true)
+	t:SetWindow(#rows, 0)
+	t:Show()
+	return height + Page.GAP
+end
+
 -- Draws the lines for the model, `width` wide. Returns the height.
 local function update(w, model, width)
 	width = (width and width > 0) and width or Page.WIDTH
@@ -291,8 +322,16 @@ local function update(w, model, width)
 	for _, f in pairs(w.forms) do f:Hide() end
 	w.copy:Hide()
 	local y, n = 0, 0
+	-- the lines with a table (FDCP's costs, UI/Raid.lua) are its rows (ui-style §9.9)
+	local costs = {}
+	for _, line in ipairs(lines) do if line.table == "raid.costs" then costs[#costs + 1] = line end end
+	if w.costs then w.costs:Hide() end
 	for _, line in ipairs(lines) do
 		local x = line.indent and Page.INDENT or 0
+		if line.table == "raid.costs" then
+			if line == costs[1] then y = y + costsTable(w, costs, y, x) end
+			line = {}   -- drawn as a row of the table
+		end
 		local b = line.button and w.buttons[line.button]
 		if line.button and not b then
 			local id = line.button

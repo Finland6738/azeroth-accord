@@ -525,10 +525,9 @@ describe("the view", function()
 		eq(A().BankView.mode, "inbox")
 		eq(A().BankView.search, "")
 		eq(A().BankRequestsView.focus, second)
-		local area = A().BankView.modes.inbox.frame.area
 		local marked = {}
-		for _, row in ipairs(area.rows) do
-			if row:IsShown() and row.focus:IsShown() then marked[#marked + 1] = row.data.id end
+		for _, row in ipairs(A().BankView.modes.inbox.frame.table:VisibleRows()) do
+			if row.selection:IsShown() then marked[#marked + 1] = row.data.id end
 		end
 		deepEq(marked, { second })
 	end)
