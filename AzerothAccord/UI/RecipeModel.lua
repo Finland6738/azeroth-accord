@@ -69,9 +69,13 @@ end
 
 -- Looks at a member's profession (a skill line, or nil when the game did not say which profession it is) and asks the
 -- sources for the list. Returns what Recipes:Ensure returned.
+-- A member's list starts on the recipes the member learned (owner, 2026-11-27): with the profession's catalogue the
+-- missing ones are one choice of the filter away; without it every row is learned anyway.
+Model.DEFAULT_CATEGORY = "learned"
+
 function Model:SetTarget(guid, skillLine)
 	self.guid, self.skillLine = guid, type(skillLine) == "number" and skillLine or nil
-	self.search, self.category, self.meta = "", nil, {}
+	self.search, self.category, self.meta = "", Model.DEFAULT_CATEGORY, {}
 	self:Invalidate()
 	self.asked = nil
 	if self.guid and self.skillLine and ns.Recipes then self.asked = ns.Recipes:Ensure(self.guid, self.skillLine) end
@@ -380,11 +384,12 @@ function Cat:SetFilter(key)
 	return true
 end
 
--- Shows another profession: its recipes start closed; the filter the player chose stays.
+-- Shows another profession: its recipes start closed, on the default filter (owner, 2026-11-27: a profession that is
+-- picked shows what the guild can craft).
 function Cat:SetProfession(skillLine)
 	skillLine = isLine(skillLine) and skillLine or nil
 	if skillLine == self.skillLine then return false end
-	self.skillLine, self.expanded = skillLine, {}
+	self.skillLine, self.expanded, self.filter = skillLine, {}, Cat.DEFAULT_FILTER
 	self:Invalidate()
 	return true
 end

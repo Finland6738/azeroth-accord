@@ -9,8 +9,8 @@
 La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per nome. WoW Forever non dice agli addon il livello di abilità che una ricetta richiede, quindi la vista non lo mostra.
 
 - **Clicca una ricetta** per vedere **chi può crearla**, subito sotto: prima i personaggi online, gli alt di uno stesso giocatore insieme, con **Chiedi di crearlo** accanto a chi è online. Un altro clic la chiude.
-- **Clicca un personaggio** per aprire **le sue ricette** di quella professione: quelle che ha imparato e, attenuate e segnate "non imparata", quelle che gli mancano. L'elenco sopra la tabella filtra *Imparate da …* o *Non imparate da …*. **Torna alle ricette della gilda** riporta indietro.
-- Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. La scelta resta quando passi a un'altra professione. La casella di ricerca filtra per nome.
+- **Clicca un personaggio** per aprire **le sue ricette** di quella professione: all'inizio quelle che ha imparato e può creare. L'elenco sopra la tabella offre anche *Tutte le ricette* (quelle che gli mancano sono attenuate e segnate "non imparata") e *Non imparate da …*. **Torna alle ricette della gilda** riporta indietro.
+- Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. Ogni professione che scegli riparte da *Qualcuno può crearla*, e un clic sulla scheda **Professioni** riporta sempre a questo elenco con il menu delle professioni. La casella di ricerca filtra per nome.
 - Passa il mouse su una ricetta per vedere il suggerimento del gioco, subito accanto al nome.
 - La riga sotto il titolo dice chi ha condiviso l'elenco completo e quanto è vecchio.
 
@@ -25,7 +25,8 @@ L'elenco è una tabella con le colonne *Ricetta*, *Dettagli* e *Stato*: un'icona
 - **Cerca**: scrivi nella casella di ricerca in alto nel pannello per filtrare per nome della ricetta.
 - **Categoria**: l'elenco sopra la tabella offre *Ricette che conosco* e *Ricette che non conosco* (confrontate con il tuo elenco della stessa professione, dopo che hai aperto quella professione) e, quando il gioco le dice, le categorie delle ricette. Le ricette che conosci anche tu sono segnate "la conosci".
 - **Torna al roster** riporta alla tabella, e **Chi può creare** apre la ricerca qui sotto.
-- Quando la gilda ha l'elenco completo della professione, l'elenco del membro mostra **tutte le ricette** della professione, e quelle che il membro non ha imparato sono attenuate e segnate "non imparata".
+- L'elenco parte dalle ricette che il membro **ha imparato e può creare**. Quando la gilda ha l'elenco completo della professione, scegli *Tutte le ricette* sopra la tabella per vederle tutte: quelle che il membro non ha imparato sono attenuate e segnate "non imparata".
+- **Tutti i membri** mostra le ricette di quella professione per tutta la gilda (vedi *Le ricette della gilda*), a partire da quelle che qualcuno sa creare.
 
 ![L'elenco delle ricette di un compagno: la fonte e l'età dell'elenco, la ricerca, un menu delle categorie, i colori della difficoltà, il suggerimento del gioco e Chiedi di crearlo](../specs/mockups/previews/professions-recipes.webp)
 

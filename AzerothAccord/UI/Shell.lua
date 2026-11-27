@@ -346,6 +346,8 @@ function Shell:Select(id, retry)
 	end
 	self.selected = id
 	if ns.Config then ns.Config:Set("char.ui.lastView", id) end
+	-- a click on the tab may put the view back on its start (`onTabClick`: the Professions view shows the guild's recipes)
+	if retry and type(view.onTabClick) == "function" then pcall(view.onTabClick) end
 	if self.content then self:ShowSelected() end
 	return true
 end

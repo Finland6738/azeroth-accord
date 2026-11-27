@@ -127,13 +127,25 @@ function View:OpenCraft(text)
 	return shown ~= false
 end
 
--- Shows the guild's recipes of a profession (the player's own first when `skillLine` is nil and none was picked).
+-- Shows the guild's recipes of a profession (the player's own first when `skillLine` is nil and none was picked), on
+-- the default filter: what the guild can craft.
 function View:OpenCatalogue(skillLine)
 	if type(skillLine) == "number" then self.cat:SetProfession(skillLine) end
+	self.cat:SetFilter(Model.Catalogue.DEFAULT_FILTER)
+	self:ResetScroll()
 	local shown = true
 	if ns.Shell then shown = ns.Shell:OpenView("professions") end
 	self:SetMode("catalogue")
 	return shown ~= false
+end
+
+-- The click on the Professions tab: back to the guild's recipes of the profession picked last, on the default filter.
+function View:ToCatalogue()
+	self.cat:SetFilter(Model.Catalogue.DEFAULT_FILTER)
+	self.mode = "catalogue"
+	self:ResetScroll()
+	syncSearchBox(self)
+	if self.frame then self:Redraw() end
 end
 
 -- Picks the profession of the catalogue.
@@ -218,9 +230,16 @@ local function build(self, f)
 	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
 	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
-	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("catalogue") end })
+	-- "Guild recipes" in the craft search; "All members" in a member's list: the guild's recipes of that profession
+	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "secondary", height = 32, onClick = function()
+		if View.mode == "recipes" and View.model.skillLine then View:OpenCatalogue(View.model.skillLine) else View:SetMode("catalogue") end
+	end })
 	head.cat:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.cat:Hide()
+	Widgets.Tooltip.Attach(head.cat, function()
+		if View.mode == "recipes" then return { L["RV_ALL_MEMBERS"], L["RV_ALL_MEMBERS_TIP"] } end
+		return nil
+	end, "BOTTOM")
 	head.title = Theme.NewText(head, "H1", "text-1")
 	head.title:SetJustifyH("LEFT")
 	head.title:SetPoint("LEFT", head.craft, "RIGHT", 16, 0)
@@ -492,6 +511,9 @@ local function redrawCraft(self)
 	local result = c.result
 	f.head.back:Hide()
 	f.head.craft:Hide()
+	f.head.cat:SetLabel(L["CAT_BUTTON"])
+	f.head.cat:ClearAllPoints()
+	f.head.cat:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, 0)
 	f.head.cat:Show()
 	f.head.prov:SetSource(nil)
 	f.head.title:ClearAllPoints()
@@ -530,12 +552,15 @@ local function redrawRecipes(self)
 	f.head.craft:ClearAllPoints()
 	f.head.craft:SetPoint("LEFT", f.head.back, "RIGHT", 8, 0)
 	f.head.craft:Show()
-	f.head.cat:Hide()
+	f.head.cat:SetLabel(L["RV_ALL_MEMBERS"])
+	f.head.cat:ClearAllPoints()
+	f.head.cat:SetPoint("LEFT", f.head.craft, "RIGHT", 8, 0)
+	f.head.cat:SetShown(model.skillLine ~= nil)
 	f.bar.profession:Hide()
 	f.bar.category:ClearAllPoints()
 	f.bar.category:SetPoint("LEFT", f.bar, "LEFT", 0, 0)
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 16, 0)
+	f.head.title:SetPoint("LEFT", model.skillLine and f.head.cat or f.head.craft, "RIGHT", 16, 0)
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.source:ClearAllPoints()
 	f.head.source:SetPoint("TOPLEFT", f.head.back, "BOTTOMLEFT", 2, -8)
@@ -651,6 +676,8 @@ if ns.Shell then
 		label = L["VIEW_PROFESSIONS"], order = 20, search = true,
 		build = function(f) View:Build(f) end,
 		onSearch = function(text) View:SetSearch(text) end,
+		-- a click on the Professions tab always shows the guild's recipes with the profession menu (owner, 2026-11-27)
+		onTabClick = function() View:ToCatalogue() end,
 	})
 end
 

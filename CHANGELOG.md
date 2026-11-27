@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **Professions: a member's list starts on what they learned; All members; the tab opens the guild's recipes** (owner, 2026-11-27). A member's recipe list (from a profession cell, the member card or the catalogue) now starts on *Learned by …*: the recipes they can craft. *All recipes* and *Not learned by …* stay in the filter. A new **All members** button opens the guild's recipes of the same profession, on *Somebody can craft it*. A click on the **Professions** tab always shows the guild's recipes with the profession menu, and every profession picked starts on *Somebody can craft it* (views may now react to a tab click: `onTabClick`, `UI/Shell.lua`). **Not checked in the real game.**
+
 - **Guild recipes start on what the guild can craft; tooltips next to the name** (owner, 2026-11-27). The catalogue's filter now starts on *Somebody can craft it*: at first only the recipes a guild character knows show; *All recipes* shows the whole profession, and the choice stays for another profession. In every mode of the Professions view a row's tooltip (the game's for a recipe, the addon's for a crafter) opens right after the end of the name instead of at the far end of the row (`Widgets.Tooltip.Show` / `.Item` take an anchor point). **Not checked in the real game.**
 
 - **New look for the view tabs, the tooltips, the counts and the alts** (owner, 2026-11-27, after the game's own panels):

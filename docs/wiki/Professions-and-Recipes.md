@@ -9,8 +9,8 @@
 The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by name. WoW Forever does not tell addons the skill level a recipe needs, so the view does not show it.
 
 - **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
-- **Click a character** to open **their recipes** of that profession: the ones they learned and, dimmed and marked "not learned", the ones they miss. The list above the table filters *Learned by …* or *Not learned by …*. **Back to guild recipes** returns.
-- The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Your choice stays when you pick another profession. The search box filters by name.
+- **Click a character** to open **their recipes** of that profession: at first the ones they learned and can craft. The list above the table also offers *All recipes* (the ones they miss are dimmed and marked "not learned") and *Not learned by …*. **Back to guild recipes** returns.
+- The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Every profession you pick starts again on *Somebody can craft it*, and a click on the **Professions** tab always brings back this list with the profession menu. The search box filters by name.
 - Hover a recipe to see the game's tooltip, right next to its name.
 - The line under the title says who shared the full list and how old it is.
 
@@ -25,7 +25,8 @@ The list is a table with the columns *Recipe*, *Details* and *Status*: an icon a
 - **Search**: type in the search box at the top of the panel to filter by recipe name.
 - **Category**: the list above the table offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
 - **Back to roster** returns to the table, and **Who can craft** opens the search below.
-- When the guild has the profession's full list, the member's list shows **every recipe** of the profession, and the ones the member has not learned are dimmed and marked "not learned".
+- The list starts on the recipes the member **learned and can craft**. When the guild has the profession's full list, choose *All recipes* above the table to see every recipe of the profession: the ones the member has not learned are dimmed and marked "not learned".
+- **All members** shows the recipes of that profession for the whole guild (see *Guild recipes*), starting with the ones somebody can craft.
 
 ![A guildmate's recipe list: the source and age of the list, the search, a category menu, difficulty colours, the game's own tooltip and Request craft](../specs/mockups/previews/professions-recipes.webp)
 
