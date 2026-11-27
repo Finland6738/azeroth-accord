@@ -14,6 +14,12 @@
 --   Mock.tradeskill.AddAllRecipeIDs()                  adds C_TradeSkillUI.GetAllRecipeIDs (absent by default)
 --   Mock.tradeskill.skillLines = true                  C_SkillInfo lists the own professions among other skill lines
 --                                                      (a header, a weapon skill), as WoW Forever's Skills panel does
+--   own[i].unlearned = { 2334, ... }                   recipes of the profession the character has NOT learned: GetAllRecipeIDs
+--                                                      lists them too and GetRecipeInfo says learned = false (WoW Forever,
+--                                                      2026-11-27: the whole profession, 593 ids for Leatherworking)
+--   own[i].levels = { [2330] = 1, ... }                the required skill level GetRecipeInfo gives, in the field
+--   Mock.tradeskill.levelField = "requiredSkillLevel"  named here (TradeSkillRecipeInfo has no fields in the dump)
+--   Mock.tradeskill.linked = true                      the window shows somebody else's recipes (IsTradeSkillLinked)
 local Mock, H = ...
 local W = Mock.world
 
@@ -62,21 +68,33 @@ function C_TradeSkillUI.GetBaseProfessionInfo()
 	return { professionID = p.skillLine, professionName = p.name, skillLevel = p.rank or 1, maxSkillLevel = p.maxRank or 300 }
 end
 
+local function info(p, id, learned)
+	local t = { recipeID = id, name = "Recipe " .. id, learned = learned }
+	if p.levels and p.levels[id] then t[ts.levelField or "requiredSkillLevel"] = p.levels[id] end
+	return t
+end
+
 function C_TradeSkillUI.GetRecipeInfo(spellID)
 	local p = ts.open and ts.own[ts.open]
 	if not p then return nil end
 	for _, id in ipairs(p.recipes or {}) do
-		if id == spellID then return { recipeID = id, name = "Recipe " .. id, learned = true } end
+		if id == spellID then return info(p, id, true) end
+	end
+	for _, id in ipairs(p.unlearned or {}) do
+		if id == spellID then return info(p, id, false) end
 	end
 	return nil
 end
+
+function C_TradeSkillUI.IsTradeSkillLinked() return ts.linked == true end
 
 -- Added only on request (the function is not in the dump): Mock.tradeskill.AddAllRecipeIDs().
 function ts.AddAllRecipeIDs()
 	function C_TradeSkillUI.GetAllRecipeIDs()
 		local p = ts.open and ts.own[ts.open]
 		local out = {}
-		for i, id in ipairs(p and p.recipes or {}) do out[i] = id end
+		for _, id in ipairs(p and p.recipes or {}) do out[#out + 1] = id end
+		for _, id in ipairs(p and p.unlearned or {}) do out[#out + 1] = id end
 		return out
 	end
 end

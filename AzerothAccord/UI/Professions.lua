@@ -1,15 +1,22 @@
--- Professions view (SPEC-06 PRO-02..PRO-04). Lua 5.1.
--- Two modes in one view:
+-- Professions view (SPEC-06 PRO-02..PRO-04, §2.4). Lua 5.1.
+-- Three modes in one view:
+--   catalogue the guild's recipes of one profession (the default, SPEC-06 §2.4): a Select picks the profession; the rows are
+--             EVERY recipe of it (Data/RecipeCatalogue.lua, plus whatever a member's list has), with the required skill
+--             level and how many guild characters can craft it (UI/RecipeModel.lua, Model.Catalogue). A click on a recipe
+--             opens the characters who can craft it under it (with Request craft, PRO-05); a click on a character opens
+--             that character's recipes. A filter keeps the recipes somebody can craft, nobody can, or the player knows.
 --   craft     "who can craft ..." (PRO-04): the search box of the panel takes the name of an item or a recipe; the rows are
 --             the recipes that match (Data/Crafters.lua), each followed by the members who know it, online first, the
 --             characters of one account together; a click on a member opens that member's recipe list. "Online only"
 --             keeps the crafters who are online now.
 --   recipes   the recipe list of one member's profession (PRO-02, PRO-03): opened by a click on a profession cell of the
---             Roster table, on a profession line of the member card, or on a member in the craft list. Rows come from
---             UI/RecipeModel.lua: an icon, the name, a note when the player knows it too; the game's own recipe tooltip; the
---             search box filters by name; the Category menu; the message in place of the rows when there is no list.
--- The header has a Back button (to the roster, or to the craft list when the list was opened from it), and in the recipe
--- list a "Who can craft" button; the source and the age of the list are always in the header.
+--             Roster table, on a profession line of the member card, or on a member in the craft list or the catalogue.
+--             Rows come from UI/RecipeModel.lua: an icon, the name, a note when the player knows it too; with the
+--             profession's catalogue also the recipes the member has NOT learned ("not learned", dimmed); the game's own
+--             recipe tooltip; the search box filters by name; the Category menu; the message when there is no list.
+-- The header has a Back button (to the roster, the catalogue or the craft list, where the list was opened from), and in the
+-- recipe list and the catalogue a "Who can craft" button, in the craft list a "Guild recipes" button; the source and the
+-- age of the list are always in the header.
 -- Drawn with the widget kit (M6.13): ghost / secondary Widgets.Buttons, a Widgets.Select for the category, a Widgets.Chip for "online
 -- only" and one Widgets.DataTable (a pool of rows refilled while the list scrolls) for both lists.
 local ADDON_NAME, ns = ...
@@ -29,9 +36,10 @@ View.ICON = 20
 View.ALL = "all"                 -- the id of "All recipes" in the category select
 View.REFRESH_DELAY = 0.4       -- lists, names and the roster change in bursts; a redraw waits for the burst to end
 
-View.mode = "craft"            -- "craft" or "recipes"
-View.cameFrom = "roster"       -- where Back goes from the recipe list: "roster" or "craft"
+View.mode = "catalogue"        -- "catalogue", "craft" or "recipes"
+View.cameFrom = "roster"       -- where Back goes from the recipe list: "roster", "catalogue" or "craft"
 View.model = Model.new()       -- the recipe list being looked at
+View.cat = Model.Catalogue.new()   -- the guild's recipes of one profession
 View.craft = { query = "", onlineOnly = false, result = nil, rows = nil, dirty = true }
 
 local function classColor(classFile)
@@ -69,7 +77,7 @@ end
 local function syncSearchBox(self)
 	local box = searchBox()
 	if not box then return end
-	local text = self.mode == "craft" and self.craft.query or self.model.search
+	local text = self.mode == "craft" and self.craft.query or (self.mode == "catalogue" and self.cat.search) or self.model.search
 	if (box:GetText() or "") ~= text then box:SetText(text) end
 end
 
@@ -79,7 +87,7 @@ function View:ResetScroll()
 end
 
 function View:SetMode(mode)
-	if mode ~= "craft" and mode ~= "recipes" then return false end
+	if mode ~= "craft" and mode ~= "recipes" and mode ~= "catalogue" then return false end
 	self.mode = mode
 	self:ResetScroll()
 	syncSearchBox(self)
@@ -89,10 +97,10 @@ function View:SetMode(mode)
 end
 
 -- Opens the list of `guid` for `skillLine` (nil: the game did not say which profession it is) and shows the view. `from`
--- says where Back goes: "roster" (the default) or "craft".
+-- says where Back goes: "roster" (the default), "catalogue" or "craft".
 function View:Open(guid, skillLine, from)
 	if type(guid) ~= "string" then return false end
-	self.cameFrom = from == "craft" and "craft" or "roster"
+	self.cameFrom = (from == "craft" or from == "catalogue") and from or "roster"
 	self.model:SetTarget(guid, skillLine)
 	self.mode = "recipes"
 	self:ResetScroll()
@@ -119,10 +127,32 @@ function View:OpenCraft(text)
 	return shown ~= false
 end
 
+-- Shows the guild's recipes of a profession (the player's own first when `skillLine` is nil and none was picked).
+function View:OpenCatalogue(skillLine)
+	if type(skillLine) == "number" then self.cat:SetProfession(skillLine) end
+	local shown = true
+	if ns.Shell then shown = ns.Shell:OpenView("professions") end
+	self:SetMode("catalogue")
+	return shown ~= false
+end
+
+-- Picks the profession of the catalogue.
+function View:SetProfession(skillLine)
+	if self.cat:SetProfession(skillLine) then
+		self:ResetScroll()
+		self:Redraw()
+	end
+end
+
 -- The text of the panel's search box changed.
 function View:SetSearch(text)
 	text = type(text) == "string" and text or ""
-	if self.mode == "craft" then
+	if self.mode == "catalogue" then
+		if self.cat:SetSearch(text) then
+			self:ResetScroll()
+			self:Redraw()
+		end
+	elseif self.mode == "craft" then
 		if text == self.craft.query then return end
 		self.craft.query = text
 		self.craft.dirty = true
@@ -144,8 +174,8 @@ function View:SetOnlineOnly(on)
 end
 
 function View:Back()
-	if self.cameFrom == "craft" then
-		self:SetMode("craft")
+	if self.cameFrom == "craft" or self.cameFrom == "catalogue" then
+		self:SetMode(self.cameFrom)
 	elseif ns.Shell then
 		ns.Shell:Select("roster")
 	end
@@ -165,7 +195,17 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function categoryChoices(self)
 	local out = {}
-	for _, c in ipairs(self.model:Categories()) do out[#out + 1] = { id = c.key or View.ALL, text = c.label } end
+	local list = self.mode == "catalogue" and self.cat:Filters() or self.model:Categories()
+	for _, c in ipairs(list) do out[#out + 1] = { id = c.key or View.ALL, text = c.label } end
+	return out
+end
+
+-- The professions of the Select: "<name> (<n> recipes)" when the catalogue is known.
+local function professionChoices()
+	local out = {}
+	for _, p in ipairs(Model.Professions()) do
+		out[#out + 1] = { id = p.skillLine, text = p.recipes and L["CAT_PROF_N"]:format(p.name, p.recipes) or p.name }
+	end
 	return out
 end
 
@@ -178,6 +218,9 @@ local function build(self, f)
 	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
 	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
+	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("catalogue") end })
+	head.cat:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
+	head.cat:Hide()
 	head.title = Theme.NewText(head, "H1", "text-1")
 	head.title:SetJustifyH("LEFT")
 	head.title:SetPoint("LEFT", head.craft, "RIGHT", 16, 0)
@@ -194,8 +237,14 @@ local function build(self, f)
 	bar:SetHeight(View.TOOLBAR_HEIGHT)
 	bar:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, 0)
+	bar.profession = Widgets.Select(bar, { width = 240, rows = 10, placeholder = L["CAT_PROFESSION"], onSelect = function(id)
+		View:SetProfession(id)
+	end })
+	bar.profession:SetPoint("LEFT", bar, "LEFT", 0, 0)
+	bar.profession:Hide()
 	bar.category = Widgets.Select(bar, { width = 220, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
-		View.model:SetCategory(id ~= View.ALL and id or nil)
+		local key = id ~= View.ALL and id or nil
+		if View.mode == "catalogue" then View.cat:SetFilter(key) else View.model:SetCategory(key) end
 		View:ResetScroll()
 		View:Redraw()
 	end })
@@ -228,7 +277,7 @@ local function build(self, f)
 end
 
 -- The game's own tooltip of a recipe (the spell link); the name and the category when it has none. A crafter row says who
--- they are and where the list comes from.
+-- they are and where the list comes from; a catalogue recipe that nobody knows says so.
 function View:ShowTooltip(row)
 	local d = row.data
 	if not d then return end
@@ -236,6 +285,10 @@ function View:ShowTooltip(row)
 		local m = d.member
 		Widgets.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
 			L["CR_TIP_CLICK"] }, "RIGHT")
+		return
+	end
+	if d.kind == "cat" and not d.resolved then
+		Widgets.Tooltip.Show(row, { d.name, { text = d.count > 0 and L["CAT_TIP_CLICK"] or L["CAT_TIP_NOBODY"], token = "text-3" } }, "RIGHT")
 		return
 	end
 	local link = ns.Recipes and ns.Recipes.LinkOf(d.id)
@@ -253,7 +306,8 @@ end
 local function requestTarget(d)
 	if type(d) ~= "table" then return nil end
 	if d.kind == "member" then return d.member.guid, d.recipeId end
-	if d.kind == "recipe" then return nil end
+	if d.kind == "recipe" or d.kind == "cat" then return nil end
+	if d.learned == false then return nil end   -- the member has not learned it
 	return View.model.guid, d.id
 end
 
@@ -277,10 +331,17 @@ function View:RequestCraft(d)
 	return ok
 end
 
--- A click on a crafter opens that member's recipe list for the profession the recipe is in.
+-- A click on a crafter opens that member's recipe list for the profession the recipe is in; a click on a recipe of the
+-- catalogue opens (or closes) the characters who can craft it.
 function View:RowClicked(row)
 	local d = row.data
-	if d and d.kind == "member" then self:Open(d.member.guid, d.member.skillLine, "craft") end
+	if not d then return end
+	if d.kind == "member" then
+		self:Open(d.member.guid, d.member.skillLine or self.cat.skillLine, self.mode == "catalogue" and "catalogue" or "craft")
+	elseif d.kind == "cat" and d.count > 0 then
+		self.cat:Toggle(d.id)
+		self:Redraw()
+	end
 end
 
 function View:Build(f)
@@ -341,6 +402,10 @@ function View.RenderName(cell, d, row)
 	cell:SetText(d.name)
 	if d.kind == "recipe" then
 		Theme.Text(cell, "accent-text")
+	elseif d.kind == "cat" then
+		Theme.Text(cell, d.expanded and "accent-text" or (d.resolved and "text-1" or "text-3"))
+	elseif d.learned == false then
+		Theme.Text(cell, "text-3")   -- not learned by the member: dimmed, never a difficulty colour
 	else
 		local diff = d.difficulty ~= nil and DIFFICULTY[d.difficulty]
 		if diff then Theme.TextRGB(cell, diff[1], diff[2], diff[3]) else Theme.Text(cell, d.resolved and "text-1" or "text-3") end
@@ -349,13 +414,21 @@ function View.RenderName(cell, d, row)
 end
 
 function View.RenderDetail(cell, d)
-	if d.kind == "member" then cell:SetText(View.MemberDetail(d.member)) else cell:SetText("") end
+	if d.kind == "member" then cell:SetText(View.MemberDetail(d.member))
+	elseif d.level then cell:SetText(L["CAT_LEVEL"]:format(d.level))
+	else cell:SetText("") end
 	Theme.Text(cell, "text-3")
 end
 
 function View.RenderNote(cell, d)
 	if d.kind == "recipe" then
 		cell:SetText(L["CR_CRAFTERS"]:format(d.count))
+		Theme.Text(cell, "text-3")
+	elseif d.kind == "cat" then
+		cell:SetText(d.count > 0 and L["CR_CRAFTERS"]:format(d.count) or L["CAT_NOBODY"])
+		Theme.Text(cell, d.count > 0 and "ok" or "text-3")
+	elseif d.learned == false then
+		cell:SetText(L["RV_NOT_LEARNED"])
 		Theme.Text(cell, "text-3")
 	elseif d.kind == "member" then
 		cell:SetText(d.member.online and L["ONLINE"] or "")
@@ -376,7 +449,7 @@ function View.UpdateRow(row, d)
 	row.icon:ClearAllPoints()
 	row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
 	if d.icon then row.icon:SetTexture(d.icon) row.icon:Show() else row.icon:Hide() end
-	if d.kind == "recipe" then
+	if d.kind == "recipe" or d.kind == "cat" then
 		row.request:Hide()
 		return
 	end
@@ -406,15 +479,18 @@ local function redrawCraft(self)
 	local result = c.result
 	f.head.back:Hide()
 	f.head.craft:Hide()
+	f.head.cat:Show()
+	f.head.prov:SetSource(nil)
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, -6)
+	f.head.title:SetPoint("LEFT", f.head.cat, "RIGHT", 16, 0)
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.title:SetText(L["CR_TITLE"])
 	Theme.Text(f.head.title, "text-1")
 	f.head.source:ClearAllPoints()
-	f.head.source:SetPoint("TOPLEFT", f.head.title, "BOTTOMLEFT", 0, -8)
+	f.head.source:SetPoint("TOPLEFT", f.head.cat, "BOTTOMLEFT", 2, -8)
 	f.head.source:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.source:SetText(L["CR_HINT"])
+	f.bar.profession:Hide()
 	f.bar.category:Hide()
 	f.bar.online:Show()
 	f.bar.online:SetSelected(c.onlineOnly)
@@ -437,7 +513,14 @@ local function redrawRecipes(self)
 	local f = self.frame
 	local model = self.model
 	f.head.back:Show()
+	f.head.back:SetLabel(self.cameFrom == "catalogue" and L["CAT_BACK"] or (self.cameFrom == "craft" and L["CR_BACK"]) or L["RV_BACK"])
+	f.head.craft:ClearAllPoints()
+	f.head.craft:SetPoint("LEFT", f.head.back, "RIGHT", 8, 0)
 	f.head.craft:Show()
+	f.head.cat:Hide()
+	f.bar.profession:Hide()
+	f.bar.category:ClearAllPoints()
+	f.bar.category:SetPoint("LEFT", f.bar, "LEFT", 0, 0)
 	f.head.title:ClearAllPoints()
 	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 16, 0)
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
@@ -467,14 +550,63 @@ local function redrawRecipes(self)
 	end
 	local rows = model:Rows()
 	setRows(self, rows, L["RV_NO_MATCH"])
-	f.bar.count:SetText(L["RV_COUNT"]:format(#rows, d.total))
+	if d.catalogue then
+		f.bar.count:SetText(L["RV_COUNT_LEARNED"]:format(#rows, d.total, d.learned))
+	else
+		f.bar.count:SetText(L["RV_COUNT"]:format(#rows, d.total))
+	end
+end
+
+-- The guild's recipes of one profession.
+local function redrawCatalogue(self)
+	local f, cat = self.frame, self.cat
+	if not cat.skillLine then cat:SetProfession(cat:DefaultProfession()) end
+	f.head.back:Hide()
+	f.head.cat:Hide()
+	f.head.craft:ClearAllPoints()
+	f.head.craft:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, 0)
+	f.head.craft:Show()
+	f.bar.online:Hide()
+	local d = cat:Describe()
+	f.head.title:ClearAllPoints()
+	f.head.title:SetPoint("LEFT", f.head.craft, "RIGHT", 16, 0)
+	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
+	f.head.title:SetText(d.skillLine and L["CAT_TITLE_OF"]:format(d.profession) or L["CAT_TITLE"])
+	Theme.Text(f.head.title, "text-1")
+	f.head.source:ClearAllPoints()
+	f.head.source:SetPoint("TOPLEFT", f.head.craft, "BOTTOMLEFT", 2, -8)
+	f.head.source:SetText(d.sourceText or "")
+	f.head.prov:SetSource(d.provenance)
+	f.head.source:SetPoint("RIGHT", f.head.prov, "LEFT", -8, 0)
+	local profs = f.bar.profession
+	profs:Show()
+	profs:SetChoices(professionChoices())
+	if d.skillLine then profs:Select(d.skillLine, true) end
+	local sel = f.bar.category
+	sel:ClearAllPoints()
+	sel:SetPoint("LEFT", profs, "RIGHT", 8, 0)
+	local hasRows = d.status == "catalogue" or d.status == "lists"
+	sel:SetShown(hasRows)
+	if hasRows then
+		sel:SetChoices(categoryChoices(self))
+		if not sel:Select(cat.filter or View.ALL, true) then sel:Select(View.ALL, true) end
+	end
+	if not hasRows then
+		f.bar.count:SetText("")
+		setRows(self, {}, d.message or "")
+		return
+	end
+	setRows(self, cat:Rows(), L["RV_NO_MATCH"])
+	f.bar.count:SetText(L["CAT_COUNT"]:format(d.shown, d.total, d.crafted))
 end
 
 function View:Redraw()
 	local f = self.frame
 	if not f then return end
-	if self.mode == "recipes" and not self.model.guid then self.mode = "craft" end
-	if self.mode == "craft" then redrawCraft(self) else redrawRecipes(self) end
+	if self.mode == "recipes" and not self.model.guid then self.mode = "catalogue" end
+	if self.mode == "craft" then redrawCraft(self)
+	elseif self.mode == "catalogue" then redrawCatalogue(self)
+	else redrawRecipes(self) end
 	self.drawn = (self.drawn or 0) + 1
 end
 
@@ -490,6 +622,7 @@ end
 -- burst, only when the view is visible.
 function View:Changed()
 	self.model:Invalidate()
+	self.cat:Invalidate()
 	self.craft.dirty = true
 	if self.refreshTimer or not (self.frame and self.frame:IsVisible()) then return end
 	self.refreshTimer = true
@@ -513,14 +646,16 @@ if ns.addon then
 	if ns.Bus then
 		ns.Bus:On("RECIPES_UPDATED", function(guid, line)
 			local m = View.model
-			if View.mode == "craft" or (m.guid == guid and (m.skillLine == line or m.skillLine == nil)) then View:Changed() end
+			if View.mode == "craft" or View.mode == "catalogue" or (guid == nil and m.skillLine == line)
+				or (m.guid == guid and (m.skillLine == line or m.skillLine == nil)) then View:Changed() end
 		end)
 		ns.Bus:On("RECIPE_NAMES_UPDATED", function() View:Changed() end)
 		ns.Bus:On("ROSTER_UPDATED", function() View:Changed() end)
 		ns.Bus:On("GUILD_CHANGED", function()
 			View.model = Model.new()
+			View.cat = Model.Catalogue.new()
 			View.craft = { query = "", onlineOnly = false, result = nil, rows = nil, dirty = true }
-			View.mode, View.cameFrom = "craft", "roster"
+			View.mode, View.cameFrom = "catalogue", "roster"
 			View:ResetScroll()
 			if View.frame then View:Redraw() end
 		end)

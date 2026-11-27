@@ -46,6 +46,7 @@ Data\Likes.lua
 Data\Social.lua
 Data\GroupMap.lua
 Data\Recipes.lua
+Data\RecipeCatalogue.lua
 Data\RecipeScan.lua
 Data\Crafters.lua
 Data\Bank.lua

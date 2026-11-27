@@ -30,7 +30,7 @@
 | **Extended roster** | Sortable, filterable table: level, class, rank, zone, last online, profession 1 and 2, likes, social index, contacts |
 | **Alts** | Click a character to see every character of the same Battle.net account on the realm, without asking |
 | **Contacts** | BattleTag and Discord of every member using the addon, one click to copy, native "Add BattleTag friend" |
-| **Professions** | Click a member's profession to see their recipes; search "who can craft…"; send a craft request |
+| **Professions** | Guild recipes: every recipe of a profession, its required level and who in the guild can craft it; click a member's profession to see their recipes, learned and missing; search "who can craft…"; send a craft request |
 | **Likes** | One like from each account to each other account, never to yourself, irreversible, anonymous totals |
 | **Social index** | How many different guildmates each player really groups with (effective partners), a map of the guild's groups, and "play with someone new" suggestions |
 | **Guild bank** | Bank contents from the last visit of any member, logs, donations, withdrawal requests (picked from the bank contents, with an optional tip) and deposit requests approved by officers |

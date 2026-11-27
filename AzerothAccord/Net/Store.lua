@@ -44,6 +44,10 @@
 -- The availability map (`avail`, SPEC-14 §8.2) is an ordinary set (first hand, officer relay, saved): one small record per
 -- character, the 168 levels of when its account is online, or its withdrawal.
 --
+-- The recipe catalogue (`recipecat`, SPEC-06 §1.5) is an ordinary set (first hand, officer relay, saved) summarised apart
+-- (`summary = "extra"`): one record per profession that any member who has the profession may write; one that arrives
+-- before its author's recipe list waits for it (`wait`, Data/RecipeCatalogue.lua).
+--
 -- The mentor offers (`mentor`, SPEC-16 §6) are an ordinary set (first hand, officer relay, saved): one record per account
 -- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04).
 --
@@ -238,6 +242,12 @@ Store.SETS = {
 				and s:SameAccount(rec.char, rec.author)
 		end,
 	},
+	recipecat = {  -- every recipe of a profession (Data/RecipeCatalogue.lua, SPEC-03 §3.1): id = "<skillLine>", { skillLine, ids, lv, n, h }
+		maxBytes = 12288,
+		summary = "extra",                         -- apart from the older sets, with the census: an older client compares the same
+		owner = function(rec) if not ns.RecipeCatalogue then return false end return ns.RecipeCatalogue.ValidRecord(rec) end,
+		wait = function(rec, ctx) if ns.RecipeCatalogue then ns.RecipeCatalogue.Wait(rec, ctx) end end,   -- before its author's list
+	},
 	coplay = {     -- one record per observer and day: id = "<observer GUID>:<YYYYMMDD>", { day, pairs, observer }
 		maxBytes = 8192,
 		observation = true,
@@ -393,7 +403,7 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage

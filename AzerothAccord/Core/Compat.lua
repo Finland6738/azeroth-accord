@@ -873,6 +873,40 @@ function TradeSkill.BaseProfessionInfo()
 	return readableCopy((first("C_TradeSkillUI.GetBaseProfessionInfo")))
 end
 
+-- true when the open window shows somebody else's recipes: a profession link from the chat (IsTradeSkillLinked), the
+-- guild's view of a member (IsTradeSkillGuild) [verify S4: neither is in the dump] or an NPC's crafting (IsNPCCrafting,
+-- in the dump). Its "learned" flags are not the player's, so nothing of it is published.
+function TradeSkill.IsOthersWindow()
+	for _, path in ipairs({ "C_TradeSkillUI.IsTradeSkillLinked", "C_TradeSkillUI.IsTradeSkillGuild", "C_TradeSkillUI.IsNPCCrafting" }) do
+		if first(path) == true then return true end
+	end
+	return false
+end
+
+-- The profession's name in the client's language for a skill line (GetTradeSkillDisplayName, else
+-- GetProfessionInfoBySkillLineID; both in the dump, [verify S4] whether they answer without an open window), or nil.
+function TradeSkill.ProfessionName(skillLine)
+	if not num(skillLine) then return nil end
+	local name = str((first("C_TradeSkillUI.GetTradeSkillDisplayName", skillLine)))
+	if name then return name end
+	local info = readableCopy((first("C_TradeSkillUI.GetProfessionInfoBySkillLineID", skillLine)))
+	return info and str(info.professionName) or nil
+end
+
+-- The skill level a recipe needs, from the GetRecipeInfo table `info`, or nil. TradeSkillRecipeInfo has no fields in the
+-- dump [verify S4], so the names a client may use are tried in order; RecipeScan reports the fields it saw
+-- (/accord debug) so the right one can be confirmed in game.
+TradeSkill.LEVEL_FIELDS = { "requiredSkillLevel", "requiredSkillRank", "minSkillLevel", "minimumSkillLevel", "skillRequired",
+	"learnedAtSkillLevel", "minSkillRank" }
+function TradeSkill.RequiredLevel(info)
+	if type(info) ~= "table" then return nil end
+	for _, field in ipairs(TradeSkill.LEVEL_FIELDS) do
+		local v = num(info[field])
+		if v and v >= 0 and v <= 1000 and v == math.floor(v) then return v end
+	end
+	return nil
+end
+
 -- What the client says about a recipe beyond its name, for the recipe list [verify S4: GetRecipeInfo is documented
 -- but may answer only for the open profession]: { learned, difficulty (relativeDifficulty: 0 optimal, 1 medium,
 -- 2 easy, 3 trivial), category (the name of categoryID through GetCategoryInfo, undocumented) } or nil.

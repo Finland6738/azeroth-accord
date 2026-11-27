@@ -119,7 +119,7 @@ function DemoData.Build(now)
 	local D = { guildName = DemoData.GUILD_NAME, realm = DemoData.REALM, key = DemoData.KEY, ranks = DemoData.RANKS, sets = {},
 		guildData = { likes = { given = {}, queue = {} }, bank = { history = {} } } }
 	local sets = D.sets
-	for _, set in ipairs({ "accounts", "contacts", "recipes", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg" }) do sets[set] = {} end
+	for _, set in ipairs({ "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg" }) do sets[set] = {} end
 
 	-- The roster ------------------------------------------------------------------------------------------------------
 	local members = {}
@@ -221,6 +221,7 @@ function DemoData.Build(now)
 			7795, 7857, 7859, 7861, 7863 } },
 	}
 	local crafters = { 1, 3, 5, 7, 9, 12, 15, 18, 22, 25, 28, 33, 38, 44, 47, 52 }   -- member indexes
+	local firstOf = {}   -- skill line -> the first crafter: the author of its catalogue
 	for k, idx in ipairs(crafters) do
 		local m = members[idx]
 		for p = 0, (k % 2) do
@@ -232,6 +233,17 @@ function DemoData.Build(now)
 			local age = (k == 6 and p == 0) and 70 * DAY or (k * 2 + p) * HOUR   -- one list is old (dimmed)
 			sets.recipes[id] = { id = id, author = m.guid, rev = 1, time = now - age, char = m.guid, skillLine = prof.line,
 				ids = ids, rank = 150 + (k * 11) % 150, maxRank = 300, name = prof.name }
+			firstOf[prof.line] = firstOf[prof.line] or m.guid
+		end
+	end
+	-- the guild's catalogue of each profession: every recipe, the last ones nobody has learned, with required levels
+	for _, prof in ipairs(PROFESSIONS) do
+		if firstOf[prof.line] then
+			local lv = {}
+			for j = 1, #prof.ids do lv[j] = 1 + (j - 1) * 10 end
+			local id = tostring(prof.line)
+			sets.recipecat[id] = { id = id, author = firstOf[prof.line], rev = 1, time = now - 2 * DAY, skillLine = prof.line,
+				name = prof.name, ids = prof.ids, lv = lv, n = #prof.ids }
 		end
 	end
 

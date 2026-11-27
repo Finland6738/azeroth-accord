@@ -11,6 +11,11 @@
 --                one that gives no recipe info at all is not read (nothing is published from a guess).
 --   filtered     the filtered list follows the window's search box and may be partial: a scan from it can only ADD to what
 --                was published, never remove.
+--   not ours     a window that shows somebody else's recipes (a profession link, the guild's view of a member, an NPC:
+--                Compat.TradeSkill.IsOthersWindow) or a primary profession the character does not have is not read: its
+--                "learned" flags are not the player's.
+--   catalogue    the whole list (learned or not) and each recipe's required skill level, when the client gives it, go to
+--                the profession's catalogue (Data/RecipeCatalogue.lua), which grows only when the read adds something.
 --
 -- A scan becomes one `recipes` record per character and profession (id = "<GUID>:<skill line>", SPEC-03 §3):
 -- { char, skillLine, name, rank, maxRank, ids = Recipes.Encode(list), n = count, h = hash }. PRO-06: it is published when
@@ -50,29 +55,46 @@ local function num(v) return type(v) == "number" and v == v and v or nil end
 ---------------------------------------------------------------------------------------------------------------------
 -- Reading the open profession window
 ---------------------------------------------------------------------------------------------------------------------
--- Matches the window's profession to one of the player's own, so the id is the one the roster uses.
+-- Matches the window's profession to one of the player's own, so the id is the one the roster uses. The fifth value is
+-- false when the character has primary professions, none of them is this one, and this one is primary too (the window
+-- shows somebody else's profession); a secondary profession (Cooking...) is never in that list and is taken as it is.
 local function resolveProfession(base)
 	local C = compat()
 	local id, name = num(base.professionID), type(base.professionName) == "string" and base.professionName or nil
-	for _, p in ipairs(C.TradeSkill.OwnProfessions()) do
-		if p.skillLine == id then return p.skillLine, p.name or name, p.rank, p.maxRank end
+	local own = C.TradeSkill.OwnProfessions()
+	for _, p in ipairs(own) do
+		if p.skillLine == id then return p.skillLine, p.name or name, p.rank, p.maxRank, true end
 	end
 	if name then
-		for _, p in ipairs(C.TradeSkill.OwnProfessions()) do
-			if p.name == name and p.skillLine then return p.skillLine, p.name, p.rank, p.maxRank end
+		for _, p in ipairs(own) do
+			if p.name == name and p.skillLine then return p.skillLine, p.name, p.rank, p.maxRank, true end
 		end
 	end
-	return id, name, nil, nil
+	local primary = C.TradeSkill.PRIMARY_LINES and C.TradeSkill.PRIMARY_LINES[id or -1]
+	return id, name, nil, nil, not (primary and #own > 0)
 end
 
--- What the open window shows: { skillLine, name, rank, maxRank, ids, filtered }, or nil plus a reason ("closed",
--- "norecipes", "noinfo", "empty").
+-- The field names of a recipe info table, for /accord debug: TradeSkillRecipeInfo has no fields in the dump [verify S4].
+local function fieldNames(info)
+	local keys = {}
+	for k, v in pairs(info) do
+		if type(k) == "string" and (type(v) == "number" or type(v) == "boolean") then keys[#keys + 1] = k end
+	end
+	table.sort(keys)
+	while #keys > 40 do keys[#keys] = nil end
+	return table.concat(keys, ", ")
+end
+
+-- What the open window shows: { skillLine, name, rank, maxRank, ids (learned), all (every id), levels = { [id] = the
+-- required skill level }, filtered }, or nil plus a reason ("closed", "others", "notown", "norecipes", "noinfo").
 function Scan:Read()
 	local C = compat()
 	if not C then return nil, "compat" end
 	local base = C.TradeSkill.BaseProfessionInfo()
 	if not base or not num(base.professionID) or base.professionID == 0 then return nil, "closed" end
-	local skillLine, name, rank, maxRank = resolveProfession(base)
+	if C.TradeSkill.IsOthersWindow and C.TradeSkill.IsOthersWindow() then return nil, "others" end
+	local skillLine, name, rank, maxRank, own = resolveProfession(base)
+	if not own then return nil, "notown" end
 	rank = rank or num(base.skillLevel)
 	maxRank = maxRank or num(base.maxSkillLevel)
 	local all, via = C.TradeSkill.RecipeIDs()
@@ -80,20 +102,27 @@ function Scan:Read()
 		if C:Feature("ownRecipes") ~= "available" then C:SetFeature("ownRecipes", "missing", "no recipe list API") end
 		return nil, "norecipes"
 	end
-	local known, flagged, learned = 0, 0, {}
+	local known, flagged, learned, levels, withLevel = 0, 0, {}, {}, 0
+	local requiredLevel = C.TradeSkill.RequiredLevel
 	for _, id in ipairs(all) do
 		local info = C.TradeSkill.RecipeInfo(id)
 		if info then
 			known = known + 1
+			if known == 1 then state.fields = fieldNames(info) end
 			if info.learned ~= nil then
 				flagged = flagged + 1
 				if info.learned == true then learned[#learned + 1] = id end
 			end
+			local level = requiredLevel and requiredLevel(info)
+			if level then levels[id] = level withLevel = withLevel + 1 end
 		end
 	end
 	if known == 0 and #all > 0 then return nil, "noinfo" end
 	local ids = flagged == 0 and all or learned
-	return { skillLine = floor(skillLine), name = name, rank = rank, maxRank = maxRank, ids = ids, filtered = via == "filtered" }
+	state.read = ("skill line %d: %d id(s), %d with info, %d learned, %d with a required level"):format(
+		floor(skillLine), #all, known, #ids, withLevel)
+	return { skillLine = floor(skillLine), name = name, rank = rank, maxRank = maxRank, ids = ids, all = all, levels = levels,
+		filtered = via == "filtered" }
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -200,7 +229,10 @@ function Scan:Run()
 	end
 	local C = compat()
 	if C:Feature("ownRecipes") ~= "available" then C:SetFeature("ownRecipes", "available", "a profession window was read") end
-	return self:Publish(read)
+	local ok, why = self:Publish(read)
+	-- after the own list, so the store already holds the proof that this character has the profession
+	if ns.RecipeCatalogue and ns.GuildKey and ns.GuildKey:Current() then ns.RecipeCatalogue:Publish(read) end
+	return ok, why
 end
 
 -- A window event: the scan runs DEBOUNCE seconds after the last one of a burst.
@@ -234,6 +266,8 @@ function Scan:DebugLines()
 		("RecipeScan: %d scan(s), %d published, %d unchanged, %d deferred, %d skipped, %d failed; %d waiting for the pause"):format(
 			s.scans, s.published, s.unchanged, s.deferred, s.skipped, s.failed, waiting),
 		("  last: %s"):format(state.last or "no profession window read yet"),
+		("  last read: %s"):format(state.read or "none"),
+		("  recipe info fields: %s"):format(state.fields or "none seen yet"),
 	}
 end
 

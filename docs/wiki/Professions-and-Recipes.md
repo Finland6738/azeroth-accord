@@ -4,6 +4,17 @@
 
 > Available from the professions version (milestone M3): recipe lists, **who can craft** and **Request craft**.
 
+## Guild recipes
+
+The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language), the **skill level it needs** (*Skill 175*, when the game gives it) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by the level they need, or by name when the levels are not known.
+
+- **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
+- **Click a character** to open **their recipes** of that profession: the ones they learned and, dimmed and marked "not learned", the ones they miss. The list above the table filters *Learned by …* or *Not learned by …*. **Back to guild recipes** returns.
+- The second list above the table keeps *Somebody can craft it*, *Nobody can craft it yet*, or the recipes you know or do not know. The search box filters by name.
+- The line under the title says who shared the full list and how old it is.
+
+The full list comes from the game itself: the first guildmate who opens that profession's window with Azeroth Accord shares it, and it is shared again only when the game shows something new. Until then the view shows only the recipes somebody in the guild knows, and says so. Nothing comes from a list shipped with the addon.
+
 ## Opening a member's recipes
 
 In the **Roster** table, the **Profession 1** and **Profession 2** cells show the profession and its rank (`Alchemy 285/300` when the maximum is known). Hover a cell to see **where the information comes from** (the game, or the member's addon and how old) and click it: the **Professions** view opens on that member's recipe list. The profession lines of the **member card** do the same.
@@ -13,6 +24,7 @@ The list is a table with the columns *Recipe*, *Details* and *Status*: an icon a
 - **Search**: type in the search box at the top of the panel to filter by recipe name.
 - **Category**: the list above the table offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
 - **Back to roster** returns to the table, and **Who can craft** opens the search below.
+- When the guild has the profession's full list, the member's list shows **every recipe** of the profession, and the ones the member has not learned are dimmed and marked "not learned".
 
 ![A guildmate's recipe list: the source and age of the list, the search, a category menu, difficulty colours, the game's own tooltip and Request craft](../specs/mockups/previews/professions-recipes.webp)
 
@@ -22,11 +34,11 @@ If the game does not give the list and the member's addon has not shared it, the
 
 ## Your own recipes
 
-Your own recipes are shared when you open your profession window with the addon: Azeroth Accord reads the list a couple of seconds after the window opens (or changes) and publishes it to your guildmates who have the addon. It is published again only when something changed (a new recipe, a new skill rank), and at most once every 10 minutes per profession. Cooking, First Aid and Fishing are shared too, so "who can craft" finds your cook; they do not appear in the profession columns of the roster, which show the two main professions.
+Your own recipes are shared when you open your profession window with the addon: Azeroth Accord reads the list a couple of seconds after the window opens (or changes) and publishes it to your guildmates who have the addon. The same reading also gives the guild the profession's **full list** (see *Guild recipes*). A window that shows somebody else's recipes (a profession link from the chat) is never read. It is published again only when something changed (a new recipe, a new skill rank), and at most once every 10 minutes per profession. Cooking, First Aid and Fishing are shared too, so "who can craft" finds your cook; they do not appear in the profession columns of the roster, which show the two main professions.
 
 ## Who can craft
 
-Open the **Professions** view (`/accord professions`, or the **Professions** tab) and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back** returns to the search.
+Open the **Professions** view (`/accord professions`, or the **Professions** tab), click **Who can craft** and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back to the search** returns to the search, and **Guild recipes** to the guild's recipes.
 
 The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
 

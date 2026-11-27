@@ -126,6 +126,33 @@ local function crafters(id, opts)
 	return order, count
 end
 
+-- The guild characters who know recipe `id` (the catalogue view, SPEC-06 §2.4): accounts as in a search result, and the
+-- number of characters. opts.onlineOnly keeps the online ones.
+function Crafters:Who(id, opts)
+	if state.dirty then build() end
+	if type(id) ~= "number" or not state.index[id] then return {}, 0 end
+	return crafters(id, opts)
+end
+
+-- How many guild characters know recipe `id` (cheap: no grouping).
+function Crafters:CountOf(id)
+	if state.dirty then build() end
+	local at = state.index[id]
+	return at and #at or 0
+end
+
+-- The ids of every recipe some guild character knows in `skillLine`: { [id] = count }.
+function Crafters:KnownIn(skillLine)
+	if state.dirty then build() end
+	local out = {}
+	for _, list in ipairs(state.lists) do
+		if list.skillLine == skillLine then
+			for _, id in ipairs(list.ids) do out[id] = (out[id] or 0) + 1 end
+		end
+	end
+	return out
+end
+
 -- Searches. opts.onlineOnly keeps only crafters who are online now.
 function Crafters:Search(query, opts)
 	state.searches = state.searches + 1

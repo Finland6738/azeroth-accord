@@ -212,9 +212,10 @@ describe("the Professions view", function()
 		eq(order.professions, order.roster + 1)
 	end)
 
-	it("with nothing picked it opens on the who-can-craft search and says what to type", function()
+	it("with nothing picked it opens on the guild's recipes; the who-can-craft search says what to type", function()
 		Mock.Slash("/accord professions")
-		eq(V().mode, "craft")
+		eq(V().mode, "catalogue")
+		V():SetMode("craft")
 		eq(V().frame.message:GetText(), "Type the name of an item or a recipe (at least two letters) in the search box above to see who can craft it.")
 	end)
 

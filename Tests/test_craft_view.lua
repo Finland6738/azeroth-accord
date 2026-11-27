@@ -38,7 +38,7 @@ local function accountBob()
 	A().Accounts:MarkDirty()
 end
 
-local function open() Mock.Slash("/accord professions") end
+local function open() Mock.Slash("/accord professions") V():SetMode("craft") end   -- the view opens on the catalogue
 local function type_(text) Mock.TypeInto(Shell().content.bar.search, text) end
 
 local function rows()
@@ -209,6 +209,6 @@ describe("from the list of crafters to a member's recipes and back", function()
 		open(); type_("minor healing")
 		A().Bus:Emit("GUILD_CHANGED", "Realm/Other")
 		eq(V().craft.query, "")
-		eq(V().mode, "craft")
+		eq(V().mode, "catalogue", "back to the guild's recipes")
 	end)
 end)

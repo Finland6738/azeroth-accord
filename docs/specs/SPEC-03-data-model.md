@@ -41,6 +41,21 @@ Un record per personaggio e professione: `id` = `<GUID>:<skillLine>` (un `id` di
 
 La **fonte** non è un campo: i record di questo insieme sono sempre condivisi (di un addon); le liste native non si salvano mai ([ADR 0010](../adr/0010-native-data-first-shared-data-as-fallback.md)). Il lettore non si fida del testo: `Recipes.Decode` rifiuta Base64 non valido, numeri tagliati, differenze nulle, id fuori campo e più di 3000 ricette.
 
+### 3.1 Catalogo delle ricette (`recipecat`, 2026-11-27)
+
+Un record per professione: `id` = la linea di abilità come testo (per esempio `"165"`; un `id` diverso si rifiuta), con **tutte** le ricette della professione lette dalla finestra del gioco, imparate o no ([SPEC-06 §1.5](SPEC-06-professions-recipes.md#15-il-catalogo-delle-ricette-della-gilda-datarecipecataloguelua-2026-11-27)). Lo può scrivere chi ha quella professione (il suo record `recipes` di quella linea, o il roster); un ufficiale lo può rilanciare. Riepilogo a parte con il censimento (`summary = "extra"`), mai scaduto.
+
+| Campo | Tipo | Note |
+|---|---|---|
+| `skillLine` | numero | ID della professione |
+| `name` | stringa | nome della professione nella lingua dell'autore, solo come ripiego (la vista usa quello del client) |
+| `ids` | testo | spellID di tutte le ricette, codificati come in `recipes` (al massimo 3000) |
+| `lv` | testo, facoltativo | un varint per ricetta nell'ordine di `ids`: il livello di abilità richiesto, 0 se il client non lo dà; in Base64; assente se nessun livello è noto |
+| `n` | numero | quante ricette ci sono in `ids` |
+| `h` | numero | impronta di professione, `ids` e `lv` |
+
+Il record **cresce soltanto** (unione con quello tenuto) e si riscrive solo quando l'unione aggiunge una ricetta o un livello. Nessun nome di ricetta è nel record. Fino a 12 KB stimati; uno che arriva prima della lista del suo autore aspetta (motivo `wait`).
+
 ## 4. Gioco di gruppo (`coplay`)
 
 | Campo | Tipo | Note |

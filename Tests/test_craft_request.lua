@@ -150,6 +150,7 @@ describe("the button in who can craft", function()
 		put(ANN, { 2330 })
 		local box = capture()
 		Mock.Slash("/accord professions")
+		V():SetMode("craft")   -- the view opens on the guild's recipes
 		Mock.TypeInto(Shell().content.bar.search, "minor healing")
 		local rows = V().frame.table.rows
 		falsy(rows[1].request:IsShown(), "the recipe row")
@@ -163,6 +164,7 @@ describe("the button in who can craft", function()
 	it("the member row still opens the member's list", function()
 		put(BOB, { 2330 })
 		Mock.Slash("/accord professions")
+		V():SetMode("craft")   -- the view opens on the guild's recipes
 		Mock.TypeInto(Shell().content.bar.search, "minor healing")
 		V().frame.table.rows[2]:Click()
 		eq(V().mode, "recipes")

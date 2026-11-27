@@ -29,7 +29,7 @@
 | **Roster esteso** | Tabella ordinabile e filtrabile: livello, classe, grado, zona, ultimo accesso, professione 1 e 2, like, indice sociale, contatti |
 | **Alt** | Clic su un personaggio: tutti i personaggi dello stesso account Battle.net sul reame, senza chiedere |
 | **Contatti** | BattleTag e Discord di ogni membro con l'addon, copia con un clic, richiesta d'amicizia BattleTag nativa |
-| **Professioni** | Clic sulla professione di un membro: le sue ricette; ricerca "chi sa fare…"; richiesta di crafting |
+| **Professioni** | Ricette della gilda: tutte le ricette di una professione, il livello richiesto e chi nella gilda può crearle; clic sulla professione di un membro: le sue ricette, imparate e mancanti; ricerca "chi sa fare…"; richiesta di crafting |
 | **Like** | Un like da ogni account a ogni altro account, mai a se stessi, irrevocabile, totali anonimi |
 | **Indice sociale** | Con quanti compagni diversi gioca davvero ciascuno (compagni effettivi), una mappa dei gruppi della gilda e i suggerimenti "gioca con qualcuno di nuovo" |
 | **Banca di gilda** | Contenuto dall'ultima visita di un membro, registri, donazioni, richieste di prelievo (scelte dal contenuto della banca, con una mancia facoltativa) e deposito approvate dagli ufficiali |
