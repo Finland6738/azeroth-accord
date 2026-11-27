@@ -17,8 +17,8 @@ local ipairs, tostring = ipairs, tostring
 
 View.NAME = "AzerothAccordWelcomeBox"
 View.WIDTH, View.HEIGHT = 520, 320
-View.HEAD = 40           -- the card: its title line, each item under it, the note, the room under the last line
-View.LINE = 26
+View.HEAD = 44           -- the card: its title line, each item under it, the note, the room under the last line
+View.LINE = Widgets.HEIGHT.small
 View.NOTE = 24
 View.GAP = 12
 View.MARK_SIZE = 8
@@ -59,15 +59,15 @@ end
 local function buildCard(parent)
 	local card = Widgets.Card(parent)
 	card.title = Widgets.Text(card, "Eyebrow", "text-3", "LEFT")
-	card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -14)
+	card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -18)
 	card.title:SetText(L["WELCOME_TITLE"])
-	card.dismiss = Widgets.Button(card, { text = L["WELCOME_DISMISS"], style = "ghost", height = 22, width = 80, onClick = function()
+	card.dismiss = Widgets.Button(card, { text = L["WELCOME_DISMISS"], style = "text", height = Widgets.HEIGHT.small, width = 80, onClick = function()
 		book():Dismiss()
 		View:Changed()
 	end })
 	card.dismiss:SetPoint("TOPRIGHT", card, "TOPRIGHT", -8, -8)
 	card.count = Widgets.Text(card, "Small", "text-2", "RIGHT")
-	card.count:SetPoint("TOPRIGHT", card, "TOPRIGHT", -100, -13)
+	card.count:SetPoint("TOPRIGHT", card, "TOPRIGHT", -100, -18)
 	card.note = Widgets.Text(card, "Small", "text-3", "LEFT")
 	card.lines = {}
 	return card
@@ -146,9 +146,9 @@ local function build()
 	f.body = buildCard(f.card)
 	f.body:SetPoint("TOPLEFT", f.card, "TOPLEFT", 20, -20)
 	f.body:SetPoint("TOPRIGHT", f.card, "TOPRIGHT", -20, -20)
-	f.close = Widgets.Button(f.card, { text = L["BACKUP_CLOSE"], style = "primary", width = 140,
+	f.close = Widgets.Button(f.card, { text = L["BACKUP_CLOSE"], style = "filled", width = 140,
 		onClick = function() View:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -20, 20)
+	f:SetActions({ f.close })
 	return f
 end
 

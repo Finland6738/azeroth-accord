@@ -667,32 +667,32 @@ function View:Build(f)
 		View:Choose(id)
 	end })
 	f.picker:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.game = Widgets.Button(f, { text = L["EVENTS_OPEN_GAME"], style = "secondary", height = 28, onClick = function()
+	f.game = Widgets.Button(f, { text = L["EVENTS_OPEN_GAME"], style = "outlined", dense = true, onClick = function()
 		ns.Compat.Calendar.ShowGame()
 	end })
 	f.game:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 
 	-- the own answer
 	f.answer = CreateFrame("Frame", nil, f)
-	f.answer:SetHeight(32)
+	f.answer:SetHeight(36)
 	f.role = Widgets.Select(f.answer, { width = 120, rows = 4 })
-	f.role:SetPoint("TOPLEFT", f.answer, "TOPLEFT", 0, 0)
+	f.role:SetPoint("TOPLEFT", f.answer, "TOPLEFT", 0, -2)
 	local roles = {}
 	for _, r in ipairs(ns.Specs.ROLES) do roles[#roles + 1] = { id = r, text = roleText(r) } end
 	f.role:SetChoices(roles)
-	f.yes = Widgets.Button(f.answer, { text = L["EVENTS_SIGN_UP"], style = "primary", height = 28, onClick = function() View:Answer("yes") end })
+	f.yes = Widgets.Button(f.answer, { text = L["EVENTS_SIGN_UP"], style = "filled", dense = true, onClick = function() View:Answer("yes") end })
 	f.yes:SetPoint("LEFT", f.role, "RIGHT", 8, 0)
-	f.maybe = Widgets.Button(f.answer, { text = L["EVENTS_TENTATIVE"], style = "secondary", height = 28, onClick = function() View:Answer("maybe") end })
+	f.maybe = Widgets.Button(f.answer, { text = L["EVENTS_TENTATIVE"], style = "tonal", dense = true, onClick = function() View:Answer("maybe") end })
 	f.maybe:SetPoint("LEFT", f.yes, "RIGHT", 8, 0)
-	f.no = Widgets.Button(f.answer, { text = L["EVENTS_DECLINE"], style = "secondary", height = 28, onClick = function() View:Answer("no") end })
+	f.no = Widgets.Button(f.answer, { text = L["EVENTS_DECLINE"], style = "outlined", dense = true, onClick = function() View:Answer("no") end })
 	f.no:SetPoint("LEFT", f.maybe, "RIGHT", 8, 0)
 
 	-- officers, without a usable calendar: an event of the addon
 	f.create = CreateFrame("Frame", nil, f)
-	f.create:SetHeight(32)
-	f.title = Widgets.EditBox(f.create, { width = 200, height = 28, maxLetters = ns.Calendar.TITLE_MAX, placeholder = L["EVENTS_TITLE_HINT"] })
+	f.create:SetHeight(36)
+	f.title = Widgets.EditBox(f.create, { width = 200, dense = true, maxLetters = ns.Calendar.TITLE_MAX, placeholder = L["EVENTS_TITLE_HINT"] })
 	f.title:SetPoint("TOPLEFT", f.create, "TOPLEFT", 0, 0)
-	f.when = Widgets.EditBox(f.create, { width = 140, height = 28, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"] })
+	f.when = Widgets.EditBox(f.create, { width = 140, dense = true, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"] })
 	f.when:SetPoint("LEFT", f.title, "RIGHT", 8, 0)
 	f.size = Widgets.Select(f.create, { width = 110, rows = 4 })
 	f.size:SetPoint("LEFT", f.when, "RIGHT", 8, 0)
@@ -700,47 +700,47 @@ function View:Build(f)
 	for _, n in ipairs({ 10, 20, 25, 40 }) do sizes[#sizes + 1] = { id = tostring(n), text = L["SEASON_TARGET_SIZE"]:format(n) } end
 	f.size:SetChoices(sizes)
 	f.size:Select("40", true)
-	f.createButton = Widgets.Button(f.create, { text = L["EVENTS_CREATE"], style = "primary", height = 28, onClick = function()
+	f.createButton = Widgets.Button(f.create, { text = L["EVENTS_CREATE"], style = "tonal", dense = true, onClick = function()
 		View:Create(f.title:GetText(), f.when:GetText(), f.size:Selected())
 	end })
 	f.createButton:SetPoint("LEFT", f.size, "RIGHT", 8, 0)
 
 	-- officers: Raid-Helper (M10.6)
 	f.rhRow = CreateFrame("Frame", nil, f)
-	f.rhRow:SetHeight(32)
-	f.import = Widgets.Button(f.rhRow, { text = L["RH_IMPORT_BUTTON"], style = "secondary", height = 28, onClick = function()
+	f.rhRow:SetHeight(36)
+	f.import = Widgets.Button(f.rhRow, { text = L["RH_IMPORT_BUTTON"], style = "tonal", dense = true, onClick = function()
 		ns.RaidHelperBox:Open()
 	end })
-	f.push = Widgets.Button(f.rhRow, { text = L["RH_PUSH"], style = "secondary", height = 28, onClick = function() View:Push() end })
-	f.export = Widgets.Button(f.rhRow, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28, onClick = function() View:Export() end })
+	f.push = Widgets.Button(f.rhRow, { text = L["RH_PUSH"], style = "tonal", dense = true, onClick = function() View:Push() end })
+	f.export = Widgets.Button(f.rhRow, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true, onClick = function() View:Export() end })
 	f.matchRow = CreateFrame("Frame", nil, f)
-	f.matchRow:SetHeight(32)
+	f.matchRow:SetHeight(36)
 	f.unmatched = Widgets.Select(f.matchRow, { width = 200, rows = 8, placeholder = L["RH_MATCH_NAME"] })
-	f.unmatched:SetPoint("TOPLEFT", f.matchRow, "TOPLEFT", 0, 0)
-	f.member = Widgets.EditBox(f.matchRow, { width = 180, height = 28, maxLetters = 64, placeholder = L["RH_MATCH_MEMBER"] })
+	f.unmatched:SetPoint("TOPLEFT", f.matchRow, "TOPLEFT", 0, -2)
+	f.member = Widgets.EditBox(f.matchRow, { width = 180, dense = true, maxLetters = 64, placeholder = L["RH_MATCH_MEMBER"] })
 	f.member:SetPoint("LEFT", f.unmatched, "RIGHT", 8, 0)
-	f.match = Widgets.Button(f.matchRow, { text = L["RH_MATCH"], style = "secondary", height = 28, onClick = function()
+	f.match = Widgets.Button(f.matchRow, { text = L["RH_MATCH"], style = "tonal", dense = true, onClick = function()
 		View:Match(f.unmatched:Selected(), f.member:GetText())
 	end })
 	f.match:SetPoint("LEFT", f.member, "RIGHT", 8, 0)
 	-- officers: the line-up and the bench (M10.7)
 	f.placeRow = CreateFrame("Frame", nil, f)
-	f.placeRow:SetHeight(32)
+	f.placeRow:SetHeight(36)
 	f.person = Widgets.Select(f.placeRow, { width = 240, rows = 10, placeholder = L["LINEUP_CHOOSE"] })
-	f.person:SetPoint("TOPLEFT", f.placeRow, "TOPLEFT", 0, 0)
-	f.toRaid = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_RAID"], style = "primary", height = 28, onClick = function()
+	f.person:SetPoint("TOPLEFT", f.placeRow, "TOPLEFT", 0, -2)
+	f.toRaid = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_RAID"], style = "tonal", dense = true, onClick = function()
 		View:Place(f.person:Selected(), "raid")
 	end })
 	f.toRaid:SetPoint("LEFT", f.person, "RIGHT", 8, 0)
-	f.toBench = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_BENCH"], style = "secondary", height = 28, onClick = function()
+	f.toBench = Widgets.Button(f.placeRow, { text = L["LINEUP_TO_BENCH"], style = "outlined", dense = true, onClick = function()
 		View:Place(f.person:Selected(), "bench")
 	end })
 	f.toBench:SetPoint("LEFT", f.toRaid, "RIGHT", 8, 0)
-	f.takeOut = Widgets.Button(f.placeRow, { text = L["LINEUP_REMOVE"], style = "secondary", height = 28, onClick = function()
+	f.takeOut = Widgets.Button(f.placeRow, { text = L["LINEUP_REMOVE"], style = "outlined", dense = true, onClick = function()
 		View:Place(f.person:Selected(), nil)
 	end })
 	f.takeOut:SetPoint("LEFT", f.toBench, "RIGHT", 8, 0)
-	f.write = Widgets.Button(f.placeRow, { text = L["LINEUP_WRITE"], style = "secondary", height = 28, onClick = function()
+	f.write = Widgets.Button(f.placeRow, { text = L["LINEUP_WRITE"], style = "tonal", dense = true, onClick = function()
 		View:PushLineup()
 	end })
 	f.write:SetPoint("LEFT", f.takeOut, "RIGHT", 8, 0)
@@ -751,7 +751,7 @@ function View:Build(f)
 	f.list:SetClipsChildren(true)
 	f.list:EnableMouseWheel(true)
 	f.list:SetScript("OnMouseWheel", function(_, delta) View:Scroll(-delta * View.WHEEL_STEP) end)
-	f.list.lines = {}
+	f.list.lines, f.list.marks = {}, {}
 	f.offset = 0
 	f:SetScript("OnShow", function()
 		if ns.Calendar.Enabled() then ns.Calendar:Start() end
@@ -777,7 +777,7 @@ function View:Redraw()
 	if m.event then f.picker:Select(m.event.key, true) end
 	f.game:SetShown(m.state ~= "missing")
 
-	local y = -40
+	local y = -44
 	local answers = m.event ~= nil and not m.event.discordOnly
 	f.answer:SetShown(answers)
 	if answers then
@@ -789,14 +789,14 @@ function View:Redraw()
 			self.roleKey = roleKey
 			f.role:Select(m.role, true)
 		end
-		y = y - 40
+		y = y - 44
 	end
 	f.create:SetShown(m.canCreate)
 	if m.canCreate then
 		f.create:ClearAllPoints()
 		f.create:SetPoint("TOPLEFT", f, "TOPLEFT", 0, y)
 		f.create:SetPoint("RIGHT", f, "RIGHT", 0, 0)
-		y = y - 40
+		y = y - 44
 	end
 	-- officers: import a Raid-Helper event, put it into the game calendar, export the event back to Discord
 	f.rhRow:SetShown(m.officer == true)
@@ -819,7 +819,7 @@ function View:Redraw()
 			if i == 1 then button:SetPoint("TOPLEFT", f.rhRow, "TOPLEFT", 0, 0)
 			else button:SetPoint("LEFT", shown[i - 1], "RIGHT", 8, 0) end
 		end
-		y = y - 40
+		y = y - 44
 	end
 	local unmatched = m.officer and m.rh and m.rh.unmatched or nil
 	f.matchRow:SetShown(unmatched ~= nil and #unmatched > 0)
@@ -830,7 +830,7 @@ function View:Redraw()
 		local names = {}
 		for i, name in ipairs(unmatched) do names[i] = { id = name, text = name } end
 		f.unmatched:SetChoices(names)
-		y = y - 40
+		y = y - 44
 	end
 	f.placeRow:SetShown(m.editor == true)
 	if m.editor then
@@ -841,7 +841,7 @@ function View:Redraw()
 		local write = m.lineup.rec ~= nil and not m.event.addonOnly and m.state == "available"
 		f.write:SetShown(write)
 		if write then f.write:SetLabel(self.confirm == lineupToken(m) and L["RH_CONFIRM"] or L["LINEUP_WRITE"]) end
-		y = y - 40
+		y = y - 44
 	end
 	self.painting = false
 	f.message:ClearAllPoints()
@@ -873,11 +873,26 @@ function View:Redraw()
 		if l.heading then Theme.Text(fs, "text-1")
 		elseif l.warn then Theme.Text(fs, "warn")
 		elseif l.muted then Theme.Text(fs, "text-3")
-		elseif l.selected then Theme.Text(fs, "text-1")
+		elseif l.selected then Theme.Text(fs, "on-secondary-container")
 		else Theme.Text(fs, "text-2") end
 		fs:Show()
+		-- the chosen person of the line-up: the selected row
+		local mark = list.marks[i]
+		if l.selected and not mark then
+			mark = Widgets.Selection(list)
+			list.marks[i] = mark
+		end
+		if mark then
+			mark:ClearAllPoints()
+			mark:SetPoint("TOPLEFT", list, "TOPLEFT", 4, -(i - 1) * View.ROW_HEIGHT + 2)
+			mark:SetPoint("BOTTOMRIGHT", list, "TOPRIGHT", 0, -i * View.ROW_HEIGHT + 2)
+			mark:SetShown(l.selected == true)
+		end
 	end
-	for i = drawn + 1, #list.lines do list.lines[i]:Hide() end
+	for i = drawn + 1, #list.lines do
+		list.lines[i]:Hide()
+		if list.marks[i] then list.marks[i]:Hide() end
+	end
 end
 
 function View:Scroll(delta)

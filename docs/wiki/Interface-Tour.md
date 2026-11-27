@@ -13,8 +13,8 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
 - Clicking it opens the **Accord window** in the place of the guild window, which closes: the guild window is too small for Accord's wider tables. The Accord window moves, resizes and remembers where you put it. *Settings → Open Accord inside the guild window* brings back the panel described next.
-- With that setting on, clicking it shows the Accord panel over the guild window (its list of communities too), in the colours of the theme, and while it is open **the window around it wears the theme too**: a themed frame with the name of your guild, a themed cross, and the five side tabs as rounded tiles (the open one has the accent colour). Clicking any of the game's tabs puts the game's own look back and goes back to its content; closing the window closes the panel.
-- When officers have bank requests waiting, the tab carries a small round mark with their number.
+- With that setting on, clicking it shows the Accord panel over the guild window (its list of communities too), in the colours of the theme, and while it is open **the window around it wears the theme too**: a themed frame with the name of your guild, a themed cross, and the five side tabs as rounded tiles (the open one has a soft filled tile). Clicking any of the game's tabs puts the game's own look back and goes back to its content; closing the window closes the panel.
+- When officers have bank requests waiting, the tab carries a small red badge with their number.
 - The tab shows only while your **guild** is the selected community, and not in the small (minimized) guild window.
 - The panel has nothing protected in it: it opens and closes in combat too, and it never changes how the game's own tabs work: the addon only makes the game's window art see-through while the panel is open and puts it back afterwards.
 - If a game update changes the guild window so much that the tab cannot be placed, the tab simply does not appear: use `/accord` for the standalone window, and `/accord debug` says why.
@@ -29,6 +29,16 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 - **From `v0.10.0`**: the [[Season|Season-Roster]], [[Events|Events]] and [[Availability|Availability]] views.
 - **From `v0.11.0`**: the [[Raid|Raid-and-Loot-Addons]] and [[Handbook|Guild-Handbook]] views.
 - **The views of the first release, `v0.8.0`**: **Roster**, **Professions**, **Reputation**, **Bank**, **Settings** (officers also have **Officers**, with the inactive players, the queue of actions to do by hand and the roster timeline: see [[Guild Roster|Guild-Roster]]). The **Roster** view comes with the roster version, and the **Settings** view (see [[Settings|Settings]]; the same page is in the game's settings window) with the release version; see [[Guild Roster|Guild-Roster]]. The **Professions** view (a member's recipe list, opened from the roster) comes with the professions version; see [[Professions and Recipes|Professions-and-Recipes]]. The **Reputation** view (likes, one row per player sorted by likes, with the Like button; your social index; the group map for officers; *Someone new* to play with) comes with the reputation version; see [[Likes and Social Index|Likes-and-Social-Index]]. The **Bank** view (the guild bank tab by tab, its money, a searchable list of items) comes with the bank version (officers also see the number of waiting requests on the tab); see [[Guild Bank|Guild-Bank]].
+
+## Buttons, filters and rows
+
+The controls look and behave the same in every view (the rules of Google's Material 3, drawn with Accord's themes):
+
+- **Buttons**: the one **filled** button, in the theme's accent, is the main action of a view or of a window (for example *Save* or *Send request*); the others are softly filled, outlined or plain text.
+- **Filters** are rounded boxes you can switch on and off: a filter that is on is filled and shows a **check mark** (*Online*, *Mains only*, the Bank's modes).
+- A choice between a few things (the theme, the pages of a view) is a row of joined buttons, the chosen one filled with a check mark.
+- The **selected row** of a list (the member whose card is open, the group or the handbook page you chose) is filled with the same soft colour.
+- A pointer over a control shades it lightly; a control that cannot be used now is faded.
 
 ## The themes
 

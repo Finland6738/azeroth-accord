@@ -26,7 +26,8 @@ Page.GAP = 4
 Page.AFTER = 16               -- between the fixed part and the page's text
 Page.INDENT = 12
 Page.MENU_WIDTH = 220
-Page.BUTTON_HEIGHT = 26
+Page.BUTTON_HEIGHT = Widgets.HEIGHT.dense
+Page.FIELD_PITCH = Widgets.HEIGHT.dense + 8   -- one line of the forms
 Page.NAMES = 40               -- names written without the addon before "and N more"
 
 -- locale-key: LOOT_SYSTEM_NONE LOOT_SYSTEM_ROLLS LOOT_SYSTEM_SOFTRES LOOT_SYSTEM_COUNCIL LOOT_SYSTEM_DKP
@@ -210,12 +211,12 @@ end
 -- The frame
 ---------------------------------------------------------------------------------------------------------------------
 local function button(w, key, onClick, style)
-	return Widgets.Button(w, { text = L[key], style = style or "secondary", height = Page.BUTTON_HEIGHT, onClick = onClick })
+	return Widgets.Button(w, { text = L[key], style = style or "tonal", height = Page.BUTTON_HEIGHT, onClick = onClick })
 end
 
 -- A read-only copy box: selects its text on focus and puts it back when the player types in it.
 local function copyBox(w)
-	local box = Widgets.EditBox(w, { height = 28 })
+	local box = Widgets.EditBox(w, { dense = true })
 	box.edit:HookScript("OnTextChanged", function(self, user)
 		if user and self:GetText() ~= box.value then
 			self:SetText(box.value or "")
@@ -242,14 +243,14 @@ local function buildForm(w, what)
 	f.value:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.fields = {}
 	for i, def in ipairs(FIELDS[what]) do
-		local box = Widgets.EditBox(f, { height = 28, maxLetters = def.max, placeholder = L[def.hint] })
-		box:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -i * 32)
-		box:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -i * 32)
+		local box = Widgets.EditBox(f, { dense = true, maxLetters = def.max, placeholder = L[def.hint] })
+		box:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -i * Page.FIELD_PITCH)
+		box:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -i * Page.FIELD_PITCH)
 		f.fields[def.id] = box
 	end
 	f.error = Widgets.Text(f, "Small", "err", "LEFT")
-	f.save = button(f, "HANDBOOK_SAVE", function() w:Save() end, "primary")
-	f.cancel = button(f, "HANDBOOK_CANCEL", function() w:CloseForm() end, "ghost")
+	f.save = button(f, "HANDBOOK_SAVE", function() w:Save() end, "filled")
+	f.cancel = button(f, "HANDBOOK_CANCEL", function() w:CloseForm() end, "outlined")
 	w.forms[what] = f
 	return f
 end
@@ -264,7 +265,7 @@ local function paintForm(w, what, width)
 		f.fields[def.id]:SetShown(other)
 		if other then rows = rows + 1 end
 	end
-	local y = -rows * 32
+	local y = -rows * Page.FIELD_PITCH
 	f.error:SetText(form.error or "")
 	f.error:SetShown(form.error ~= nil)
 	f.error:ClearAllPoints()
@@ -336,7 +337,7 @@ local function update(w, model, width)
 			w.copy:SetPoint("TOPLEFT", w, "TOPLEFT", x, -y)
 			w.copy:SetWidth(width - x)
 			w.copy:Show()
-			y = y + 28 + Page.GAP
+			y = y + Widgets.HEIGHT.dense + Page.GAP
 		elseif line.form then
 			local f = paintForm(w, line.form, width)
 			f:ClearAllPoints()

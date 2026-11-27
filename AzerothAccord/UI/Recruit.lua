@@ -15,7 +15,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local ipairs, concat = ipairs, table.concat
 
 View.NAME = "AzerothAccordRecruitBox"
-View.WIDTH, View.HEIGHT = 640, 480
+View.WIDTH, View.HEIGHT = 640, 500
 View.REBUILD_DELAY = 0.5
 View.FLASH = 1.2             -- seconds the count pulses after the text changed under the officer
 
@@ -40,10 +40,10 @@ end
 
 local function lineBox(card, y, labelKey, key, limit, placeholder)
 	local label = Widgets.Text(card, "BodyMedium", "text-2", "LEFT")
-	label:SetPoint("TOPLEFT", card, "TOPLEFT", 24, y - 8)
+	label:SetPoint("TOPLEFT", card, "TOPLEFT", 24, y - 13)
 	label:SetText(L[labelKey])
 	local box
-	box = Widgets.EditBox(card, { width = View.WIDTH - 188, height = 28, maxLetters = limit, placeholder = placeholder,
+	box = Widgets.EditBox(card, { width = View.WIDTH - 188, maxLetters = limit, placeholder = placeholder,
 		onChange = function(text, user)
 			if not user then return end
 			book():Set(key, text)
@@ -58,8 +58,7 @@ end
 local function build()
 	local f = Widgets.Dialog(UIParent, View.NAME, { width = View.WIDTH, height = View.HEIGHT })
 	local card = f.card
-	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	f:SetTitle("")
 	f.title:SetText(L["RECRUIT_TITLE"])
 	f.formats = Widgets.Segmented(card, {
 		{ id = "chat", text = L["RECRUIT_CHAT"] }, { id = "discord", text = L["RECRUIT_DISCORD"] },
@@ -70,14 +69,14 @@ local function build()
 	f.warning:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	f.warning:SetText(L["RECRUIT_WARNING"])
 
-	f.contact = lineBox(card, -78, "RECRUIT_CONTACT", "contact", book().CONTACT_MAX,
+	f.contact = lineBox(card, -76, "RECRUIT_CONTACT", "contact", book().CONTACT_MAX,
 		L["RECRUIT_WHISPER"]:format(ns.Compat.Player.Name() or "?"))
-	f.extra = lineBox(card, -112, "RECRUIT_EXTRA", "extra", book().EXTRA_MAX, L["RECRUIT_EXTRA_HINT"])
+	f.extra = lineBox(card, -124, "RECRUIT_EXTRA", "extra", book().EXTRA_MAX, L["RECRUIT_EXTRA_HINT"])
 
 	local scroll, edit
 	f.field, scroll, edit = ns.CopyBox.Area(card, View.WIDTH - 68)
-	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -150)
-	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 112)
+	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -174)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 116)
 	f.scroll, f.edit = scroll, edit
 	-- read-only: typing is undone at once and the text stays selected
 	edit:SetScript("OnTextChanged", function(self, userInput)
@@ -86,23 +85,23 @@ local function build()
 			self:HighlightText()
 		end
 	end)
-	edit:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+	edit:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:SetScript("OnMouseUp", function(self) select_(self) end)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() View:Hide() end)
 
 	f.count = Widgets.Text(card, "Small", "text-2", "LEFT")
-	f.count:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 92)
+	f.count:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 96)
 	f.count:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	f.missing = Widgets.Text(card, "Small", "text-3", "LEFT")
 	f.missing:SetPoint("TOPLEFT", f.count, "BOTTOMLEFT", 0, -4)
 	f.missing:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 
-	f.select = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "secondary", width = 140,
+	f.select = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "outlined", width = 140,
 		onClick = function() View:SelectAll() end })
-	f.select:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
-	f.close = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "primary", width = 140,
+	f.select:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
+	f.close = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "filled", width = 140,
 		onClick = function() View:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
+	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
 	f:HookScript("OnHide", function() View:Forget() end)
 	return f
 end

@@ -23,10 +23,10 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, tostring = type, ipairs, tostring
 
 View.PAGER_HEIGHT = 44
-View.FILTER_HEIGHT = 36
+View.FILTER_HEIGHT = 44
 View.MARK_SIZE = 8
-View.DIGEST_HEAD = 36          -- the card of the login digest: its title line, each line under it, the gap to the chips
-View.DIGEST_LINE = 24
+View.DIGEST_HEAD = 44          -- the card of the login digest: its title line, each line under it, the gap to the chips
+View.DIGEST_LINE = 32
 View.DIGEST_GAP = 12
 View.URGENCY_TOKEN = { [1] = "text-3", [2] = "accent", [3] = "err" }
 
@@ -120,7 +120,7 @@ local function setupRow(self, row)
 	row.mark:SetSize(View.MARK_SIZE, View.MARK_SIZE)
 	row.mark:SetPoint("LEFT", row, "LEFT", 10, 0)
 	row.mark:SetTexture(ns.Assets.textures.circle.path)
-	row.done = Widgets.Button(row, { text = L["ACT_DONE"], style = "secondary", height = 22, width = 68, onClick = function()
+	row.done = Widgets.Button(row, { text = L["ACT_DONE"], style = "tonal", height = Widgets.HEIGHT.small, width = 68, onClick = function()
 		if row.data then ns.Actions:Dismiss(row.data) end
 		self:Redraw()
 	end })
@@ -140,9 +140,9 @@ local function digestCard(f, self)
 	card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	card:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	card.title = Widgets.Text(card, "Eyebrow", "text-3")
-	card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -14)
+	card.title:SetPoint("TOPLEFT", card, "TOPLEFT", 14, -18)
 	card.title:SetText(L["DIGEST_TITLE"])
-	card.close = Widgets.Button(card, { text = L["DIGEST_CLOSE"], style = "ghost", height = 22, width = 80, onClick = function()
+	card.close = Widgets.Button(card, { text = L["DIGEST_CLOSE"], style = "text", height = Widgets.HEIGHT.small, width = 80, onClick = function()
 		ns.Digest:Close()
 		self:Redraw()
 	end })
@@ -204,8 +204,8 @@ local function buildInbox(f, self)
 	f.chips = Widgets.ChipRow(f, function(id)
 		self.filter = id
 		self:Redraw()
-	end, { height = 26, gap = 6 })
-	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ACT_EMPTY"],
+	end)
+	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ACT_EMPTY"], rowHeight = 36,
 		onRowClick = function(r) ns.Actions:Open(r) end,
 		rowSetup = function(row) setupRow(self, row) end, rowUpdate = updateRow })
 	placeInbox(f, 0)
@@ -288,13 +288,13 @@ local function buildNotices(f, self)
 	f.chips = Widgets.ChipRow(f, function(id)
 		self.noticeFilter = id
 		self:Redraw()
-	end, { height = 26, gap = 6 })
+	end)
 	f.chips:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.chips:SetSize(240, 26)
-	f.clear = Widgets.Button(f, { text = L["NOTICE_CLEAR"], style = "ghost", height = 26, width = 180,
+	f.chips:SetSize(240, Widgets.HEIGHT.small)
+	f.clear = Widgets.Button(f, { text = L["NOTICE_CLEAR"], style = "text", dense = true, width = 180,
 		onClick = function() clearClicked(f, self) end })
 	f.clear:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	f.markAll = Widgets.Button(f, { text = L["NOTICE_MARK_ALL"], style = "secondary", height = 26, width = 180, onClick = function()
+	f.markAll = Widgets.Button(f, { text = L["NOTICE_MARK_ALL"], style = "tonal", dense = true, width = 180, onClick = function()
 		ns.Notify:MarkAllRead()
 		self:Redraw()
 	end })

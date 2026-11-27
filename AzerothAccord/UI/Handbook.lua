@@ -23,13 +23,14 @@ local date, remove = date, table.remove
 
 View.READ_DELAY = 2         -- seconds a page stays open before it counts as read
 View.HISTORY = 20           -- steps Back remembers
-View.ROW_HEIGHT = 30
+View.ROW_HEIGHT = 32
 View.RESULT_HEIGHT = 44
 View.LIST_WIDTH, View.LIST_NARROW, View.NARROW = 220, 170, 640
 View.GAP = 16               -- between the list and the reader
-View.HEADER = 58            -- the reader's title and its line
+View.HEADER = 60            -- the reader's title and its line
 View.WIDTH = 420            -- the text's width while the frame has none yet
 View.WHEEL_STEP = 40
+View.LIST_BOTTOM = 44       -- the room under the list for "Mark all as read"
 
 View.search = ""
 View.history = {}
@@ -158,14 +159,12 @@ local function listRow(f, i)
 	local b = f.rows[i]
 	if b then return b end
 	b = CreateFrame("Button", nil, f.list.page)
-	b.selected = b:CreateTexture(nil, "BACKGROUND")
-	Theme.Fill(b.selected, "accent", 0.16)
-	b.selected:SetAllPoints(b)
+	b.selected = Widgets.Selection(b)
 	Widgets.RowHover(b)
 	b.mark = Widgets.Text(b, "Small", "accent-text", "RIGHT")
-	b.mark:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -9)
+	b.mark:SetPoint("TOPRIGHT", b, "TOPRIGHT", -8, -10)
 	b.label = Widgets.Text(b, "Body", "text-1", "LEFT")
-	b.label:SetPoint("TOPLEFT", b, "TOPLEFT", 8, -8)
+	b.label:SetPoint("TOPLEFT", b, "TOPLEFT", 8, -9)
 	b.label:SetWordWrap(false)
 	b.sub = Widgets.Text(b, "Small", "text-3", "LEFT")
 	b.sub:SetPoint("TOPLEFT", b, "TOPLEFT", 8, -26)
@@ -202,7 +201,12 @@ local function drawList(f, rows)
 		b.sub:SetText(results and item.text or "")
 		b.sub:SetShown(results ~= nil)
 		Theme.Text(b.label, item.header and "accent-text" or "text-1")
-		b.selected:SetShown(not results and item.id ~= nil and item.id == selected)
+		local on = not results and item.id ~= nil and item.id == selected
+		b.selected:SetShown(on)
+		if on then
+			Theme.Text(b.label, "on-secondary-container")
+			if mark then Theme.Text(b.mark, "on-secondary-container") end
+		end
 		b:Show()
 		if editor then editor:Row(f, b, item, results ~= nil) end
 	end
@@ -358,9 +362,10 @@ local function drawReader(f, row)
 	local back = #View.history > 0
 	f.back:SetShown(back)
 	f.title:ClearAllPoints()
-	if back then f.title:SetPoint("TOPLEFT", f.back, "TOPRIGHT", 10, -4)
-	else f.title:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, -4) end
-	f.title:SetPoint("TOPRIGHT", f.reader, "TOPRIGHT", 0, -4)
+	-- beside Back (36 high) the title sits at its middle
+	if back then f.title:SetPoint("TOPLEFT", f.back, "TOPRIGHT", 10, -9)
+	else f.title:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, -9) end
+	f.title:SetPoint("TOPRIGHT", f.reader, "TOPRIGHT", 0, -9)
 	f.title:SetText(rec.title)
 	local meta = View.Meta(rec)
 	if rec.tpl then meta = meta .. " · " .. L["HANDBOOK_TEMPLATE_NOTE"] end
@@ -402,7 +407,7 @@ local function layout(f)
 	local list = (width > 0 and width < View.NARROW) and View.LIST_NARROW or View.LIST_WIDTH
 	f.list:ClearAllPoints()
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.list:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, f.listBottom or 40)
+	f.list:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, f.listBottom or View.LIST_BOTTOM)
 	f.list:SetWidth(list)
 	f.list.page:SetWidth(list)
 	f.listWidth = list
@@ -546,21 +551,21 @@ function View:Build(f)
 	f.empty:SetText(L["HANDBOOK_EMPTY"])
 	f.list = scroller(f)
 	f.note = Widgets.Text(f.list.page, "Small", "text-3", "LEFT")
-	f.markAll = Widgets.Button(f, { text = L["HANDBOOK_MARK_ALL"], style = "secondary", height = 28,
+	f.markAll = Widgets.Button(f, { text = L["HANDBOOK_MARK_ALL"], style = "outlined", dense = true,
 		onClick = function() book():MarkAllRead() end })
 	f.markAll:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 4)
 	layout(f)
 	f.reader = CreateFrame("Frame", nil, f)
 	f.reader:SetPoint("TOPLEFT", f.list, "TOPRIGHT", View.GAP, 0)
 	f.reader:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.back = Widgets.Button(f.reader, { text = L["HANDBOOK_BACK"], style = "ghost", height = 26,
+	f.back = Widgets.Button(f.reader, { text = L["HANDBOOK_BACK"], style = "text", dense = true,
 		onClick = function() View:Back() end })
 	f.back:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, 0)
 	f.title = Widgets.Text(f.reader, "H1", "text-1", "LEFT")
 	f.title:SetWordWrap(false)
 	f.meta = Widgets.Text(f.reader, "Small", "text-3", "LEFT")
-	f.meta:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, -34)
-	f.meta:SetPoint("TOPRIGHT", f.reader, "TOPRIGHT", 0, -34)
+	f.meta:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, -40)
+	f.meta:SetPoint("TOPRIGHT", f.reader, "TOPRIGHT", 0, -40)
 	f.text = scroller(f.reader)
 	f.text:SetPoint("TOPLEFT", f.reader, "TOPLEFT", 0, -View.HEADER)
 	f.text:SetPoint("BOTTOMRIGHT", f.reader, "BOTTOMRIGHT", 0, 0)

@@ -17,8 +17,7 @@ Box.format = "csv"    -- the last choice, kept for the session
 local function build()
 	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
-	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	f:SetTitle("")
 	f.formats = Widgets.Segmented(card, {
 		{ id = "csv", text = L["EXPORT_CSV"] }, { id = "discord", text = L["EXPORT_DISCORD"] },
 	}, function(id) if id ~= Box.format then Box:SetFormat(id) end end)
@@ -34,7 +33,7 @@ local function build()
 	local scroll, edit
 	f.field, scroll, edit = ns.CopyBox.Area(card, Box.WIDTH - 68)
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -96)
-	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 88)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 96)
 	f.scroll, f.edit = scroll, edit
 	-- read-only: typing is undone at once and the text stays selected
 	edit:SetScript("OnTextChanged", function(self, userInput)
@@ -43,16 +42,16 @@ local function build()
 			self:HighlightText()
 		end
 	end)
-	edit:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+	edit:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() Box:Hide() end)
 
 	f.status = Widgets.Text(card, "Small", "text-2", "LEFT")
-	f.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 68)
+	f.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 76)
 	f.status:SetPoint("RIGHT", card, "RIGHT", -24, 0)
-	f.select = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "secondary", width = 140, onClick = function() Box:SelectAll() end })
-	f.select:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
-	f.close = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "primary", width = 140, onClick = function() Box:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
+	f.select = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "outlined", width = 140, onClick = function() Box:SelectAll() end })
+	f.select:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
+	f.close = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "filled", width = 140, onClick = function() Box:Hide() end })
+	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
 	f:HookScript("OnHide", function() Box:Forget() end)
 	return f
 end

@@ -307,14 +307,14 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function label(f, text, x, y)
 	local t = Widgets.Text(f, "BodyMedium", "text-2", "LEFT")
-	t:SetPoint("TOPLEFT", f, "TOPLEFT", x, y - 8)
+	t:SetPoint("TOPLEFT", f, "TOPLEFT", x, y - 11)
 	t:SetText(text)
 	return t
 end
 
 local function pair(f, x, y, optional, key)
 	local spec = Widgets.Select(f, { width = 120, rows = 4, onSelect = function() View:SpecPicked(key) end })
-	spec:SetPoint("TOPLEFT", f, "TOPLEFT", x, y)
+	spec:SetPoint("TOPLEFT", f, "TOPLEFT", x, y - 2)
 	local role = Widgets.Select(f, { width = 90, rows = 4 })
 	role:SetPoint("LEFT", spec, "RIGHT", 6, 0)
 	spec.optional = optional
@@ -337,37 +337,37 @@ function View:Build(f)
 		View:Redraw()
 	end })
 	f.picker:SetPoint("TOPLEFT", f.sourceSeg, "TOPRIGHT", 16, 0)
-	f.open = Widgets.Button(f, { text = L["FDCP_OPEN"], style = "secondary", height = 28, onClick = function() ns.FDCP.Open() end })
+	f.open = Widgets.Button(f, { text = L["FDCP_OPEN"], style = "outlined", dense = true, onClick = function() ns.FDCP.Open() end })
 	f.open:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 
 	-- officers: open or close a season
 	f.officer = CreateFrame("Frame", nil, f)
-	f.officer:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -40)
+	f.officer:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -44)
 	f.officer:SetPoint("RIGHT", f, "RIGHT", 0, 0)
-	f.officer:SetHeight(32)
-	f.seasonName = Widgets.EditBox(f.officer, { width = 200, height = 28, maxLetters = ns.Season.NAME_MAX, placeholder = L["SEASON_NAME_HINT"] })
+	f.officer:SetHeight(36)
+	f.seasonName = Widgets.EditBox(f.officer, { width = 200, dense = true, maxLetters = ns.Season.NAME_MAX, placeholder = L["SEASON_NAME_HINT"] })
 	f.seasonName:SetPoint("TOPLEFT", f.officer, "TOPLEFT", 0, 0)
-	f.openSeason = Widgets.Button(f.officer, { text = L["SEASON_OPEN_BUTTON"], style = "primary", height = 28, onClick = function()
+	f.openSeason = Widgets.Button(f.officer, { text = L["SEASON_OPEN_BUTTON"], style = "tonal", dense = true, onClick = function()
 		View:OpenSeason(f.seasonName:GetText())
 	end })
 	f.openSeason:SetPoint("LEFT", f.seasonName, "RIGHT", 8, 0)
-	f.closeSeason = Widgets.Button(f.officer, { text = L["SEASON_CLOSE_BUTTON"], style = "secondary", height = 28, onClick = function()
+	f.closeSeason = Widgets.Button(f.officer, { text = L["SEASON_CLOSE_BUTTON"], style = "outlined", dense = true, onClick = function()
 		View:CloseSeason()
 	end })
 	f.closeSeason:SetPoint("LEFT", f.openSeason, "RIGHT", 8, 0)
 
-	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28, onClick = function() View:Export() end })
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true, onClick = function() View:Export() end })
 
 	-- officers: the recruitment text (M12.2)
-	f.recruit = Widgets.Button(f, { text = L["RECRUIT_BUTTON"], style = "secondary", width = 170, height = 28,
+	f.recruit = Widgets.Button(f, { text = L["RECRUIT_BUTTON"], style = "tonal", width = 170, dense = true,
 		onClick = function() if ns.RecruitView then ns.RecruitView:Open() end end })
 
 	-- officers: the target composition
 	f.target = CreateFrame("Frame", nil, f)
-	f.target:SetHeight(32)
+	f.target:SetHeight(36)
 	label(f.target, L["SEASON_TARGET"], 0, 0)
 	f.size = Widgets.Select(f.target, { width = 120, rows = 4 })
-	f.size:SetPoint("TOPLEFT", f.target, "TOPLEFT", 70, 0)
+	f.size:SetPoint("TOPLEFT", f.target, "TOPLEFT", 70, -2)
 	local sizes = {}
 	for _, n in ipairs(ns.Composition.SIZES) do sizes[#sizes + 1] = { id = tostring(n), text = L["SEASON_TARGET_SIZE"]:format(n) } end
 	f.size:SetChoices(sizes)
@@ -375,32 +375,32 @@ function View:Build(f)
 	local x = 200
 	for _, role in ipairs(ns.Composition.ROLES) do
 		label(f.target, L["SEASON_FIELD_" .. role:upper()], x, 0)
-		local box = Widgets.EditBox(f.target, { width = 40, height = 28, maxLetters = 2 })
+		local box = Widgets.EditBox(f.target, { width = 40, dense = true, maxLetters = 2 })
 		box:SetPoint("TOPLEFT", f.target, "TOPLEFT", x + 58, 0)
 		f.counts[role] = box
 		x = x + 106
 	end
-	f.setTarget = Widgets.Button(f.target, { text = L["SEASON_TARGET_BUTTON"], style = "secondary", height = 28,
+	f.setTarget = Widgets.Button(f.target, { text = L["SEASON_TARGET_BUTTON"], style = "tonal", dense = true,
 		onClick = function() View:SetTarget() end })
 	f.setTarget:SetPoint("TOPLEFT", f.target, "TOPLEFT", x, 0)
 
 	-- the own declaration
 	f.form = CreateFrame("Frame", nil, f)
 	f.form:SetPoint("RIGHT", f, "RIGHT", 0, 0)
-	f.form:SetHeight(72)
+	f.form:SetHeight(80)
 	label(f.form, L["SEASON_MS1"], 0, 0)
 	f.ms1, f.ms1role = pair(f.form, 40, 0, false, "ms1")
 	label(f.form, L["SEASON_MS2"], 270, 0)
 	f.ms2, f.ms2role = pair(f.form, 310, 0, true, "ms2")
 	label(f.form, L["SEASON_OS"], 540, 0)
 	f.os, f.osrole = pair(f.form, 570, 0, true, "os")
-	f.note = Widgets.EditBox(f.form, { width = 300, height = 28, maxLetters = ns.Season.NOTE_MAX, placeholder = L["SEASON_NOTE_HINT"] })
-	f.note:SetPoint("TOPLEFT", f.form, "TOPLEFT", 0, -38)
-	f.unsure = Widgets.Button(f.form, { text = L["SEASON_UNSURE_BUTTON"], style = "secondary", height = 28, onClick = function() View:Save(true) end })
+	f.note = Widgets.EditBox(f.form, { width = 300, dense = true, maxLetters = ns.Season.NOTE_MAX, placeholder = L["SEASON_NOTE_HINT"] })
+	f.note:SetPoint("TOPLEFT", f.form, "TOPLEFT", 0, -44)
+	f.unsure = Widgets.Button(f.form, { text = L["SEASON_UNSURE_BUTTON"], style = "outlined", dense = true, onClick = function() View:Save(true) end })
 	f.unsure:SetPoint("LEFT", f.note, "RIGHT", 8, 0)
-	f.save = Widgets.Button(f.form, { text = L["SEASON_SAVE"], style = "primary", height = 28, onClick = function() View:Save(false) end })
+	f.save = Widgets.Button(f.form, { text = L["SEASON_SAVE"], style = "filled", dense = true, onClick = function() View:Save(false) end })
 	f.save:SetPoint("LEFT", f.unsure, "RIGHT", 8, 0)
-	f.saveNote = Widgets.Button(f.form, { text = L["SEASON_SAVE_NOTE"], style = "secondary", height = 28, onClick = function() View:SaveNote() end })
+	f.saveNote = Widgets.Button(f.form, { text = L["SEASON_SAVE_NOTE"], style = "text", dense = true, onClick = function() View:SaveNote() end })
 	f.saveNote:SetPoint("LEFT", f.save, "RIGHT", 8, 0)
 	f.message = Widgets.Text(f, "Small", "text-3", "LEFT")
 
@@ -545,7 +545,7 @@ function View:Redraw()
 	f.picker:SetShown(m.raid ~= "fdcp" and #choices > 0)
 	f.open:SetShown(m.fdcp ~= nil and m.fdcp.level ~= nil)
 
-	local y = -40
+	local y = -44
 	local officer = m.raid ~= "fdcp" and m.canOpen
 	f.officer:SetShown(officer)
 	if officer then f.closeSeason:SetShown(m.current ~= nil) end
@@ -559,7 +559,7 @@ function View:Redraw()
 	else
 		f.recruit:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, y)
 	end
-	if officer or m.canExport or m.canRecruit then y = y - 40 end
+	if officer or m.canExport or m.canRecruit then y = y - 44 end
 	f.target:SetShown(m.canSetTarget)
 	if m.canSetTarget then
 		f.target:ClearAllPoints()
@@ -573,7 +573,7 @@ function View:Redraw()
 			f.size:Select(tostring(t and t.size or 40), true)
 			for role, box in pairs(f.counts) do box:SetText(t and tostring(t[role]) or "") end
 		end
-		y = y - 40
+		y = y - 44
 	end
 	local own = m.own
 	local declare = m.raid ~= "fdcp" and m.isCurrent and m.canDeclare == true
@@ -601,7 +601,7 @@ function View:Redraw()
 			f.save:SetLabel(L["SEASON_SAVE"])
 			f.unsure:SetLabel(L["SEASON_UNSURE_BUTTON"])
 		end
-		y = y - 76
+		y = y - 84
 	end
 	self.painting = false
 	f.message:ClearAllPoints()

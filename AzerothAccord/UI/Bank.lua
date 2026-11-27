@@ -22,7 +22,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 local concat, sort = table.concat, table.sort
 
-View.ROW_HEIGHT = 28
+View.ROW_HEIGHT = 36
 View.TOOLBAR_HEIGHT = 40
 View.DEFAULT_ROWS = 12
 View.WHEEL_STEP = 3
@@ -209,7 +209,6 @@ local function newSlot(grid, i)
 	b.count = Widgets.Text(b, "MonoSmall", "text-1", "RIGHT", "OVERLAY")
 	b.count:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -3, 3)
 	b:SetScript("OnEnter", function(self)
-		Theme.Tint(self.ring, "accent")
 		local d = self.data
 		if not (d and GameTooltip) then return end
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -219,17 +218,18 @@ local function newSlot(grid, i)
 		end
 		GameTooltip:Show()
 	end)
-	b:SetScript("OnLeave", function(self)
-		Theme.Tint(self.ring, "border-subtle")
+	b:SetScript("OnLeave", function()
 		if GameTooltip then GameTooltip:Hide() end
 	end)
+	-- the hover of a slot: a state layer over the icon (hooked after the scripts above)
+	b.over = Widgets.TrackState(b, Widgets.StateLayer(b, "text-1", { shape = "small", layer = "OVERLAY", fade = false }))
 	grid.slots[i] = b
 	return b
 end
 
 function tabs.build(f)
 	-- the tabs of the bank: an underline bar would compete with the panel's own tabs, so they are chips
-	f.bar = Widgets.ChipRow(f, function(id) View.tab = id; View:Redraw() end, { height = 26 })
+	f.bar = Widgets.ChipRow(f, function(id) View.tab = id; View:Redraw() end)
 	f.bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.bar:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.info = Widgets.Text(f, "MonoSmall", "text-3", "LEFT")
@@ -342,13 +342,13 @@ end
 -- The header of the item list, in the look of the DataTable's (surface-2, Th, text-3), over the same columns as the rows.
 local function itemsHeader(f)
 	local head = CreateFrame("Frame", nil, f)
-	head:SetHeight(28)
+	head:SetHeight(32)
 	head:SetPoint("TOPLEFT", f.explain, "BOTTOMLEFT", -4, -8)
 	head:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	head.fill = Theme.Slice(head, "rr_fill_8", "surface-2", "BACKGROUND")
 	head.fill:SetAllPoints(head)
 	local function label(text, x, width, justify)
-		local fs = Widgets.Text(head, "Th", "text-3", justify or "LEFT")
+		local fs = Widgets.Text(head, "label-medium", "text-3", justify or "LEFT")
 		fs:SetPoint("LEFT", head, "LEFT", x, 0)
 		fs:SetWidth(width)
 		fs:SetText(text:upper())
@@ -423,7 +423,7 @@ function View:Build(f)
 	f.card = CreateFrame("Frame", nil, f)
 	f.card:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOOLBAR_HEIGHT)
 	f.card:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
-	f.card.parts = Theme.Panel(f.card, { radius = 12, fill = "surface-1", border = "border-subtle" })
+	f.card.parts = Theme.Panel(f.card, { radius = "medium", fill = "surface-1", border = false })
 	f.body = CreateFrame("Frame", nil, f.card)
 	f.body:SetPoint("TOPLEFT", f.card, "TOPLEFT", View.CARD_PAD, -View.CARD_PAD)
 	f.body:SetPoint("BOTTOMRIGHT", f.card, "BOTTOMRIGHT", -View.CARD_PAD, View.CARD_PAD)

@@ -13,8 +13,8 @@ Apri la finestra della gilda (tasto predefinito `J`). Sotto le quattro schede de
 *Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
 
 - Cliccarla apre la **finestra di Accord** al posto della finestra della gilda, che si chiude: la finestra della gilda è troppo piccola per le tabelle più larghe di Accord. La finestra di Accord si sposta, si ridimensiona e ricorda dove l'hai messa. *Impostazioni → Apri Accord dentro la finestra della gilda* riporta il pannello descritto qui sotto.
-- Con quell'impostazione accesa, cliccarla mostra il pannello di Accord sopra la finestra della gilda (anche sopra la sua lista delle comunità), nei colori del tema, e finché è aperto **anche la finestra intorno ha il tema**: una cornice tematica con il nome della tua gilda, una croce tematica e le cinque schede a lato come tessere arrotondate (quella aperta ha il colore d'accento). Cliccare una qualsiasi scheda del gioco rimette l'aspetto del gioco e torna al suo contenuto; chiudere la finestra chiude il pannello.
-- Quando ci sono richieste alla banca che aspettano gli ufficiali, la scheda porta un piccolo segno rotondo con il loro numero.
+- Con quell'impostazione accesa, cliccarla mostra il pannello di Accord sopra la finestra della gilda (anche sopra la sua lista delle comunità), nei colori del tema, e finché è aperto **anche la finestra intorno ha il tema**: una cornice tematica con il nome della tua gilda, una croce tematica e le cinque schede a lato come tessere arrotondate (quella aperta ha una tessera piena di un colore tenue). Cliccare una qualsiasi scheda del gioco rimette l'aspetto del gioco e torna al suo contenuto; chiudere la finestra chiude il pannello.
+- Quando ci sono richieste alla banca che aspettano gli ufficiali, la scheda porta un piccolo distintivo rosso con il loro numero.
 - La scheda si vede solo quando la tua **gilda** è la comunità selezionata, e non nella finestra piccola (ridotta) della gilda.
 - Il pannello non ha nulla di protetto: si apre e si chiude anche in combattimento e non cambia mai come funzionano le schede del gioco: l'addon rende soltanto trasparente la grafica della finestra del gioco finché il pannello è aperto e la rimette dopo.
 - Se un aggiornamento del gioco cambia la finestra della gilda al punto che la scheda non si può collocare, la scheda semplicemente non compare: usa `/accord` per la finestra autonoma, e `/accord debug` dice perché.
@@ -29,6 +29,16 @@ Apri la finestra della gilda (tasto predefinito `J`). Sotto le quattro schede de
 - **Dalla `v0.10.0`**: le viste [[Season|Season-Roster-it]], [[Eventi|Events-it]] e [[Disponibilità|Availability-it]].
 - **Dalla `v0.11.0`**: le viste [[Raid|Raid-and-Loot-Addons-it]] e [[Manuale|Guild-Handbook-it]].
 - **Le viste del primo rilascio, `v0.8.0`**: **Roster**, **Professioni**, **Reputazione**, **Banca**, **Impostazioni**. La vista **Roster** arriva con la versione del roster e la vista **Impostazioni** (vedi [[Impostazioni|Settings-it]]; la stessa pagina è nella finestra delle impostazioni del gioco) con la versione di rilascio; vedi [[Roster di gilda|Guild-Roster-it]]. La vista **Professioni** (l'elenco delle ricette di un membro, aperto dal roster) arriva con la versione delle professioni; vedi [[Professioni e ricette|Professions-and-Recipes-it]]. La vista **Reputazione** (i like, una riga per giocatore ordinata per like, con il pulsante Like; il tuo indice sociale; la mappa dei gruppi per gli ufficiali; *Qualcuno di nuovo* con cui giocare) arriva con la versione della reputazione; vedi [[Like e indice sociale|Likes-and-Social-Index-it]]. La vista **Banca** (la banca di gilda scheda per scheda, il suo denaro, un elenco di oggetti con ricerca) arriva con la versione della banca (gli ufficiali vedono sulla scheda anche il numero di richieste in attesa); vedi [[Banca di gilda|Guild-Bank-it]]. Gli ufficiali hanno anche la scheda **Ufficiali**, con i giocatori inattivi e la cronologia del roster (vedi [[Roster di gilda|Guild-Roster-it]]).
+
+## Pulsanti, filtri e righe
+
+I controlli hanno lo stesso aspetto e lo stesso comportamento in ogni vista (le regole di Material 3 di Google, disegnate con i temi di Accord):
+
+- **Pulsanti**: l'unico pulsante **pieno**, nel colore d'accento del tema, è l'azione principale di una vista o di una finestra (per esempio *Salva* o *Invia richiesta*); gli altri sono tenuemente pieni, contornati o di solo testo.
+- I **filtri** sono riquadri arrotondati da accendere e spegnere: un filtro acceso è pieno e mostra una **spunta** (*Online*, *Solo main*, le modalità della Banca).
+- Una scelta tra poche voci (il tema, le pagine di una vista) è una fila di pulsanti uniti, quello scelto pieno e con la spunta.
+- La **riga scelta** di un elenco (il membro di cui è aperta la scheda, il gruppo o la pagina del manuale scelti) è riempita dello stesso colore tenue.
+- Il puntatore sopra un controllo lo ombreggia leggermente; un controllo che ora non si può usare è sbiadito.
 
 ## I temi
 

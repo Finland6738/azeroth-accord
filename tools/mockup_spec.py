@@ -9,7 +9,7 @@ import mockup_lib as lib
 import mockup_scenes as s1
 import mockup_scenes2 as s2
 
-SWATCH_TOKENS = ["bg", "surface-1", "surface-2", "surface-3", "raised", "text-1", "text-3", "accent", "accent-2", "neon", "ok", "warn", "err"]
+SWATCH_TOKENS = ["bg", "surface-1", "surface-2", "surface-3", "raised", "text-1", "text-3", "accent", "secondary-container", "accent-2", "neon", "ok", "warn", "err"]
 
 
 def design_system():
@@ -36,15 +36,15 @@ def design_system():
           <div style="font:600 14px/1 var(--body);margin-top:10px">Titles · Outfit SemiBold</div><div style="margin-top:8px">Body text · Outfit 13</div>
           <div class="small muted" style="margin-top:6px">Small and secondary text</div><div class="mono small" style="margin-top:6px">Numbers and reports · JetBrains Mono</div>
           <div class="eyebrow" style="margin-top:18px">Buttons and pills</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">{btn("Primary", "primary")}{btn("Secondary")}{btn("Ghost", "ghost")}{btn("Neon", "neon")}</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">{btn("Filled", "filled", dense=True)}{btn("Tonal", dense=True)}{btn("Outlined", "outlined", dense=True)}{btn("Text", "text", dense=True)}</div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px">{chip("Chip")}{chip("Selected", "sel")}{select("Select", 110)}{switch(True)}{switch(False)}</div>
-          <div style="display:flex;gap:8px;align-items:center;margin-top:10px">{pill("accent", "accent")}{pill("ok", "ok")}{pill("warn", "warn")}{pill("err", "err")}{pill("neutral")}</div>
-          <div style="margin-top:10px">{seg(["Segmented", "Pill", "Row"], 1)}</div><div style="margin-top:10px">{search("search text", 190)} {edit("typed text", 150)}</div></div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px">{pill("accent", "accent")}{pill("ok", "ok")}{pill("warn", "warn")}{pill("3", "err")}{pill("neutral")}</div>
+          <div style="margin-top:10px">{seg(["Segmented", "Buttons", "Row"], 1)}</div><div style="margin-top:10px">{search("search text", 190)} {edit("typed text", 150)}</div></div>
         <div style="width:380px"><div class="eyebrow">Class squares</div><div style="line-height:2;margin-top:6px">{classes}</div>
           <div class="eyebrow" style="margin-top:14px">Bank slots and coins</div><div style="display:flex;gap:4px;margin-top:8px">{slots}</div><div style="margin-top:8px">{coins(1284560)}</div>
           <div class="eyebrow" style="margin-top:16px">Table</div><div style="margin-top:8px">{sample}</div></div>
         <div style="position:relative;width:170px"><div class="eyebrow">Menu</div><div class="menu" style="position:static;width:170px;margin-top:10px">
-          <div class="on">Online</div><div>Mains only</div><div class="on">Alchemy</div><div class="head">Class</div></div></div></div></div>'''
+          <div class="head">Class</div><div class="on">All classes</div><div>Mage</div><div>Rogue</div></div></div></div></div>'''
 
 
 def _page(body, theme="nebula"):
@@ -65,6 +65,6 @@ def pages():
                                   legend(["The member: class square, name, level, class and badges (online, main, addon)", "Details", "Professions and the source of each (the game or the member's addon)",
                                           "Every character of the same account", "Contacts: a click copies; Add BattleTag friend", "A long card scrolls with the mouse wheel: likes (one per player, irreversible) and the social index come after"], left=True))
     out["03-bank-requests"] = _page(s2.s_bank_requests() + "".join([callout(1, 24, 128), callout(2, 1066, 150), callout(3, 316, 322), callout(4, 900, 359), callout(5, 668, 359), callout(6, 362, 44)]) +
-                                    legend(["Bank modes as pills: Tabs, Items, Log, Donations, Money, Requests, Inbox", "The form in a card: kind, item from the bank, how many, tip, reason, Send", "Filters: only mine, closed ones too",
+                                    legend(["Bank modes as filter chips: Tabs, Items, Log, Donations, Money, Requests, Inbox", "The form in a card: kind, item from the bank, how many, tip, reason, Send", "Filters: only mine, closed ones too",
                                             "Every request of the guild, newest first", "Status: Open, Approved, Rejected, Fulfilled, Cancelled", "The count of requests waiting, on the tab"]))
     return out

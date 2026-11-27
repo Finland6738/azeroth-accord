@@ -19,7 +19,7 @@ ns.modules.SocialUI = UI
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
-UI.ROW_HEIGHT = 22
+UI.ROW_HEIGHT = 32
 UI.LIST_MAX = 400
 
 local function hours(minutes)

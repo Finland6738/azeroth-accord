@@ -366,7 +366,7 @@ describe("the frame", function()
 		falsy(Card():IsShown())
 		isNil(V().selected)
 		eq(V().inset, 0)
-		for _, r in ipairs(V().frame.table.rows) do falsy(r.selected:IsShown() and r.data.entry.guid == BOB) end
+		for _, r in ipairs(V().frame.table.rows) do falsy(r.selection:IsShown() and r.data.entry.guid == BOB) end
 	end)
 
 	it("follows the data while open and closes when the member leaves the roster", function()

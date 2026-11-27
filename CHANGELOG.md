@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **Material 3 views** (M12.8, [ADR 0027](docs/adr/0027-material-3-rules-adapted-to-accord.md), ui-style §9). Every view and dialog uses the right component, and the pictures are redrawn. **Not checked in the real game.**
+  - At most **one filled button** per view or dialog (*Save*, *Sign up*, *Apply*, *Send request*...); the others are tonal, outlined or text. The old style names are gone from the widget kit.
+  - Controls have three heights: 40 in dialogs and pages, 36 in toolbars and form lines, 32 inside a list row; chips are 32. Table and list rows are 32 (36 when they hold a button).
+  - The **selected row** is `secondary-container` everywhere (Roster, Groups, Guild addons, Handbook and its revisions, the request opened from the Action Center, the line-up); the accent stripe and tint are gone.
+  - Dialog titles and margins, multi-line fields, wrapping rows of chips, the on-screen notice (a snackbar), the bank's slots (a state layer instead of an accent ring) and the guild window's side tabs (no glow; the open one is tonal; the count is the red badge) follow §9. The arrows of the handbook are icon buttons.
+  - The design previews, the annotated pages, the comparison sheet and the manual show the new look.
+
 - **Material 3 components** (M12.7, [ADR 0027](docs/adr/0027-material-3-rules-adapted-to-accord.md), ui-style §9.6). The widget kit and the member card are measured and coloured as Material 3 says; the views get their pass in M12.8.
   - **Tabs**: 48 points, a 3-point indicator with round top corners under the open tab's name and icon, a divider under the bar; no box, no tint and no glow (this replaces the boxed tabs). Counts on tabs are red badges.
   - **Buttons**: filled, tonal, outlined and text, 40 points with the full shape, flat (the filled one keeps the accent glow); the old names `primary`, `secondary`, `ghost` and `neon` are aliases. New icon buttons (40, or 32), used by the close buttons.

@@ -12,14 +12,10 @@ Box.NAME = "AzerothAccordCopyBox"
 Box.WIDTH, Box.HEIGHT = 380, 196
 Box.WHEEL_STEP = 40
 
--- A multi-line edit box in a surface-2 field that scrolls with the wheel: returns the field (the caller places it), the
+-- A multi-line edit box in the look of a text field (Widgets.TextArea) that scrolls with the wheel: returns the field (the caller places it), the
 -- scroll frame and the edit box. The edit box has no limit of letters; the caller sets the scripts and checks the length.
 function Box.Area(parent, width)
-	local field = CreateFrame("Frame", nil, parent)
-	field.fill = Theme.Slice(field, "rr_fill_8", "surface-2", "BACKGROUND")
-	field.fill:SetAllPoints(field)
-	field.ring = Theme.Slice(field, "rr_ring_8", "border", "BORDER")
-	field.ring:SetAllPoints(field)
+	local field = Widgets.TextArea(parent)
 	local scroll = CreateFrame("ScrollFrame", nil, field)
 	scroll:SetPoint("TOPLEFT", field, "TOPLEFT", 10, -8)
 	scroll:SetPoint("BOTTOMRIGHT", field, "BOTTOMRIGHT", -10, 8)
@@ -37,6 +33,7 @@ function Box.Area(parent, width)
 	Theme.Text(edit, "text-1")
 	edit:SetWidth(width)
 	scroll:SetScrollChild(edit)
+	field:Track(edit)   -- the focus ring (hooked: a caller hooks its own focus scripts too, a SetScript would drop these)
 	return field, scroll, edit
 end
 
@@ -45,16 +42,13 @@ end
 local function build()
 	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
-	f.title = Theme.NewText(card, "H2", "text-1")
-	f.title:SetJustifyH("LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
-	f.title:SetPoint("RIGHT", card, "RIGHT", -24, 0)
+	f:SetTitle("")
 	f.hint = Theme.NewText(card, "Small", "text-3")
 	f.hint:SetJustifyH("LEFT")
 	f.hint:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
 	f.hint:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	f.hint:SetText(L["COPY_HINT"])
-	f.field = Widgets.EditBox(card, { width = Box.WIDTH - 48, height = 32, maxLetters = 64 })
+	f.field = Widgets.EditBox(card, { width = Box.WIDTH - 48, maxLetters = 64 })
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -76)
 	local edit = f.field.edit
 	-- read-only: what the player types is undone at once and the text stays selected
@@ -67,8 +61,8 @@ local function build()
 	edit:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:HookScript("OnEscapePressed", function() Box:Hide() end)
 	f.edit = edit
-	f.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "secondary", onClick = function() Box:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
+	f.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "tonal", onClick = function() Box:Hide() end })
+	f:SetActions({ f.close })
 	return f
 end
 

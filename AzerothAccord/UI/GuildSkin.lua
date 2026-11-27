@@ -89,9 +89,8 @@ local function newTile(cf, tab, own, always)
 	tile.fill:SetAllPoints(tile)
 	tile.ring = Theme.Slice(tile, "rr_ring_12", "border", "BORDER")
 	tile.ring:SetAllPoints(tile)
-	tile.glow = Theme.Glow(tile, "glow_s", "accent", { layer = "BACKGROUND", alpha = 0.35 })
-	tile.glow:SetPoint("CENTER", tile, "CENTER", 0, 0)
-	tile.glow:SetSize(GuildSkin.TILE + 28, GuildSkin.TILE + 28)
+	-- the hover is a state layer; the tile of the selected tab is secondary-container, with no glow (§9)
+	tile.over = ns.Widgets.StateLayer(tile, "text-1", { shape = "medium", layer = "BORDER", fade = false })
 	tile.tab, tile.own, tile.always = tab, own and true or false, always and true or false
 	function tile:Paint()
 		local ok, c = call(self.tab, "GetChecked")
@@ -99,9 +98,11 @@ local function newTile(cf, tab, own, always)
 		-- while the Accord panel is open the Blizzard tab that was checked under it is not the selected one
 		if checked and not self.own and GuildSkin.active then checked = false end
 		self.checked = checked
-		Theme.Tint(self.fill, checked and "raised" or "surface-2", 1)
-		Theme.Tint(self.ring, checked and "accent" or (self.hot and "border-strong" or "border"))
-		Theme.GlowShow(self.glow, checked)
+		Theme.Tint(self.fill, checked and "secondary-container" or "surface-2")
+		Theme.Tint(self.ring, "border")
+		self.ring:SetShown(not checked)
+		ns.Widgets.SetStateColor(self.over, checked and "on-secondary-container" or "text-1")
+		ns.Widgets.SetState(self.over, self.hot and "hover" or nil)
 	end
 	function tile:Update()
 		if not self.always then

@@ -85,7 +85,7 @@ end
 --   onSort(key, desc) (told when a header is clicked) }
 -- A header row over the columns, in the DataTable's look: a click on a title sorts by that column, a second click reverses;
 -- the sorted title is in accent-text with an arrow (owner, 2026-11-27: headers that sort instead of sorting buttons).
-local HEAD_H = 28
+local HEAD_H = 32
 local function sortRows(rows, def, key, desc)
 	local col
 	for _, c in ipairs(def.columns) do if c.key == key then col = c end end
@@ -132,7 +132,7 @@ local function listMode(def)
 			b:SetHeight(HEAD_H)
 			b:SetPoint("LEFT", head, "LEFT", x, 0)
 			if c.width then b:SetWidth(c.width) else b:SetPoint("RIGHT", head, "RIGHT", -4, 0) end
-			b.label = Widgets.Text(b, "Th", "text-3", c.justify or "LEFT")
+			b.label = Widgets.Text(b, "label-medium", "text-3", c.justify or "LEFT")
 			b.label:SetAllPoints(b)
 			b.label:SetText((c.title or ""):upper())
 			b.arrow = b:CreateTexture(nil, "OVERLAY")
@@ -265,7 +265,7 @@ View.AddMode("log", { label = L["BANK_MODE_LOG"], order = 30, build = logMode.bu
 -- A row of chips for one choice of the mode (the period, the order): f.picks[key] = { buttons, get, labels, bar }.
 local function pickRow(f, key, labels, get, set, anchor, dx)
 	f.picks = f.picks or {}
-	local bar = Widgets.ChipRow(f, function(id) set(id); View:Redraw() end, { height = 26 })
+	local bar = Widgets.ChipRow(f, function(id) set(id); View:Redraw() end)
 	if anchor then bar:SetPoint("LEFT", anchor, "RIGHT", dx or 24, 0) else bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0) end
 	local items = {}
 	for i, item in ipairs(labels) do items[i] = { id = item[1], text = item[2] } end
@@ -285,7 +285,7 @@ local donationMode = listMode({
 		-- the period is a choice of what to count, so it stays as chips; the order is the headers' (2026-11-27)
 		pickRow(f, "window", { { "d30", L["BANKLOG_D30"] }, { "d365", L["BANKLOG_D365"] }, { "all", L["BANKLOG_ALL"] } },
 			function() return Mode.window end, function(v) Mode.window = v View.offset = 0 end)
-		return 36
+		return 40
 	end,
 	beforeRefresh = refreshPicks,
 	columns = {

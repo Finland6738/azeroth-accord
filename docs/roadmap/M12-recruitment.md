@@ -78,7 +78,7 @@
   - every view uses the right component: one filled button per view, filters as chips, the selected row in `secondary-container`;
   - the design previews (ui-style §8), README images and the wiki pages (EN and IT) are redrawn.
 - Done when:
-  - [ ] No view uses a token or a size outside ui-style §9; the previews show the new look.
+  - [x] No view uses a token or a size outside ui-style §9; the previews show the new look.
 
 ### M12.9 — In-game check and release
 - Branch: `step/m12-9-check`

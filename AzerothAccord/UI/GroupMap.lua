@@ -65,7 +65,7 @@ function mode.build(f)
 	f.canvas:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.canvas:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.canvas:SetHeight(220)
-	f.canvas.parts = Theme.Panel(f.canvas, { radius = 12, fill = "surface-1", border = "border-subtle", highlight = true })
+	f.canvas.parts = Theme.Panel(f.canvas, { radius = "medium", fill = "surface-1", border = false, highlight = true })
 	f.canvas.dots, f.canvas.labels = {}, {}
 	f.list = CreateFrame("Frame", nil, f)
 	f.list:SetPoint("TOPLEFT", f.canvas, "BOTTOMLEFT", 4, -10)

@@ -19,9 +19,9 @@ local type, ipairs, pairs, tostring = type, ipairs, pairs, tostring
 local max = math.max
 
 View.PAGER_HEIGHT = 44
-View.CHIP_HEIGHT = 24
-View.ROW = 34                 -- a line of the form
-View.DETAIL_HEIGHT = 118
+View.CHIP_HEIGHT = Widgets.HEIGHT.small
+View.ROW = 44                 -- a line of the form
+View.DETAIL_HEIGHT = 126
 View.TICK = 30                -- the ages and the time left move on while the view shows
 View.CONFIRM_SECONDS = 8
 View.GAME_WIDTH = 240         -- the button of the game's Group Finder on My group (M9.8)
@@ -44,31 +44,29 @@ local function showStatus(fs, status)
 end
 
 -- Chips placed left to right, wrapping at the width of `bar`; each one is on or off by itself. Returns the height used.
+-- (Widgets.Flow: a selected chip is wider by its check, and every redraw places them again.)
 local function flowChips(bar, items, onClick)
 	bar.buttons = bar.buttons or {}
 	local width = bar:GetWidth() or 0
 	if width < 100 then width = 700 end
-	local x, y = 0, 0
+	local shown = {}
 	for i, item in ipairs(items) do
 		local c = bar.buttons[i]
 		if not c then
-			c = Widgets.Chip(bar, { height = View.CHIP_HEIGHT, onClick = function(chip) bar.click(chip.id) end })
+			c = Widgets.Chip(bar, { onClick = function(chip) bar.click(chip.id) end })
 			bar.buttons[i] = c
 		end
 		c.id = item.id
 		c:SetLabel(item.text)
 		c:SetSelected(item.on)
-		local w = c:GetWidth()
-		if x > 0 and x + w > width then x, y = 0, y + View.CHIP_HEIGHT + 4 end
-		c:ClearAllPoints()
-		c:SetPoint("TOPLEFT", bar, "TOPLEFT", x, -y)
-		x = x + w + 6
 		c:Show()
+		shown[i] = c
 	end
 	for i = #items + 1, #bar.buttons do bar.buttons[i]:Hide() end
 	bar.click = onClick
-	bar:SetHeight(y + View.CHIP_HEIGHT)
-	return y + View.CHIP_HEIGHT
+	local height = math.max(View.CHIP_HEIGHT, Widgets.Flow(bar, shown, width, View.CHIP_HEIGHT))
+	bar:SetHeight(height)
+	return height
 end
 
 local function oneLine(fs)
@@ -117,22 +115,22 @@ local function buildDetail(f, self)
 	d.title:SetPoint("RIGHT", d, "RIGHT", -304, 0)   -- the state of the application sits at its right
 	d.info = line("Small", "text-2", -32)
 	d.note = line("Small", "text-3", -50)
-	d.roles = Widgets.ChipRow(d, function(id) self.role = id end, { height = 24, gap = 6 })
+	d.roles = Widgets.ChipRow(d, function(id) self.role = id end)
 	d.roles:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 14, 12)
-	d.roles:SetSize(240, 24)
-	d.comment = Widgets.EditBox(d, { width = 200, height = 28, maxLetters = ns.Groups.MAX_COMMENT, placeholder = L["GRP_COMMENT"] })
+	d.roles:SetSize(240, Widgets.HEIGHT.small)
+	d.comment = Widgets.EditBox(d, { width = 200, dense = true, maxLetters = ns.Groups.MAX_COMMENT, placeholder = L["GRP_COMMENT"] })
 	d.comment:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 262, 10)
-	d.apply = Widgets.Button(d, { text = L["GRP_APPLY"], style = "primary", height = 28, width = 110, onClick = function()
+	d.apply = Widgets.Button(d, { text = L["GRP_APPLY"], style = "filled", dense = true, width = 110, onClick = function()
 		say(self, "list", model().Apply(self.selected, self.role, d.comment:GetText()))
 		self:Redraw()
 	end })
 	d.apply:SetPoint("BOTTOMLEFT", d.comment, "BOTTOMRIGHT", 8, 0)
-	d.withdraw = Widgets.Button(d, { text = L["GRP_WITHDRAW"], style = "secondary", height = 28, width = 110, onClick = function()
+	d.withdraw = Widgets.Button(d, { text = L["GRP_WITHDRAW"], style = "outlined", dense = true, width = 110, onClick = function()
 		say(self, "list", model().Withdraw(self.selected))
 		self:Redraw()
 	end })
 	d.withdraw:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 14, 10)
-	d.manage = Widgets.Button(d, { text = L["GRP_MANAGE"], style = "secondary", height = 28, width = 160,
+	d.manage = Widgets.Button(d, { text = L["GRP_MANAGE"], style = "tonal", dense = true, width = 160,
 		onClick = function() self:ShowPage("mine") end })
 	d.manage:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 14, 10)
 	d.status = oneLine(Widgets.Text(d, "Small", "text-3", "RIGHT"))
@@ -151,7 +149,7 @@ local function placeList(f)
 	f.roles:ClearAllPoints()
 	f.roles:SetPoint("LEFT", f.fits, "RIGHT", 16, 0)
 	f.table:ClearAllPoints()
-	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top - 36)
+	f.table:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -top - 40)
 	f.table:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, f.detail:IsShown() and View.DETAIL_HEIGHT + 8 or 0)
 end
 
@@ -171,7 +169,7 @@ local function buildList(f, self)
 		model().SetActivity(id)
 		self:Redraw()
 	end })
-	f.fits = Widgets.Chip(f, { text = L["GRP_FITS"], height = 28, onClick = function()
+	f.fits = Widgets.Chip(f, { text = L["GRP_FITS"], onClick = function()
 		model().SetFits(not model().Filter().fits)
 		self:Redraw()
 	end })
@@ -180,14 +178,10 @@ local function buildList(f, self)
 	f.detail = buildDetail(f, self)
 	f.table = Widgets.DataTable(f, listColumns(), { emptyText = L["GRP_EMPTY"],
 		onRowClick = function(row) self:Choose(row.id) end,
+		isSelected = function(data) return data.id == self.selected end,
 		rowSetup = function(row)
-			row.mark = row:CreateTexture(nil, "BACKGROUND")
-			Theme.Fill(row.mark, "accent", 0.16)
-			row.mark:SetAllPoints(row)
-			row.mark:Hide()
 			Widgets.Tooltip.Attach(row, function(r) return r.data and model().TipLines(r.data) or nil end, "LEFT")
-		end,
-		rowUpdate = function(row, data) row.mark:SetShown(data.id == self.selected) end })
+		end })
 	placeList(f)
 end
 
@@ -289,19 +283,21 @@ end
 local function buildForm(f, self)
 	local function label(key, x, row)
 		local fs = oneLine(Widgets.Text(f, "Small", "text-3", "LEFT"))
-		fs:SetPoint("TOPLEFT", f, "TOPLEFT", x, -(row - 1) * View.ROW - 8)
+		fs:SetPoint("TOPLEFT", f, "TOPLEFT", x, -(row - 1) * View.ROW - 13)
 		fs:SetText(L[key])
 		return fs
 	end
 	local function place(region, x, row)
-		region:SetPoint("TOPLEFT", f, "TOPLEFT", x, -(row - 1) * View.ROW - 2)
+		-- by the middle of the line: a select is 32 high, a field 36
+		local inset = math.floor((View.ROW - 4 - (region:GetHeight() or 36)) / 2)
+		region:SetPoint("TOPLEFT", f, "TOPLEFT", x, -(row - 1) * View.ROW - inset)
 		return region
 	end
 	f.boxes = {}
 	local function box(key, labelKey, x, row, width, letters, labelWidth)
 		local fs = label(labelKey, x, row)
 		fs:SetWidth(labelWidth - 6)
-		f.boxes[key] = place(Widgets.EditBox(f, { width = width, height = 28, maxLetters = letters }), x + labelWidth, row)
+		f.boxes[key] = place(Widgets.EditBox(f, { width = width, dense = true, maxLetters = letters }), x + labelWidth, row)
 		return f.boxes[key]
 	end
 	local G = ns.Groups
@@ -325,7 +321,7 @@ local function buildForm(f, self)
 		for _, r in ipairs(ns.Groups.ROLES) do f.boxes[r]:SetText(v[r]) end
 		f.chosenDuration = old.duration
 	end }), 336, 1)
-	f.actText = place(Widgets.EditBox(f, { width = 270, height = 28, maxLetters = G.MAX_ACT }), 336, 1)
+	f.actText = place(Widgets.EditBox(f, { width = 270, dense = true, maxLetters = G.MAX_ACT }), 336, 1)
 
 	box("min", "GRP_FIELD_MIN", 0, 2, 50, 3, 90)
 	box("max", "GRP_FIELD_MAX", 150, 2, 50, 3, 80)
@@ -343,7 +339,7 @@ local function buildForm(f, self)
 	for i, s in ipairs(model().DURATIONS) do durations[i] = { id = s, text = model().LeftText(s) } end
 	f.duration = place(Widgets.Segmented(f, durations, function(s) f.chosenDuration = s end), 90, 6)
 
-	f.post = place(Widgets.Button(f, { text = L["GRP_POST"], style = "primary", height = 28, width = 210, onClick = function()
+	f.post = place(Widgets.Button(f, { text = L["GRP_POST"], style = "filled", dense = true, width = 210, onClick = function()
 		local ok, text, ask = model().Submit(formValues(f), f.armed)
 		if ask then
 			f.armed = true
@@ -356,12 +352,12 @@ local function buildForm(f, self)
 		if ask then self.status.form.token = "warn" end
 		self:Redraw()
 	end }), 90, 7)
-	f.update = Widgets.Button(f, { text = L["GRP_UPDATE"], style = "secondary", height = 28, width = 110, onClick = function()
+	f.update = Widgets.Button(f, { text = L["GRP_UPDATE"], style = "tonal", dense = true, width = 110, onClick = function()
 		say(self, "form", model().Update(formValues(f), f.original))
 		self:Redraw()
 	end })
 	f.update:SetPoint("LEFT", f.post, "RIGHT", 8, 0)
-	f.close = Widgets.Button(f, { text = L["GRP_CLOSE"], style = "ghost", height = 28, width = 110, onClick = function()
+	f.close = Widgets.Button(f, { text = L["GRP_CLOSE"], style = "outlined", dense = true, width = 110, onClick = function()
 		say(self, "form", model().Close())
 		self:Redraw()
 	end })
@@ -426,7 +422,7 @@ end
 
 local function applicantRow(self, row)
 	local function button(key, style, x, action)
-		local b = Widgets.Button(row, { text = L[key], style = style, height = 22, width = 80, onClick = function()
+		local b = Widgets.Button(row, { text = L[key], style = style, height = Widgets.HEIGHT.small, width = 80, onClick = function()
 			if not row.data then return end
 			say(self, "mine", model()[action](row.data.applicant))
 			self:Redraw()
@@ -434,8 +430,8 @@ local function applicantRow(self, row)
 		b:SetPoint("RIGHT", row, "RIGHT", x, 0)
 		return b
 	end
-	row.decline = button("GRP_DECLINE", "ghost", -8, "Decline")
-	row.accept = button("GRP_ACCEPT", "primary", -92, "Accept")
+	row.decline = button("GRP_DECLINE", "text", -8, "Decline")
+	row.accept = button("GRP_ACCEPT", "tonal", -92, "Accept")
 end
 
 local function buildMine(f, self)
@@ -445,13 +441,13 @@ local function buildMine(f, self)
 	f.info = oneLine(Widgets.Text(f, "Small", "text-2", "LEFT"))
 	f.info:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -26)
 	f.info:SetPoint("RIGHT", f, "RIGHT", -150, 0)
-	f.close = Widgets.Button(f, { text = L["GRP_CLOSE"], style = "secondary", height = 28, width = 140, onClick = function()
+	f.close = Widgets.Button(f, { text = L["GRP_CLOSE"], style = "outlined", dense = true, width = 140, onClick = function()
 		say(self, "mine", model().Close())
 		self:Redraw()
 	end })
 	f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -6)
 	-- M9.8: the game's Group Finder. Its OnClick is the only place that lists or removes there (SPEC-13 LFG-02).
-	f.game = Widgets.Button(f, { text = L["GRP_GAME_LIST"], style = "ghost", height = 28, width = View.GAME_WIDTH, onClick = function()
+	f.game = Widgets.Button(f, { text = L["GRP_GAME_LIST"], style = "tonal", dense = true, width = View.GAME_WIDTH, onClick = function()
 		local b = model().GameButton()
 		if not b then return end
 		say(self, "mine", model()[b.action]())
@@ -459,7 +455,7 @@ local function buildMine(f, self)
 	end })
 	f.game:SetPoint("RIGHT", f.close, "LEFT", -8, 0)
 	Widgets.Tooltip.Attach(f.game, function() local b = model().GameButton() return b and b.tip or nil end, "LEFT")
-	f.table = Widgets.DataTable(f, applicantColumns(), { emptyText = L["GRP_NO_APPLICANTS"],
+	f.table = Widgets.DataTable(f, applicantColumns(), { emptyText = L["GRP_NO_APPLICANTS"], rowHeight = 36,
 		rowSetup = function(row)
 			applicantRow(self, row)
 			Widgets.Tooltip.Attach(row, function(r)

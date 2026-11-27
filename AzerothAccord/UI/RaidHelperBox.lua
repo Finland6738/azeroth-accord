@@ -55,8 +55,7 @@ end
 local function build()
 	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
-	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	f:SetTitle("")
 	f.title:SetText(L["RH_BOX_TITLE"])
 	f.hint = Widgets.Text(card, "Small", "text-3", "LEFT")
 	f.hint:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
@@ -64,30 +63,30 @@ local function build()
 	f.hint:SetText(L["RH_BOX_HINT"])
 
 	local function edited() if not f.filling then Box:Stale() end end
-	f.eventTitle = Widgets.EditBox(card, { width = 400, height = 28, maxLetters = 64, placeholder = L["RH_BOX_NAME_HINT"], onChange = edited })
+	f.eventTitle = Widgets.EditBox(card, { width = 400, maxLetters = 64, placeholder = L["RH_BOX_NAME_HINT"], onChange = edited })
 	f.eventTitle:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -92)
-	f.when = Widgets.EditBox(card, { width = 184, height = 28, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"], onChange = edited })
+	f.when = Widgets.EditBox(card, { width = 184, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"], onChange = edited })
 	f.when:SetPoint("LEFT", f.eventTitle, "RIGHT", 8, 0)
 
 	local scroll, edit
 	f.field, scroll, edit = ns.CopyBox.Area(card, Box.WIDTH - 68)
-	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -128)
-	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 172)
+	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -140)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 176)
 	f.scroll, f.edit = scroll, edit
 	edit:SetScript("OnTextChanged", edited)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() Box:Hide() end)
 
 	f.status = Widgets.Text(card, "Small", "text-2", "LEFT")
-	f.status:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 24, 164)
-	f.status:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 64)
+	f.status:SetPoint("TOPLEFT", card, "BOTTOMLEFT", 24, 168)
+	f.status:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 72)
 	f.status:SetJustifyV("TOP")
 	f.status:SetWordWrap(true)
 
-	f.cancel = Widgets.Button(card, { text = L["BACKUP_CANCEL"], style = "secondary", width = 140, onClick = function() Box:Hide() end })
-	f.cancel:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
-	f.import = Widgets.Button(card, { text = L["RH_BOX_IMPORT"], style = "primary", width = 140, onClick = function() Box:Import() end })
-	f.import:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	f.check = Widgets.Button(card, { text = L["RH_BOX_CHECK"], style = "secondary", width = 140, onClick = function() Box:Check() end })
+	f.cancel = Widgets.Button(card, { text = L["BACKUP_CANCEL"], style = "outlined", width = 140, onClick = function() Box:Hide() end })
+	f.cancel:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
+	f.import = Widgets.Button(card, { text = L["RH_BOX_IMPORT"], style = "filled", width = 140, onClick = function() Box:Import() end })
+	f.import:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
+	f.check = Widgets.Button(card, { text = L["RH_BOX_CHECK"], style = "tonal", width = 140, onClick = function() Box:Check() end })
 	f.check:SetPoint("RIGHT", f.import, "LEFT", -8, 0)
 	f:HookScript("OnHide", function() Box:Forget() end)
 	return f

@@ -72,7 +72,7 @@ local function buildTitleBar(f)
 	bar:SetScript("OnDragStart", function() f:StartMoving() end)
 	bar:SetScript("OnDragStop", function() f:StopMovingOrSizing() savePosition(f) end)
 	-- Pop in, left of the close button, only while the guild window can take the panel (Window:UpdatePopIn)
-	bar.popIn = Widgets.Button(bar, { text = L["POP_IN"], style = "ghost", height = 28, onClick = function() ns.Shell:PopIn() end })
+	bar.popIn = Widgets.Button(bar, { text = L["POP_IN"], style = "text", dense = true, onClick = function() ns.Shell:PopIn() end })
 	bar.popIn:SetPoint("RIGHT", bar.close, "LEFT", -8, 0)
 	bar.popIn:Hide()
 	if Widgets.Tooltip then Widgets.Tooltip.Attach(bar.popIn, { L["POP_IN"], L["POP_IN_TIP"] }, "BOTTOM") end

@@ -99,7 +99,7 @@ end
 
 -- A copy box: shows `url`, selects it on focus, and puts it back when the player types in it.
 local function copyBox(parent, url)
-	local box = Widgets.EditBox(parent, { width = INNER, height = 32 })
+	local box = Widgets.EditBox(parent, { width = INNER })
 	box:SetText(url)
 	box.edit:HookScript("OnTextChanged", function(self, user)
 		if user and self:GetText() ~= url then self:SetText(url); self:HighlightText() end

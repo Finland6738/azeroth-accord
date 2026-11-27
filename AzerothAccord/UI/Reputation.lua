@@ -22,14 +22,14 @@ ns.modules.ReputationView = View
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
-View.ROW_HEIGHT = 28
-View.HEAD_HEIGHT = 28
+View.ROW_HEIGHT = 36
+View.HEAD_HEIGHT = 32
 View.TOOLBAR_HEIGHT = 40
 View.DEFAULT_ROWS = 14
 View.WHEEL_STEP = 3
 View.REFRESH_DELAY = 0.4
 View.LIKE_CONFIRM = 8          -- seconds a first click on [Like] waits for the second one
-View.HEART_WIDTH, View.CONFIRM_WIDTH = 36, 100   -- the Like button: a heart, then "Confirm" while armed
+View.HEART_WIDTH, View.CONFIRM_WIDTH = 32, 100   -- the Like button: a heart, then "Confirm" while armed
 
 View.modes = {}                -- id -> { id, label, order, available, build, refresh, frame }
 View.mode = "likes"
@@ -219,14 +219,14 @@ local function newRow(area, i)
 	row.total:SetPoint("LEFT", row.chars, "RIGHT", 6, 0)
 	row.total:SetWidth(50)
 	-- the Like button is a heart (owner, 2026-11-26); armed, it says "Confirm" until the second click
-	row.like = Widgets.Button(row, { text = "", style = "secondary", width = View.HEART_WIDTH, height = View.ROW_HEIGHT - 6,
+	row.like = Widgets.Button(row, { text = "", style = "tonal", width = View.HEART_WIDTH, height = Widgets.HEIGHT.small,
 		onClick = function(b) View:LikeClicked(b:GetParent().data.guid) end })
 	row.like.heart = row.like:CreateTexture(nil, "OVERLAY")
 	row.like.heart:SetTexture(ns.Assets.textures.icons.path)
 	row.like.heart:SetTexCoord(ns.Assets.IconCoords("heart"))
 	row.like.heart:SetSize(14, 14)
 	row.like.heart:SetPoint("CENTER", row.like, "CENTER", 0, 0)
-	Theme.Tint(row.like.heart, "accent")
+	Theme.Tint(row.like.heart, "on-secondary-container")
 	row.like:SetPoint("LEFT", row.total, "RIGHT", 14, 0)
 	Widgets.Tooltip.Attach(row.like, { L["REP_LIKE"], L["REP_LIKE_TIP"] }, "RIGHT")
 	row.state = Widgets.Text(row, "Small", "text-3", "LEFT")
@@ -268,7 +268,7 @@ end
 local function headButton(head, text, width, onClick)
 	local b = CreateFrame("Button", nil, head)
 	b:SetSize(width, View.HEAD_HEIGHT)
-	b.label = Widgets.Text(b, "Th", "text-3", "LEFT")
+	b.label = Widgets.Text(b, "label-medium", "text-3", "LEFT")
 	b.label:SetPoint("LEFT", b, "LEFT", 0, 0)
 	b.label:SetText(text)
 	b:SetScript("OnClick", onClick)

@@ -24,7 +24,7 @@ local type, ipairs, pairs, tostring, tonumber = type, ipairs, pairs, tostring, t
 local concat = table.concat
 
 View.PAGER_HEIGHT = 44
-View.FILTER_HEIGHT = 36
+View.FILTER_HEIGHT = 44
 View.FOOTER = 36
 View.REFRESH_DELAY = 0.4
 View.PERIODS = { 7, 30, 90, 365 }
@@ -184,21 +184,19 @@ View.DIALOG_WIDTH = 420
 
 local function buildAbsenceDialog()
 	local w = View.DIALOG_WIDTH
-	local d = Widgets.Dialog(UIParent, "AzerothAccordAbsenceDialog", { width = w, height = 250 })
+	local d = Widgets.Dialog(UIParent, "AzerothAccordAbsenceDialog", { width = w, height = 270 })
 	local card = d.card
-	d.title = dialogText(card, "H2", "text-1", nil, 22, w - 48)
+	d:SetTitle("")
 	d.text = dialogText(card, "Small", "text-3", d.title, 8, w - 48)
 	d.text:SetText(L["ABS_DIALOG_TEXT"])
-	d.field = Widgets.EditBox(card, { width = 160, height = 32, maxLetters = 10, placeholder = L["ABS_DATE_HINT"],
+	d.field = Widgets.EditBox(card, { width = 160, maxLetters = 10, placeholder = L["ABS_DATE_HINT"],
 		onEnter = function() View:SaveAbsence() end })
 	d.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -112)
 	d.status = dialogText(card, "Small", "text-2", d.field, 10, w - 48)
-	d.save = Widgets.Button(card, { text = L["ABS_SAVE"], style = "primary", onClick = function() View:SaveAbsence() end })
-	d.save:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.clear = Widgets.Button(card, { text = L["ABS_CLEAR_OFFICER"], style = "secondary", onClick = function() View:SaveAbsence(0) end })
-	d.clear:SetPoint("RIGHT", d.save, "LEFT", -8, 0)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.save = Widgets.Button(card, { text = L["ABS_SAVE"], style = "filled", onClick = function() View:SaveAbsence() end })
+	d.clear = Widgets.Button(card, { text = L["ABS_CLEAR_OFFICER"], style = "outlined", onClick = function() View:SaveAbsence(0) end })
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d:SetActions({ d.close, d.clear, d.save })
 	return d
 end
 
@@ -236,7 +234,7 @@ local function buildTiersDialog()
 	local w = View.DIALOG_WIDTH
 	local d = Widgets.Dialog(UIParent, "AzerothAccordTiersDialog", { width = w, height = 270 })
 	local card = d.card
-	d.title = dialogText(card, "H2", "text-1", nil, 22, w - 48)
+	d:SetTitle("")
 	d.title:SetText(L["TIERS_TITLE"])
 	d.text = dialogText(card, "Small", "text-3", d.title, 8, w - 48)
 	d.text:SetText(L["TIERS_TEXT"])
@@ -245,17 +243,15 @@ local function buildTiersDialog()
 		local label = Theme.NewText(card, "Eyebrow", "text-3")
 		label:SetPoint("TOPLEFT", card, "TOPLEFT", 24 + (i - 1) * 94, -100)
 		label:SetText(L["TIERS_N"]:format(i))
-		local field = Widgets.EditBox(card, { width = 80, height = 32, maxLetters = 3, onEnter = function() View:SaveTiers() end })
+		local field = Widgets.EditBox(card, { width = 80, maxLetters = 3, onEnter = function() View:SaveTiers() end })
 		field:SetPoint("TOPLEFT", card, "TOPLEFT", 24 + (i - 1) * 94, -118)
 		d.fields[i] = field
 	end
-	d.status = dialogText(card, "Small", "text-2", nil, 164, w - 48)
-	d.save = Widgets.Button(card, { text = L["ABS_SAVE"], style = "primary", onClick = function() View:SaveTiers() end })
-	d.save:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.reset = Widgets.Button(card, { text = L["TIERS_RESET"], style = "secondary", onClick = function() View:SaveTiers(true) end })
-	d.reset:SetPoint("RIGHT", d.save, "LEFT", -8, 0)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.status = dialogText(card, "Small", "text-2", nil, 168, w - 48)
+	d.save = Widgets.Button(card, { text = L["ABS_SAVE"], style = "filled", onClick = function() View:SaveTiers() end })
+	d.reset = Widgets.Button(card, { text = L["TIERS_RESET"], style = "outlined", onClick = function() View:SaveTiers(true) end })
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d:SetActions({ d.close, d.reset, d.save })
 	return d
 end
 
@@ -357,19 +353,19 @@ local function buildInactive(f, self)
 	f.tierChips = Widgets.ChipRow(f, function(id)
 		self.inactive.minTier = id
 		self:Redraw()
-	end, { height = 26, gap = 6 })
+	end)
 	f.tierChips:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.tierChips:SetWidth(10)
-	f.tiers = Widgets.Button(f, { text = L["INA_TIERS"], style = "secondary", height = 26, onClick = function() self:OpenTiers() end })
+	f.tiers = Widgets.Button(f, { text = L["INA_TIERS"], style = "outlined", dense = true, onClick = function() self:OpenTiers() end })
 	f.tiers:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	f.review = Widgets.Button(f, { text = L["OPS_REVIEW"], style = "primary", height = 26, onClick = function() self:OpenReview() end })
+	f.review = Widgets.Button(f, { text = L["OPS_REVIEW"], style = "filled", dense = true, onClick = function() self:OpenReview() end })
 	f.review:SetPoint("RIGHT", f.tiers, "LEFT", -8, 0)
-	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 26,
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true,
 		onClick = function() self:OpenExport("inactive") end })
 	-- under the review and the tiers, at the right of the "show" chips
 	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -View.FILTER_HEIGHT)
 	local function toggle(key, label)
-		return Widgets.Chip(f, { text = label, height = 26, onClick = function(chip)
+		return Widgets.Chip(f, { text = label, onClick = function(chip)
 			self.inactive[key] = not self.inactive[key]
 			chip:SetSelected(self.inactive[key])
 			self:Redraw()
@@ -424,22 +420,22 @@ local function buildTimeline(f, self)
 	f.kinds = Widgets.ChipRow(f, function(id)
 		self.timeline.kind = id
 		self:Redraw()
-	end, { height = 26, gap = 6 })
+	end)
 	f.kinds:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	f.kinds:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	f.periods = Widgets.ChipRow(f, function(id)
 		self.timeline.days = id
 		self:Redraw()
-	end, { height = 26, gap = 6 })
+	end)
 	f.periods:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.FILTER_HEIGHT)
 	f.periods:SetWidth(10)
 	-- "Only <name>": the page was opened from a member card; a click shows the whole guild again
-	f.only = Widgets.Chip(f, { text = "", height = 26, onClick = function()
+	f.only = Widgets.Chip(f, { text = "", onClick = function()
 		self.timeline.guids, self.timeline.who = nil, nil
 		self:Redraw()
 	end })
 	f.only:SetPoint("LEFT", f.periods, "RIGHT", 16, 0)
-	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "secondary", height = 26,
+	f.export = Widgets.Button(f, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true,
 		onClick = function() self:OpenExport("timeline") end })
 	f.export:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -View.FILTER_HEIGHT)
 	f.table = Widgets.DataTable(f, timelineColumns(), { emptyText = L["TLP_EMPTY"],

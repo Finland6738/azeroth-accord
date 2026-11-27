@@ -1,6 +1,6 @@
 # Mockups and design previews
 
-Pictures of the Azeroth Accord interface, made before the addon runs in the real client. They are **design previews, not screenshots**: drawn from the addon's own layout and texts, in the new look of the interface (the widget kit and the three themes, [`ui-style.md`](../ui-style.md) and [ADR 0021](../../adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md)), so the real window may differ in small details (the game's own font smoothing and textures, exact spacing, the way the guild window is dressed in the theme, [`ui-style.md`](../ui-style.md) §3, with generic line icons in place of the game's tab icons). Every image says so in its bottom strip.
+Pictures of the Azeroth Accord interface, made before the addon runs in the real client. They are **design previews, not screenshots**: drawn from the addon's own layout and texts, in the look of the interface (the widget kit and the three themes under the Material 3 rules, [`ui-style.md`](../ui-style.md) §9, [ADR 0021](../../adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md) and [ADR 0027](../../adr/0027-material-3-rules-adapted-to-accord.md)), so the real window may differ in small details (the game's own font smoothing and textures, exact spacing, the way the guild window is dressed in the theme, [`ui-style.md`](../ui-style.md) §3, with generic line icons in place of the game's tab icons). Every image says so in its bottom strip.
 
 Rules for every image here ([ADR 0019](../../adr/0019-design-previews-original-art-invented-data.md)):
 

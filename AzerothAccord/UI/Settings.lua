@@ -35,7 +35,6 @@ View.PAGER_HEIGHT = 44          -- the page selector, when there is one
 View.WHEEL_STEP = 40
 View.CONFIRM_SECONDS = 8        -- how long "Click again to clear" waits
 View.MAX_SIZE_LINES = 12
-View.COLUMN_CHIPS_PER_LINE = 3
 View.PANEL_FRAME = "AzerothAccordSettingsPanel"
 View.instances = {}             -- every page built (the panel's view, the game's Settings panel): refreshed together
 View.pages = {}                 -- { id, label, order, build } in order
@@ -238,12 +237,11 @@ end
 local function refreshColumns(f)
 	local choices = Model().ColumnChoices()
 	f.columnChoices = choices
-	local per = View.COLUMN_CHIPS_PER_LINE
-	local cell = floor(INNER / per)
+	local shown = {}
 	for i, c in ipairs(choices) do
 		local chip = f.columnChecks[i]
 		if not chip then
-			chip = Widgets.Chip(f.columnsBox, { height = 26, onClick = function(self)
+			chip = Widgets.Chip(f.columnsBox, { onClick = function(self)
 				if self.columnId then Model().ToggleColumn(self.columnId) end
 			end })
 			f.columnChecks[i] = chip
@@ -252,12 +250,12 @@ local function refreshColumns(f)
 		chip:SetLabel(L[c.label])
 		chip:SetSelected(c.on)
 		chip:SetEnabled(not c.always)
-		chip:ClearAllPoints()
-		chip:SetPoint("TOPLEFT", f.columnsBox, "TOPLEFT", ((i - 1) % per) * cell, -floor((i - 1) / per) * 32)
 		chip:Show()
+		shown[i] = chip
 	end
 	for i = #choices + 1, #f.columnChecks do f.columnChecks[i]:Hide() end
-	f.columnsBox:SetHeight(max(1, ceil(#choices / per) * 32 - 6))
+	-- the chips flow in the card: a chosen one is wider by its check
+	f.columnsBox:SetHeight(max(1, Widgets.Flow(f.columnsBox, shown, INNER)))
 	f.columnsBox:SetShown(#choices > 0)
 	f.columnsReset:SetShown(#choices > 0)
 	f.columnsNone:SetShown(#choices == 0)
@@ -529,12 +527,12 @@ local function buildContacts(f, page)
 	f.battleTag = card:Add(text(card, "BodyMedium", "text-1"), 14)
 	f.discordLabel = card:Add(text(card, "Eyebrow", "text-3"), 14)
 	f.discordLabel:SetText(L["SET_DISCORD"])
-	f.discordBox = card:Add(Widgets.EditBox(card, { width = 240, height = 32, maxLetters = ns.Contacts and ns.Contacts.DISCORD_MAX or 32,
+	f.discordBox = card:Add(Widgets.EditBox(card, { width = 240, maxLetters = ns.Contacts and ns.Contacts.DISCORD_MAX or 32,
 		onEnter = function() View:Save(f) end }), 6)
 	local edit = f.discordBox.edit
 	edit:HookScript("OnEscapePressed", function() refresh(f) end)
 	f.discordEdit = edit
-	f.save = Widgets.Button(card, { text = L["SET_SAVE"], style = "primary", onClick = function() View:Save(f) end })
+	f.save = Widgets.Button(card, { text = L["SET_SAVE"], style = "tonal", onClick = function() View:Save(f) end })
 	f.save:SetPoint("LEFT", f.discordBox, "RIGHT", 10, 0)
 	f.status = card:Add(text(card, "Small", "text-2"), 8)
 	f.native = card:Add(text(card, "Small", "text-3"), 6)
@@ -558,7 +556,7 @@ local function buildMain(f, page)
 	f.mainText = card:Add(text(card, "Body", "text-2"), 8)
 	f.mainText:SetText(L["SET_MAIN_TEXT"])
 	f.main = card:Add(text(card, "BodyMedium", "text-1"), 12)
-	f.mainChoose = card:Add(Widgets.Button(card, { text = L["SET_MAIN_CHOOSE"], style = "secondary", onClick = function(b) View:ChooseMain(f, b) end }), 8)
+	f.mainChoose = card:Add(Widgets.Button(card, { text = L["SET_MAIN_CHOOSE"], style = "tonal", onClick = function(b) View:ChooseMain(f, b) end }), 8)
 	f.mainStatus = Widgets.Text(card, "Small", "text-2", "LEFT")
 	f.mainStatus:SetPoint("LEFT", f.mainChoose, "RIGHT", 12, 0)
 	return card
@@ -571,12 +569,12 @@ local function buildAbsence(f, page)
 	f.absenceText = card:Add(text(card, "Body", "text-2"), 8)
 	f.absenceText:SetText(L["SET_ABSENCE_TEXT"])
 	f.absenceCurrent = card:Add(text(card, "BodyMedium", "text-1"), 12)
-	f.absenceBox = card:Add(Widgets.EditBox(card, { width = 160, height = 32, maxLetters = 10, placeholder = L["ABS_DATE_HINT"],
+	f.absenceBox = card:Add(Widgets.EditBox(card, { width = 160, maxLetters = 10, placeholder = L["ABS_DATE_HINT"],
 		onEnter = function() View:SaveAbsence(f) end }), 8)
 	f.absenceEdit = f.absenceBox.edit
-	f.absenceSave = Widgets.Button(card, { text = L["ABS_SAVE"], style = "primary", onClick = function() View:SaveAbsence(f) end })
+	f.absenceSave = Widgets.Button(card, { text = L["ABS_SAVE"], style = "tonal", onClick = function() View:SaveAbsence(f) end })
 	f.absenceSave:SetPoint("LEFT", f.absenceBox, "RIGHT", 10, 0)
-	f.absenceClear = Widgets.Button(card, { text = L["ABS_CLEAR"], style = "ghost", onClick = function() View:SaveAbsence(f, 0) end })
+	f.absenceClear = Widgets.Button(card, { text = L["ABS_CLEAR"], style = "text", onClick = function() View:SaveAbsence(f, 0) end })
 	f.absenceClear:SetPoint("LEFT", f.absenceSave, "RIGHT", 8, 0)
 	f.absenceStatus = card:Add(text(card, "Small", "text-2"), 8)
 	return card
@@ -645,8 +643,8 @@ local function buildColumns(f, page)
 	f.columnsNone = card:Add(text(card, "Small", "text-3"), 8)
 	f.columnsNone:SetText(L["SET_COLUMNS_NONE"])
 	f.columnsBox = card:Add(CreateFrame("Frame", nil, card), 12)
-	f.columnsBox:SetSize(INNER, 26)
-	f.columnsReset = card:Add(Widgets.Button(card, { text = L["COLUMNS_RESET"], style = "ghost",
+	f.columnsBox:SetSize(INNER, Widgets.HEIGHT.small)
+	f.columnsReset = card:Add(Widgets.Button(card, { text = L["COLUMNS_RESET"], style = "text",
 		onClick = function() Model().ResetColumns() View:Refresh() end }), 10)
 	return card
 end
@@ -659,7 +657,7 @@ local function buildData(f, page)
 	for i = 1, View.MAX_SIZE_LINES do
 		f.sizes[i] = card:Add(text(card, "MonoSmall", "text-2"), i == 1 and 10 or 3)
 	end
-	f.clear = card:Add(Widgets.Button(card, { text = L["SET_CLEAR"], style = "secondary", width = 240, onClick = function() View:Clear(f) end }), 14)
+	f.clear = card:Add(Widgets.Button(card, { text = L["SET_CLEAR"], style = "outlined", width = 240, onClick = function() View:Clear(f) end }), 14)
 	Widgets.Tooltip.Attach(f.clear, { L["SET_CLEAR"], L["SET_CLEAR_TEXT"] }, "RIGHT")
 	f.clearText = card:Add(text(card, "Small", "text-3"), 8)
 	f.clearText:SetText(L["SET_CLEAR_TEXT"])
@@ -674,9 +672,9 @@ local function buildBackup(f, page)
 	f.backupText:SetText(L["SET_BACKUP_TEXT"])
 	f.backupWarning = card:Add(text(card, "Small", "warn"), 8)
 	f.backupWarning:SetText(L["BACKUP_WARNING"])
-	f.backupExport = card:Add(Widgets.Button(card, { text = L["SET_BACKUP_EXPORT"], style = "secondary", width = 140,
+	f.backupExport = card:Add(Widgets.Button(card, { text = L["SET_BACKUP_EXPORT"], style = "tonal", width = 140,
 		onClick = function() if ns.BackupBox then ns.BackupBox:OpenExport() end end }), 14)
-	f.backupImport = Widgets.Button(card, { text = L["SET_BACKUP_IMPORT"], style = "secondary", width = 140,
+	f.backupImport = Widgets.Button(card, { text = L["SET_BACKUP_IMPORT"], style = "outlined", width = 140,
 		onClick = function() if ns.BackupBox then ns.BackupBox:OpenImport() end end })
 	f.backupImport:SetPoint("LEFT", f.backupExport, "RIGHT", 12, 0)
 	f.backupNote = card:Add(text(card, "Small", "text-2"), 8)

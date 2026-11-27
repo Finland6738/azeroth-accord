@@ -26,7 +26,7 @@ Shell.NAME = "AzerothAccordShell"
 Shell.PAD = 16            -- between the edge of the host and the tabs, the body
 Shell.TOP = 4             -- above the tab bar
 Shell.TAB_BAR = Widgets.TAB_HEIGHT   -- the height of the tabs (48)
-Shell.STRIP = 30          -- the Demo strip above the tab bar (demo mode, SPEC-11 §3.1)
+Shell.STRIP = 40          -- the Demo strip above the tab bar (demo mode, SPEC-11 §3.1)
 Shell.GAP = 12            -- between the tab bar and the body
 Shell.FOOTER = 24         -- the sync-state line of the guild window
 Shell.SEARCH_WIDTH = { window = 200, tab = 150 }
@@ -107,10 +107,10 @@ local function buildBar(content)
 	bar:SetPoint("TOPLEFT", content, "TOPLEFT", Shell.PAD, -Shell.TOP)
 	bar:SetPoint("TOPRIGHT", content, "TOPRIGHT", -Shell.PAD, -Shell.TOP)
 	-- the search box: the Widgets field is `searchField`; `search` is its edit box, where the views and the tests type
-	bar.searchField = Widgets.EditBox(bar, { width = Shell.SEARCH_WIDTH.window, height = 28, placeholder = L["SEARCH_PLACEHOLDER"],
+	bar.searchField = Widgets.EditBox(bar, { width = Shell.SEARCH_WIDTH.window, dense = true, placeholder = L["SEARCH_PLACEHOLDER"],
 		onChange = function(text, user) if user then Shell:OnSearch(text or "") end end })
 	bar.search = bar.searchField.edit
-	bar.popOut = Widgets.Button(bar, { text = L["POP_OUT"], style = "secondary", height = 28, onClick = function() Shell:PopOut() end })
+	bar.popOut = Widgets.Button(bar, { text = L["POP_OUT"], style = "outlined", dense = true, onClick = function() Shell:PopOut() end })
 	bar.popOut:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
 	if Widgets.Tooltip then Widgets.Tooltip.Attach(bar.popOut, { L["POP_OUT"], L["POP_OUT_TIP"] }, "BOTTOM") end
 	content.bar = bar
@@ -130,7 +130,7 @@ local function buildStrip(content)
 	strip.line:SetPoint("BOTTOMLEFT", strip, "BOTTOMLEFT", 0, 0)
 	strip.line:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 0)
 	strip.line:SetHeight(Theme.Px(1))
-	strip.exit = Widgets.Button(strip, { text = L["DEMO_EXIT"], style = "secondary", height = 22,
+	strip.exit = Widgets.Button(strip, { text = L["DEMO_EXIT"], style = "outlined", height = Widgets.HEIGHT.small,
 		onClick = function() if ns.Demo then ns.Demo:Exit() end end })
 	strip.exit:SetPoint("RIGHT", strip, "RIGHT", -6, 0)
 	strip.text = Theme.NewText(strip, "Body", "warn")

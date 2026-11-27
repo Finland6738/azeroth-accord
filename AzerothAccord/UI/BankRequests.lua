@@ -31,11 +31,11 @@ local type, ipairs, pairs, select, tostring, tonumber, floor, max, min = type, i
 Mode.kind = "withdraw"
 Mode.onlyMine = false
 Mode.showClosed = false
-Mode.FORM_HEIGHT = 172
+Mode.FORM_HEIGHT = 184
 Mode.picked = nil               -- { id, text }: the bank item chosen from the list, while the box still shows its text
 Mode.inboxSort = "oldest"       -- BankInbox.SORTS
 Mode.INBOX_ROW = 44
-Mode.INBOX_TOP = 78             -- the explanation, the sort chips and the column titles above the officers' list
+Mode.INBOX_TOP = 96             -- the explanation, the sort chips and the column titles above the officers' list
 Mode.PICKER_ROWS = 7
 Mode.DATE_FORMAT = "%Y-%m-%d %H:%M"   -- the local date and time of a request in the officers' list
 
@@ -265,7 +265,7 @@ end
 local mode = {}
 
 local function editBox(parent, width, maxLetters)
-	return Widgets.EditBox(parent, { width = width, height = 28, maxLetters = maxLetters or 60 })
+	return Widgets.EditBox(parent, { width = width, dense = true, maxLetters = maxLetters or 60 })
 end
 
 -- The lines of a row's tooltip: what, the reason, the tip and its payment hint, the history, the officer's note
@@ -294,7 +294,7 @@ end
 local function addButtons(row, width, height)
 	row.buttons = {}
 	for n = 1, 3 do
-		local b = Widgets.Button(row, { style = "secondary", width = width, height = height, onClick = function(self)
+		local b = Widgets.Button(row, { style = "tonal", width = width, height = height, onClick = function(self)
 			local d = self:GetParent().data
 			if not (d and self.action) then return end
 			local ok, why = Mode.Act(d.id, self.action, Mode.noteText and Mode.noteText() or nil)
@@ -315,10 +315,7 @@ local function baseRow(area, i)
 	row:SetPoint("TOPRIGHT", area, "TOPRIGHT", 0, -(i - 1) * height)
 	Widgets.Tooltip.Attach(row, function(self) return Mode.TooltipLines(self.data) end, "RIGHT")
 	Widgets.RowHover(row)
-	row.focus = row:CreateTexture(nil, "BACKGROUND")   -- the request the Action Center opened
-	Theme.Fill(row.focus, "accent", 0.16)
-	row.focus:SetAllPoints(row)
-	row.focus:Hide()
+	row.focus = Widgets.Selection(row)   -- the request the Action Center opened: the selected row
 	area.rows[i] = row
 	return row
 end
@@ -341,7 +338,7 @@ local function newRow(area, i)
 	row.reason:SetPoint("LEFT", row.what, "RIGHT", 4, 0)
 	row.reason:SetWidth(130)
 	oneLine(row.name, row.what, row.reason)
-	addButtons(row, 80, View.ROW_HEIGHT - 6)
+	addButtons(row, 80, Widgets.HEIGHT.small)
 	return row
 end
 
@@ -363,6 +360,13 @@ local function fillButtons(row, d)
 	end
 end
 
+-- The texts of the selected row are on-secondary-container; the others keep their own colours.
+local function paintRow(row, d, tokens)
+	local on = Mode.focus == d.id
+	row.focus:SetShown(on)
+	for key, token in pairs(tokens) do Theme.Text(row[key], on and "on-secondary-container" or token) end
+end
+
 local function fillRow(row, d)
 	row.data = d
 	row.status:SetText(d.statusText)
@@ -377,7 +381,8 @@ local function fillRow(row, d)
 	end
 	row.reason:SetText(reason)
 	fillButtons(row, d)
-	row.focus:SetShown(Mode.focus == d.id)
+	paintRow(row, d, { status = STATUS_TOKEN[d.status] or "text-2", name = "text-1", kind = "text-3", what = "accent-text",
+		reason = "text-3" })
 	row:Show()
 end
 
@@ -487,7 +492,7 @@ local function buildPicker(f)
 	local picker = CreateFrame("Frame", nil, f)
 	picker:SetFrameStrata("DIALOG")
 	picker:SetToplevel(true)
-	picker:SetSize(300, Mode.PICKER_ROWS * 24 + 8)
+	picker:SetSize(300, Mode.PICKER_ROWS * Widgets.HEIGHT.small + 8)
 	picker:SetPoint("TOPLEFT", f.item, "BOTTOMLEFT", 0, -2)
 	picker:Hide()
 	local catcher = CreateFrame("Button", nil, picker)   -- a click anywhere else closes the list
@@ -496,9 +501,8 @@ local function buildPicker(f)
 	catcher:SetFrameLevel(max(picker:GetFrameLevel() - 1, 0))
 	catcher:SetScript("OnClick", function() closePicker(f) end)
 	f.picker, f.catcher = picker, catcher
-	f.list = Widgets.ChoiceList(picker, { rows = Mode.PICKER_ROWS, rowHeight = 24, width = 300, onSelect = function(id) pick(f, id) end })
+	f.list = Widgets.ChoiceList(picker, { rows = Mode.PICKER_ROWS, width = 300, menu = true, onSelect = function(id) pick(f, id) end })
 	f.list:SetPoint("TOPLEFT", picker, "TOPLEFT", 0, 0)
-	Theme.Tint(f.list.ring, "border-strong")
 	f.item.edit:HookScript("OnEditFocusGained", function() openPicker(f) end)
 	f.item.edit:HookScript("OnMouseDown", function() openPicker(f) end)
 	f.item.edit:HookScript("OnEscapePressed", function() closePicker(f) end)
@@ -514,7 +518,7 @@ function mode.build(f)
 	f.card:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	local card = f.card
 	local kinds = ns.BankRequests and ns.BankRequests.KINDS or { "withdraw", "deposit", "donation" }
-	f.kinds = Widgets.ChipRow(card, function(kind) Mode.kind = kind closePicker(f) View:Redraw() end, { height = 26 })
+	f.kinds = Widgets.ChipRow(card, function(kind) Mode.kind = kind closePicker(f) View:Redraw() end)
 	f.kinds:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -12)
 	local items = {}
 	for i, kind in ipairs(kinds) do items[i] = { id = kind, text = Mode.KindText(kind) } end
@@ -526,8 +530,8 @@ function mode.build(f)
 	f.tip:SetPoint("LEFT", f.kinds, "RIGHT", 12, 0)
 	f.tip:SetPoint("RIGHT", card, "RIGHT", -16, 0)
 	f.itemLabel = caption(card)
-	f.itemLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -48)
-	f.item = Widgets.EditBox(card, { width = 200, height = 28, maxLetters = 120, onChange = function(_, user)
+	f.itemLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -52)
+	f.item = Widgets.EditBox(card, { width = 200, dense = true, maxLetters = 120, onChange = function(_, user)
 		if not f.picker then return end   -- the form is still being built
 		if user then
 			Mode.picked = nil
@@ -537,7 +541,7 @@ function mode.build(f)
 		updateBankLine(f)
 	end })
 	f.item:SetPoint("TOPLEFT", f.itemLabel, "BOTTOMLEFT", 0, -4)
-	f.amount = Widgets.EditBox(card, { width = 70, height = 28, maxLetters = 9, onChange = function(_, user)
+	f.amount = Widgets.EditBox(card, { width = 70, dense = true, maxLetters = 9, onChange = function(_, user)
 		if user then capAmount(f) end
 	end })
 	f.amount:SetPoint("LEFT", f.item, "RIGHT", 10, 0)
@@ -550,7 +554,7 @@ function mode.build(f)
 	f.reason = editBox(card, 170, 120)
 	f.reasonLabel = caption(card, L["BANKREQ_REASON"])
 	f.reasonLabel:SetPoint("BOTTOMLEFT", f.reason, "TOPLEFT", 0, 4)
-	f.send = Widgets.Button(card, { text = L["BANKREQ_SEND"], style = "primary", height = 28, onClick = function()
+	f.send = Widgets.Button(card, { text = L["BANKREQ_SEND"], style = "filled", dense = true, onClick = function()
 		closePicker(f)
 		local ok, text = Mode.Submit({ kind = Mode.kind, item = f.item:GetText(), picked = Mode.picked, amount = f.amount:GetText(),
 			tip = f.gift:GetText(), reason = f.reason:GetText() })
@@ -568,12 +572,12 @@ function mode.build(f)
 	f.prov = Widgets.Provenance(card)   -- who read the bank and how old the snapshot is (M7.2)
 	f.prov:SetPoint("LEFT", f.stock, "RIGHT", 10, 0)
 	buildPicker(f)
-	f.mine = Widgets.Chip(f, { text = L["BANKREQ_ONLY_MINE"], height = 26, onClick = function(chip)
+	f.mine = Widgets.Chip(f, { text = L["BANKREQ_ONLY_MINE"], onClick = function(chip)
 		chip:SetSelected(not chip:IsSelected())
 		Mode.onlyMine = chip:IsSelected() View.offset = 0 View:Redraw()
 	end })
-	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Mode.FORM_HEIGHT + 30)
-	f.closed = Widgets.Chip(f, { text = L["BANKREQ_SHOW_CLOSED"], height = 26, onClick = function(chip)
+	f.mine:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -Mode.FORM_HEIGHT + 38)
+	f.closed = Widgets.Chip(f, { text = L["BANKREQ_SHOW_CLOSED"], onClick = function(chip)
 		chip:SetSelected(not chip:IsSelected())
 		Mode.showClosed = chip:IsSelected() View.offset = 0 View:Redraw()
 	end })
@@ -687,7 +691,7 @@ local function newInboxRow(area, i)
 	row.reason:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", COL.name, 7)
 	row.reason:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -COL.buttons, 7)
 	oneLine(row.status, row.reason)
-	addButtons(row, 76, View.ROW_HEIGHT - 6)
+	addButtons(row, 76, Widgets.HEIGHT.small)
 	return row
 end
 
@@ -711,7 +715,8 @@ local function fillInboxRow(row, d)
 		Theme.Text(row.reason, "text-3")
 	end
 	fillButtons(row, d)
-	row.focus:SetShown(Mode.focus == d.id)
+	paintRow(row, d, { date = "text-3", name = "text-1", what = "accent-text", count = "text-1", gift = "accent-text",
+		status = STATUS_TOKEN[d.status] or "text-2", reason = #hints > 0 and "accent-text" or "text-3" })
 	row:Show()
 end
 
@@ -723,18 +728,20 @@ function inbox.build(f)
 	f.explain:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -2)
 	f.explain:SetPoint("RIGHT", f, "RIGHT", -4, 0)
 	f.explain:SetText(L["BANKREQ_INBOX_EXPLAIN"])
-	f.sorts = Widgets.ChipRow(f, function(id) Mode.inboxSort = id View.offset = 0 View:Redraw() end, { height = 26 })
+	f.sorts = Widgets.ChipRow(f, function(id) Mode.inboxSort = id View.offset = 0 View:Redraw() end)
 	f.sorts:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -24)
 	f.sorts:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -24)
 	local items = {}
 	for i, id in ipairs(ns.BankInbox and ns.BankInbox.SORTS or {}) do items[i] = { id = id, text = L[SORT_TEXT[id]] } end
 	f.sorts:SetItems(items, Mode.inboxSort)
 	f.head = CreateFrame("Frame", nil, f)
-	f.head:SetHeight(16)
-	f.head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -(Mode.INBOX_TOP - 18))
-	f.head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -(Mode.INBOX_TOP - 18))
+	f.head:SetHeight(32)
+	f.head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -(Mode.INBOX_TOP - 34))
+	f.head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -(Mode.INBOX_TOP - 34))
+	f.head.fill = Theme.Slice(f.head, "rr_fill_8", "surface-2", "BACKGROUND")
+	f.head.fill:SetAllPoints(f.head)
 	f.columns = {}
-	cells(f.head, f.columns, "Eyebrow", "text-3", 0)
+	cells(f.head, f.columns, "label-medium", "text-3", -10)
 	f.columns.date:SetText(L["BANKREQ_COL_DATE"])
 	f.columns.name:SetText(L["BANKREQ_COL_WHO"])
 	f.columns.what:SetText(L["BANKREQ_COL_ITEM"])

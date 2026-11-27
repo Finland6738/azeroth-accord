@@ -19,7 +19,7 @@ local ipairs, pairs, tostring = ipairs, pairs, tostring
 local concat, sort = table.concat, table.sort
 
 View.reviewFilter = { minTier = ns.OfficerOps.DEFAULT_TIER, reviewed = false, unknown = false }
-View.REVIEW_WIDTH, View.REVIEW_HEIGHT = 780, 580
+View.REVIEW_WIDTH, View.REVIEW_HEIGHT = 780, 660
 View.ENTRY_WIDTH = 460
 
 local ACTION_KEYS = { keep = "OPS_KEEP", remove = "OPS_REMOVE", demote = "OPS_DEMOTE", promote = "OPS_PROMOTE", note = "OPS_NOTE" }
@@ -137,7 +137,7 @@ View.AddPage("queue", { label = L["OFF_PAGE_QUEUE"], order = 20, build = buildQu
 ---------------------------------------------------------------------------------------------------------------------
 -- A field whose text is selected and cannot be changed: the player copies it with Ctrl+C.
 local function copyField(card, width)
-	local field = Widgets.EditBox(card, { width = width, height = 32, maxLetters = 128 })
+	local field = Widgets.EditBox(card, { width = width, maxLetters = 128 })
 	local edit = field.edit
 	edit:HookScript("OnTextChanged", function(self, user)
 		if user and self:GetText() ~= field.value then
@@ -168,31 +168,31 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 local function buildEntryDialog()
 	local w = View.ENTRY_WIDTH
-	local d = Widgets.Dialog(UIParent, "AzerothAccordOpsEntryDialog", { width = w, height = 330 })
+	local d = Widgets.Dialog(UIParent, "AzerothAccordOpsEntryDialog", { width = w, height = 360 })
 	local card = d.card
-	d.title = label(card, "H2", "text-1", 24, 22, w - 48)
+	d:SetTitle("")
 	d.nameLabel = label(card, "Eyebrow", "text-3", 24, 58, w - 48)
 	d.nameLabel:SetText(L["OPS_ENTRY_NAME"])
 	d.name = copyField(card, w - 48)
 	d.name:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -76)
-	d.handLabel = label(card, "Eyebrow", "text-3", 24, 120, w - 48)
+	d.handLabel = label(card, "Eyebrow", "text-3", 24, 126, w - 48)
 	d.hand = copyField(card, w - 48)
-	d.hand:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -138)
-	d.text = label(card, "Small", "text-3", 24, 182, w - 48)
-	d.guildWindow = Widgets.Button(card, { text = L["OPS_OPEN_GUILD"], style = "secondary", onClick = function()
+	d.hand:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -144)
+	d.text = label(card, "Small", "text-3", 24, 194, w - 48)
+	d.guildWindow = Widgets.Button(card, { text = L["OPS_OPEN_GUILD"], style = "tonal", onClick = function()
 		if not ns.Compat.Guild.ToggleWindow() then d.text:SetText(L["OPS_OPEN_GUILD_NO"]) end
 	end })
-	d.guildWindow:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 62)
-	d.done = Widgets.Button(card, { text = L["OPS_MARK_DONE"], style = "primary", onClick = function()
+	d.guildWindow:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 72)
+	d.done = Widgets.Button(card, { text = L["OPS_MARK_DONE"], style = "filled", onClick = function()
 		if ops():MarkDone(d.n) then d:Close() end
 	end })
-	d.done:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 62)
-	d.cancel = Widgets.Button(card, { text = L["OPS_CANCEL_ENTRY"], style = "secondary", onClick = function()
+	d.done:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 72)
+	d.cancel = Widgets.Button(card, { text = L["OPS_CANCEL_ENTRY"], style = "outlined", onClick = function()
 		if ops():Cancel(d.n) then d:Close() end
 	end })
-	d.cancel:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.cancel:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
 	return d
 end
 
@@ -461,11 +461,11 @@ local function buildStep1(f, self, w)
 	f.tiers = Widgets.ChipRow(f, function(id)
 		View.reviewFilter.minTier = id
 		self:DrawReview()
-	end, { height = 26, gap = 6 })
+	end)
 	f.tiers:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -68)
 	f.tiers:SetWidth(10)
 	local function toggle(key, text, y)
-		local chip = Widgets.Chip(f, { text = text, height = 26, onClick = function()
+		local chip = Widgets.Chip(f, { text = text, onClick = function()
 			View.reviewFilter[key] = not View.reviewFilter[key]
 			self:DrawReview()
 		end })
@@ -473,8 +473,8 @@ local function buildStep1(f, self, w)
 		return chip
 	end
 	f.reviewed = toggle("reviewed", L["OPS_INCLUDE_REVIEWED"], 112)
-	f.unknown = toggle("unknown", L["OPS_INCLUDE_UNKNOWN"], 146)
-	f.count = label(f, "Body", "text-1", 0, 196, w)
+	f.unknown = toggle("unknown", L["OPS_INCLUDE_UNKNOWN"], 152)
+	f.count = label(f, "Body", "text-1", 0, 200, w)
 end
 
 local function buildStep2(f, self, w)
@@ -485,10 +485,10 @@ local function buildStep2(f, self, w)
 		column("days", "COL_INA_DAYS", { width = 60, align = "RIGHT", mono = true },
 			function(d) return d.draft and d.draft.account.days and tostring(d.draft.account.days) or "" end),
 		column("choice", "COL_OPS_ACTION", { flex = 2 }, function(d) return d.draft and View.DraftText(d.draft) or "" end),
-	}, { rowHeight = 24, onRowClick = function(d) if d.draft then self:SelectAccount(d.draft.account.key) end end })
+	}, { onRowClick = function(d) if d.draft then self:SelectAccount(d.draft.account.key) end end })
 	f.accounts:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-	f.accounts:SetSize(w, 150)
-	f.selected = label(f, "BodyMedium", "text-1", 0, 158, w)
+	f.accounts:SetSize(w, 164)
+	f.selected = label(f, "BodyMedium", "text-1", 0, 172, w)
 	f.chars = Widgets.DataTable(f, {
 		column("name", "COL_OPS_NAME", { flex = 1.5 }, function(d) return d.name end),
 		column("rank", "COL_INA_RANK", { flex = 1 }, function(d) return d.rank end),
@@ -497,26 +497,26 @@ local function buildStep2(f, self, w)
 		column("last", "COL_INA_LAST", { flex = 1 }, function(d) return d.last end),
 		column("choice", "COL_OPS_ACTION", { flex = 1.5 }, function(d) return d.choice end,
 			function(d) return not d.own and "text-3" or nil end),
-	}, { rowHeight = 24, onRowClick = function(d, row) charMenu(self, d, row) end })
-	f.chars:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -178)
-	f.chars:SetSize(w, 104)
-	f.events = label(f, "Small", "text-3", 0, 288, w)
-	f.target = label(f, "Eyebrow", "text-3", 0, 340, w - 180)
-	f.wholeAccount = Widgets.Button(f, { text = L["OPS_AS_ACCOUNT"], style = "ghost", height = 22,
+	}, { onRowClick = function(d, row) charMenu(self, d, row) end })
+	f.chars:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -192)
+	f.chars:SetSize(w, 132)
+	f.events = label(f, "Small", "text-3", 0, 332, w)
+	f.target = label(f, "Eyebrow", "text-3", 0, 380, w - 180)
+	f.wholeAccount = Widgets.Button(f, { text = L["OPS_AS_ACCOUNT"], style = "text", height = Widgets.HEIGHT.small,
 		onClick = function() self:ClearTarget() end })
-	f.wholeAccount:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -334)
-	f.actions = Widgets.ChipRow(f, function(id) self:SetAction(id) end, { height = 26, gap = 6 })
-	f.actions:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -360)
+	f.wholeAccount:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, -370)
+	f.actions = Widgets.ChipRow(f, function(id) self:SetAction(id) end)
+	f.actions:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -406)
 	f.actions:SetWidth(10)
-	f.rank = Widgets.Button(f, { text = L["OPS_RANK_NEXT"], style = "secondary", height = 26,
+	f.rank = Widgets.Button(f, { text = L["OPS_RANK_NEXT"], style = "tonal", dense = true,
 		onClick = function() rankMenu(self, f.rank) end })
-	f.rank:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -394)
-	f.kinds = Widgets.ChipRow(f, function(id) self:SetNote(id) end, { height = 26, gap = 6 })
-	f.kinds:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -394)
+	f.rank:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -444)
+	f.kinds = Widgets.ChipRow(f, function(id) self:SetNote(id) end)
+	f.kinds:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -444)
 	f.kinds:SetWidth(10)
-	f.note = Widgets.EditBox(f, { width = 320, height = 28, maxLetters = ops().NOTE_MAX, placeholder = L["OPS_NOTE_HINT"],
+	f.note = Widgets.EditBox(f, { width = 320, dense = true, maxLetters = ops().NOTE_MAX, placeholder = L["OPS_NOTE_HINT"],
 		onChange = function(text, user) if user then self:SetNote(nil, text) end end })
-	f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -428)
+	f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -482)
 end
 
 local function buildStep3(f, self, w)
@@ -526,7 +526,7 @@ local function buildStep3(f, self, w)
 			function(d) return d.muted and "text-3" or nil end),
 		column("what", "COL_OPS_ACTION", { flex = 2.5 }, function(d) return d.text end,
 			function(d) return d.muted and "text-3" or nil end),
-	}, { rowHeight = 24, emptyText = L["OPS_NOTHING"] })
+	}, { emptyText = L["OPS_NOTHING"] })
 	f.list:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -52)
 	f.list:SetSize(w, 390)
 end
@@ -537,26 +537,26 @@ local function buildReviewDialog(self)
 	local w, h = View.REVIEW_WIDTH, View.REVIEW_HEIGHT
 	local d = Widgets.Dialog(UIParent, "AzerothAccordReviewDialog", { width = w, height = h })
 	local card = d.card
-	d.title = label(card, "H2", "text-1", 24, 18, w - 48)
+	d:SetTitle("")
 	d.steps = {}
 	for i, build in ipairs(STEPS) do
 		local f = CreateFrame("Frame", nil, card)
 		f:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -52)
-		f:SetSize(w - 48, h - 112)
+		f:SetSize(w - 48, h - 124)
 		build(f, self, w - 48)
 		d.steps[i] = f
 	end
-	d.next = Widgets.Button(card, { text = L["OPS_NEXT"], style = "primary", width = 240, onClick = function()
+	d.next = Widgets.Button(card, { text = L["OPS_NEXT"], style = "filled", width = 240, onClick = function()
 		local r = self.review
 		if not r then return end
 		if r.step == 3 then self:ApplyReview() else self:ReviewStep(r.step + 1) end
 	end })
-	d.next:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 18)
-	d.back = Widgets.Button(card, { text = L["OPS_BACK"], style = "secondary",
+	d.next:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
+	d.back = Widgets.Button(card, { text = L["OPS_BACK"], style = "outlined",
 		onClick = function() if self.review then self:ReviewStep(self.review.step - 1) end end })
 	d.back:SetPoint("RIGHT", d.next, "LEFT", -8, 0)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 18)
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
 	return d
 end
 

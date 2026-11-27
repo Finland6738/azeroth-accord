@@ -28,9 +28,9 @@ ns.modules.RecipeView = View
 local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RecipeModel
 local type, ipairs, max = type, ipairs, math.max
 
-View.ROW_HEIGHT = 30
+View.ROW_HEIGHT = 36
 View.HEADER_HEIGHT = 72
-View.TOOLBAR_HEIGHT = 36
+View.TOOLBAR_HEIGHT = 40
 View.POOL = 24
 View.ICON = 20
 View.ALL = "all"                 -- the id of "All recipes" in the category select
@@ -235,12 +235,12 @@ local function build(self, f)
 	head:SetHeight(View.HEADER_HEIGHT)
 	head:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
 	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	head.back = Widgets.Button(head, { text = L["RV_BACK"], style = "ghost", height = 32, onClick = function() View:Back() end })
+	head.back = Widgets.Button(head, { text = L["RV_BACK"], style = "text", dense = true, onClick = function() View:Back() end })
 	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
-	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "secondary", height = 32, onClick = function() View:SetMode("craft") end })
+	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "tonal", dense = true, onClick = function() View:SetMode("craft") end })
 	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
 	-- "Guild recipes" in the craft search; "All members" in a member's list: the guild's recipes of that profession
-	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "secondary", height = 32, onClick = function()
+	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "tonal", dense = true, onClick = function()
 		if View.mode == "recipes" and View.model.skillLine then View:OpenCatalogue(View.model.skillLine) else View:SetMode("catalogue") end
 	end })
 	head.cat:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
@@ -257,7 +257,7 @@ local function build(self, f)
 	head.source:SetJustifyH("LEFT")
 	head.source:SetPoint("TOPLEFT", head.back, "BOTTOMLEFT", 2, -8)
 	head.prov = Widgets.Provenance(head)   -- the label of the list's source, at the right of the source line (M7.2)
-	head.prov:SetPoint("TOPRIGHT", head, "TOPRIGHT", 0, -44)
+	head.prov:SetPoint("TOPRIGHT", head, "TOPRIGHT", 0, -48)
 	head.source:SetPoint("RIGHT", head.prov, "LEFT", -8, 0)
 	f.head = head
 
@@ -293,7 +293,7 @@ local function build(self, f)
 		{ id = "action", title = "", width = 116, sortable = false, render = function(cell) cell:SetText("") end },
 	}
 	local t = Widgets.DataTable(f, columns, {
-		rowHeight = View.ROW_HEIGHT, headerHeight = 28, pool = View.POOL, maxPool = 80,
+		rowHeight = View.ROW_HEIGHT, pool = View.POOL, maxPool = 80,
 		onRowClick = function(d, row) View:RowClicked(row) end,
 		rowSetup = function(row) View.SetupRow(row) end,
 		rowUpdate = function(row, d) View.UpdateRow(row, d) end,
@@ -413,7 +413,7 @@ function View.SetupRow(row)
 	row.icon:SetSize(View.ICON, View.ICON)
 	row.name, row.detail, row.note = row.cells[1], row.cells[2], row.cells[3]
 	row.name:SetJustifyH("LEFT")
-	row.request = Widgets.Button(row, { text = L["CR_REQUEST"], style = "secondary", width = 104, height = 24,
+	row.request = Widgets.Button(row, { text = L["CR_REQUEST"], style = "tonal", width = 104, height = Widgets.HEIGHT.small,
 		onClick = function(b) View:RequestCraft(b:GetParent().data) end })
 	row.request:SetFrameLevel((row:GetFrameLevel() or 1) + 2)
 	row.request:SetPoint("RIGHT", row, "RIGHT", -8, 0)

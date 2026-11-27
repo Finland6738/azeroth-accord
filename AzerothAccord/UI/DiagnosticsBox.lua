@@ -16,8 +16,7 @@ Box.WHEEL_STEP = 40
 local function build()
 	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
-	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	f:SetTitle("")
 	f.title:SetText(L["DIAG_TITLE"])
 	f.hint = Widgets.Text(card, "Small", "text-3", "LEFT")
 	f.hint:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
@@ -25,13 +24,9 @@ local function build()
 	f.hint:SetText(L["DIAG_HINT"])
 
 	-- the report: a multi-line edit box in a surface-2 field that scrolls with the wheel
-	f.field = CreateFrame("Frame", nil, card)
+	f.field = Widgets.TextArea(card)
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -72)
-	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 64)
-	f.field.fill = Theme.Slice(f.field, "rr_fill_8", "surface-2", "BACKGROUND")
-	f.field.fill:SetAllPoints(f.field)
-	f.field.ring = Theme.Slice(f.field, "rr_ring_8", "border", "BORDER")
-	f.field.ring:SetAllPoints(f.field)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 76)
 	local scroll = CreateFrame("ScrollFrame", nil, f.field)
 	scroll:SetPoint("TOPLEFT", f.field, "TOPLEFT", 10, -8)
 	scroll:SetPoint("BOTTOMRIGHT", f.field, "BOTTOMRIGHT", -10, 8)
@@ -49,6 +44,7 @@ local function build()
 	edit:SetWidth(Box.WIDTH - 68)
 	scroll:SetScrollChild(edit)
 	f.scroll, f.edit = scroll, edit
+	f.field:Track(edit)
 
 	-- read-only: typing is undone at once and the text stays selected
 	edit:SetScript("OnTextChanged", function(self, userInput)
@@ -57,15 +53,15 @@ local function build()
 			self:HighlightText()
 		end
 	end)
-	edit:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+	edit:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() Box:Hide() end)
 
-	f.selectAll = Widgets.Button(card, { text = L["DIAG_SELECT"], style = "secondary", onClick = function() Box:SelectAll() end })
-	f.selectAll:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	f.selectAll = Widgets.Button(card, { text = L["DIAG_SELECT"], style = "outlined", onClick = function() Box:SelectAll() end })
+	f.selectAll:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
 	f.size = Widgets.Text(card, "MonoSmall", "text-3", "CENTER")
-	f.size:SetPoint("BOTTOM", card, "BOTTOM", 0, 30)
-	f.close = Widgets.Button(card, { text = L["DIAG_CLOSE"], style = "primary", onClick = function() Box:Hide() end })
-	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
+	f.size:SetPoint("BOTTOM", card, "BOTTOM", 0, 38)
+	f.close = Widgets.Button(card, { text = L["DIAG_CLOSE"], style = "filled", onClick = function() Box:Hide() end })
+	f.close:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
 	return f
 end
 

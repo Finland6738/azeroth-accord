@@ -72,7 +72,7 @@ In the **Requests** mode of the Bank view you can:
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
-- A round mark with a number, in the theme's accent colour, appears on the Accord tab of the guild window (and as a red badge on the panel's Bank tab) when requests are waiting for you. Members never see it.
+- A red badge with a number appears on the Accord tab of the guild window (and on the panel's Bank tab) when requests are waiting for you. Members never see it.
 - The **Inbox** mode lists what waits for an officer: open requests to approve or reject, approved ones to mark as *Fulfilled*. Each row shows the **date and time**, who asked, the item, the quantity and the tip. The chips sort it by *Oldest first* (the default), *Newest first* or *Highest tip*.
 - When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.
 - When the money log shows a gold deposit by the requester (any of their characters) after the request, of at least the tip, the row says *Looks paid*. One deposit counts for one tip, the oldest request first; several small deposits are not added up. It is only a hint: check it yourself. The addon records nothing about the payment; after you mark the request as fulfilled, the hint is in its tooltip in *Requests* (*Show closed ones too*). The bank log gives rounded times, so an old deposit read late may not be recognised.

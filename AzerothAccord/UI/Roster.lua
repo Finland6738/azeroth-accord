@@ -18,9 +18,9 @@ ns.modules.RosterView = View
 local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RosterModel
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
-View.ROW_HEIGHT = 28
-View.HEADER_HEIGHT = 28
-View.TOOLBAR_LINE = 32          -- one line of the toolbar (controls are 28 high)
+View.ROW_HEIGHT = 32
+View.HEADER_HEIGHT = 32
+View.TOOLBAR_LINE = 40          -- one line of the toolbar (controls are 32 or 36 high)
 View.POOL = 24                  -- row frames made up front (the table grows them when the window gets taller)
 View.NAME_WIDTH = 160           -- the name column carries the class mark and, grouped, the +/- button
 View.DEFAULT_WIDTH = 888        -- the width assumed before the frame has a size
@@ -101,14 +101,14 @@ local function buildToolbar(self, f)
 			View:Changed()
 		end })
 	end
-	bar.columns = Widgets.Button(bar, { text = L["COLUMNS"], style = "secondary", height = 28, onClick = function(b) View:ShowColumnMenu(b) end })
+	bar.columns = Widgets.Button(bar, { text = L["COLUMNS"], style = "tonal", dense = true, onClick = function(b) View:ShowColumnMenu(b) end })
 	Widgets.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
 	-- officers only (SPEC-12 §6): the export of the characters the table shows
-	bar.export = Widgets.Button(bar, { text = L["EXPORT_BUTTON"], style = "secondary", height = 28,
+	bar.export = Widgets.Button(bar, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true,
 		onClick = function() View:OpenExport() end })
 	bar.count = Theme.NewText(bar, "Small", "text-3")
 	bar.count:SetJustifyH("RIGHT")
-	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -9)
+	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -13)
 	bar:SetScript("OnSizeChanged", function(self)
 		local w = self:GetWidth() or 0
 		if w ~= View.toolbarWidth then View.toolbarWidth = w View:LayoutToolbar() end   -- the height it sets is not a reason to run again
@@ -138,7 +138,8 @@ function View:LayoutToolbar()
 			local w = item:GetWidth() or 0
 			if x > 0 and x + w > limit and line == 0 then x, line = 0, 1 elseif x + w > width and x > 0 then x, line = 0, line + 1 end
 			item:ClearAllPoints()
-			item:SetPoint("TOPLEFT", bar, "TOPLEFT", x, -line * View.TOOLBAR_LINE - 2)
+			-- by the middle of its line: the controls are not all of one height
+			item:SetPoint("LEFT", bar, "TOPLEFT", x, -(line + 0.5) * View.TOOLBAR_LINE)
 			x = x + w + 8
 		end
 	end
@@ -273,6 +274,8 @@ local function renderCell(self, index, id)
 		local text, color = Model.Cell(id, e)
 		cell:SetText(text or "")
 		paintCell(cell, color, e)
+		-- on the selected row the plain texts are on-secondary-container; the name keeps the class colour
+		if color ~= "class" and self.selected ~= nil and e.guid == self.selected then Theme.Text(cell, "on-secondary-container") end
 		if id == "name" then
 			local t = self.frame.table
 			local pos = t.pos and t.pos[index]
@@ -298,16 +301,6 @@ local function tableColumns(self)
 end
 
 local function rowSetup(row)
-	row.selected = row:CreateTexture(nil, "BORDER")
-	Theme.Fill(row.selected, "accent", 0.14)
-	row.selected:SetAllPoints(row)
-	row.selected:Hide()
-	row.selectedBar = row:CreateTexture(nil, "ARTWORK")
-	Theme.Fill(row.selectedBar, "accent")
-	row.selectedBar:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -4)
-	row.selectedBar:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 4)
-	row.selectedBar:SetWidth(2)
-	row.selectedBar:Hide()
 	row.mark = Widgets.ClassMark(row, 10)
 	row.expander = CreateFrame("Button", nil, row)
 	row.expander:SetSize(18, View.ROW_HEIGHT)
@@ -345,9 +338,6 @@ local function rowUpdate(row, data)
 	row.mark:ClearAllPoints()
 	row.mark:SetPoint("LEFT", row, "LEFT", pos1.x + indent + (grouped and 18 or 0), 0)
 	if e.classFile then Widgets.PaintClassMark(row.mark, classColor(e.classFile)) else Widgets.ClearClassMark(row.mark) end
-	local on = self.selected ~= nil and e.guid == self.selected
-	row.selected:SetShown(on)
-	row.selectedBar:SetShown(on)
 	fillProfessionButtons(self, row, data)
 end
 
@@ -356,6 +346,7 @@ function View:Build(f)
 	buildToolbar(self, f)
 	local t = Widgets.DataTable(f, tableColumns(self), {
 		rowHeight = View.ROW_HEIGHT, headerHeight = View.HEADER_HEIGHT, pool = View.POOL, maxPool = 80,
+		isSelected = function(data) return View.selected ~= nil and data.entry.guid == View.selected end,
 		onSort = function(id)
 			local m = View:Model()
 			m:SetSort(id)

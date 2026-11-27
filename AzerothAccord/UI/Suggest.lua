@@ -17,7 +17,7 @@ local type, ipairs, pairs, tostring, floor, max, min, abs = type, ipairs, pairs,
 Suggest.LEVEL_GAP = 5
 Suggest.NEW_MINUTES = 30
 Suggest.LIMIT = 12
-Suggest.ROW_HEIGHT = 30
+Suggest.ROW_HEIGHT = 36
 
 -- The suggestions: { guid, name, classFile, level, zone, minutes } sorted by minutes together, then level closeness, then
 -- name. opts.limit (default LIMIT).
@@ -118,10 +118,10 @@ local function newRow(area, i)
 	row.detail = Widgets.Text(row, "Small", "text-3", "LEFT")
 	row.detail:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
 	row.detail:SetPoint("RIGHT", row, "RIGHT", -200, 0)
-	row.invite = Widgets.Button(row, { text = L["NEW_INVITE"], style = "primary", width = 90, height = Suggest.ROW_HEIGHT - 6,
+	row.invite = Widgets.Button(row, { text = L["NEW_INVITE"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
 		onClick = function(b) Suggest:Invite(b:GetParent().guid) end })
 	row.invite:SetPoint("RIGHT", row, "RIGHT", -4, 0)
-	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "secondary", width = 90, height = Suggest.ROW_HEIGHT - 6,
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "outlined", width = 90, height = Widgets.HEIGHT.small,
 		onClick = function(b) Suggest:Whisper(b:GetParent().guid) end })
 	row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -8, 0)
 	Widgets.RowHover(row)

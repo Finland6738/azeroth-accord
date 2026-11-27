@@ -21,8 +21,8 @@ ns.modules.TrialsView = View
 local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, tonumber = type, ipairs, pairs, tostring, tonumber
 
-View.WIDTH, View.HEIGHT = 520, 470
-View.START_WIDTH, View.START_HEIGHT = 420, 330
+View.WIDTH, View.HEIGHT = 520, 500
+View.START_WIDTH, View.START_HEIGHT = 420, 350
 View.tab = "open"
 
 local function T() return ns.Trials end
@@ -107,12 +107,12 @@ local function buildPage(f, officers)
 	f.help:SetPoint("RIGHT", f, "RIGHT", -140, 0)
 	f.help:SetWordWrap(true)
 	f.help:SetText(L["TRI_HELP"])
-	f.start = Widgets.Button(f, { text = L["TRI_START"], style = "primary", height = 26, onClick = function() View:OpenStart() end })
+	f.start = Widgets.Button(f, { text = L["TRI_START"], style = "filled", dense = true, onClick = function() View:OpenStart() end })
 	f.start:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	f.tabs = Widgets.ChipRow(f, function(id)
 		View.tab = id
 		officers:Redraw()
-	end, { height = 26, gap = 6 })
+	end)
 	f.tabs:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -officers.FILTER_HEIGHT)
 	f.tabs:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	f.shownTab = View.tab
@@ -187,28 +187,26 @@ local function buildStart()
 	local w = View.START_WIDTH
 	local d = Widgets.Dialog(UIParent, "AzerothAccordTrialStartDialog", { width = w, height = View.START_HEIGHT })
 	local card = d.card
-	d.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	d.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	d:SetTitle("")
 	d.title:SetText(L["TRI_START_TITLE"])
 	d.member = Widgets.Select(card, { width = w - 48, rows = 8, placeholder = L["TRI_MEMBER"] })
 	d.member:SetPoint("TOPLEFT", d.title, "BOTTOMLEFT", 0, -18)
 	d.lengthLabel = Widgets.Text(card, "Small", "text-2", "LEFT")
 	d.lengthLabel:SetPoint("TOPLEFT", d.member, "BOTTOMLEFT", 0, -16)
 	d.lengthLabel:SetText(L["TRI_LENGTH"])
-	d.length = Widgets.EditBox(card, { width = 120, height = 28, maxLetters = 3 })
+	d.length = Widgets.EditBox(card, { width = 120, dense = true, maxLetters = 3 })
 	d.length:SetPoint("TOPLEFT", d.lengthLabel, "BOTTOMLEFT", 0, -6)
 	d.fromLabel = Widgets.Text(card, "Small", "text-2", "LEFT")
 	d.fromLabel:SetPoint("TOPLEFT", d.length, "BOTTOMLEFT", 0, -12)
 	d.fromLabel:SetText(L["TRI_FROM"])
-	d.from = Widgets.EditBox(card, { width = 160, height = 28, maxLetters = 10 })
+	d.from = Widgets.EditBox(card, { width = 160, dense = true, maxLetters = 10 })
 	d.from:SetPoint("TOPLEFT", d.fromLabel, "BOTTOMLEFT", 0, -6)
 	d.status = Widgets.Text(card, "Small", "text-2", "LEFT")
 	d.status:SetPoint("TOPLEFT", d.from, "BOTTOMLEFT", 0, -10)
 	d.status:SetPoint("RIGHT", card, "RIGHT", -24, 0)
-	d.ok = Widgets.Button(card, { text = L["TRI_START_OK"], style = "primary", onClick = function() View:Begin() end })
-	d.ok:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.ok = Widgets.Button(card, { text = L["TRI_START_OK"], style = "filled", onClick = function() View:Begin() end })
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d:SetActions({ d.close, d.ok })
 	return d
 end
 
@@ -252,9 +250,7 @@ local function buildTrial()
 	local w, h = View.WIDTH, View.HEIGHT
 	local d = Widgets.Dialog(UIParent, "AzerothAccordTrialDialog", { width = w, height = h })
 	local card = d.card
-	d.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	d.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
-	d.title:SetPoint("RIGHT", card, "RIGHT", -24, 0)
+	d:SetTitle("")
 	d.info = Widgets.Text(card, "Body", "text-2", "LEFT")
 	d.info:SetPoint("TOPLEFT", d.title, "BOTTOMLEFT", 0, -8)
 	d.info:SetPoint("RIGHT", card, "RIGHT", -24, 0)
@@ -265,33 +261,33 @@ local function buildTrial()
 	d.notes = Widgets.Text(card, "Body", "text-1", "LEFT")
 	d.notes:SetPoint("TOPLEFT", d.notesTitle, "BOTTOMLEFT", 0, -6)
 	d.notes:SetPoint("RIGHT", card, "RIGHT", -24, 0)
-	d.notes:SetPoint("BOTTOM", card, "BOTTOM", 0, 170)
+	d.notes:SetPoint("BOTTOM", card, "BOTTOM", 0, 196)
 	d.notes:SetWordWrap(true)
 	d.notes:SetJustifyV("TOP")
-	d.note = Widgets.Button(card, { text = L["TRI_NOTE_WRITE"], style = "secondary", height = 26,
+	d.note = Widgets.Button(card, { text = L["TRI_NOTE_WRITE"], style = "tonal", dense = true,
 		onClick = function() View:OpenNote(d.id) end })
-	d.note:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 132)
-	d.more = Widgets.EditBox(card, { width = 80, height = 26, maxLetters = 3, placeholder = L["TRI_EXTEND_HINT"],
+	d.note:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 148)
+	d.more = Widgets.EditBox(card, { width = 80, dense = true, maxLetters = 3, placeholder = L["TRI_EXTEND_HINT"],
 		onEnter = function() View:Press("extend") end })
-	d.more:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -112, 132)
-	d.extend = Widgets.Button(card, { text = L["TRI_EXTEND"], style = "secondary", height = 26, width = 80,
+	d.more:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -112, 148)
+	d.extend = Widgets.Button(card, { text = L["TRI_EXTEND"], style = "tonal", dense = true, width = 80,
 		onClick = function() View:Press("extend") end })
 	d.extend:SetPoint("LEFT", d.more, "RIGHT", 8, 0)
 	d.promote = Widgets.Switch(card, {})
-	d.promote:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 96)
+	d.promote:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 108)
 	d.promoteText = Widgets.Text(card, "Small", "text-2", "LEFT")
 	d.promoteText:SetPoint("LEFT", d.promote, "RIGHT", 8, 0)
 	d.promoteText:SetText(L["TRI_PROMOTE"])
-	d.passed = Widgets.Button(card, { text = L["TRI_PASSED"], style = "primary", onClick = function() View:Press("passed") end })
-	d.passed:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.failed = Widgets.Button(card, { text = L["TRI_FAILED"], style = "secondary", onClick = function() View:Press("failed") end })
+	d.passed = Widgets.Button(card, { text = L["TRI_PASSED"], style = "filled", onClick = function() View:Press("passed") end })
+	d.passed:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 24)
+	d.failed = Widgets.Button(card, { text = L["TRI_FAILED"], style = "tonal", onClick = function() View:Press("failed") end })
 	d.failed:SetPoint("RIGHT", d.passed, "LEFT", -8, 0)
-	d.cancel = Widgets.Button(card, { text = L["TRI_CANCEL"], style = "secondary", onClick = function() View:Press("cancelled") end })
+	d.cancel = Widgets.Button(card, { text = L["TRI_CANCEL"], style = "outlined", onClick = function() View:Press("cancelled") end })
 	d.cancel:SetPoint("RIGHT", d.failed, "LEFT", -8, 0)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 24)
 	d.status = Widgets.Text(card, "Small", "text-2", "LEFT")
-	d.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 64)
+	d.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 72)
 	d.status:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	d.status:SetWordWrap(true)
 	return d

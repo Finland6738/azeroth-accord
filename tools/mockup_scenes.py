@@ -100,10 +100,10 @@ def roster_row(m, i=0, prefix=""):
 
 
 def roster_toolbar(online=False, mains=False, grouped=False, count=None, shown=None, compact=False):
-    """The Roster's toolbar: three chips, three lists (Select), the column chooser, and the count at the right."""
+    """The Roster's toolbar: three filter chips, three lists (Select), Columns and Export, and the count at the right."""
     total = len(MEMBERS)
     count = T("ROSTER_COUNT", shown or total, total)
-    menus = "" if compact else (select(T("COL_CLASS")) + select(T("COL_RANK")) + select(T("FILTER_PROFESSION")) + btn(T("COLUMNS"), small=True, extra='style="height:28px;border-radius:8px;font-size:13px"'))
+    menus = "" if compact else (select(T("COL_CLASS")) + select(T("COL_RANK")) + select(T("FILTER_PROFESSION")) + btn(T("COLUMNS"), dense=True) + btn(T("EXPORT_BUTTON"), dense=True))
     return tools(chk(T("FILTER_ONLINE"), online), chk(T("FILTER_MAINS"), mains), chk(T("FILTER_GROUPED"), grouped), menus,
                  right="" if compact else f'<span class="muted small">{esc(count)}</span>')
 
@@ -199,7 +199,7 @@ def s_member_card_accord():
 
 
 def _recipe_head(title_html, source, count=None, craft=True):
-    return (f'<div style="display:flex;align-items:center;gap:8px;height:32px">{btn(T("RV_BACK"), "ghost")}{btn(T("CR_BUTTON"), "") if craft else ""}'
+    return (f'<div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}{btn(T("CR_BUTTON"), dense=True) if craft else ""}'
             f'<span style="font:600 16px/1 var(--body);margin-left:8px">{title_html}</span></div>'
             f'<div class="muted small" style="margin:8px 0 0 2px">{source}</div>')
 
@@ -222,7 +222,7 @@ def s_recipes():
     head = (f'<table class="tbl"><thead><tr><th style="width:34%">{esc(T("RV_COL_RECIPE"))}</th><th>{esc(T("RV_COL_DETAILS"))}</th><th style="width:140px;text-align:right">{esc(T("RV_COL_STATUS"))}</th><th style="width:116px"></th></tr></thead></table>')
     body = (f'<div class="rel">{_recipe_head("Brynn - " + esc(loc_prof("Alchemy")) + " 285/300", esc(T("RV_SRC_NATIVE_AGE", T("AGO_MINUTES", 4))))}'
             f'<div style="display:flex;align-items:center;gap:8px;height:40px;margin-top:6px">{select(T("RV_CATEGORY") + ": " + T("RV_CAT_ALL"), 220, True)}<span class="grow"></span><span class="muted small">{esc(T("RV_COUNT", 23, 131))}</span></div>'
-            f'<div style="position:relative">{head}<table class="tbl" style="margin-top:0"><tbody>{rows}</tbody></table>{scrollbar(4, 150)}</div>'
+            f'<div style="position:relative">{head}<table class="tbl tall" style="margin-top:0"><tbody>{rows}</tbody></table>{scrollbar(4, 150)}</div>'
             f'{tip(470, 190, "<div class=gold style=font-size:14px>Greater Healing Potion</div><div class=small>Requires Alchemy (215)</div><div class=green style=margin-top:4px>Restores 455 to 585 health.</div><div class=muted style=margin-top:6px>Needs: 1 Mountain Silversage, 1 Crystal Vial</div>", 250)}</div>')
     return full("professions", body, search_text="potion", peers=9)
 
@@ -244,8 +244,8 @@ def s_craft():
     rows += rowset("Superior Healing Potion", 3, [("Brynn", "MAGE", True, "Alchemy 285/300", T("RV_SRC_NATIVE"), 0), ("Lyra", "MAGE", True, "Alchemy 240/300", T("RV_SRC_NATIVE"), 0), ("Zephyr", "DRUID", True, "Alchemy 240/300", T("RV_SRC_NATIVE"), 0)])
     rows += rowset("Healing Potion", 7, [("Elowen", "DRUID", False, "Alchemy 190/300", ago("AGO_DAYS", 1), 0), ("Maren", "PRIEST", False, "Alchemy 85/300", ago("AGO_DAYS", 4), 0)])
     head = (f'<table class="tbl"><thead><tr><th style="width:34%">{esc(T("RV_COL_RECIPE"))}</th><th>{esc(T("RV_COL_DETAILS"))}</th><th style="width:140px;text-align:right">{esc(T("RV_COL_STATUS"))}</th><th style="width:116px"></th></tr></thead></table>')
-    body = (f'<div class="rel"><div style="display:flex;align-items:center;gap:8px;height:32px">{btn(T("RV_BACK"), "ghost")}{btn(T("CR_BUTTON"), "primary")}<span style="font:600 16px/1 var(--body);margin-left:8px">{esc(T("CR_TITLE"))}</span></div>'
+    body = (f'<div class="rel"><div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}{btn(T("CR_BUTTON"), dense=True)}<span style="font:600 16px/1 var(--body);margin-left:8px">{esc(T("CR_TITLE"))}</span></div>'
             f'<div class="muted small" style="margin:8px 0 0 2px">{esc(T("CR_COUNT", 3))}</div>'
             f'<div style="display:flex;align-items:center;gap:8px;height:40px;margin-top:6px">{chk(T("CR_ONLINE_ONLY"))}</div>'
-            f'<div style="position:relative">{head}<table class="tbl"><tbody>{rows}</tbody></table></div></div>')
+            f'<div style="position:relative">{head}<table class="tbl tall"><tbody>{rows}</tbody></table></div></div>')
     return full("professions", body, search_text="healing potion", peers=9)

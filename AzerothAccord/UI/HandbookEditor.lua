@@ -21,7 +21,7 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, tostring, max, min = type, ipairs, tostring, math.max, math.min
 local date = date
 
-Editor.REVISION_ROW = 22
+Editor.REVISION_ROW = 32
 Editor.REVISION_ROWS = 6       -- the current one and Handbook.KEEP_REVISIONS past ones
 Editor.WRITERS_WIDTH = 260
 
@@ -59,7 +59,7 @@ local function say(fs, text, token)
 end
 
 local function button(parent, key, style, onClick, width)
-	return Widgets.Button(parent, { text = L[key], style = style or "secondary", height = 28, width = width,
+	return Widgets.Button(parent, { text = L[key], style = style or "tonal", dense = true, width = width,
 		onClick = onClick })
 end
 
@@ -87,22 +87,18 @@ local function buildEditor(f)
 	p.heading = Widgets.Text(p, "H2", "text-1", "LEFT")
 	p.heading:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -4)
 	p.heading:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, -4)
-	p.title = Widgets.EditBox(p, { height = 28, placeholder = L["HANDBOOK_TITLE_HINT"],
+	p.title = Widgets.EditBox(p, { dense = true, placeholder = L["HANDBOOK_TITLE_HINT"],
 		onChange = function() Editor:Typed() end })
 	p.title:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -28)
 	p.title:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, -28)
 	p.hint = Widgets.Text(p, "Small", "text-3", "LEFT")
-	p.hint:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -62)
-	p.hint:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, -62)
+	p.hint:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -68)
+	p.hint:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, -68)
 	p.hint:SetText((L["HANDBOOK_SYNTAX"]:gsub("|", "||")))
 	-- a multi-line box that scrolls with the wheel and follows the cursor
-	p.field = CreateFrame("Frame", nil, p)
-	p.field:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -80)
-	p.field:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 76)
-	p.field.fill = Theme.Slice(p.field, "rr_fill_8", "surface-2", "BACKGROUND")
-	p.field.fill:SetAllPoints(p.field)
-	p.field.ring = Theme.Slice(p.field, "rr_ring_8", "border", "BORDER")
-	p.field.ring:SetAllPoints(p.field)
+	p.field = Widgets.TextArea(p)
+	p.field:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -86)
+	p.field:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 80)
 	local scroll = CreateFrame("ScrollFrame", nil, p.field)
 	scroll:SetPoint("TOPLEFT", p.field, "TOPLEFT", 10, -8)
 	scroll:SetPoint("BOTTOMRIGHT", p.field, "BOTTOMRIGHT", -10, 8)
@@ -132,27 +128,28 @@ local function buildEditor(f)
 	p.field:EnableMouse(true)
 	p.field:SetScript("OnMouseDown", function() edit:SetFocus() end)
 	p.scroll, p.edit = scroll, edit
+	p.field:Track(edit)
 	p.pane = previewPane(p)
 	p.pane.text:SetPoint("TOPLEFT", p, "TOPLEFT", 0, -32)
-	p.pane.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 76)
+	p.pane.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 80)
 	p.status = Widgets.Text(p, "Small", "text-2", "LEFT")
-	p.status:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 56)
-	p.status:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 56)
+	p.status:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 60)
+	p.status:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 60)
 	p.count = Widgets.Text(p, "Small", "text-3", "LEFT")
-	p.count:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 40)
+	p.count:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 44)
 	p.total = Widgets.Text(p, "Small", "text-3", "RIGHT")
-	p.total:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 40)
-	p.save = button(p, "HANDBOOK_SAVE", "primary", function() Editor:Save() end)
+	p.total:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 44)
+	p.save = button(p, "HANDBOOK_SAVE", "filled", function() Editor:Save() end)
 	p.save:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 4)
-	p.cancel = button(p, "HANDBOOK_CANCEL", "ghost", function() Editor:Cancel() end)
+	p.cancel = button(p, "HANDBOOK_CANCEL", "outlined", function() Editor:Cancel() end)
 	p.cancel:SetPoint("RIGHT", p.save, "LEFT", -8, 0)
-	p.toggle = button(p, "HANDBOOK_PREVIEW", "secondary", function() Editor:TogglePreview() end)
+	p.toggle = button(p, "HANDBOOK_PREVIEW", "tonal", function() Editor:TogglePreview() end)
 	p.toggle:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 4)
-	p.draft = button(p, "HANDBOOK_DRAFT", "secondary", function() Editor:RestoreDraft() end)
+	p.draft = button(p, "HANDBOOK_DRAFT", "tonal", function() Editor:RestoreDraft() end)
 	p.draft:SetPoint("LEFT", p.toggle, "RIGHT", 8, 0)
-	p.keep = button(p, "HANDBOOK_KEEP_MINE", "primary", function() Editor:Save() end)
+	p.keep = button(p, "HANDBOOK_KEEP_MINE", "filled", function() Editor:Save() end)
 	p.keep:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 4)
-	p.discard = button(p, "HANDBOOK_DISCARD_MINE", "secondary", function() Editor:DiscardMine() end)
+	p.discard = button(p, "HANDBOOK_DISCARD_MINE", "outlined", function() Editor:DiscardMine() end)
 	p.discard:SetPoint("RIGHT", p.keep, "LEFT", -8, 0)
 	f.editorPanel = p
 	return p
@@ -383,9 +380,7 @@ local function buildRevisions(f)
 		b:SetHeight(Editor.REVISION_ROW)
 		b:SetPoint("TOPLEFT", p, "TOPLEFT", 0, y)
 		b:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, y)
-		b.selected = b:CreateTexture(nil, "BACKGROUND")
-		Theme.Fill(b.selected, "accent", 0.16)
-		b.selected:SetAllPoints(b)
+		b.selected = Widgets.Selection(b)
 		Widgets.RowHover(b)
 		b.label = Widgets.Text(b, "Small", "text-1", "LEFT")
 		b.label:SetPoint("LEFT", b, "LEFT", 8, 0)
@@ -405,14 +400,14 @@ local function buildRevisions(f)
 	p.name:SetPoint("TOPRIGHT", p, "TOPRIGHT", 0, top)
 	p.pane = previewPane(p)
 	p.pane.text:SetPoint("TOPLEFT", p, "TOPLEFT", 0, top - 24)
-	p.pane.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 56)
+	p.pane.text:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 64)
 	p.status = Widgets.Text(p, "Small", "err", "LEFT")
-	p.status:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 38)
-	p.restore = button(p, "HANDBOOK_RESTORE", "primary", function() Editor:Restore() end)
+	p.status:SetPoint("BOTTOMLEFT", p, "BOTTOMLEFT", 0, 44)
+	p.restore = button(p, "HANDBOOK_RESTORE", "filled", function() Editor:Restore() end)
 	p.restore:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 0, 4)
-	p.dismiss = button(p, "HANDBOOK_DISMISS", "secondary", function() Editor:Dismiss() end)
+	p.dismiss = button(p, "HANDBOOK_DISMISS", "outlined", function() Editor:Dismiss() end)
 	p.dismiss:SetPoint("RIGHT", p.restore, "LEFT", -8, 0)
-	p.close = button(p, "HANDBOOK_CLOSE", "ghost", function()
+	p.close = button(p, "HANDBOOK_CLOSE", "text", function()
 		View.revisions = nil
 		View:Redraw()
 	end)
@@ -454,8 +449,9 @@ function Editor:PaintRevisions()
 			if r.current then text = text .. " · " .. L["HANDBOOK_REV_CURRENT"]
 			elseif r.lost then text = text .. " · " .. L["HANDBOOK_REV_LOST"] end
 			b.label:SetText(text)
-			Theme.Text(b.label, r.lost and "warn" or "text-1")
-			b.selected:SetShown(r == pick or (r.current and pick.current) == true)
+			local on = r == pick or (r.current and pick.current) == true
+			Theme.Text(b.label, on and "on-secondary-container" or r.lost and "warn" or "text-1")
+			b.selected:SetShown(on)
 		end
 	end
 	p.name:SetText(pick.title)
@@ -526,19 +522,9 @@ local function move(id, step)
 	View:Redraw()
 end
 
-local function arrow(b, key, angle, step)
-	local a = CreateFrame("Button", nil, b)
-	a:SetSize(20, 20)
-	a.icon = a:CreateTexture(nil, "ARTWORK")
-	a.icon:SetTexture(ns.Assets.textures.icons.path)
-	a.icon:SetTexCoord(ns.Assets.IconCoords("chevron"))
-	a.icon:SetSize(14, 14)
-	a.icon:SetPoint("CENTER", a, "CENTER", 0, 0)
-	a.icon:SetRotation(angle)        -- the chevron of the sheet points right
-	Theme.Tint(a.icon, "text-2")
-	if Widgets.Tooltip then Widgets.Tooltip.Attach(a, L[key]) end
-	a:SetScript("OnClick", function() if b.id then move(b.id, step) end end)
-	return a
+local function arrow(b, key, icon, step)
+	return Widgets.IconButton(b, { icon = icon, dense = true, tooltip = L[key],
+		onClick = function() if b.id then move(b.id, step) end end })
 end
 
 -- The arrows of the chosen page, in the place of its mark.
@@ -546,22 +532,20 @@ function Editor:Row(f, b, item, searching)
 	local show = not searching and not item.deleted and item.mark ~= "over" and item.id ~= nil
 		and item.id == View.selected and not View.revisions and writer()
 	if show and not b.up then
-		b.up = arrow(b, "HANDBOOK_MOVE_UP", math.pi / 2, -1)
-		b.down = arrow(b, "HANDBOOK_MOVE_DOWN", -math.pi / 2, 1)
-		b.down:SetPoint("TOPRIGHT", b, "TOPRIGHT", -4, -5)
-		b.up:SetPoint("RIGHT", b.down, "LEFT", -2, 0)
+		b.up = arrow(b, "HANDBOOK_MOVE_UP", "arrow_up", -1)
+		b.down = arrow(b, "HANDBOOK_MOVE_DOWN", "arrow_down", 1)
+		b.down:SetPoint("TOPRIGHT", b, "TOPRIGHT", 0, 0)
+		b.up:SetPoint("RIGHT", b.down, "LEFT", 0, 0)
 	end
 	if not b.up then return end
 	b.up:SetShown(show)
 	b.down:SetShown(show)
 	if show then
 		for a, step in pairs({ [b.up] = -1, [b.down] = 1 }) do
-			local can = book():MovePlan(item.id, step) ~= nil
-			a:SetEnabled(can)
-			a:SetAlpha(can and 1 or 0.35)
+			a:SetEnabled(book():MovePlan(item.id, step) ~= nil)
 		end
 		b.mark:SetText("")
-		b.label:SetPoint("TOPRIGHT", b.up, "TOPLEFT", -6, -3)
+		b.label:SetPoint("TOPRIGHT", b.up, "TOPLEFT", -6, -9)
 	end
 end
 
@@ -629,23 +613,23 @@ local function seed()
 end
 
 local function buildWriter(f)
-	f.seed = button(f, "HANDBOOK_SEED", "primary", seed)
+	f.seed = button(f, "HANDBOOK_SEED", "filled", seed)
 	f.seed:SetPoint("TOP", f, "TOP", 0, -90)
-	f.newPage = button(f, "HANDBOOK_NEW", "secondary", function() View:Edit() end, 100)
-	f.writers = button(f, "HANDBOOK_WRITERS", "ghost", function() Editor:ShowWriters(f.writers) end, 80)
+	f.newPage = button(f, "HANDBOOK_NEW", "tonal", function() View:Edit() end, 100)
+	f.writers = button(f, "HANDBOOK_WRITERS", "text", function() Editor:ShowWriters(f.writers) end, 80)
 	f.stale = Widgets.Text(f, "Small", "warn", "LEFT")
-	f.stale:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 74)
+	f.stale:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 86)
 	f.stale:SetText(L["HANDBOOK_WRITERS_STALE"])
-	f.edit = button(f.reader, "HANDBOOK_EDIT", "secondary", function() View:Edit(View.selected) end)
+	f.edit = button(f.reader, "HANDBOOK_EDIT", "tonal", function() View:Edit(View.selected) end)
 	f.edit:SetPoint("BOTTOMLEFT", f.reader, "BOTTOMLEFT", 0, 4)
-	f.revisionsButton = button(f.reader, "HANDBOOK_REVISIONS", "secondary", function()
+	f.revisionsButton = button(f.reader, "HANDBOOK_REVISIONS", "outlined", function()
 		View:OpenRevisions(View.selected)
 	end)
 	f.revisionsButton:SetPoint("LEFT", f.edit, "RIGHT", 8, 0)
-	f.delete = button(f.reader, "HANDBOOK_DELETE", "ghost", delete)
+	f.delete = button(f.reader, "HANDBOOK_DELETE", "text", delete)
 	f.delete:SetPoint("LEFT", f.revisionsButton, "RIGHT", 8, 0)
 	f.deleteNote = Widgets.Text(f.reader, "Small", "warn", "LEFT")
-	f.deleteNote:SetPoint("BOTTOMLEFT", f.reader, "BOTTOMLEFT", 0, 38)
+	f.deleteNote:SetPoint("BOTTOMLEFT", f.reader, "BOTTOMLEFT", 0, 44)
 	f.deleteNote:SetText(L["HANDBOOK_DELETE_ASK"])
 end
 
@@ -678,12 +662,12 @@ function Editor:Decorate(f, row)
 	local officer = may and ns.Role ~= nil and ns.Role:IsOfficer()
 	if may and not f.newPage then buildWriter(f) end
 	local stale = officer and staleRanks()
-	local bottom = may and (stale and 108 or 76) or 40
-	if (f.listBottom or 40) ~= bottom then
+	local bottom = may and (stale and 112 or 84) or View.LIST_BOTTOM
+	if (f.listBottom or View.LIST_BOTTOM) ~= bottom then
 		f.listBottom = bottom
 		View.Layout(f)
 	end
-	local textBottom = may and 56 or 0
+	local textBottom = may and 64 or 0
 	if (f.textBottom or 0) ~= textBottom then
 		f.textBottom = textBottom
 		f.text:ClearAllPoints()
@@ -694,7 +678,7 @@ function Editor:Decorate(f, row)
 		f.newPage:SetShown(may)
 		f.seed:SetShown(may and ns.HandbookDefaults:CanSeed() and View.revisions == nil)
 		f.newPage:ClearAllPoints()
-		f.newPage:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 40)
+		f.newPage:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 0, 44)
 		f.writers:ClearAllPoints()
 		f.writers:SetPoint("LEFT", f.newPage, "RIGHT", 6, 0)
 		f.writers:SetShown(officer == true)

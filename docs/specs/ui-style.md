@@ -101,7 +101,7 @@ ricordato e rimesso) le parti grafiche della cornice di Blizzard e disegna dietr
 - *Croce.* Il pulsante di chiusura di Blizzard resta quello che chiude (le sue texture diventano trasparenti); sopra di esso un
   frame senza mouse porta la croce dell'icona `cross` (`text-2`, `text-1` al passaggio).
 - *Linguette a lato.* Le quattro di Blizzard (finché la linguetta Accord è aperta) e la nostra (sempre) hanno una **tessera** da
-  44 pt (`surface-2`, anello `border`; scelta: `raised` con anello `accent` e bagliore): delle linguette di Blizzard si
+  44 pt (`surface-2`, anello `border`; scelta: `secondary-container` senza anello né bagliore, M12.8): delle linguette di Blizzard si
   rendono trasparenti tutte le texture tranne l'icona, che resta (è ciò che la linguetta fa). La nostra è un pulsante semplice
   con il logo tondo, senza il modello di linguetta di Blizzard, e porta il segno con il conteggio delle richieste.
 - *Quando.* La veste si mette quando si apre il pannello Accord e si toglie (alfa ripristinato, frame nascosti) quando si
@@ -171,7 +171,7 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   Finestra Gilda: una texture quadrata `bg` (gli angoli dell'area di Blizzard restano coperti), nessun bordo. La maniglia
   di ridimensionamento è l'icona `dashed` del foglio delle icone (`text-3`, `accent-text` sotto il mouse), nessuna
   texture di Blizzard.
-- **Linguetta.** Icona invariata (SPEC-10 Q2); il badge delle richieste è un cerchio `accent` col numero in `on-accent`.
+- **Linguetta.** Icona invariata (SPEC-10 Q2); il badge delle richieste è il badge del kit (`err` / `on-error`, M12.8).
 - Le viste (corpo del pannello) restano col vecchio aspetto fino a M6.13-M6.14 (M6.13 ha fatto Roster, scheda e Professions): ognuna riceve un frame semplice che
   riempie il corpo, con 16 pt di margine.
 
@@ -333,14 +333,14 @@ disegnate nel nuovo aspetto, con gli strumenti di FDCP adattati (`tools/make_moc
 
 - **Foglio di stile.** `mockups/html/accord.css` è **generato** da `tools/mockup_lib.py` (`--spec`): i token dei tre temi (gli stessi di
   `UI/Theme.lua`, §4) come variabili CSS (`:root` è Nebula, `[data-theme="aurora"]` e `[data-theme="accord"]` gli altri) e, per ogni
-  componente del kit, la regola che lo disegna con quei token: pulsanti (primario, secondario, ghost, neon), pillole e chip, segmentato,
+  componente del kit, la regola che lo disegna con quei token (§9): pulsanti (pieno, tonale, contornato, di testo), chip filtro e badge, segmentati,
   lista a discesa, campi, interruttore, badge, card, tabella (intestazione in maiuscolo su barra arrotondata, colonna ordinata nel colore
-  d'accento, righe da 28 punti, riga scelta tinta), quadrato di classe, slot della banca. Il nome di classe è nel colore della classe
+  d'accento, righe da 32 punti, riga scelta in `secondary-container`), quadrato di classe, slot della banca. Il nome di classe è nel colore della classe
   nei temi scuri e nel colore del testo in Aurora, come nell'addon. I font sono quelli dell'addon (`Media/Fonts/`, SIL OFL 1.1): nessun
   font del gioco e nessuna risorsa dalla rete.
 - **Che cosa si disegna.** Il layout reale: schede lungo il bordo alto (con il conteggio sulla Banca), ricerca e Pop out a destra, riga
   di stato in fondo nella finestra Gilda, barra del titolo con logo, nome in Orbitron e stato nella finestra autonoma (920 × 600), la
-  pagina Impostazioni e la pagina Info come colonna di card larga 520 con il selettore a pillole in alto. Tutti i testi sono letti dai
+  pagina Impostazioni e la pagina Info come colonna di card larga 520 con il selettore segmentato in alto. Tutti i testi sono letti dai
   file di lingua (inglese, e italiano per le anteprime in italiano). La finestra Gilda è disegnata come l'addon la veste (§3, M6.18): cornice tematica, nome della gilda, croce e linguette come tessere, con icone a linee generiche al posto di quelle del gioco (nessuna arte di Blizzard).
 - **Quali anteprime.** Le 24 di M6.6 ridisegnate in Nebula (la scheda Accord, Roster in tabella e raggruppato, scheda membro, ricette e
   *chi può creare*, like, indice sociale, mappa dei gruppi, *qualcuno di nuovo*, i sette modi della Banca, Impostazioni in due parti con la
@@ -528,14 +528,16 @@ l'azione principale.
 **Stato (M12.7).** Il kit (`UI/Widgets/`) e la scheda del membro seguono la tabella; `Tests/test_widgets.lua` controlla
 misure, ruoli e stati di ogni componente. Dove una regola è stata adattata, e perché:
 
-- **Stili dei pulsanti.** `primary`, `secondary`, `ghost` e `neon` restano come alias di pieno, **tonale**, di testo e
-  contornato: le viste scelgono il tipo giusto in M12.8. Il gradiente non c'è più (i pulsanti sono piatti, ADR 0027).
+- **Stili dei pulsanti.** I nomi di M6.11 (`primary`, `secondary`, `ghost`, `neon`) non ci sono più (M12.8): le viste
+  chiedono `filled`, `tonal` (il predefinito), `outlined` o `text`. Il gradiente non c'è più (i pulsanti sono piatti,
+  ADR 0027).
 - **Pulsanti segmentati densi di norma** (32, 40 con `dense = false`): in Accord stanno solo in barre, selettori di
   pagina e moduli (§9.5). Ogni segmento tiene sempre il posto della spunta, così la scelta non sposta nulla.
 - **Campo dei menu a tendina** alto 32 (la tabella dice solo il menu): sta nelle barre degli strumenti. Il suo menu è
   largo quanto il campo, anche oltre 280, come fa M3 per un menu legato a un campo.
-- **Altezze date dalle viste.** Il kit rispetta l'altezza che una vista passa (pulsanti, chip e campi da 22 a 28 nei
-  moduli di oggi): le porta alle misure della tabella M12.8.
+- **Altezze nelle viste** (M12.8): tre misure, `Widgets.HEIGHT`: 40 nei dialog e nelle pagine, 36 (`dense`) nelle
+  barre degli strumenti e nelle righe dei moduli (pulsanti e campi), 32 per un pulsante dentro la riga di un elenco.
+  Chip, menu a tendina e segmentati restano a 32.
 - **Badge.** Il badge `err` è per le cose da fare (4 punti per lato, al più 34). Le etichette di stato (Online, Main,
   versione, conteggi che informano soltanto) sono lo stesso widget nella tinta dello stato al 16 %, con 8 punti per lato
   e senza larghezza massima: un badge rosso direbbe di agire.
@@ -548,6 +550,25 @@ misure, ruoli e stati di ogni componente. Dove una regola è stata adattata, e p
 - **Snackbar**: nessun segno colorato del tono (sui colori inversi non reggerebbe il contrasto). Il toast delle
   notifiche (`UI/Toast.lua`) passa a queste regole con le viste (M12.8).
 - **Chip**: scelto, il chip si allarga della spunta; chi li dispone per larghezza li ridispone (`onResize`).
+
+**Stato (M12.8).** Le viste usano il kit secondo la tabella; `Tests/test_ui_m3.lua` apre ogni vista, pagina e i
+dialog principali della gilda inventata e controlla **al più un pulsante pieno** e le altezze. Le scelte:
+
+- **Il pulsante pieno** è l'azione che conclude il lavoro della vista (Salva la dichiarazione, Mi iscrivo, Chiama il
+  raduno, Candidati, Pubblica, Invia la richiesta, Rivedi). Dove un pulsante si ripete su ogni riga (Accetta, Invita,
+  Approva) è tonale; la pagina Impostazioni non ha un'azione principale e non ha pulsanti pieni. In un dialog il pieno
+  è a destra, "Annulla" e le alternative sono contornati, "Chiudi" accanto a un'azione è di testo.
+- **Riga scelta** in `secondary-container`: la tabella (`isSelected`) in Roster, Gruppi e Addon della gilda, e
+  `Widgets.Selection` nelle liste disegnate dalle viste (manuale e revisioni, richiesta aperta dal Centro azioni,
+  persona scelta nello schieramento). La barretta e la tinta d'accento di M6.14 non ci sono più.
+- **Righe**: 32 nelle tabelle e nelle liste; 36 quando contengono un pulsante (il pulsante è alto 32); 44 nelle righe
+  a due righe di testo. Gli elenchi di solo testo (Season, Eventi, Raduni, Disponibilità, Raid) non sono tabelle e
+  restano a 20 punti; le celle della mappa di disponibilità (26 × 20) sono un grafico.
+- **Campi a più righe** (`Widgets.TextArea`): lo stesso aspetto del campo di testo. **Chip** disposti a capo con
+  `Widgets.Flow` dove la larghezza non è fissa (colonne del roster, temi dei mentori, tipi dei gruppi).
+- **Toast** (`UI/Toast.lua`): le regole della snackbar. **Finestra Gilda**: la tessera della linguetta scelta è
+  `secondary-container`, senza bagliore; il suo contatore è il badge del kit.
+- **Dialog**: il titolo è `:SetTitle` (title large); i pulsanti stanno a 24 punti dai bordi.
 
 Nulla di questo è provato nel client vero.
 
@@ -565,8 +586,8 @@ Nulla di questo è provato nel client vero.
    il colore del contenuto; le fette di forma 4, 16 e 28 (`tools/make_media.py`); i ruoli tipografici di §9.4.
 2. **M12.7, componenti**: `UI/Widgets/` secondo §9.6 (schede, pulsanti con i quattro tipi, chip filtro, segmentati,
    menu, campi, card, tabella, side sheet, dialog, tooltip, badge, interruttore, snackbar); i test dei widget.
-3. **M12.8, viste**: ogni vista usa il componente giusto (un solo pulsante pieno, i filtri come chip, la riga scelta in
-   `secondary-container`), le anteprime di §8 e il wiki rifatti.
+3. **M12.8, viste** (fatto): ogni vista usa il componente giusto (un solo pulsante pieno, i filtri come chip, la riga
+   scelta in `secondary-container`), le anteprime di §8 e il wiki rifatti.
 
 Da questo momento ogni modifica grafica, anche una correzione, segue questa sezione. Una regola che il gioco non permette
 si annota qui, con il motivo.

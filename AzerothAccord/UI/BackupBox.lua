@@ -23,8 +23,7 @@ end
 local function build()
 	local f = Widgets.Dialog(UIParent, Box.NAME, { width = Box.WIDTH, height = Box.HEIGHT })
 	local card = f.card
-	f.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	f.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	f:SetTitle("")
 	f.warning = Widgets.Text(card, "Small", "warn", "LEFT")
 	f.warning:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -6)
 	f.warning:SetPoint("RIGHT", card, "RIGHT", -24, 0)
@@ -36,7 +35,7 @@ local function build()
 	local scroll, edit
 	f.field, scroll, edit = ns.CopyBox.Area(card, Box.WIDTH - 68)
 	f.field:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -96)
-	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 88)
+	f.field:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 96)
 	f.scroll, f.edit = scroll, edit
 
 	-- export and preview are read-only (typing is undone at once); in the paste step the player writes freely
@@ -46,17 +45,16 @@ local function build()
 			self:HighlightText()
 		end
 	end)
-	edit:SetScript("OnEditFocusGained", function(self) if f.readOnly then self:HighlightText() end end)
+	edit:HookScript("OnEditFocusGained", function(self) if f.readOnly then self:HighlightText() end end)
 	edit:SetScript("OnEscapePressed", function(self) self:ClearFocus() Box:Hide() end)
 
 	f.status = Widgets.Text(card, "Small", "text-2", "LEFT")
-	f.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 68)
+	f.status:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 76)
 	f.status:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 
-	f.left = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "secondary", width = 140, onClick = function() Box:Left() end })
-	f.left:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
-	f.right = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "primary", width = 140, onClick = function() Box:Right() end })
-	f.right:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
+	f.left = Widgets.Button(card, { text = L["BACKUP_SELECT"], style = "outlined", width = 140, onClick = function() Box:Left() end })
+	f.right = Widgets.Button(card, { text = L["BACKUP_CLOSE"], style = "filled", width = 140, onClick = function() Box:Right() end })
+	f:SetActions({ f.left, f.right })
 	f:HookScript("OnHide", function() Box:Forget() end)
 	return f
 end

@@ -34,10 +34,10 @@ describe("a guild whose roster has not loaded yet", function()
 		contains(viewText("roster"), "The guild roster is not loaded yet.")
 	end)
 
-	it("Reputation says so, Bank explains how its data arrives, Professions explains what to type", function()
+	it("Reputation says so, Bank explains how its data arrives, Professions shows the guild's recipes", function()
 		contains(viewText("reputation"), "The guild roster is not loaded yet.")
 		contains(viewText("bank"), "No bank data yet")
-		matches(viewText("professions"), "Type the name of an item or a recipe")
+		contains(viewText("professions"), "Guild recipes")   -- Professions opens on the catalogue of the guild
 	end)
 
 	it("the Bank log, donations, money and requests each explain why they are empty", function()

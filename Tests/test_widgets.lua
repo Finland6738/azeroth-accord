@@ -79,10 +79,6 @@ local function builders()
 	local members = {}
 	for i = 1, 5 do members[i] = { name = "QZ" .. i, level = i * 10 } end
 	return {
-		{ "Button primary", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "primary" }) end },
-		{ "Button secondary", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "secondary" }) end },
-		{ "Button ghost", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "ghost" }) end },
-		{ "Button neon", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "neon" }) end },
 		{ "Button filled", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "filled", icon = "plus" }) end },
 		{ "Button tonal", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "tonal" }) end },
 		{ "Button outlined", true, function(p) return Widgets().Button(p, { text = "QZ1", style = "outlined" }) end },
@@ -260,13 +256,12 @@ describe("button (ui-style §9.6)", function()
 		falsy(plain.fill); falsy(plain.ring); inks(plain.label, "accent-text")
 	end)
 
-	it("the old style names are aliases of the four kinds, and the default is tonal", function()
-		for old, kind in pairs({ primary = "filled", secondary = "tonal", ghost = "text", neon = "outlined" }) do
-			eq(button(old).kind, kind, old)
-			eq(button(old).style, old)
-		end
+	it("is one of the four kinds, tonal by default, 40 high or 36 dense (the names of M6.11 are gone, M12.8)", function()
 		eq(button(nil).kind, "tonal")
-		eq(button("nonsense").kind, "tonal")
+		eq(button("primary").kind, "tonal")
+		eq(button("filled"):GetHeight(), Widgets().HEIGHT.button)
+		eq(button("filled", { dense = true }):GetHeight(), Widgets().HEIGHT.dense)
+		isNil(Widgets().BUTTON_ALIASES)
 	end)
 
 	it("pads 24 at each side (16 before an icon, 12 for a text button) and fits its text unless given a width", function()
@@ -291,8 +286,8 @@ describe("button (ui-style §9.6)", function()
 	end)
 
 	it("only the filled button has a glow (with the effects on)", function()
-		truthy(button("filled").glow); truthy(button("primary").glow)
-		for _, style in ipairs({ "tonal", "outlined", "text", "neon" }) do falsy(button(style).glow, style) end
+		truthy(button("filled").glow)
+		for _, style in ipairs({ "tonal", "outlined", "text" }) do falsy(button(style).glow, style) end
 	end)
 
 	it("hover lays an 8 % state layer in the label's colour, pressed 10 %, both faded in 120 ms (M12.6)", function()
@@ -406,7 +401,7 @@ end)
 describe("effects off", function()
 	it("glows, shadows and the title glow go away and come back with the preference", function()
 		local parent = CreateFrame("Frame")
-		local primary = Widgets().Button(parent, { style = "primary" })
+		local primary = Widgets().Button(parent, { style = "filled" })
 		local card = Widgets().Card(parent, { shadow = true })
 		local bar = Widgets().TitleBar(parent, { title = "QZ1" })
 		truthy(primary.glow:IsShown()); truthy(card.parts.shadow:IsShown()); truthy(bar.logoGlow:IsShown())
@@ -420,7 +415,7 @@ describe("effects off", function()
 	end)
 
 	it("the light theme draws the glows as soft shadows, not additive light", function()
-		local b = Widgets().Button(CreateFrame("Frame"), { style = "primary" })
+		local b = Widgets().Button(CreateFrame("Frame"), { style = "filled" })
 		truthy(b.glow._additive)
 		Th().Apply("aurora")
 		falsy(b.glow._additive)

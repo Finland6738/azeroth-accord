@@ -33,6 +33,10 @@ local function closeOnEscape(name)
 end
 Widgets.CloseOnEscape = closeOnEscape
 
+-- The control heights of the views (docs/specs/ui-style.md §9.5 and §9.6, M12.8): a button of a dialog or a page, a
+-- control of a toolbar or of a line of a form, and a button inside a row of a list (the smallest click area).
+Widgets.HEIGHT = { button = 40, dense = 36, small = 32 }
+
 -- The radius of the "full" shape (half the height) for a control `height` points high, among the slices of the media:
 -- 20, 18 and 16 are exact for the 40, 36 and 32 point controls of §9.6; a lower one gets the nearest that still fits.
 function Widgets.FullRadius(height)
@@ -136,26 +140,22 @@ local BUTTON_KINDS = {
 	text     = { ink = "accent-text",                                          pad = 12 },
 }
 Widgets.BUTTON_KINDS = BUTTON_KINDS
--- The style names of M6.11 keep working until the views name the kind they want (M12.8).
-local BUTTON_ALIASES = { primary = "filled", secondary = "tonal", ghost = "text", neon = "outlined" }
-Widgets.BUTTON_ALIASES = BUTTON_ALIASES
-
--- opts: text, style ("filled" | "tonal" | "outlined" | "text", or an old name: "primary", "secondary", "ghost", "neon";
--- default tonal), icon (a name of the icon sheet, 18 points before the label), width (without it the button fits its
--- text), height (40; 36 with `dense`, the toolbars), onClick. Full shape, label large. Padding 24 (16 before an icon; 12
+-- opts: text, style ("filled" | "tonal" | "outlined" | "text"; default tonal: a view or a dialog has at most one filled
+-- button), icon (a name of the icon sheet, 18 points before the label), width (without it the button fits its
+-- text), height (40; 36 with `dense`, the toolbars and the lines of a form;
+-- Widgets.HEIGHT), onClick. Full shape, label large. Padding 24 (16 before an icon; 12
 -- at each side of a text button), icon and label 8 apart. Hover lays a state layer in the label's colour at 8 % and
 -- pressed 10 % (faded in 120 ms), a press shrinks the button to 0.97 (Motion.Press). Disabled: the content at 38 %, the
 -- fill and ring at 12 % of text-1, no glow and no layer. :SetLabel(text), :GetLabel(), :SetEnabled(bool).
 function Widgets.Button(parent, opts)
 	opts = opts or {}
-	local name = opts.style or "secondary"
-	local kind = BUTTON_KINDS[name] and name or BUTTON_ALIASES[name] or "tonal"
+	local kind = BUTTON_KINDS[opts.style] and opts.style or "tonal"
 	local style = BUTTON_KINDS[kind]
-	local height = opts.height or (opts.dense and 36 or 40)
+	local height = opts.height or (opts.dense and Widgets.HEIGHT.dense or Widgets.HEIGHT.button)
 	local radius = Widgets.FullRadius(height)
 	local b = CreateFrame("Button", nil, parent)
 	b:SetSize(opts.width or 120, height)
-	b.style, b.kind = name, kind
+	b.kind = kind
 	if style.glow then
 		b.glow = Theme.Glow(b, "glow_s", style.glow, { alpha = 0.3 })
 		b.glow:SetPoint("TOPLEFT", b, "TOPLEFT", -18, 18)
@@ -945,15 +945,15 @@ end
 
 -- --- EditBox ----------------------------------------------------------------------------------------------------------
 
--- A one-line text field (docs/specs/ui-style.md §9.6): 40 high, radius 4, surface-2 with an outline of 1 point (border;
--- border-strong under the mouse), 2 points of accent while it has the keyboard. opts: width, height, maxLetters,
+-- A one-line text field (docs/specs/ui-style.md §9.6): 40 high (36 with `dense`), radius 4, surface-2 with an outline of 1 point (border;
+-- border-strong under the mouse), 2 points of accent while it has the keyboard. opts: width, height, dense, maxLetters,
 -- placeholder (text-3, shown while the field is empty and not focused), onChange(text, user) after every edit,
 -- onEnter(text). :GetText(), :SetText(text), :Clear(), :SetPlaceholder(text), :SetFocus(), :ClearFocus(),
 -- :SetEnabled(bool) (the text at 38 %, the outline at 12 % of text-1). The edit box itself is `.edit`.
 function Widgets.EditBox(parent, opts)
 	opts = opts or {}
 	local f = CreateFrame("Frame", nil, parent)
-	f:SetSize(opts.width or 120, opts.height or 40)
+	f:SetSize(opts.width or 120, opts.height or (opts.dense and Widgets.HEIGHT.dense or Widgets.HEIGHT.button))
 	f.fill = Theme.Slice(f, "rr_fill_4", "surface-2", "BACKGROUND")
 	f.fill:SetAllPoints(f)
 	f.ring = Theme.Slice(f, "rr_ring_4", "border", "BORDER")
@@ -1016,6 +1016,29 @@ function Widgets.EditBox(parent, opts)
 		paint()
 	end
 	hint()
+	return f
+end
+
+-- The look of a text field around a box of more than one line (docs/specs/ui-style.md §9.6): radius 4, surface-2, an
+-- outline of 1 point, 2 points of accent while the box has the keyboard. The caller anchors the frame, puts its scroll
+-- frame and edit box inside and calls :Track(edit) once.
+function Widgets.TextArea(parent)
+	local f = CreateFrame("Frame", nil, parent)
+	f.fill = Theme.Slice(f, "rr_fill_4", "surface-2", "BACKGROUND")
+	f.fill:SetAllPoints(f)
+	f.ring = Theme.Slice(f, "rr_ring_4", "border", "BORDER")
+	f.ring:SetAllPoints(f)
+	f.focusRing = Theme.Slice(f, "rr_ring2_4", "accent", "BORDER")
+	f.focusRing:SetAllPoints(f)
+	f.focusRing:Hide()
+	function f:Track(edit)
+		local function paint(on)
+			self.focusRing:SetShown(on)
+			self.ring:SetShown(not on)
+		end
+		edit:HookScript("OnEditFocusGained", function() paint(true) end)
+		edit:HookScript("OnEditFocusLost", function() paint(false) end)
+	end
 	return f
 end
 
@@ -1122,10 +1145,36 @@ function Widgets.RowHover(row)
 	return Widgets.TrackState(row, row.hover)
 end
 
+-- The selected row of a list that is not a DataTable (docs/specs/ui-style.md §9.6): secondary-container with radius 4,
+-- under everything else of `row`, hidden until the view shows it. The row's plain texts go to on-secondary-container.
+function Widgets.Selection(row)
+	local t = Theme.Slice(row, "rr_fill_4", "secondary-container", "BACKGROUND")
+	t:SetDrawLayer("BACKGROUND", -1)
+	t:SetAllPoints(row)
+	t:Hide()
+	return t
+end
+
 -- A player's name in the class colour of the game (Theme.ClassText: text-1 on the light theme), text-1 for an unknown class.
 function Widgets.PaintName(fs, classFile)
 	local c = RAID_CLASS_COLORS and classFile and RAID_CLASS_COLORS[classFile]
 	if c then Theme.ClassText(fs, c.r, c.g, c.b) else Theme.Text(fs, "text-1") end
+end
+
+-- Places `items` (frames that have a width) left to right on `bar`, a new line when the next one does not fit in `width`.
+-- Lines are `rowHeight` high (32), `gap` apart (8) both ways; `x`, `y` are where the first one starts. Returns the
+-- height the lines take.
+function Widgets.Flow(bar, items, width, rowHeight, gap, x, y)
+	rowHeight, gap, x, y = rowHeight or Widgets.HEIGHT.small, gap or 8, x or 0, y or 0
+	local at, line = 0, 0
+	for _, item in ipairs(items) do
+		local w = item:GetWidth() or 0
+		if at > 0 and at + w > width then at, line = 0, line + 1 end
+		item:ClearAllPoints()
+		item:SetPoint("TOPLEFT", bar, "TOPLEFT", x + at, -y - line * (rowHeight + gap))
+		at = at + w + gap
+	end
+	return #items > 0 and (line + 1) * (rowHeight + gap) - gap or 0
 end
 
 -- A row of chips of which one is selected: the modes of a view, the tabs of the bank, a period. onSelect(id) after a

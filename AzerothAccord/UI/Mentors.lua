@@ -20,8 +20,8 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, ipairs, pairs, tostring, floor, max, min = type, ipairs, pairs, tostring, math.floor, math.max, math.min
 
 View.ROW_HEIGHT = 44
-View.LINE_HEIGHT = 24
-View.TOP = 68                  -- the own offer and the topic filter
+View.LINE_HEIGHT = 36
+View.TOP = 84                  -- the own offer and the topic filter
 View.WIDTH, View.HEIGHT = 460, 330
 View.topic = nil               -- the topic filter (nil: all)
 View.offset = 0
@@ -151,36 +151,41 @@ local function buildDialog()
 	local w = View.WIDTH
 	local d = Widgets.Dialog(UIParent, "AzerothAccordMentorDialog", { width = w, height = View.HEIGHT })
 	local card = d.card
-	d.title = Widgets.Text(card, "H2", "text-1", "LEFT")
-	d.title:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -22)
+	d:SetTitle("")
 	d.title:SetText(L["MEN_DIALOG_TITLE"])
 	d.topicsLabel = Widgets.Text(card, "Small", "text-2", "LEFT")
 	d.topicsLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -58)
 	d.topicsLabel:SetText(L["MEN_TOPICS"])
 	d.chips = {}
+	local order = {}
+	-- the chips flow in the width of the dialog (a chosen one grows by its check) and what follows moves under them
+	local function placeChips()
+		local h = Widgets.Flow(card, order, w - 48, Widgets.HEIGHT.small, 8, 24, 80)
+		local y = 80 + h + 12
+		d.noteLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -y)
+		d.note:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -(y + 20))
+		d.count:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -(y + 64))
+		d.status:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -(y + 84))
+		card:SetHeight(math.max(View.HEIGHT, y + 84 + 32 + 64))
+	end
 	for i, id in ipairs(M().TOPICS) do
-		local chip = Widgets.Chip(card, { text = View.TopicText(id), height = 26, onClick = function() View:Toggle(id) end })
-		local col, line = (i - 1) % 3, floor((i - 1) / 3)
-		chip:SetPoint("TOPLEFT", card, "TOPLEFT", 24 + col * 138, -80 - line * 34)
-		d.chips[id] = chip
+		local chip = Widgets.Chip(card, { text = View.TopicText(id), onClick = function() View:Toggle(id) end })
+		d.chips[id], order[i] = chip, chip
 	end
 	d.noteLabel = Widgets.Text(card, "Small", "text-2", "LEFT")
-	d.noteLabel:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -158)
 	d.noteLabel:SetText(L["MEN_NOTE"])
-	d.note = Widgets.EditBox(card, { width = w - 48, height = 28, maxLetters = 80,
+	d.note = Widgets.EditBox(card, { width = w - 48, dense = true, maxLetters = 80,
 		onChange = function() if View.dialog then byteCount(View.dialog) end end,
 		onEnter = function() View:Save() end })
-	d.note:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -178)
 	d.count = Widgets.Text(card, "Small", "text-3", "LEFT")
-	d.count:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -212)
 	d.status = Widgets.Text(card, "Small", "text-2", "LEFT")
-	d.status:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -232)
 	d.status:SetPoint("RIGHT", card, "RIGHT", -24, 0)
 	d.status:SetWordWrap(true)
-	d.ok = Widgets.Button(card, { text = L["MEN_SAVE"], style = "primary", onClick = function() View:Save() end })
-	d.ok:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -24, 20)
-	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "ghost", onClick = function() d:Close() end })
-	d.close:SetPoint("BOTTOMLEFT", card, "BOTTOMLEFT", 24, 20)
+	d.ok = Widgets.Button(card, { text = L["MEN_SAVE"], style = "filled", onClick = function() View:Save() end })
+	d.close = Widgets.Button(card, { text = L["COPY_CLOSE"], style = "text", onClick = function() d:Close() end })
+	d:SetActions({ d.close, d.ok })
+	placeChips()
+	for _, chip in ipairs(order) do chip.onResize = placeChips end
 	return d
 end
 
@@ -252,19 +257,19 @@ function mode.build(f)
 	f.own:SetPoint("TOPLEFT", f, "TOPLEFT", 4, -6)
 	f.own:SetPoint("RIGHT", f, "RIGHT", -340, 0)
 	f.own:SetWordWrap(false)
-	f.offer = Widgets.Button(f, { text = L["MEN_OFFER"], style = "primary", height = 26, onClick = function() View:Offer() end })
+	f.offer = Widgets.Button(f, { text = L["MEN_OFFER"], style = "filled", dense = true, onClick = function() View:Offer() end })
 	f.offer:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	f.leave = Widgets.Button(f, { text = L["MEN_LEAVE"], style = "secondary", height = 26, onClick = function() View:Leave() end })
+	f.leave = Widgets.Button(f, { text = L["MEN_LEAVE"], style = "outlined", dense = true, onClick = function() View:Leave() end })
 	f.leave:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
-	f.edit = Widgets.Button(f, { text = L["MEN_EDIT"], style = "secondary", height = 26, width = 90,
+	f.edit = Widgets.Button(f, { text = L["MEN_EDIT"], style = "tonal", dense = true, width = 90,
 		onClick = function() View:OpenDialog() end })
 	f.edit:SetPoint("RIGHT", f.leave, "LEFT", -8, 0)
 	f.filter = Widgets.ChipRow(f, function(id)
 		View.topic = id ~= "all" and id or nil
 		View.offset = 0
 		if ns.ReputationView then ns.ReputationView:Redraw() end
-	end, { height = 26, gap = 6 })
-	f.filter:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -34)
+	end)
+	f.filter:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -44)
 	f.filter:SetPoint("RIGHT", f, "RIGHT", 0, 0)
 	f.area = CreateFrame("Frame", nil, f)
 	f.area:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -View.TOP)
@@ -303,7 +308,7 @@ local function newRow(area, i)
 	row.note:SetPoint("TOPLEFT", row, "TOPLEFT", 24, -25)
 	row.note:SetPoint("RIGHT", row, "RIGHT", -180, 0)
 	row.note:SetWordWrap(false)
-	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "secondary", width = 90, height = 26,
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
 		onClick = function(b) View:Whisper(b:GetParent().guid) end })
 	row.whisper:SetPoint("RIGHT", row, "RIGHT", -4, 0)
 	row.online = Widgets.Text(row, "Small", "text-3", "RIGHT")
@@ -371,7 +376,7 @@ local function line(f, i)
 	row.text = Widgets.Text(row, "Body", "text-2", "LEFT")
 	row.text:SetPoint("RIGHT", row, "RIGHT", -100, 0)
 	row.text:SetWordWrap(false)
-	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "secondary", width = 90, height = View.LINE_HEIGHT - 4,
+	row.whisper = Widgets.Button(row, { text = L["NEW_WHISPER"], style = "tonal", width = 90, height = Widgets.HEIGHT.small,
 		onClick = function(b) View:Whisper(b:GetParent().guid) end })
 	row.whisper:SetPoint("RIGHT", row, "RIGHT", -4, 0)
 	f.lines[i] = row

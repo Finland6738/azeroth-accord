@@ -23,7 +23,7 @@ local type, ipairs, tostring = type, ipairs, tostring
 local concat = table.concat
 
 View.HEAD_HEIGHT = 44
-View.DETAIL_HEIGHT = 196
+View.DETAIL_HEIGHT = 224
 View.TIP_VERSIONS = 8        -- versions a tooltip lists
 
 View.selected = nil          -- the folder whose users are shown
@@ -137,14 +137,14 @@ local function buildDetail(f)
 	d.title:SetPoint("TOPLEFT", d, "TOPLEFT", 14, -10)
 	d.title:SetPoint("RIGHT", d, "RIGHT", -110, 0)
 	if d.title.SetWordWrap then d.title:SetWordWrap(false) end
-	d.close = Widgets.Button(d, { text = L["ADDONS_CLOSE"], style = "ghost", height = 24, width = 90,
+	d.close = Widgets.Button(d, { text = L["ADDONS_CLOSE"], style = "text", height = Widgets.HEIGHT.small, width = 90,
 		onClick = function() View:Choose(nil) end })
 	d.close:SetPoint("TOPRIGHT", d, "TOPRIGHT", -8, -6)
 	d.note = Widgets.Text(d, "Small", "text-3", "LEFT")
 	d.note:SetPoint("TOPLEFT", d, "TOPLEFT", 14, -32)
-	d.note:SetPoint("RIGHT", d, "RIGHT", -14, 0)
+	d.note:SetPoint("RIGHT", d, "RIGHT", -110, 0)
 	if d.note.SetWordWrap then d.note:SetWordWrap(false) end
-	d.table = Widgets.DataTable(d, whoColumns(), { rowHeight = 24, headerHeight = 24, pool = 8, emptyText = "" })
+	d.table = Widgets.DataTable(d, whoColumns(), { pool = 8, emptyText = "" })
 	d.table:SetPoint("TOPLEFT", d, "TOPLEFT", 8, -52)
 	d.table:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", -8, 8)
 	d:Hide()
@@ -217,14 +217,11 @@ function View:Build(f)
 	f.detail = buildDetail(f)
 	f.table = Widgets.DataTable(f, columns(), { emptyText = L["ADDONS_EMPTY"],
 		onRowClick = function(row) View:Choose(row.folder) end,
+		-- the add-on whose users are shown below; the player's own ones have their name in accent-text
+		isSelected = function(row) return row.folder == View.selected end,
 		rowSetup = function(row)
-			row.mark = row:CreateTexture(nil, "BACKGROUND")
-			Theme.Fill(row.mark, "accent", 0.16)
-			row.mark:SetAllPoints(row)
-			row.mark:Hide()
 			Widgets.Tooltip.Attach(row, function(r) return r.data and View.TipLines(r.data) or nil end, "LEFT")
-		end,
-		rowUpdate = function(row, data) row.mark:SetShown(data.mine or data.here) end })
+		end })
 	place(f)
 	f.table:SortBy("users", true)
 	f:SetScript("OnShow", function() watch(f, true) View:Redraw() end)

@@ -9,7 +9,7 @@ from mockup_scenes import (scene, MEMBERS, ranks, roster_cols, roster_row, roste
 
 
 def mode_bar(labels, on, extra=""):
-    """A row of pills, one per mode (Widgets.ChipRow): the selected one has the accent fill."""
+    """A row of filter chips, one per mode (Widgets.ChipRow): the selected one is tonal, with a check."""
     return tools(*[chip(t, "sel" if i == on else "", small=True) for i, t in enumerate(labels)], right=extra)
 
 
@@ -27,9 +27,9 @@ def likes_rows(people, kinds, limit=22):
         n, c = m[0], m[2]
         kind = kinds.get(n, ("btn", None, None))
         if kind[0] == "btn":
-            act = btn(T("REP_LIKE"), small=True, extra='style="width:100px"')
+            act = heart()
         elif kind[0] == "confirm":
-            act = btn(T("REP_CONFIRM"), "primary", small=True, extra='style="width:100px"')
+            act = btn(T("REP_CONFIRM"), small=True, extra='style="width:100px"')
         else:
             act = f'<span class="{kind[2]}">{esc(T(kind[1]))}</span>'
         chars = f'<span class="muted small">{esc(T("REP_CHARS", 3))}</span>' if n in ("Brynn", "Aldric", "Dunstan") else ""
@@ -46,7 +46,7 @@ def likes_body(limit=22, scroll=True):
     head = (f'<table class="tbl"><thead><tr><th style="width:46px"></th><th style="width:170px" class="sorted">{esc(T("REP_COL_NAME"))}</th><th style="width:110px"></th>'
             f'<th style="width:80px" class="sorted">{esc(T("REP_COL_LIKES"))}</th><th></th></tr></thead></table>')
     return (f'<div class="rel">{rep_modes(0)}<div class="muted small" style="margin:0 0 8px 2px">{esc(T("REP_LIKES_EXPLAIN"))}</div>'
-            f'<div style="position:relative">{head}<table class="tbl"><tbody>{likes_rows(people, LIKE_STATES, limit)}</tbody></table>{scrollbar(70, 90) if scroll else ""}</div></div>')
+            f'<div style="position:relative">{head}<table class="tbl tall"><tbody>{likes_rows(people, LIKE_STATES, limit)}</tbody></table>{scrollbar(70, 90) if scroll else ""}</div></div>')
 
 
 @scene("reputation-likes", "Reputation: likes, one row per player; Like (a second click confirms), pending, liked and you")
@@ -108,9 +108,9 @@ def s_new():
     for n, c, lv, mins, z in data:
         together = T("NEW_NEVER") if mins == 0 else T("NEW_MINUTES", mins)
         rows += (f'<tr><td style="width:190px">{badge(c)}{name(n, c)}</td><td class="muted">{esc(T("NEW_DETAIL", lv, z, together))}</td>'
-                 f'<td style="width:206px;text-align:right">{btn(T("NEW_WHISPER"), small=True, extra="style=width:90px")} {btn(T("NEW_INVITE"), "primary", small=True, extra="style=width:90px")}</td></tr>')
+                 f'<td style="width:206px;text-align:right">{btn(T("NEW_WHISPER"), "outlined", small=True, extra="style=width:90px")} {btn(T("NEW_INVITE"), small=True, extra="style=width:90px")}</td></tr>')
     body = (f'<div class="rel">{rep_modes(3)}<div class="muted small" style="margin:0 0 8px 2px">{esc(T("NEW_EXPLAIN", 5, 30))}</div>'
-            f'<table class="tbl"><tbody>{rows}</tbody></table></div>')
+            f'<table class="tbl tall"><tbody>{rows}</tbody></table></div>')
     return full("reputation", body, peers=9)
 
 
@@ -130,7 +130,9 @@ def bank_modes(on, badge_n=None, officer=True):
 
 
 def bank_frame(on, inner, badge_n=None, **kw):
-    return full("bank", f'<div class="rel">{bank_modes(on, badge_n)}{inner}</div>', badge=badge_n, **kw)
+    # every mode sits in one card under the chips
+    body = f'<div class="card" style="position:absolute;left:0;right:0;top:44px;bottom:0;padding:14px;overflow:hidden">{inner}</div>'
+    return full("bank", f'<div class="rel">{bank_modes(on, badge_n)}{body}</div>', badge=badge_n, **kw)
 
 
 QUALITY_COLOR = {1: "#ffffff", 2: "#1eff00", 3: "#4a9bff", 4: "#c46bff"}
@@ -214,15 +216,17 @@ def s_bank_donations():
         rows += (f'<tr><td style="width:46px" class="muted">{i + 1}</td><td style="width:170px">{badge(c)}{name(n, c)}</td>'
                  f'<td style="width:200px">{coins(g)}</td><td style="width:230px" class="muted small">{esc(T("BANKLOG_DEPOSITS", items // 6))} · {esc(T("BANKLOG_ITEMS_N", items))}</td>'
                  f'<td><div class="bar" style="width:260px;height:4px"><i style="width:{g * 100 // top}%"></i></div></td></tr>')
-    bar = tools(chip(T("BANKLOG_D30"), "sel", True), chip(T("BANKLOG_D365"), "", True), chip(T("BANKLOG_ALL"), "", True), '<span style="width:16px"></span>', chip(T("BANKLOG_GOLD"), "sel", True), chip(T("BANKLOG_ITEMS"), "", True))
-    return bank_frame(3, f'{bar}<table class="tbl"><tbody>{rows}</tbody></table>', badge_n=3)
+    bar = tools(chip(T("BANKLOG_D30"), "sel", True), chip(T("BANKLOG_D365"), "", True), chip(T("BANKLOG_ALL"), "", True))
+    head = (f'<table class="tbl"><thead><tr><th style="width:46px">#</th><th style="width:170px">{esc(T("BANKLOG_COL_WHO"))}</th><th style="width:200px" class="sorted">{esc(T("BANKLOG_COL_GOLD"))}</th>'
+            f'<th style="width:230px">{esc(T("BANKLOG_COL_DEPOSITS"))}</th><th></th></tr></thead></table>')
+    return bank_frame(3, f'{bar}{head}<table class="tbl"><tbody>{rows}</tbody></table>', badge_n=3)
 
 
 @scene("bank-money", "Bank, Money: the guild's money over the last 30 days, from the money records that reached this client")
 def s_bank_money():
     vals = [int(2400000 + 380000 * math.sin(i / 3.2) + i * 18000 + (i % 5) * 26000) for i in range(30)]
     lo, hi = min(vals), max(vals)
-    bars = "".join(f'<div style="flex:1;margin:0 3px;background:var(--grad);height:{40 + (v - lo) * 270 // (hi - lo)}px;border-radius:3px 3px 0 0"></div>' for v in vals)
+    bars = "".join(f'<div style="flex:1;margin:0 3px;background:var(--accent);height:{40 + (v - lo) * 270 // (hi - lo)}px;border-radius:3px 3px 0 0"></div>' for v in vals)
     inner = (f'<h2>{esc(T("BANKLOG_MONEY_TITLE", 30))}</h2>'
              f'<div style="display:flex;align-items:flex-end;height:310px;padding:8px 8px 0;margin-top:8px;background:var(--surface-2);border-radius:12px;box-shadow:inset 0 -1px 0 var(--border)">{bars}</div>'
              f'<div style="display:flex;justify-content:space-between;margin-top:10px" class="small"><span class="muted">{esc(T("BANKLOG_LOW", ""))}{coins(lo)}</span><span class="muted">{esc(T("BANKLOG_HIGH", ""))}{coins(hi)}</span></div>')
@@ -260,7 +264,7 @@ def req_rows(officer, me="Fenwick"):
         if st == "open" and n == me and not officer:
             acts = btn(T("BANKREQ_CANCEL"), small=True)
         if officer and st == "open":
-            acts = btn(T("BANKREQ_APPROVE"), "primary", small=True) + " " + btn(T("BANKREQ_REJECT"), small=True)
+            acts = btn(T("BANKREQ_APPROVE"), small=True) + " " + btn(T("BANKREQ_REJECT"), small=True)
         if officer and st == "approved":
             acts = btn(T("BANKREQ_FULFILL"), small=True)
         nt = f'<span class="muted small"> - {esc(T("BANKREQ_NOTE", note))}</span>' if note else ""
@@ -281,11 +285,11 @@ def requests_body(officer=False, fields=(("Thorium Bar", 168), ("20", 56), ("2",
     form = card(f'<div style="display:flex;gap:8px;align-items:center">{kinds}<span class="muted small" style="margin-left:8px">{esc(T("BANKREQ_TIP_WITHDRAW"))}</span></div>'
                 f'<div style="display:flex;gap:10px;margin-top:10px;align-items:flex-end">{field(T("BANKREQ_ITEM_BANK"), fields[0])}'
                 f'{field(T("BANKREQ_AMOUNT_ITEM"), fields[1])}{field(T("BANKREQ_GIFT"), fields[2])}{field(T("BANKREQ_REASON"), fields[3])}'
-                f'{btn(T("BANKREQ_SEND"), "primary", small=True, extra="style=height:28px")}</div>'
+                f'{btn(T("BANKREQ_SEND"), "filled", dense=True)}</div>'
                 f'<div class="small muted" style="margin-top:6px">{esc(T("BANKREQ_STOCK", 34))}<span class="mono" style="margin-left:12px">{esc(T("AGO_HOURS", 3))}</span></div>',
-                "padding:12px 18px;margin-bottom:10px;border-radius:12px")
+                "background:var(--surface-2);padding:12px 16px;margin-bottom:10px")
     return (f'{form}<div style="display:flex;gap:8px;margin-bottom:8px">{chk(T("BANKREQ_ONLY_MINE"))}{chk(T("BANKREQ_SHOW_CLOSED"), True)}</div>'
-            f'<table class="tbl"><tbody>{req_rows(officer)}</tbody></table>')
+            f'<table class="tbl tall"><tbody>{req_rows(officer)}</tbody></table>')
 
 
 @scene("bank-requests", "Bank, Requests: ask for an item or gold, or offer one; the guild sees it, officers decide")
@@ -312,7 +316,7 @@ def s_bank_inbox():
         if st == "approved":
             cls = "green"
             looks = esc(T("BANKREQ_LOOKS_DONE", "Cora", what, T("AGO_MINUTES", 35))) + "&nbsp;&nbsp; " + esc(T("BANKREQ_LOOKS_PAID", "Cora", money(GIFTS["Cora"]), T("AGO_MINUTES", 20)))
-        acts = (btn(T("BANKREQ_APPROVE"), "primary", small=True) + " " + btn(T("BANKREQ_REJECT"), small=True)) if st == "open" else btn(T("BANKREQ_FULFILL"), small=True)
+        acts = (btn(T("BANKREQ_APPROVE"), small=True) + " " + btn(T("BANKREQ_REJECT"), small=True)) if st == "open" else btn(T("BANKREQ_FULFILL"), small=True)
         gift = money(GIFTS[n]) if n in GIFTS else "-"
         rows += (f'<tr><td class="muted mono small">{esc(DATES[n])}</td><td>{badge(c)}{name(n, c)}</td><td>{esc(item)}</td>'
                  f'<td class="mono" style="text-align:right">{esc(qty)}</td><td class="mono gold" style="text-align:right">{esc(gift)}</td>'
@@ -338,7 +342,7 @@ def srow(label, control, note=""):
 
 
 def scard(inner):
-    return card(inner, f"width:{PAGE}px;margin-bottom:16px;padding:20px 24px 22px")
+    return card(inner, f"width:{PAGE}px;margin-bottom:16px")
 
 
 def pager(on):
@@ -354,23 +358,23 @@ def settings_cards():
     contacts = scard(f'<h2>{esc(T("SET_CONTACTS"))}</h2><div class="muted" style="margin-top:8px;color:var(--text-2)">{esc(T("SET_CONTACTS_TEXT"))}</div>'
                      f'<div style="margin-top:14px;font-weight:500">{esc(T("SET_BATTLETAG", "Fenwick#6082"))}</div>'
                      f'<div class="eyebrow" style="margin-top:14px;color:var(--text-3)">{esc(T("SET_DISCORD"))}</div>'
-                     f'<div style="display:flex;gap:10px;margin-top:8px">{edit("fenwick_clockwork", 240, extra="height:32px")}{btn(T("SET_SAVE"), "primary")}</div>'
+                     f'<div style="display:flex;gap:10px;margin-top:8px">{edit("fenwick_clockwork", 240, extra="height:40px")}{btn(T("SET_SAVE"))}</div>'
                      f'<div class="green small" style="margin-top:8px">{esc(T("SET_SAVED"))}</div><div class="muted small" style="margin-top:6px">{esc(T("SET_DISCORD_NATIVE"))}</div>')
     main = scard(f'<h2>{esc(T("SET_MAIN_TITLE"))}</h2><div class="muted" style="margin-top:8px;color:var(--text-2)">{esc(T("SET_MAIN_TEXT"))}</div>'
                  f'<div style="margin-top:12px;font-weight:500">{esc(T("SET_MAIN_CURRENT", "Fenwick", 60))}</div><div style="margin-top:8px">{btn(T("SET_MAIN_CHOOSE"))}</div>')
-    notify = scard(f'<h2>{esc(T("SET_NOTIFY_TITLE"))}</h2><div style="margin-top:8px">{srow(T("SET_NOTIFY_OFFICER"), switch(True))}{srow(T("SET_NOTIFY_DECISION"), switch(True))}</div>'
+    notify = scard(f'<h2>{esc(T("SET_NOTIFY_TITLE"))}</h2><div style="margin-top:8px">{srow(T("SET_NOTIFY_OFFICER"), switch(True))}<div style="margin-top:6px">{srow(T("SET_NOTIFY_DECISION"), switch(True))}</div></div>'
                    f'<div class="small muted" style="margin-top:6px">{esc(T("SET_NOTIFY_NOTE"))}</div>')
     cols = [("COL_NAME", True, True), ("COL_LEVEL", True, False), ("COL_CLASS", True, False), ("COL_RANK", True, False), ("COL_ZONE", False, False), ("COL_LAST_ONLINE", True, False),
             ("COL_PROF1", True, False), ("COL_PROF2", True, False), ("COL_LIKES", True, False), ("COL_CONTACTS", False, False), ("COL_ADDON", True, False)]
     chips = "".join(chip(T(k), ("sel " if on else "") + ("lock" if always else ""), small=True) for k, on, always in cols)
     columns = scard(f'<h2>{esc(T("SET_COLUMNS_TITLE"))}</h2><div style="margin-top:8px;color:var(--text-2)">{esc(T("SET_COLUMNS_TEXT"))}</div>'
-                    f'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">{chips}</div><div style="margin-top:10px">{btn(T("COLUMNS_RESET"), "ghost")}</div>')
+                    f'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">{chips}</div><div style="margin-top:10px">{btn(T("COLUMNS_RESET"), "text")}</div>')
     sizes = [T("SET_DATA_ACCOUNT", "412.8 KB", 1), T("SET_DATA_CHAR", "1.9 KB"), T("SET_DATA_GUILD", "1.8 MB"),
              "   " + T("SET_DATA_PART_RECORDS", "coplay", "1.3 MB", 980), "   " + T("SET_DATA_PART_RECORDS", "likes", "212.4 KB", 790),
              "   " + T("SET_DATA_PART_RECORDS", "recipes", "176.0 KB", 312), "   " + T("SET_DATA_PART_RECORDS", "accounts", "88.2 KB", 164), "   " + T("SET_DATA_PART_RECORDS", "bank", "31.5 KB", 37)]
     data = scard(f'<h2>{esc(T("SET_DATA_TITLE"))}</h2><div style="margin-top:8px;color:var(--text-2)">{esc(T("SET_DATA_TEXT"))}</div>'
                  f'<div class="small mono muted" style="line-height:1.6;white-space:pre;margin-top:10px">{esc(chr(10).join(sizes))}</div>'
-                 f'<div style="margin-top:12px">{btn(T("SET_CLEAR"), extra="style=width:240px")}</div><div class="muted small" style="margin-top:8px">{esc(T("SET_CLEAR_TEXT"))}</div>')
+                 f'<div style="margin-top:12px">{btn(T("SET_CLEAR"), "outlined", extra="style=width:240px")}</div><div class="muted small" style="margin-top:8px">{esc(T("SET_CLEAR_TEXT"))}</div>')
     return [look, contacts, main, notify, columns, data]
 
 
@@ -386,7 +390,7 @@ def s_settings():
 
 @scene("settings-saved-data", "Settings, lower part: notices, Roster columns, the saved data sizes and Clear guild data (two clicks)")
 def s_settings_data():
-    return full("settings", settings_page(1120), peers=9, searchable=False)
+    return full("settings", settings_page(760), peers=9, searchable=False)
 
 
 NEBULA_LOGO = {"nebula": "nebula-logo-dark.png", "accord": "nebula-logo-dark.png", "aurora": "nebula-logo-light.png"}
@@ -396,7 +400,7 @@ def about_cards(theme="nebula"):
     """The Info page: four cards in a column, as UI/About.lua builds them (the logo of the guild follows the theme)."""
     logo_img = f'<img src="{lib.ASSETS}/logo-source.webp" alt="" width="72" height="72" style="border-radius:50%;box-shadow:0 0 18px var(--glow-accent)">'
     c1 = scard(f'<div style="display:flex;gap:16px;align-items:flex-start">{logo_img}<div><div style="font:700 15px/1 var(--display);letter-spacing:.1em;color:var(--accent-text);margin-top:10px;text-transform:uppercase">{esc(T("ADDON_TITLE"))}</div>'
-               f'<div class="small muted" style="margin-top:8px">{esc(T("ABOUT_VERSION", "0.6.0"))}</div></div></div>'
+               f'<div class="small muted" style="margin-top:8px">{esc(T("ABOUT_VERSION", "0.12.0"))}</div></div></div>'
                f'<div style="margin-top:16px;color:var(--text-2)">{esc(T("ABOUT_PURPOSE"))}</div><div style="margin-top:8px;color:var(--text-2)">{esc(T("ABOUT_PURPOSE2"))}</div>')
     nebula = f'<img src="{lib.ASSETS}/{NEBULA_LOGO[theme]}" alt="" width="64" height="64">'
     c2 = scard(f'<h2>{esc(T("ABOUT_CREDITS"))}</h2><div style="margin-top:10px">{esc(T("ABOUT_MADE_BY", "Finland"))}</div>'
@@ -404,7 +408,7 @@ def about_cards(theme="nebula"):
                f'<div class="small muted" style="margin-top:6px">{esc(T("ABOUT_PERMISSION", "NEBULA"))}</div></div></div>')
     links = [("repo", "https://github.com/Finland6738/azeroth-accord"), ("issues", "https://github.com/Finland6738/azeroth-accord/issues"),
              ("site", "https://nebula-community.github.io/giochi/wow-forever/"), ("kofi", "https://ko-fi.com/finland6738")]
-    lb = "".join(f'<div style="margin-top:14px;color:var(--text-2)" class="small">{esc(T("ABOUT_LINK_" + k.upper()))}</div><div style="margin-top:4px">{edit(u, 472, extra="height:32px", )}</div>' for k, u in links)
+    lb = "".join(f'<div style="margin-top:14px;color:var(--text-2)" class="small">{esc(T("ABOUT_LINK_" + k.upper()))}</div><div style="margin-top:4px">{edit(u, 488, extra="height:40px")}</div>' for k, u in links)
     c3 = scard(f'<h2>{esc(T("ABOUT_LINKS"))}</h2><div class="small muted" style="margin-top:4px">{esc(T("ABOUT_LINKS_HINT"))}</div>{lb}')
     c4 = scard(f'<h2>{esc(T("ABOUT_LEGAL"))}</h2><div style="margin-top:8px;color:var(--text-2)">{esc(T("ABOUT_LICENSE", "GPL-3.0"))}</div>'
                f'<div style="margin-top:8px;color:var(--text-2)">{esc(T("ABOUT_THIRD"))}</div><div class="small muted" style="margin-top:12px">{esc(T("ABOUT_DISCLAIMER"))}</div>')
@@ -434,11 +438,11 @@ def s_diag():
              "APIs: 78 available, 0 missing, 0 restricted, 0 error", "", "== Saved data ==", "AzerothAccordDB: schema found 2, current 2, about 1.8 MB", "AzerothAccordCharDB: schema found 2, current 2, about 1.9 KB",
              "Memory: about 18.4 MB in use by the addon (the game's figure)", "Saved data: no problems", "", "== Store ==", "Store: accounts 164, contacts 160, recipes 312, coplay 980, likes 790, bank 37, bankreq 24"]
     text = esc("\n".join(lines))
-    box = (f'<div class="card" style="position:absolute;left:280px;top:40px;width:640px;height:610px;padding:20px 24px;border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.8)">'
-           f'<div style="display:flex;align-items:center"><span style="font:600 16px/1 var(--body)">{esc(T("DIAG_TITLE"))}</span><span class="grow"></span><span class="xbtn">{lib._X}</span></div>'
+    box = (f'<div class="dialog" style="left:280px;top:40px;width:640px;height:610px">'
+           f'<div style="display:flex;align-items:center"><span style="font:600 18px/1 var(--body)">{esc(T("DIAG_TITLE"))}</span></div>'
            f'<div class="small muted" style="margin:8px 0 10px">{esc(T("DIAG_HINT"))}</div>'
-           f'<div class="edit" style="display:block;height:456px;padding:10px 12px;overflow:hidden;border-radius:8px"><pre class="mono" style="margin:0;font-size:11.5px;line-height:1.45;color:var(--text-1);background:color-mix(in srgb, var(--accent) 28%, transparent);display:inline-block;padding:0 3px;white-space:pre-wrap">{text}</pre></div>'
-           f'<div style="position:absolute;left:24px;right:24px;bottom:18px;display:flex;align-items:center">{btn(T("DIAG_SELECT"), extra="style=width:130px")}<span class="grow" style="text-align:center"><span class="muted small">{esc(T("DIAG_SIZE", len(lines), len(chr(10).join(lines))))}</span></span>{btn(T("DIAG_CLOSE"), "primary", extra="style=width:110px")}</div></div>')
+           f'<div class="edit" style="display:block;height:456px;padding:10px 12px;overflow:hidden"><pre class="mono" style="margin:0;font-size:11.5px;line-height:1.45;color:var(--text-1);background:color-mix(in srgb, var(--accent) 28%, transparent);display:inline-block;padding:0 3px;white-space:pre-wrap">{text}</pre></div>'
+           f'<div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;align-items:center">{btn(T("DIAG_SELECT"), "outlined")}<span class="grow" style="text-align:center"><span class="muted small">{esc(T("DIAG_SIZE", len(lines), len(chr(10).join(lines))))}</span></span>{btn(T("DIAG_CLOSE"), "filled", extra="style=width:110px")}</div></div>')
     return f'<div style="position:absolute;inset:0;background:var(--scrim)"></div>{box}'
 
 

@@ -222,26 +222,20 @@ end
 
 function GuildTab:IsPanelShown() return self.panel ~= nil and self.panel:IsShown() end
 
--- The count of requests waiting for an officer (BANK-23): a small round mark in the theme's accent with the number on
--- the tab; nothing for 0. The mark is the addon's own texture on the addon's own tab.
+-- The count of requests waiting for an officer (BANK-23): the badge of the widget kit (error colours: a thing to do) on
+-- the tab; nothing for 0. The badge is the addon's own frame on the addon's own tab.
 function GuildTab:SetBadge(count)
 	self.badgeCount = count or 0
 	local tab = self.tab
 	if not tab then return end
 	if not tab.badge then
-		tab.badgeBg = tab:CreateTexture(nil, "OVERLAY")
-		tab.badgeBg:SetTexture(ns.Assets.textures.circle.path)
-		tab.badgeBg:SetSize(18, 18)
-		tab.badgeBg:SetPoint("TOPRIGHT", tab, "TOPRIGHT", 4, 4)
-		Theme.Tint(tab.badgeBg, "accent")
-		tab.badge = Theme.NewText(tab, "Th", "on-accent", "OVERLAY")
-		tab.badge:SetJustifyH("CENTER")
-		tab.badge:SetPoint("CENTER", tab.badgeBg, "CENTER", 0, 0)
+		tab.badge = ns.Widgets.Badge(tab, "", "err")
+		tab.badge:SetPoint("TOPRIGHT", tab, "TOPRIGHT", 4, 4)
+		tab.badge:SetFrameLevel((tab:GetFrameLevel() or 1) + 2)
 	end
 	local n = self.badgeCount
-	tab.badge:SetText(n > 99 and "99+" or tostring(n))
+	tab.badge:SetBadge(n > 99 and "99+" or tostring(n))
 	tab.badge:SetShown(n > 0)
-	tab.badgeBg:SetShown(n > 0)
 end
 
 -- CreateFrame with the first template the client accepts (CreateFrame raises on an unknown one: each is tried under pcall).
