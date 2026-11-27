@@ -20,7 +20,7 @@
 
 ![Banca, Oggetti: ogni oggetto una volta con il suo totale e dove si trova](../specs/mockups/previews/bank-items.webp)
 
-Aprila con la scheda **Banca** del pannello o con `/accord bank`. Le modalità (Schede, Oggetti, In arrivo per gli ufficiali, Richieste, Registro, Donazioni, Denaro) sono i pulsanti in alto nella vista.
+Aprila con la scheda **Banca** del pannello o con `/accord bank`. Le modalità (Schede, Oggetti, In arrivo per gli ufficiali, Richieste, Registro, Donazioni, Denaro) sono i pulsanti in alto nella vista; quello scelto è pieno e ha una spunta.
 
 - **Schede**: un pulsante per ogni scheda che puoi vedere, il denaro della gilda e quanto è vecchio, e la scheda disposta come nel gioco (14 colonne di 7 slot). Sotto i pulsanti delle schede leggi *vista 2 h fa da Bob*: l'età del contenuto e il compagno il cui addon l'ha letto. Passa il mouse su un oggetto per il suo suggerimento.
 - **Oggetti**: una riga per oggetto su tutte le schede che puoi vedere, con il totale e dove si trova. La casella di ricerca del pannello filtra per nome dell'oggetto, numero dell'oggetto o nome della scheda.
@@ -72,7 +72,7 @@ Nella modalità **Richieste** della vista Banca puoi:
 
 *Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
 
-- Un segno rotondo con un numero, nel colore d'accento del tema, compare sulla scheda Accord della finestra della gilda (e come distintivo sulla scheda Banca del pannello) quando ci sono richieste che aspettano te. I membri non lo vedono mai.
+- Un segno rotondo con un numero, nel colore d'accento del tema, compare sulla scheda Accord della finestra della gilda (e come distintivo rosso sulla scheda Banca del pannello) quando ci sono richieste che aspettano te. I membri non lo vedono mai.
 - La modalità **In arrivo** elenca ciò che aspetta un ufficiale: le richieste aperte da approvare o rifiutare, quelle approvate da segnare come *Consegnata*. Ogni riga mostra **data e ora**, chi ha chiesto, l'oggetto, la quantità e la mancia. I chip la ordinano *Dalla più vecchia* (di base), *Dalla più recente* o per *Mancia più alta*.
 - Quando il registro della banca mostra il movimento corrispondente (chi ha chiesto ha tolto l'oggetto, o l'ha depositato, o l'oro), la riga dice *Sembra consegnata*; la segni comunque tu, perché la consegna resta manuale.
 - Quando il registro del denaro mostra un deposito d'oro di chi ha chiesto (un suo personaggio qualsiasi), dopo la richiesta, di almeno la mancia, la riga dice *Sembra pagata*. Un deposito vale per una sola mancia, dalla richiesta più vecchia; più depositi piccoli non si sommano. È solo un indizio: controlla tu. L'addon non registra nulla sul pagamento; dopo che segni la richiesta come consegnata, l'indizio è nel suo suggerimento in *Richieste* (*Mostra anche le chiuse*). Il registro della banca dà orari arrotondati, quindi un deposito vecchio letto tardi può non essere riconosciuto.

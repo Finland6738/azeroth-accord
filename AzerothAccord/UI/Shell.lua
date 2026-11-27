@@ -3,7 +3,7 @@
 -- One content frame, shown in one host at a time: the panel of the Accord tab in the guild window (UI/GuildTab.lua) or
 -- the standalone window (UI/Window.lua). The host draws what is around it (the window: its panel and title bar; the
 -- guild window: a fill of the theme over Blizzard's content area). The content has
---   * the tab bar (ns.Widgets.Tabs, 44 pt, the 2 pt indicator under the active tab): one tab per registered view (Roster,
+--   * the tab bar (ns.Widgets.Tabs, 48 pt, the 3 pt indicator under the active tab): one tab per registered view (Roster,
 --     Professions, Reputation, Bank, Settings), in order; views of later milestones register themselves, so a view that
 --     is not ready never shows; a view's `badge` function puts a count on its tab (the Bank: requests waiting); the
 --     tabs that do not fit beside the search box go into the menu of a *More* tab (Widgets.Tabs);
@@ -25,7 +25,7 @@ local type, pairs, ipairs, tostring, floor, pcall = type, pairs, ipairs, tostrin
 Shell.NAME = "AzerothAccordShell"
 Shell.PAD = 16            -- between the edge of the host and the tabs, the body
 Shell.TOP = 4             -- above the tab bar
-Shell.TAB_BAR = 44        -- the height of Widgets.Tabs
+Shell.TAB_BAR = Widgets.TAB_HEIGHT   -- the height of the tabs (48)
 Shell.STRIP = 30          -- the Demo strip above the tab bar (demo mode, SPEC-11 §3.1)
 Shell.GAP = 12            -- between the tab bar and the body
 Shell.FOOTER = 24         -- the sync-state line of the guild window
@@ -62,7 +62,7 @@ function Shell:UpdateBadges()
 	local tabs = self.content and self.content.tabs
 	if not tabs then return end
 	for id, view in pairs(self.views) do
-		if tabs.buttons[id] then tabs:SetBadge(id, Shell.BadgeText(view), "accent") end
+		if tabs.buttons[id] then tabs:SetBadge(id, Shell.BadgeText(view)) end
 	end
 end
 
@@ -213,7 +213,7 @@ local function tabsKey(list)
 	return table.concat(parts, "\n")
 end
 
--- The icon of each view's tab (a name of the icon sheet, UI/Assets.lua; owner, 2026-11-27: boxed tabs with icons).
+-- The icon of each view's tab (a name of the icon sheet, UI/Assets.lua; owner, 2026-11-27: tabs with icons).
 Shell.VIEW_ICONS = {
 	actions = "bell", roster = "users", professions = "hammer", reputation = "heart", bank = "coin", groups = "sword",
 	season = "flag", events = "calendar", availability = "clock", raid = "skull", handbook = "book", addons = "gem",
@@ -226,7 +226,7 @@ local function buildTabs(content, list)
 	if content.tabs then content.tabs:Hide() end
 	local defs = {}
 	for i, v in ipairs(list) do defs[i] = { id = v.id, text = v.label or v.id, icon = v.icon or Shell.VIEW_ICONS[v.id] } end
-	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"], boxed = true })
+	local tabs = Widgets.Tabs(content.bar, defs, nil, { moreText = L["TABS_MORE"] })
 	tabs:SetPoint("BOTTOMLEFT", content.bar, "BOTTOMLEFT", 0, 0)
 	tabs:SetPoint("BOTTOMRIGHT", content.bar, "BOTTOMRIGHT", 0, 0)
 	for id, b in pairs(tabs.buttons) do

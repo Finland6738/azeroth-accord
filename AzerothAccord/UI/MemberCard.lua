@@ -8,8 +8,10 @@
 -- content is covered by offline tests; the frame only draws what it returns:
 --   { guid, title, subtitle, classFile, notInGuild, badges = { { text, tone } },
 --     sections = { { id, title, count?, lines = { { text, muted, guid } } } } }
--- Drawn with the widget kit (M6.13): a Widgets.Card with the class mark, the name in the class colour, Widgets.Badges (online, main,
--- alt, addon) and one inner Widgets.Card per section; a long card scrolls with the mouse wheel.
+-- Drawn with the widget kit (M6.13) as a side sheet of Material 3 (M12.7, docs/specs/ui-style.md §9.6): Widgets.SideSheet
+-- (surface-1, radius 16, a header of 72, padding 24, 16 in the guild window's panel) with the class mark, the name in the
+-- class colour, Widgets.Badges (online, main, alt, addon) and one inner Widgets.Card per section; a long card scrolls with
+-- the mouse wheel.
 -- Sections: Details (zone, last online, rank, public note, the officers' note only when the game lets the player read it,
 -- the addon), Professions (each with where it comes from: the game, the member's own addon, the player's own),
 -- Characters of the same account (all of them, also outside the guild; a line with a `guid` opens that character's card),
@@ -20,18 +22,20 @@ local Card = {}
 ns.MemberCard, ns.modules = Card, ns.modules or {}
 ns.modules.MemberCard = Card
 
-local L, Widgets, Theme, Assets, Model = ns.L, ns.Widgets, ns.Theme, ns.Assets, ns.RosterModel
+local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RosterModel
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
-Card.WIDTH = 290
-Card.DETACHED_WIDTH = 340  -- the detail window beside the Accord window
+Card.WIDTH = 290           -- beside or over the table in the guild window's panel
+Card.DETACHED_WIDTH = 400  -- the detail window beside the Accord window (a side sheet: at most 400)
 Card.DETACH = true         -- in the Accord window the card is a window of its own (the tests switch it off for the panel)
 Card.GAP = 8
 Card.WIDE = 760            -- a panel at least this wide has room for the card beside the table
-Card.PAD = 16
-Card.INNER = 12            -- padding inside a section card
+Card.PAD = 24              -- the side sheet's padding
+Card.DENSE_PAD = 16        -- in the narrower panel of the guild window
+Card.INNER = 16            -- padding inside a section card
 Card.LINE_GAP = 4
-Card.SECTION_GAP = 10
+Card.SECTION_GAP = 12
+Card.BADGES = 28           -- the room of the badges' row under the header
 Card.WHEEL = 36            -- pixels per wheel notch
 
 Card.extra = {}            -- later steps: { { id, order, fn(entry) -> section | nil } }
@@ -230,44 +234,17 @@ local function classColor(classFile)
 	return 1, 1, 1
 end
 
-local HEADER = 96       -- the part above the scrolling sections: the name, its subtitle, the badges
-
 function Card:Build(parent)
-	local f = Widgets.Card(parent, { width = Card.WIDTH, height = 200, shadow = true })
+	local f = Widgets.SideSheet(parent, { width = Card.WIDTH, height = 200, indent = 20, onClose = function() Card:Close() end })
 	f:Hide()
 	f:EnableMouse(true)
 	f:EnableMouseWheel(true)
 	f.mark = Widgets.ClassMark(f, 12)
-	f.mark:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD, -23)
-	f.title = Theme.NewText(f, "H1", "text-1")
-	f.title:SetJustifyH("LEFT")
-	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 22, -18)
-	f.subtitle = Theme.NewText(f, "Small", "text-3")
-	f.subtitle:SetJustifyH("LEFT")
-	f.subtitle:SetPoint("TOPLEFT", f.title, "BOTTOMLEFT", 0, -4)
-	f.subtitle:SetPoint("RIGHT", f, "RIGHT", -Card.PAD, 0)
-	-- close (a cross) and, on a narrow panel, the Back button
-	f.close = CreateFrame("Button", nil, f)
-	f.close:SetSize(28, 28)
-	f.close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -10)
-	f.close.bg = Theme.Slice(f.close, "rr_fill_8", "surface-3", "BACKGROUND", 0)
-	f.close.bg:SetAllPoints(f.close)
-	f.close.icon = f.close:CreateTexture(nil, "OVERLAY")
-	f.close.icon:SetTexture(Assets.textures.icons.path)
-	f.close.icon:SetTexCoord(Assets.IconCoords("cross"))
-	f.close.icon:SetSize(14, 14)
-	f.close.icon:SetPoint("CENTER")
-	Theme.Tint(f.close.icon, "text-2")
-	f.close:SetScript("OnEnter", function(self) Theme.Tint(self.bg, "surface-3", 1) end)
-	f.close:SetScript("OnLeave", function(self) Theme.Tint(self.bg, "surface-3", 0) end)
-	f.close:SetScript("OnClick", function() Card:Close() end)
-	f.back = Widgets.Button(f, { text = L["CARD_BACK"], style = "ghost", height = 28, onClick = function() Card:Close() end })
-	f.back:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -10)
+	-- on a narrow panel, the Back button takes the place of the close button
+	f.back = Widgets.Button(f, { text = L["CARD_BACK"], style = "text", dense = true, onClick = function() Card:Close() end })
 	f.badges = {}
 	-- the sections scroll under the header: a clipping frame holds them and their lines
 	f.content = CreateFrame("Frame", nil, f)
-	f.content:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -HEADER)
-	f.content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 12)
 	if f.content.SetClipsChildren then f.content:SetClipsChildren(true) end
 	f.sections, f.items = {}, {}
 	f.thumb = f:CreateTexture(nil, "ARTWORK")
@@ -286,11 +263,11 @@ local function section(f, i)
 	if s then return s end
 	s = Widgets.Card(f.content, { fill = "surface-2" })
 	s:SetFrameLevel((f.content:GetFrameLevel() or 1) + 1)
-	s.heading = Theme.NewText(s, "Eyebrow", "accent-text")
+	s.heading = Theme.NewText(s, "label-medium", "accent-text")
 	s.heading:SetJustifyH("LEFT")
 	s.heading:SetPoint("TOPLEFT", s, "TOPLEFT", Card.INNER, -Card.INNER)
 	s.count = Widgets.Badge(s, "", "neutral")
-	s.count:SetPoint("TOPRIGHT", s, "TOPRIGHT", -Card.INNER, -Card.INNER + 4)
+	s.count:SetPoint("TOPRIGHT", s, "TOPRIGHT", -Card.INNER, -Card.INNER + 2)
 	s.count:Hide()
 	f.sections[i] = s
 	return s
@@ -311,9 +288,7 @@ local function item(f, i)
 	it.sub:Hide()
 	it.prov = Widgets.Provenance(it)   -- the label of the source, at the right of a line that has `prov` (M7.2)
 	it.prov:SetPoint("TOPRIGHT", it, "TOPRIGHT", 0, 0)
-	it.highlight = it:CreateTexture(nil, "HIGHLIGHT")
-	Theme.Fill(it.highlight, "highlight")
-	it.highlight:SetAllPoints(it)
+	Widgets.RowHover(it)   -- a line that can be clicked or has a tooltip takes the mouse (a state layer)
 	it:SetScript("OnClick", function(self)
 		if self.guid then Card:ShowGUID(self.guid)
 		elseif self.onClick then self.onClick(self) end
@@ -329,8 +304,8 @@ local function lineToken(ln)
 	return ln.muted and "text-3" or "text-1"
 end
 
-local function layoutBadges(f, d)
-	local x = Card.PAD
+local function layoutBadges(f, d, pad, y)
+	local x = pad
 	for i, b in ipairs(d.badges or {}) do
 		local badge = f.badges[i]
 		if not badge then
@@ -339,9 +314,9 @@ local function layoutBadges(f, d)
 		end
 		badge:SetBadge(b.text:upper(), b.tone)
 		badge:ClearAllPoints()
-		badge:SetPoint("TOPLEFT", f, "TOPLEFT", x, -64)
+		badge:SetPoint("TOPLEFT", f, "TOPLEFT", x, -y)
 		badge:Show()
-		x = x + (badge:GetWidth() or 40) + 6
+		x = x + (badge:GetWidth() or 40) + 8
 	end
 	for i = #(d.badges or {}) + 1, #f.badges do f.badges[i]:Hide() end
 end
@@ -351,23 +326,33 @@ function Card:Layout()
 	if not f or not d then return end
 	local width = (f:GetWidth() or 0)
 	if width < 100 then width = Card.WIDTH end
-	local inner = width - 2 * Card.PAD
+	local pad = self.detached and Card.PAD or Card.DENSE_PAD
+	if f.pad ~= pad then f:SetPad(pad) end
+	local inner = width - 2 * pad
 	local text = inner - 2 * Card.INNER
+	f.mark:ClearAllPoints()
+	f.mark:SetPoint("TOPLEFT", f, "TOPLEFT", pad, -20)
+	f.back:ClearAllPoints()
+	f.back:SetPoint("TOPRIGHT", f, "TOPRIGHT", -(pad - 8), -(f.header - 36) / 2)
 	f.title:SetText(d.title)
-	f.title:ClearAllPoints()
-	f.title:SetPoint("TOPLEFT", f, "TOPLEFT", Card.PAD + 22, -18)
-	f.title:SetPoint("RIGHT", f, "RIGHT", self.narrow and -(Card.PAD + 84) or -48, 0)
+	-- the name ends before the close button, or before the Back button
+	f:SetTitleEnd(self.narrow and (pad + (f.back:GetWidth() or 64)) or (pad + 32))
 	Theme.ClassText(f.title, classColor(d.classFile))
 	if d.classFile then Widgets.PaintClassMark(f.mark, classColor(d.classFile)) else Widgets.ClearClassMark(f.mark) end
 	f.subtitle:SetText(d.subtitle or "")
 	f.back:SetShown(self.narrow == true)
 	f.close:SetShown(self.narrow ~= true)
-	layoutBadges(f, d)
+	layoutBadges(f, d, pad, f.header)
+	-- the sections start under the header, and under the badges when there are some
+	self.top = f.header + ((d.badges and #d.badges > 0) and Card.BADGES or 0)
+	f.content:ClearAllPoints()
+	f.content:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -self.top)
+	f.content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 12)
 	local y, n = 0, 0
 	for si, sec in ipairs(d.sections) do
 		local card = section(f, si)
 		card:ClearAllPoints()
-		card:SetPoint("TOPLEFT", f.content, "TOPLEFT", Card.PAD, -(y - (self.scroll or 0)))
+		card:SetPoint("TOPLEFT", f.content, "TOPLEFT", pad, -(y - (self.scroll or 0)))
 		card:SetWidth(inner)
 		card.heading:SetText((sec.title or ""):upper())
 		if sec.count then card.count:SetBadge(tostring(sec.count), "neutral") card.count:Show() else card.count:Hide() end
@@ -378,7 +363,7 @@ function Card:Layout()
 			local it = item(f, n)
 			it.guid, it.onClick, it.tip = ln.guid, ln.onClick, ln.tip
 			it:ClearAllPoints()
-			it:SetPoint("TOPLEFT", f.content, "TOPLEFT", Card.PAD + Card.INNER, -(ly - (self.scroll or 0)))
+			it:SetPoint("TOPLEFT", f.content, "TOPLEFT", pad + Card.INNER, -(ly - (self.scroll or 0)))
 			it.prov:SetSource(ln.prov)
 			local dim = it.prov:IsDim()
 			it.text:SetWidth(ln.prov and max(60, text - (it.prov:GetWidth() or 0) - 8) or text)
@@ -396,7 +381,9 @@ function Card:Layout()
 				it.sub:Hide()
 			end
 			it:SetSize(text, h)
-			it:EnableMouse(ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil)
+			local live = ln.guid ~= nil or ln.onClick ~= nil or ln.tip ~= nil
+			it:EnableMouse(live)
+			if not live then it.hot, it.pressed = false, false Widgets.SetState(it.hover, nil) end   -- a reused line
 			it:Show()
 			ly = ly + h + Card.LINE_GAP
 		end
@@ -428,7 +415,7 @@ function Card:PaintThumb()
 	local size = max(16, view * view / self.contentHeight)
 	local top = (view - size) * ((self.scroll or 0) / limit)
 	f.thumb:ClearAllPoints()
-	f.thumb:SetPoint("TOPRIGHT", f, "TOPRIGHT", -3, -(HEADER + top))
+	f.thumb:SetPoint("TOPRIGHT", f, "TOPRIGHT", -3, -((self.top or f.header) + top))
 	f.thumb:SetHeight(size)
 	f.thumb:Show()
 end
@@ -452,11 +439,17 @@ function Card:Place()
 	if self.detached then
 		-- a detail window of its own, beside the Accord window, as tall as it; it follows the window when it moves
 		self.narrow = false
-		f:SetWidth(Card.DETACHED_WIDTH)
+		-- up to 400 wide: less when the screen leaves less, never under the panel card's width
 		local right, screen = win:GetRight(), UIParent and UIParent:GetWidth()
-		local room = not (type(right) == "number" and type(screen) == "number" and screen > 0)
-			or right + Card.GAP + Card.DETACHED_WIDTH <= screen
-		if room then
+		local room = Card.DETACHED_WIDTH
+		if type(right) == "number" and type(screen) == "number" and screen > 0 then room = screen - right - Card.GAP end
+		local onRight = room >= Card.WIDTH
+		if not onRight then
+			local left = win:GetLeft()
+			room = type(left) == "number" and left - Card.GAP or Card.DETACHED_WIDTH
+		end
+		f:SetWidth(max(Card.WIDTH, min(Card.DETACHED_WIDTH, room)))
+		if onRight then
 			f:SetPoint("TOPLEFT", win, "TOPRIGHT", Card.GAP, 0)
 			f:SetPoint("BOTTOMLEFT", win, "BOTTOMRIGHT", Card.GAP, 0)
 		else

@@ -17,7 +17,7 @@
 ### Giving a like
 
 - On a guildmate's **member card** (click their row in the Roster): the *Likes* section shows the total of the player and **[Like this player]**. Click it, then click again within a few seconds to confirm: a like cannot be taken back.
-- In the **Reputation** view (`/accord reputation`), mode **Likes** (the modes are the pills at the top of the view): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. Click the headers to sort by name or likes; the search box finds a player by any of their characters; clicking a row opens their card.
+- In the **Reputation** view (`/accord reputation`), mode **Likes** (the modes are the chips at the top of the view): every player of the guild, one row per player with all their characters together, sorted by likes. Click **Like** twice on a row. Click the headers to sort by name or likes; the search box finds a player by any of their characters; clicking a row opens their card.
 - After that the row says *pending* (no officer with the addon online yet) or *liked*. Your own characters say *you*.
 - The **Likes** column of the Roster shows each player's total: green when you liked them, grey while your like is pending.
 - If an officer's addon refuses a like (it is one of your own characters, or the player left the guild), the chat says why.

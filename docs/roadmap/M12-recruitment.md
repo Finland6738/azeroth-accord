@@ -69,7 +69,7 @@
   - filter chips with a check mark, and segmented buttons;
   - menus, text fields, cards, the table, the member card as a side sheet, dialogs, plain and rich tooltips, badges, the switch and the snackbar.
 - Done when:
-  - [ ] The widget tests check each component's measurements, roles and states as in ui-style §9.6.
+  - [x] The widget tests check each component's measurements, roles and states as in ui-style §9.6.
 
 ### M12.8 — Material 3: the views
 - Branch: `step/m12-8-m3-views`

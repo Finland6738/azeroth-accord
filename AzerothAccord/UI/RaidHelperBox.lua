@@ -64,9 +64,9 @@ local function build()
 	f.hint:SetText(L["RH_BOX_HINT"])
 
 	local function edited() if not f.filling then Box:Stale() end end
-	f.eventTitle = Widgets.EditBox(card, { width = 400, maxLetters = 64, placeholder = L["RH_BOX_NAME_HINT"], onChange = edited })
+	f.eventTitle = Widgets.EditBox(card, { width = 400, height = 28, maxLetters = 64, placeholder = L["RH_BOX_NAME_HINT"], onChange = edited })
 	f.eventTitle:SetPoint("TOPLEFT", card, "TOPLEFT", 24, -92)
-	f.when = Widgets.EditBox(card, { width = 184, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"], onChange = edited })
+	f.when = Widgets.EditBox(card, { width = 184, height = 28, maxLetters = 16, placeholder = L["EVENTS_WHEN_HINT"], onChange = edited })
 	f.when:SetPoint("LEFT", f.eventTitle, "RIGHT", 8, 0)
 
 	local scroll, edit

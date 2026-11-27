@@ -208,6 +208,44 @@ describe("the frame", function()
 		win.GetRight = nil
 	end)
 
+	it("is a side sheet: radius 16, a header of 72, padding 24 beside the window and 16 in the panel (ui-style §9.6)", function()
+		open()
+		rowOf("Bob"):Click()
+		local f = Card().frame
+		eq(Card().DETACHED_WIDTH, 400)
+		eq(f.parts.fill._asset, "rr_fill_16")
+		truthy(f.parts.shadow); falsy(f.parts.ring)
+		eq((f.parts.fill:GetVertexColor()), (AzerothAccord.Theme.Color("surface-1")))
+		eq(f.header, 72); eq(f.pad, 24)
+		local _, _, _, x = f.sections[1]:GetPoint(1)
+		eq(x, 24)
+		_, _, _, x = f.badges[1]:GetPoint(1)
+		eq(x, 24)
+		local _, _, _, _, y = f.content:GetPoint(1)
+		eq(y, -(72 + Card().BADGES), "the sections start under the header and the badges")
+		eq(f.close:GetWidth(), 32, "a dense icon button")
+		eq(f.back.kind, "text")
+		Card().frame.close:Click()
+		Card().DETACH = false
+		V().frame:SetWidth(900)
+		rowOf("Bob"):Click()
+		eq(f.pad, 16)
+		_, _, _, x = f.sections[1]:GetPoint(1)
+		eq(x, 16)
+		Card().DETACH = true
+	end)
+
+	it("the detail window is narrower than 400 when the screen leaves less room", function()
+		open()
+		local win = AzerothAccord.Window.frame
+		win.GetRight = function() return UIParent:GetWidth() - 8 - 330 end
+		rowOf("Bob"):Click()
+		eq(Card().frame:GetWidth(), 330)
+		local point = Card().frame:GetPoint(1)
+		eq(point, "TOPLEFT", "still on the right")
+		win.GetRight = nil
+	end)
+
 	it("a click on a row opens the card beside the table and makes room for it (the guild window's panel)", function()
 		Card().DETACH = false
 		open()

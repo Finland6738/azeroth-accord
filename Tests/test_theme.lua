@@ -553,16 +553,16 @@ describe("assets table", function()
 		end
 	end)
 
-	it("has the nineteen textures, four logos and six fonts of Media/, each file once", function()
+	it("has the twenty-three textures, four logos and six fonts of Media/, each file once", function()
 		local A = AzerothAccord.Assets
 		local n = 0
 		for _ in pairs(A.textures) do n = n + 1 end
-		eq(n, 19)   -- 13 of M6.9 and the shape slices 4, 16 and 28 of M12.6
+		eq(n, 23)   -- 13 of M6.9, the shape slices 4, 16 and 28 of M12.6, the 20 and the 2 pt rings of M12.7
 		n = 0
 		for _ in pairs(A.logos) do n = n + 1 end
 		eq(n, 4)
-		eq(#A.AllPaths(), 19 + 4 + 6)
-		eq(#A.TexturePaths(), 19 + 4)
+		eq(#A.AllPaths(), 23 + 4 + 6)
+		eq(#A.TexturePaths(), 23 + 4)
 		local seen = {}
 		for _, p in ipairs(A.AllPaths()) do falsy(seen[p], "duplicate " .. p); seen[p] = true end
 		truthy(seen["Interface\\AddOns\\AzerothAccord\\Media\\logo_64.tga"])

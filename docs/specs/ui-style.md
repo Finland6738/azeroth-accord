@@ -83,7 +83,7 @@ i badge (richieste della banca) stanno sul titolo della scheda.
 | | Finestra autonoma | Dentro la finestra Gilda |
 |---|---|---|
 | Cornice | finestra propria come FDCP §6: **barra del titolo di 52 pt** (logo, "AZEROTH ACCORD" in Orbitron, stato della sincronizzazione, Pop in, chiudi), raggio 12, ombra, mobile, Esc | la finestra Gilda **vestita del tema** finché la linguetta Accord è aperta (M6.18, sotto): cornice tematica con raggio 12 e ombra, il nome della gilda al posto del titolo, la croce del tema, le linguette come tessere; il pannello riempie l'area dei contenuti di `CommunitiesFrame` |
-| Schede | barra delle schede da 44 pt sotto il titolo, con l'indicatore da 2 pt | la stessa barra delle schede, in cima al pannello |
+| Schede | barra delle schede da 48 pt sotto il titolo, con l'indicatore da 3 pt (§9.6) | la stessa barra delle schede, in cima al pannello |
 | Ricerca globale | a destra della barra delle schede | uguale |
 | Dimensione | 1380 × 720 predefinita dal 2026-11-27 (era 920 × 600, troppo stretta per il Roster nel gioco), mai più larga dello schermo; minimo 720 × 460, ridimensionabile (confermata in M6.12; era 640 × 400 in SPEC-04 §3) | quella dell'area di Blizzard, senza ridimensionare |
 | Ricordo | posizione e dimensione per personaggio | nessuno |
@@ -132,7 +132,7 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   pool (40 righe, che cresce fino a 100 solo se la finestra si fa più alta) e non crea regioni. Le colonne fisse e
   flessibili restano; le colonne **fisse a sinistra e a destra come liste sincronizzate** non sono state fatte (nessuna
   vista di Accord ne ha bisogno: i pannelli sono stretti e le colonne le sceglie il giocatore).
-- **Schede.** Dal 2026-11-27 (proprietario) le schede delle viste sono **riquadri arrotondati** (`surface-2`, anello
+- **Schede.** *Superato da [§9.6](#96-componenti) con M12.7: niente riquadri, tinta né badge `accent`.* Dal 2026-11-27 (proprietario) le schede delle viste sono **riquadri arrotondati** (`surface-2`, anello
   `border-subtle`) con l'**icona** della vista (dal foglio delle icone dell'addon, `Shell.VIEW_ICONS`) prima del nome;
   i riquadri sono tutti uguali e quella attiva si distingue solo come nelle schede di Material Design 3: la
   **sottolineatura `accent` da 2 pt** in fondo al suo riquadro (scorre da una scheda all'altra) e nome e icona in
@@ -142,7 +142,7 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   oggetti ha un'intestazione come la DataTable. Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
   scheda all'altra in 200 ms (`Translation`, poi si posa) e si dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
   Banca: `Tabs:SetBadge(id, testo|nil, tono)`; il testo lo passa il chiamante).
-- **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): dal
+- **Tooltip.** *Le due forme di oggi sono in [§9.6](#96-componenti) (M12.7).* Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): dal
   2026-11-27 un riquadro scuro, fondo `surface-1` con anello `border`, il titolo in `accent-text` e le righe in `text-1`
   (prima era invertito: fondo `text-1`, testo `bg`); i conteggi di una o due cifre sono pallini tondi; larghezza fino a 280 pt, il mouse lo attraversa. `Tooltip.Attach(frame, testo|righe|funzione)`;
   il `GameTooltip` del gioco solo per gli oggetti (`Tooltip.Item`, `AttachItem`) e mai riskinnato.
@@ -461,8 +461,9 @@ La scala di M3: **0, 4, 8, 12, 16, 28, piena**. Ai media si aggiungono le fette 
 
 Nel codice (M12.6): `Theme.SHAPES` dà i nomi di M3 (`none` 0, `extra-small` 4, `small` 8, `medium` 12, `large` 16,
 `extra-large` 28, `full`) e `Theme.ShapeSlice(forma, "fill" | "ring")` la fetta dei media (`large` → `rr_fill_16`,
-`full` → `pill`, senza anello); `Theme.Panel` accetta anche il nome della forma. Il raggio 18 di M6 resta finché M12.7 non
-porta card e dialog a 12 e 28.
+`full` → `pill`, senza anello); `Theme.Panel` accetta anche il nome della forma. Da M12.7 card e dialog sono a 12 e 28;
+i raggi 18 e 20 (`rr_fill_20`, `rr_ring_20`) disegnano la forma piena dei controlli alti 36 e 40 (`Widgets.FullRadius`:
+la `pill` è esatta solo a 32 e non ha l'anello).
 
 ### 9.4 Tipografia
 
@@ -523,6 +524,32 @@ l'azione principale.
 | **Barra di avanzamento** (ThinBar) | binario 4 | `accent` su `surface-3` | caricamenti, timer |
 | **Snackbar** (toast) | raggio 4 | `inverse-surface` / `inverse-on-surface` | conferme brevi |
 | **Divisore** | 1 | `border-subtle` | separare righe e sezioni |
+
+**Stato (M12.7).** Il kit (`UI/Widgets/`) e la scheda del membro seguono la tabella; `Tests/test_widgets.lua` controlla
+misure, ruoli e stati di ogni componente. Dove una regola è stata adattata, e perché:
+
+- **Stili dei pulsanti.** `primary`, `secondary`, `ghost` e `neon` restano come alias di pieno, **tonale**, di testo e
+  contornato: le viste scelgono il tipo giusto in M12.8. Il gradiente non c'è più (i pulsanti sono piatti, ADR 0027).
+- **Pulsanti segmentati densi di norma** (32, 40 con `dense = false`): in Accord stanno solo in barre, selettori di
+  pagina e moduli (§9.5). Ogni segmento tiene sempre il posto della spunta, così la scelta non sposta nulla.
+- **Campo dei menu a tendina** alto 32 (la tabella dice solo il menu): sta nelle barre degli strumenti. Il suo menu è
+  largo quanto il campo, anche oltre 280, come fa M3 per un menu legato a un campo.
+- **Altezze date dalle viste.** Il kit rispetta l'altezza che una vista passa (pulsanti, chip e campi da 22 a 28 nei
+  moduli di oggi): le porta alle misure della tabella M12.8.
+- **Badge.** Il badge `err` è per le cose da fare (4 punti per lato, al più 34). Le etichette di stato (Online, Main,
+  versione, conteggi che informano soltanto) sono lo stesso widget nella tinta dello stato al 16 %, con 8 punti per lato
+  e senza larghezza massima: un badge rosso direbbe di agire.
+- **Dialog**: il minimo di 280 vale sempre; il massimo di 560 vale per conferme e scelte, non per le finestre con un
+  testo lungo o una tabella (diagnostica, esportazione, copia di sicurezza, reclutamento, revisione), che sarebbero
+  illeggibili.
+- **Tooltip**: semplice quando è una riga sola senza un colore proprio che sta in 280 punti, ricco negli altri casi; il
+  titolo del tooltip ricco resta in `accent-text` (proprietario, 2026-11-27).
+- **Card**: resta la riga di luce in cima dei temi scuri (è aspetto FDCP, §0); la card piena non ha più il bordo.
+- **Snackbar**: nessun segno colorato del tono (sui colori inversi non reggerebbe il contrasto). Il toast delle
+  notifiche (`UI/Toast.lua`) passa a queste regole con le viste (M12.8).
+- **Chip**: scelto, il chip si allarga della spunta; chi li dispone per larghezza li ridispone (`onResize`).
+
+Nulla di questo è provato nel client vero.
 
 ### 9.7 Cosa non si prende da M3
 

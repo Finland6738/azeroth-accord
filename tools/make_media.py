@@ -8,6 +8,8 @@ file belongs to a theme. All files are 32-bit uncompressed TGA with power-of-two
   rr_fill_4/8/12/16/18/28  64x64  filled rounded rectangle, 9-slice (margin = radius); 4, 16 and 28 are the M3 shape
                                    scale of docs/specs/ui-style.md section 9.3 (M12.6)
   rr_ring_4/8/12/16/18/28  64x64  1 px ring of the same shape, 9-slice
+  rr_fill_20, rr_ring_20    64x64  the full shape of a 40 pt control (ui-style.md section 9.6, M12.7)
+  rr_ring2_4, rr_ring2_16   64x64  2 px rings: the focused field, the outline of the switch that is off (M12.7)
   shadow            128x128  blurred rounded rectangle for the soft shadow under windows and cards, 9-slice
   glow_s, glow_l    128x128  blurred rounded rectangle for the neon / amber glow (ADD blend), 9-slice
   pill              64x32    pill (half-circle ends), 9-slice on the left and right
@@ -278,6 +280,10 @@ def main():
     for r in (4, 8, 12, 16, 18, 28):
         made.append(save(white(rounded((64, 64), r)), f"rr_fill_{r}"))
         made.append(save(white(rounded((64, 64), r, ring=1.0)), f"rr_ring_{r}"))
+    made.append(save(white(rounded((64, 64), 20)), "rr_fill_20"))
+    made.append(save(white(rounded((64, 64), 20, ring=1.0)), "rr_ring_20"))
+    for r in (4, 16):
+        made.append(save(white(rounded((64, 64), r, ring=2.0)), f"rr_ring2_{r}"))
     made.append(save(white(blurred((128, 128), 18, 40, 9)), "shadow"))
     made.append(save(white(blurred((128, 128), 14, 46, 5)), "glow_s"))
     made.append(save(white(blurred((128, 128), 20, 34, 12)), "glow_l"))

@@ -43,7 +43,7 @@ local function lineBox(card, y, labelKey, key, limit, placeholder)
 	label:SetPoint("TOPLEFT", card, "TOPLEFT", 24, y - 8)
 	label:SetText(L[labelKey])
 	local box
-	box = Widgets.EditBox(card, { width = View.WIDTH - 188, maxLetters = limit, placeholder = placeholder,
+	box = Widgets.EditBox(card, { width = View.WIDTH - 188, height = 28, maxLetters = limit, placeholder = placeholder,
 		onChange = function(text, user)
 			if not user then return end
 			book():Set(key, text)

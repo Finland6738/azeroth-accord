@@ -20,16 +20,16 @@
 
 ![Bank, Items: every item once with its total and where it is](../specs/mockups/previews/bank-items.webp)
 
-Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, Items, Inbox for officers, Requests, Log, Donations, Money) are the pills at the top of the view.
+Open it with the **Bank** tab of the panel or `/accord bank`. The modes (Tabs, Items, Inbox for officers, Requests, Log, Donations, Money) are the chips at the top of the view; the chosen one is filled and has a check mark.
 
-- **Tabs**: one pill per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab pills you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
+- **Tabs**: one chip per tab you may see, the guild's money and how old it is, and the tab laid out like in the game (14 columns of 7 slots). Under the tab chips you read *seen 2 h ago by Bob*: the age of the contents and the guildmate whose addon read them. Hover an item for its tooltip.
 - **Items**: one row per item over all the tabs you may see, with the total and where it is. The search box of the panel filters by item name, item number or tab name.
 - With nothing to show yet, the view says so: somebody must open the vault once.
 
 ## Logs, donations and money
 
 - **Log**: who deposited or withdrew what, newest first. The game keeps only a short history and shows it only at the vault; the addon adds every visit of a guildmate with the addon to the history, without listing the same event twice, so it grows beyond the game's. Search by name or item. Click a column title to sort by it (a second click reverses).
-- **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever (pills at the top choose the period; click a column title, *Gold*, *Items* or *Deposits*, to change the order), all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
+- **Donations**: what each player deposited (gold and items) in the last 30 days, the last 365 days or ever (chips at the top choose the period; click a column title, *Gold*, *Items* or *Deposits*, to change the order), all the characters of a player together. Withdrawals and repairs do not count. The list is visible to every member (the owner may restrict it to officers).
 - **Money**: how the guild's money changed over the last 30 days, from what the addons have seen, and under the chart the money log (when, who, what, amount), sortable by its titles.
 
 ![Bank, Log: the merged bank log without duplicates](../specs/mockups/previews/bank-log.webp)
@@ -72,7 +72,7 @@ In the **Requests** mode of the Bank view you can:
 
 *Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
 
-- A round mark with a number, in the theme's accent colour, appears on the Accord tab of the guild window (and as a badge on the panel's Bank tab) when requests are waiting for you. Members never see it.
+- A round mark with a number, in the theme's accent colour, appears on the Accord tab of the guild window (and as a red badge on the panel's Bank tab) when requests are waiting for you. Members never see it.
 - The **Inbox** mode lists what waits for an officer: open requests to approve or reject, approved ones to mark as *Fulfilled*. Each row shows the **date and time**, who asked, the item, the quantity and the tip. The chips sort it by *Oldest first* (the default), *Newest first* or *Highest tip*.
 - When the bank log shows the matching movement (the requester took the item out, or deposited it, or the gold), the row says *Looks delivered*; you still mark it yourself, because handing over stays manual.
 - When the money log shows a gold deposit by the requester (any of their characters) after the request, of at least the tip, the row says *Looks paid*. One deposit counts for one tip, the oldest request first; several small deposits are not added up. It is only a hint: check it yourself. The addon records nothing about the payment; after you mark the request as fulfilled, the hint is in its tooltip in *Requests* (*Show closed ones too*). The bank log gives rounded times, so an old deposit read late may not be recognised.

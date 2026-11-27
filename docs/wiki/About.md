@@ -13,7 +13,7 @@
 
 ## In the game
 
-The same credits are on the **Info** page of Settings: open it with `/accord about`, or with the **Info** pill at the top of the Settings view (also in the game's own settings window, under *Options → AddOns → Azeroth Accord*). The page shows the addon's logo and version, the credits with the NEBULA logo (the dark one on the Nebula and Accord themes, the light one on Aurora), the links, the licence and the notices.
+The same credits are on the **Info** page of Settings: open it with `/accord about`, or with the **Info** button at the top of the Settings view (also in the game's own settings window, under *Options → AddOns → Azeroth Accord*). The page shows the addon's logo and version, the credits with the NEBULA logo (the dark one on the Nebula and Accord themes, the light one on Aurora), the links, the licence and the notices.
 
 ![The Info page in the theme Nebula: the logo, the version, who made it and with whom, with the dark NEBULA logo](../specs/mockups/previews/about.webp)
 

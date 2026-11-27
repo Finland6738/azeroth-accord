@@ -1,16 +1,10 @@
--- Widget kit, part 4: ThinBar, the 4 pt bar of docs/specs/ui-style.md §3 (the Bank's fill, progress and timers): a subtle
--- track and a fill with the two-colour gradient of the theme (the first and third colour of `grad`: accent -> accent-2).
+-- Widget kit, part 4: ThinBar, the progress bar (the Bank's fill, progress and timers): a track of 4 points in surface-3
+-- and a flat fill in the accent (docs/specs/ui-style.md §9.6, M12.7; M6.11 had FDCP's two-colour gradient).
 -- Adapted from Finland Dragon Credit Points (UI/Widgets/ThinBar.lua), same owner, GPL-3.0 (ADR 0021). Lua 5.1.
 --   bar = Widgets.ThinBar(parent, { height = 4, width = 200 }); bar:SetFraction(0..1); bar:GetFraction()
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Widgets, Theme = ns.Widgets, ns.Theme
-
-local function color(token)
-	local r, g, b, a = Theme.Color(token)
-	if CreateColor then return CreateColor(r, g, b, a) end
-	return { r = r, g = g, b = b, a = a }
-end
 
 function Widgets.ThinBar(parent, opts)
 	opts = opts or {}
@@ -18,13 +12,10 @@ function Widgets.ThinBar(parent, opts)
 	bar:SetHeight(opts.height or 4)
 	if opts.width then bar:SetWidth(opts.width) end
 	bar.track = bar:CreateTexture(nil, "BACKGROUND")
-	Theme.Fill(bar.track, "border-subtle")
+	Theme.Fill(bar.track, "surface-3")
 	bar.track:SetAllPoints(bar)
 	bar.fill = bar:CreateTexture(nil, "ARTWORK")
 	Theme.Fill(bar.fill, "accent")
-	Theme.Call(bar.fill, function(region)
-		if region.SetGradient then region:SetGradient("HORIZONTAL", color("accent"), color("accent-2")) end
-	end)
 	bar.fill:SetPoint("TOPLEFT", bar, "TOPLEFT", 0, 0)
 	bar.fill:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", 0, 0)
 	bar.fraction = 0

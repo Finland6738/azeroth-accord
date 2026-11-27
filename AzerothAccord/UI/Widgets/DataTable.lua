@@ -1,4 +1,6 @@
--- Widget kit, part 3: DataTable, the table of docs/specs/ui-style.md §3 (M6.11): a header on surface-2 OUTSIDE the list,
+-- Widget kit, part 3: DataTable, the table of docs/specs/ui-style.md §3 (M6.11) with the measures and roles of §9.6
+-- (Material 3, M12.7: rows and header 32, header titles label medium in text-3, the hover a state layer of text-1 at 8 %,
+-- the selected row secondary-container with radius 4): a header on surface-2 OUTSIDE the list,
 -- sortable columns (the sorted one in accent-text with an arrow), fixed and flexible column widths, and rows recycled from a
 -- pool (a fixed number of row frames that are re-filled while the list scrolls with the mouse wheel). Lua 5.1; ordinary
 -- frames. Blizzard's ScrollBox is not used: like Finland Dragon Credit Points (UI/Widgets/DataTable.lua, same owner,
@@ -9,13 +11,16 @@
 -- columns: { { id, title (translated), width? (fixed, in points), flex? (share of the free width), align? "LEFT" | "RIGHT" |
 --   "CENTER", sortable? (default true), mono? (numbers), text = function(data) -> string, token? = function(data) -> token,
 --   value? = function(data) -> sort key (default: the text), render? = function(cell, data, row) (custom cell) } }
--- opts: { rowHeight (30), headerHeight (28), pool (rows made, 40), maxPool (100), emptyText, onRowClick(data, row),
+-- opts: { rowHeight (32), headerHeight (32), pool (rows made, 40), maxPool (100), emptyText, onRowClick(data, row),
 --   rowSetup(row) (a row is created), rowUpdate(row, data) (a row is filled),
+--   isSelected(data) -> bool (M12.7: the selected rows; see :SetSelected),
 --   onSort(id) (M6.13: the CALLER sorts: a click on a header calls it instead of sorting, :SetData keeps the order it is
 --   given and :SetSortMark paints the arrow; the Roster sorts its rows in its own model, grouped by account) }
 -- Methods: :SetData(list, keepOffset?), :SortBy(id, descending), :SetSortMark(id, descending), :Refresh(), :SetOffset(n), :VisibleRows(),
 --   :GetData(), :GetSort(), :SetEmptyText(text), :Capacity(), :Layout(), :SetColumns(columns) (M6.13: another set of
---   columns, e.g. the Roster's column chooser; call :SetData or :Refresh after it).
+--   columns, e.g. the Roster's column chooser; call :SetData or :Refresh after it),
+--   :SetSelected(data | function(data) -> bool | nil), :IsSelected(data). A selected row shows its plain cells in
+--   on-secondary-container; a cell with `render` keeps the colour the caller gives it.
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Widgets, Theme, Assets = ns.Widgets, ns.Theme, ns.Assets
@@ -35,11 +40,12 @@ end
 
 function Widgets.DataTable(parent, columns, opts)
 	opts = opts or {}
-	local rowH, headH = opts.rowHeight or 30, opts.headerHeight or 28
+	local rowH, headH = opts.rowHeight or 32, opts.headerHeight or 32
 	local t = CreateFrame("Frame", nil, parent)
 	t.columns, t.data, t.sorted, t.rows = columns, {}, {}, {}
 	t.offset, t.rowH, t.headH = 0, rowH, headH
 	t.sortId, t.sortDesc = nil, false
+	local selected = opts.isSelected
 
 	if t.SetClipsChildren then t:SetClipsChildren(true) end   -- a header or a cell never shows outside the table
 	t.head = CreateFrame("Frame", nil, t)
@@ -109,7 +115,7 @@ function Widgets.DataTable(parent, columns, opts)
 	local function makeHead(i)
 		local b = CreateFrame("Button", nil, t.head)
 		b:SetHeight(headH)
-		b.label = Theme.NewText(b, "Th", "text-3")
+		b.label = Theme.NewText(b, "label-medium", "text-3")
 		b.arrow = b:CreateTexture(nil, "OVERLAY")
 		b.arrow:SetTexture(Assets.textures.icons.path)
 		b.arrow:SetSize(10, 10)
@@ -192,13 +198,16 @@ function Widgets.DataTable(parent, columns, opts)
 		r:SetHeight(rowH)
 		r:SetPoint("TOPLEFT", t.list, "TOPLEFT", 0, -(i - 1) * rowH)
 		r:SetPoint("TOPRIGHT", t.list, "TOPRIGHT", 0, -(i - 1) * rowH)
+		-- the selected row: the tonal fill under everything else of the row
+		r.selection = Theme.Slice(r, "rr_fill_4", "secondary-container", "BACKGROUND")
+		r.selection:SetDrawLayer("BACKGROUND", -1)
+		r.selection:SetAllPoints(r)
+		r.selection:Hide()
 		-- the hover: a state layer of text-1 at 8 % (docs/specs/ui-style.md §9.6, M12.6), at once (no fade on 40 rows)
 		r.hover = Widgets.StateLayer(r, "text-1", { layer = "BACKGROUND", fade = false })
-		r.line = r:CreateTexture(nil, "BORDER")
-		Theme.Fill(r.line, "border-subtle")
+		r.line = Widgets.Divider(r, "BORDER")
 		r.line:SetPoint("BOTTOMLEFT", r, "BOTTOMLEFT", 0, 0)
 		r.line:SetPoint("BOTTOMRIGHT", r, "BOTTOMRIGHT", 0, 0)
-		r.line:SetHeight(Theme.Px(1))
 		r.cells = {}
 		t.ensureCells(r)
 		r:SetScript("OnEnter", function(self)
@@ -345,13 +354,16 @@ function Widgets.DataTable(parent, columns, opts)
 			local data = i <= cap and self.sorted[self.offset + i] or nil
 			r.data = data
 			if data then
+				local on = self:IsSelected(data)
+				r.selection:SetShown(on)
+				Widgets.SetStateColor(r.hover, on and "on-secondary-container" or "text-1")
 				for ci, c in ipairs(columns) do
 					local fs = r.cells[ci]
 					if c.render then
 						c.render(fs, data, r)
 					else
 						fs:SetText(textOf(c, data))
-						Theme.Text(fs, c.token and c.token(data) or "text-1")
+						Theme.Text(fs, on and "on-secondary-container" or c.token and c.token(data) or "text-1")
 					end
 				end
 				if opts.rowUpdate then opts.rowUpdate(r, data) end
@@ -371,6 +383,16 @@ function Widgets.DataTable(parent, columns, opts)
 	end
 
 	function t:SetEmptyText(text) self.empty:SetText(text or "") end
+
+	-- Which rows are selected: a record (compared as a value), a function of the record, or nil for none.
+	function t:SetSelected(value)
+		selected = value
+		self:Refresh()
+	end
+	function t:IsSelected(data)
+		if type(selected) == "function" then return selected(data) and true or false end
+		return selected ~= nil and data == selected
+	end
 
 	t.list:SetScript("OnMouseWheel", function(_, delta) t:SetOffset(t.offset - delta * 3) end)
 	t:SetScript("OnSizeChanged", function() grow(); t:Layout(); t:Refresh() end)

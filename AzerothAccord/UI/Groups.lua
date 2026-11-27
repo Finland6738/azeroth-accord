@@ -52,7 +52,7 @@ local function flowChips(bar, items, onClick)
 	for i, item in ipairs(items) do
 		local c = bar.buttons[i]
 		if not c then
-			c = Widgets.Chip(bar, { height = View.CHIP_HEIGHT, pad = 18, onClick = function(chip) bar.click(chip.id) end })
+			c = Widgets.Chip(bar, { height = View.CHIP_HEIGHT, onClick = function(chip) bar.click(chip.id) end })
 			bar.buttons[i] = c
 		end
 		c.id = item.id

@@ -398,14 +398,15 @@ function Theme.Slice(parent, key, token, layer, alpha)
 	return tex
 end
 
-local RADII = { [4] = true, [8] = true, [12] = true, [16] = true, [18] = true, [28] = true }
+local RADII = { [4] = true, [8] = true, [12] = true, [16] = true, [18] = true, [20] = true, [28] = true }
 
 -- The Material 3 shape scale (docs/specs/ui-style.md §9.3, M12.6): shape name -> radius in points. "none" is a plain
--- square texture, "full" the pill. 18 is the radius of M6 (cards, dialogs) until M12.7 moves them to 12 and 28.
+-- square texture, "full" the pill. 18 and 20 are not in the scale: they draw the full shape of a control 36 and 40 points
+-- high (Widgets.FullRadius, M12.7).
 Theme.SHAPES = { none = 0, ["extra-small"] = 4, small = 8, medium = 12, large = 16, ["extra-large"] = 28, full = "full" }
 
 -- The Media key of a shape: Theme.ShapeSlice("large") -> "rr_fill_16", Theme.ShapeSlice("small", "ring") -> "rr_ring_8".
--- `shape` is a name of Theme.SHAPES or a radius (4, 8, 12, 16, 18, 28); kind is "fill" (default) or "ring". "full" is
+-- `shape` is a name of Theme.SHAPES or a radius (4, 8, 12, 16, 18, 20, 28); kind is "fill" (default) or "ring". "full" is
 -- the pill for a fill and has no ring (nil); "none" has no slice (nil: the caller uses a plain texture), nor has an
 -- unknown shape.
 function Theme.ShapeSlice(shape, kind)
@@ -416,7 +417,7 @@ function Theme.ShapeSlice(shape, kind)
 	return "rr_" .. kind .. "_" .. r
 end
 
--- Fill + 1 px ring (+ optional shadow) behind `frame`: returns the table of the regions. opts: radius (4|8|12|16|18|28),
+-- Fill + 1 px ring (+ optional shadow) behind `frame`: returns the table of the regions. opts: radius (4|8|12|16|18|20|28),
 -- fill token, border token, shadow (bool), shadowAlpha.
 function Theme.Panel(frame, opts)
 	opts = opts or {}
