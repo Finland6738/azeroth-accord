@@ -15,9 +15,9 @@ local L, Widgets, Theme = ns.L, ns.Widgets, ns.Theme
 local type, tonumber, min, max = type, tonumber, math.min, math.max
 
 Window.NAME = "AzerothAccordWindow"
--- 1280 × 720 since 2026-11-26 (920 × 600 was too narrow for the Roster in game); never wider than the screen
-Window.WIDTH, Window.HEIGHT = 1280, 720
-Window.SIZE_VERSION = 2       -- a size saved before the new default (no `v`) is not reused once
+-- 1380 × 720 since 2026-11-27 (920 × 600 was too narrow for the Roster in game); never wider than the screen
+Window.WIDTH, Window.HEIGHT = 1380, 720   -- 1380 since 2026-11-27 (owner: 100 more)
+Window.SIZE_VERSION = 3       -- a size saved before the new default (no `v`) is not reused once
 Window.MIN_WIDTH, Window.MIN_HEIGHT = 720, 460
 Window.MAX_WIDTH, Window.MAX_HEIGHT = 1600, 1000
 Window.TITLE_BAR = 52

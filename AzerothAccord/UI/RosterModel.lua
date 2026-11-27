@@ -37,12 +37,12 @@ Model.COLUMNS = {
 	{ id = "prof1", label = "COL_PROF1", width = 160 },
 	{ id = "prof2", label = "COL_PROF2", width = 160 },
 	{ id = "likes", label = "COL_LIKES", width = 50, available = function() return ns.Likes ~= nil end },
-	{ id = "social", label = "COL_SOCIAL", width = 60,   -- only where SPEC-10 Q3 lets the player see others' index (M4.5)
-		available = function() return ns.Social ~= nil and ns.Social.ColumnVisible ~= nil and ns.Social:ColumnVisible() == true end },
-	{ id = "contacts", label = "COL_CONTACTS", width = 60, available = function() return ns.Contacts ~= nil end },
+	-- the BattleTag of the member's account, as its own client shares it (owner, 2026-11-27: it replaces the Contacts and
+	-- Social columns; the social index stays on the Reputation view and the member card)
+	{ id = "battleTag", label = "COL_BATTLETAG", width = 150, available = function() return ns.Contacts ~= nil end },
 	{ id = "addon", label = "COL_ADDON", width = 55 },
 }
-Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "social", "contacts", "addon" }
+Model.DEFAULT_COLUMNS = { "name", "level", "class", "rank", "zone", "lastOnline", "prof1", "prof2", "likes", "battleTag", "addon" }
 
 local byId = {}
 for _, c in ipairs(Model.COLUMNS) do byId[c.id] = c end
@@ -113,9 +113,8 @@ function Model.Cell(id, e)
 	elseif id == "addon" then
 		if e.hasAddon then return e.addonVersion or L["YES"], "green" end
 		return "", "muted"
-	elseif id == "contacts" then
-		local C = ns.Contacts
-		return C and C.Summary and C:Summary(e.guid) or "", nil
+	elseif id == "battleTag" then
+		return Model.BattleTagOf(e) or "", nil
 	elseif id == "likes" then
 		-- the total of the account; green when this player liked it, grey while the like waits for an officer
 		local x = ns.Likes
@@ -134,6 +133,15 @@ function Model.Cell(id, e)
 	return ""
 end
 
+-- The BattleTag of a member's account: the player's own from the game, another's from the contacts its client shares.
+function Model.BattleTagOf(e)
+	local C = ns.Contacts
+	if not (C and e and e.guid) then return nil end
+	if e.isSelf and C.OwnBattleTag then return C:OwnBattleTag() end
+	local c = C.Of and C:Of(e.guid)
+	return c and c.battleTag or nil
+end
+
 -- Sort values: a number or a lower-case string, nil when the member has nothing for this column (nil sorts last).
 local function sortValue(id, e)
 	if id == "name" then return lower(e.short or e.name)
@@ -150,9 +158,8 @@ local function sortValue(id, e)
 		return p and lower(p.name or "") or nil
 	elseif id == "addon" then
 		return e.hasAddon and 0 or 1
-	elseif id == "contacts" then
-		local C = ns.Contacts
-		return C and C.Summary and C:Summary(e.guid) or nil
+	elseif id == "battleTag" then
+		return lower(Model.BattleTagOf(e))
 	elseif id == "likes" then
 		local x = ns.Likes
 		return x and x.Total and x:Total(e.guid) or nil

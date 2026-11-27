@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **Roster: a BattleTag column instead of Contacts and Social** (owner, 2026-11-27). The Roster shows each member's **BattleTag**: the player's own from the game, another's as that member's Accord shares it. The *Contacts* and *Social* columns left the table; the social index stays on the Reputation view and the member card. The Accord window opens **100 points wider**, at 1380 × 720 (a size saved with the older default is not reused, once).
+
 ### Fixed
 
 - **Accord sent nothing on WoW Forever** (owner's tests, 2026-11-27). Outside any instance, `C_ChatInfo.AreOutgoingAddonChatMessagesRestricted()` answered true, yet a `SendAddonMessage` to the guild returned 0 (sent). Accord held its whole queue on that flag, so no peer-to-peer exchange ever happened. Now the flag alone holds nothing: Accord sends, and holds for 60 seconds only after the client refused a send (`AddOnMessageLockdown`) while the flag is up. `/accord debug` says "the client says restricted, but its sends go through".
