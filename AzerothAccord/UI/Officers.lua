@@ -68,7 +68,7 @@ end
 
 -- The mark of an account with an extended note (SPEC-12 §5.2), on the Inactive page and in the review.
 function View.NotesMark()
-	return ns.Assets and ns.Assets.IconText("book", 12) or ""
+	return ns.Assets and ns.Assets.IconText("book", 14) or ""
 end
 
 local function nameText(a)

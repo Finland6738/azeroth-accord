@@ -583,29 +583,92 @@ describe("assets table", function()
 		eq(A.NebulaLogo(Th().IsDark()), A.logos.nebula_light)
 	end)
 
-	it("icon coordinates follow the sheet", function()
+	it("icon coordinates follow the atlas: ten cells of 48 in a row of 512", function()
 		local A = AzerothAccord.Assets
-		local l, r, t, b = A.IconCoords("chevron")
-		deepEq({ l, r, t, b }, { 0, 1 / 16, 0, 1 / 16 })
-		l, r = A.IconCoords("check")
-		near(l, 1 / 16, 1e-9)
+		truthy(A.textures.icons.path:find("symbols.tga", 1, true))
+		eq(A.textures.icons.w, 512); eq(A.textures.icons.h, 512); eq(A.textures.icons.cell, 48)
+		local s = 48 / 512
+		deepEq({ A.IconCoords("chevron") }, { 0, s, 0, s })
+		local l, r, t, b = A.IconCoords("check")
+		near(l, s, 1e-9); near(r, 2 * s, 1e-9); near(t, 0, 1e-9); near(b, s, 1e-9)
+		-- the eleventh glyph starts the second row
+		l, r, t = A.IconCoords("arrow_up")
+		near(l, 0, 1e-9); near(t, s, 1e-9)
 		isNil(A.IconCoords("nothing"))
+		isNil(A.IconCoords("nothing", true))
+		isNil(A.IconCoords(nil))
 	end)
 
-	it("lists forty-two distinct icons that fit the sheet; the last ones sit in the third row", function()
+	it("holds 48 outlined and 22 filled distinct glyphs that fit the atlas, filled after outlined", function()
 		local A = AzerothAccord.Assets
-		eq(#A.icons, 42)
-		local hl, _, ht = A.IconCoords("heart")   -- the Like button (2026-11-26)
-		near(hl, 8 / 16, 1e-9); near(ht, 2 / 16, 1e-9)
+		eq(#A.glyphs, 48); eq(#A.filledGlyphs, 22)
+		local outlined = {}
+		for _, g in ipairs(A.glyphs) do falsy(outlined[g], "duplicate " .. g); outlined[g] = true end
 		local seen = {}
-		for _, n in ipairs(A.icons) do falsy(seen[n], "duplicate " .. n); seen[n] = true end
-		local per = A.textures.icons.w / A.textures.icons.cell
-		truthy(#A.icons <= per * per)
-		local l, _, t = A.IconCoords("arrow_left")
-		near(l, 7 / 16, 1e-9); near(t, 2 / 16, 1e-9)
-		for _, n in ipairs({ "chevron", "cross", "dashed", "skull", "arrow_left", "search", "warn", "info" }) do
-			notNil(A.IconCoords(n), n)
+		for _, g in ipairs(A.filledGlyphs) do
+			falsy(seen[g], "duplicate " .. g); seen[g] = true
+			truthy(outlined[g], g .. " has an outlined cell too")
 		end
+		local per = math.floor(A.textures.icons.w / A.textures.icons.cell)
+		eq(per, 10)
+		truthy(#A.glyphs + #A.filledGlyphs <= per * per)
+		-- every icon has its own cell
+		local cells, n = {}, 0
+		local function cell(name, filled)
+			local l, _, t = A.IconCoords(name, filled)
+			notNil(l, name)
+			local key = l .. ":" .. t
+			falsy(cells[key], name .. " shares a cell")
+			cells[key] = true
+			n = n + 1
+		end
+		for _, g in ipairs(A.glyphs) do cell(g) end
+		for _, g in ipairs(A.filledGlyphs) do cell(g, true) end
+		eq(n, 70)
+		local s = 48 / 512
+		local l, _, t = A.IconCoords("home", true)   -- the first filled one: cell 49
+		near(l, 8 * s, 1e-9); near(t, 4 * s, 1e-9)
+	end)
+
+	it("every name the code used before keeps working and points at a glyph of the atlas", function()
+		local A = AzerothAccord.Assets
+		local old = { "chevron", "check", "cross", "dashed", "skull", "shield", "heal", "sword", "star", "gear", "arrow_up",
+			"arrow_down", "lock", "eye", "dot", "plus", "info", "warn", "search", "filter", "copy", "trash", "edit",
+			"calendar", "clock", "user", "users", "crown", "coin", "refresh", "download", "upload", "bell", "flag", "minus",
+			"gem", "bag", "book", "link", "arrow_left", "heart", "hammer" }
+		local n = 0
+		for _ in pairs(A.iconNames) do n = n + 1 end
+		eq(n, #old)
+		for _, name in ipairs(old) do
+			notNil(A.iconNames[name], name)
+			notNil(A.IconCoords(name), name)
+			deepEq({ A.IconCoords(name) }, { A.IconCoords(A.iconNames[name]) }, name)
+		end
+	end)
+
+	it("has the destinations of the navigation rail outlined and filled; an icon without a filled cell stays outlined", function()
+		local A = AzerothAccord.Assets
+		for _, n in ipairs({ "home", "groups", "swords", "group_add", "construction", "account_balance", "celebration",
+				"shield_person", "settings" }) do
+			local l, _, t = A.IconCoords(n)
+			local fl, _, ft = A.IconCoords(n, true)
+			notNil(l, n); notNil(fl, n)
+			truthy(l ~= fl or t ~= ft, n .. " has a filled variant")
+		end
+		for _, n in ipairs({ "bell", "users", "hammer", "heart", "coin", "sword", "flag", "calendar", "clock", "skull", "book",
+				"gem", "crown", "gear", "star" }) do
+			local l, _, t = A.IconCoords(n)
+			local fl, _, ft = A.IconCoords(n, true)
+			truthy(l ~= fl or t ~= ft, "the view tab icon " .. n .. " has a filled variant")
+		end
+		deepEq({ A.IconCoords("cross", true) }, { A.IconCoords("cross") })
+	end)
+
+	it("writes an icon inside a text with the pixels of its cell, 14 high unless told", function()
+		local A = AzerothAccord.Assets
+		eq(A.IconText("check"), "|T" .. A.textures.icons.path .. ":14:14:0:0:512:512:48:96:0:48|t")
+		contains(A.IconText("home", 20), ":20:20:0:0:512:512:")
+		eq(A.IconText("nothing"), "")
 	end)
 end)
 

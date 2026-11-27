@@ -10,6 +10,7 @@
 
 - **Created and designed by Finland.**
 - **Made with the Italian guild NEBULA.** The NEBULA logo is used with the guild's permission.
+- **Icons:** [Material Symbols Rounded](https://github.com/google/material-design-icons) by Google, under the **Apache License 2.0**. They are the icons of Accord's own interface; classes, items and recipes keep the icons of the game.
 
 ## In the game
 

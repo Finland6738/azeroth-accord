@@ -26,3 +26,6 @@ tools/local.ini
 
 # Libraries are fetched from .pkgmeta by tools/fetch_libs.py
 AzerothAccord/Libs/
+
+# Downloaded sources of the tools (tools/make_icons.py)
+tools/.cache/

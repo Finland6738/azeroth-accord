@@ -235,7 +235,8 @@ local function classColor(classFile)
 end
 
 function Card:Build(parent)
-	local f = Widgets.SideSheet(parent, { width = Card.WIDTH, height = 200, indent = 20, onClose = function() Card:Close() end })
+	local f = Widgets.SideSheet(parent, { width = Card.WIDTH, height = 200, indent = 20, onClose = function() Card:Close() end,
+		closeLabel = L["WINDOW_CLOSE"] })
 	f:Hide()
 	f:EnableMouse(true)
 	f:EnableMouseWheel(true)

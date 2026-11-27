@@ -4,7 +4,7 @@
 -- copy box (click it, Ctrl+C). Words come from locale keys; the names and the links are constants of this file.
 -- Adapted from Finland Dragon Credit Points (UI/Windows/About.lua), same owner, GPL-3.0 (ADR 0021).
 --   About.Lines()                 the lines of the page as text: { title, version, purpose, purpose2, madeBy, guild, permission,
---                                 license, third, disclaimer }
+--                                 icons, license, third, disclaimer }
 --   About.Build(holder, f)        draws the page into `holder`; the parts are fields of f.info: .logo, .nebula (the logo of the
 --                                 theme), .links[id] (copy boxes: .edit), .cards, .scroll, .page
 --   About.Open() / .PrintToChat() / .Command(input)
@@ -23,6 +23,9 @@ About.AUTHOR = "Finland"
 About.GUILD = "NEBULA"
 About.LICENSE = "GPL-3.0"
 About.PAGE_ID = "info"
+-- The icons of the interface (docs/third-party.md): their licence and where they come from.
+About.ICONS_LICENSE = "Apache License 2.0"
+About.ICONS_SOURCE = "github.com/google/material-design-icons"
 -- The links, in the order of the page; the label is the locale key ABOUT_LINK_<ID>.
 -- locale-key: ABOUT_LINK_REPO ABOUT_LINK_ISSUES ABOUT_LINK_SITE ABOUT_LINK_KOFI
 About.LINKS = {
@@ -42,7 +45,7 @@ local function version()
 	return v
 end
 
--- locale-key: ABOUT_VERSION ABOUT_PURPOSE ABOUT_PURPOSE2 ABOUT_MADE_BY ABOUT_GUILD ABOUT_PERMISSION ABOUT_LICENSE ABOUT_THIRD ABOUT_DISCLAIMER
+-- locale-key: ABOUT_VERSION ABOUT_PURPOSE ABOUT_PURPOSE2 ABOUT_MADE_BY ABOUT_GUILD ABOUT_PERMISSION ABOUT_ICONS ABOUT_LICENSE ABOUT_THIRD ABOUT_DISCLAIMER
 function About.Lines()
 	return {
 		title = L["ADDON_TITLE"],
@@ -52,6 +55,7 @@ function About.Lines()
 		madeBy = L["ABOUT_MADE_BY"]:format(About.AUTHOR),
 		guild = L["ABOUT_GUILD"]:format(About.GUILD),
 		permission = L["ABOUT_PERMISSION"]:format(About.GUILD),
+		icons = L["ABOUT_ICONS"]:format(About.ICONS_LICENSE, About.ICONS_SOURCE),
 		license = L["ABOUT_LICENSE"]:format(About.LICENSE),
 		third = L["ABOUT_THIRD"],
 		disclaimer = L["ABOUT_DISCLAIMER"],
@@ -161,6 +165,7 @@ function About.Build(holder, f)
 	row.permission:SetPoint("TOPLEFT", row.guild, "BOTTOMLEFT", 0, -6)
 	c2:Add(row, 12)
 	info.nebula, info.guild, info.permission = row.logo, row.guild, row.permission
+	info.icons = c2:Add(text(c2, "Body", "text-2", t.icons), 12)
 
 	-- 3. the links, in copy boxes
 	local c3 = stackCard(page)
@@ -201,6 +206,7 @@ function About.PrintToChat()
 	ACC:Print(t.madeBy)
 	ACC:Print(t.guild)
 	ACC:Print(t.permission)
+	ACC:Print(t.icons)
 	for _, link in ipairs(About.LINKS) do ACC:Print(L["ABOUT_LINK_" .. link.id:upper()] .. ": " .. link.url) end
 	ACC:Print(t.license)
 	ACC:Print(t.disclaimer)

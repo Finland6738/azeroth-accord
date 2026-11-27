@@ -3,7 +3,8 @@ Bindings.xml, and the locale tables.
 
 Adapted from Azeroth Guild Finder (tools/check_addon.py), same owner, GPL-3.0 (ADR 0018). The media checks (M6.9)
 come from Finland Dragon Credit Points: every media path the code uses exists, every file of Media/ is listed in
-docs/third-party.md and every font family has its OFL text.
+docs/third-party.md and every font family has its OFL text. The icon atlas (M13.6) has the cells tools/make_icons.py
+builds, its Apache 2.0 text beside it and its licence entry in docs/third-party.md.
 
 Locale rules (ADR 0015): every L["KEY"] used in the code has an English string in Locale/enUS.lua (AceLocale answers
 with the key itself for a missing one, which would hide the mistake), and Locale/itIT.lua has exactly the English keys
@@ -16,6 +17,8 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import make_icons  # noqa: E402  (the one list of the icons; the standard library only until it draws)
 ADDON = os.path.join(ROOT, "AzerothAccord")
 TOC = os.path.join(ADDON, "AzerothAccord.toc")
 INTERFACE = "16001"
@@ -101,7 +104,7 @@ def check_media(problems):
     else:
         problems.append("docs/third-party.md is missing")
     for rel in files:
-        if has_table and not rel.endswith("-OFL.txt") and os.path.splitext(rel)[0] not in used:
+        if has_table and not rel.endswith(("-OFL.txt", "-LICENSE.txt")) and os.path.splitext(rel)[0] not in used:
             problems.append(f"Media/{rel} is not listed in UI/Assets.lua")
         if os.path.basename(rel) not in text:
             problems.append(f"Media/{rel} is not described in docs/third-party.md (its source and licence)")
@@ -110,6 +113,51 @@ def check_media(problems):
             problems.append(f"Media/Fonts/{family}-OFL.txt (the licence) is missing")
         if not any(f.startswith(f"Fonts/{family}-") and f.endswith(".ttf") for f in files):
             problems.append(f"Media/Fonts has no {family} font file")
+
+
+def lua_table(text, name):
+    """The body of `Assets.<name> = { ... }` in UI/Assets.lua, or "" without one."""
+    m = re.search(rf"^Assets\.{name}\s*=\s*\{{(.*?)\}}", text, re.M | re.S)
+    return m.group(1) if m else ""
+
+
+def check_icons(problems):
+    """The icon atlas (M13.6): UI/Assets.lua lists it with the cells and the names of tools/make_icons.py; the Apache 2.0
+    text of Material Symbols lies beside it; docs/third-party.md names the source, the commit and the licence."""
+    atlas = f"Media/{make_icons.ATLAS_NAME}"
+    licence = f"Media/{make_icons.LICENSE_NAME}"
+    for rel in (atlas, licence):
+        if not os.path.isfile(os.path.join(ADDON, rel)):
+            problems.append(f"{rel} is missing (tools/make_icons.py writes it)")
+    path = os.path.join(ADDON, licence)
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            if "Apache License" not in f.read():
+                problems.append(f"{licence} is not the Apache License text")
+    table = os.path.join(ADDON, "UI", "Assets.lua")
+    if not os.path.isfile(table):
+        problems.append("UI/Assets.lua is missing")
+        return
+    with open(table, encoding="utf-8") as f:
+        text = f.read()
+    if make_icons.ATLAS_NAME not in text:
+        problems.append(f"UI/Assets.lua does not list {atlas}")
+    cell = re.search(rf'{re.escape(make_icons.ATLAS_NAME)}",[^}}]*cell\s*=\s*(\d+)', text)
+    if not cell or int(cell.group(1)) != make_icons.CELL:
+        problems.append(f"UI/Assets.lua: the cell of {atlas} is not {make_icons.CELL} (tools/make_icons.py)")
+    for name, want in (("glyphs", make_icons.GLYPHS), ("filledGlyphs", make_icons.FILLED)):
+        if re.findall(r'"(\w+)"', lua_table(text, name)) != want:
+            problems.append(f"UI/Assets.lua: Assets.{name} differs from the list of tools/make_icons.py (same names, same order)")
+    if dict(re.findall(r'(\w+)\s*=\s*"(\w+)"', lua_table(text, "iconNames"))) != make_icons.NAMES:
+        problems.append("UI/Assets.lua: Assets.iconNames differs from NAMES of tools/make_icons.py")
+    third = os.path.join(ROOT, "docs", "third-party.md")
+    if os.path.isfile(third):
+        with open(third, encoding="utf-8") as f:
+            notices = f.read()
+        for what in ("Material Symbols", "Apache License 2.0", make_icons.REPOSITORY, make_icons.COMMIT,
+                     make_icons.ATLAS_NAME):
+            if what not in notices:
+                problems.append(f"docs/third-party.md: the licence entry of the icons does not say {what!r}")
 
 
 def check_embeds(embeds, problems):
@@ -206,6 +254,7 @@ def check(problems):
     check_locale(problems)
     check_media(problems)
     check_asset_sizes(problems)
+    check_icons(problems)
     if not (meta.get("IconTexture") or "").lower().endswith("media\\logo_64"):
         problems.append("TOC ## IconTexture must be the addon's logo (Interface\\AddOns\\AzerothAccord\\Media\\logo_64, M6.9)")
 

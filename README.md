@@ -73,7 +73,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Issues, pull requests and public docs ar
 
 ## Font credits
 
-The addon bundles three font families under the [SIL Open Font License 1.1](https://openfontlicense.org/) (the licence texts are next to the files in `AzerothAccord/Media/Fonts/`): **Outfit** (The Outfit Project Authors), **JetBrains Mono** (The JetBrains Mono Project Authors) and **Orbitron** (Matt McInerney, shipped unmodified because it declares a Reserved Font Name). Every font, the icon sheet, the textures, the logos and the libraries are listed with their licences in [docs/third-party.md](docs/third-party.md).
+The addon bundles three font families under the [SIL Open Font License 1.1](https://openfontlicense.org/) (the licence texts are next to the files in `AzerothAccord/Media/Fonts/`): **Outfit** (The Outfit Project Authors), **JetBrains Mono** (The JetBrains Mono Project Authors) and **Orbitron** (Matt McInerney, shipped unmodified because it declares a Reserved Font Name). The icons of the interface are Google's [Material Symbols](https://github.com/google/material-design-icons) Rounded, under the Apache License 2.0. Every font, the icons, the textures, the logos and the libraries are listed with their licences in [docs/third-party.md](docs/third-party.md).
 
 ## Licence
 

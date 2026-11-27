@@ -38,13 +38,15 @@ import fetch_libs  # noqa: E402  (the one parser of the externals block)
 
 PKGMETA = os.path.join(ROOT, ".pkgmeta")
 
-# Media the package must carry (tools/make_media.py and tools/make_fonts.py write them; docs/third-party.md describes them).
+# Media the package must carry (tools/make_media.py, make_icons.py and make_fonts.py write them; docs/third-party.md
+# describes them).
 TEXTURES = ["rr_fill_8", "rr_fill_12", "rr_fill_18", "rr_ring_8", "rr_ring_12", "rr_ring_18", "shadow", "glow_s", "glow_l",
-            "pill", "circle", "blob_radial", "icons", "logo_256", "logo_64", "nebula_dark_256", "nebula_light_256"]
+            "pill", "circle", "blob_radial", "symbols", "logo_256", "logo_64", "nebula_dark_256", "nebula_light_256"]
 FONT_FILES = {"Outfit": ["Regular", "Medium", "SemiBold"], "JetBrainsMono": ["Regular", "Medium"], "Orbitron": ["Bold"]}
 REQUIRED_MEDIA = ([f"Media/{t}.tga" for t in TEXTURES]
                   + [f"Media/Fonts/{fam}-{style}.ttf" for fam, styles in FONT_FILES.items() for style in styles]
-                  + [f"Media/Fonts/{fam}-OFL.txt" for fam in FONT_FILES])
+                  + [f"Media/Fonts/{fam}-OFL.txt" for fam in FONT_FILES]
+                  + ["Media/symbols-LICENSE.txt"])   # Apache 2.0, with the icon atlas (tools/make_icons.py)
 LICENSE_FIRST_LINE = "GNU GENERAL PUBLIC LICENSE"
 
 # Never in a package, whatever .pkgmeta says (matched on the path inside the package, folder by folder).
@@ -361,7 +363,9 @@ def self_test(problems):
         "development mode left on": ({**GOOD, "AzerothAccord/Core/Config.lua": "Config.DEV = true\n"}, "DEV = true"),
         "a Lua file nothing loads": ({**GOOD, "AzerothAccord/Extra.lua": ""}, "nothing loads it"),
         "a missing font licence": ({k: v for k, v in GOOD.items() if not k.endswith("Orbitron-OFL.txt")}, "Orbitron-OFL.txt"),
-        "a missing texture": ({k: v for k, v in GOOD.items() if not k.endswith("icons.tga")}, "icons.tga"),
+        "a missing texture": ({k: v for k, v in GOOD.items() if not k.endswith("symbols.tga")}, "symbols.tga"),
+        "a missing icon licence": ({k: v for k, v in GOOD.items() if not k.endswith("symbols-LICENSE.txt")},
+                                   "symbols-LICENSE.txt"),
         "no Libs": ({k: v for k, v in GOOD.items() if "/Libs/" not in k}, "Libs"),
     }
     for label, (files, expect) in cases.items():

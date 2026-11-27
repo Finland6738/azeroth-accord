@@ -137,7 +137,7 @@ local function listMode(def)
 			b.label:SetText((c.title or ""):upper())
 			b.arrow = b:CreateTexture(nil, "OVERLAY")
 			b.arrow:SetTexture(ns.Assets.textures.icons.path)
-			b.arrow:SetSize(10, 10)
+			b.arrow:SetSize(12, 12)
 			b.arrow:Hide()
 			b.key, b.justify = c.key, c.justify or "LEFT"
 			b:SetScript("OnClick", function()

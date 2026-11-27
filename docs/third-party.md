@@ -4,7 +4,8 @@ The addon is GPL-3.0 ([LICENSE](../LICENSE)). This page records where every font
 package comes from and under which licence. It is the single place to update when one is added: `tools/check_addon.py`
 fails when a file of `AzerothAccord/Media/` is not named here or a font family has no licence text.
 
-The files of `Media/` are made by `tools/make_media.py` and `tools/make_fonts.py`, adapted from the sibling addon Finland
+The files of `Media/` are made by `tools/make_icons.py` (the icons), `tools/make_media.py` and `tools/make_fonts.py`, the
+last two adapted from the sibling addon Finland
 Dragon Credit Points (FDCP, same owner, GPL-3.0; [ADR 0021](adr/0021-interface-follows-the-ecosystem-style-of-fdcp.md)).
 
 ## Fonts (`AzerothAccord/Media/Fonts/`)
@@ -22,11 +23,19 @@ The OFL allows bundling the fonts in software under any licence provided the fon
 text accompanies them and a modified version does not reuse a Reserved Font Name. The community site's logo font
 (Atomed) has no licence that allows redistribution and is **not** included.
 
-## Icons (`Media/icons.tga`)
+## Icons (`Media/symbols.tga`)
 
-The 40 icons of the sheet are **drawn for this addon** by `tools/make_media.py` from simple Pillow shapes (lines, arcs,
-ellipses, polygons). No third-party artwork is copied or traced; they are covered by the addon's GPL-3.0. The order of the
-cells are mirrored in `UI/Assets.lua` (M6.10).
+| What | |
+|---|---|
+| Source | **Material Symbols Rounded**, by Google: the official repository [google/material-design-icons](https://github.com/google/material-design-icons), commit `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7` (2026-10-23), file `variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf` |
+| Licence | **Apache License 2.0**, text in `Media/symbols-LICENSE.txt` (the repository's `LICENSE`); compatible with GPL-3.0 |
+| What ships | `symbols.tga`: only the glyphs the addon uses, 48 outlined and 22 filled |
+| Changes | `tools/make_icons.py` draws each glyph (weight 400, grade 0, optical size 24; fill 0 or 1) as a white picture and places it in one 512 × 512 atlas of 48 px cells; the theme tints them at run time |
+
+The font itself is **not** shipped and is not in the repository: the tool downloads it into `tools/.cache/` (git-ignored)
+and checks its SHA-256. The names and the order of the cells are mirrored in `UI/Assets.lua`, which
+`tools/check_addon.py` compares. The icons of the game (classes, items, recipes) are the client's own and are only
+used by name at run time.
 
 ## Textures (`Media/*.tga`)
 
@@ -41,7 +50,6 @@ comes from outside the repository (GPL-3.0):
 | `rr_ring2_4.tga`, `rr_ring2_16.tga` | 2 px rings: the focused field and the outline of the switch that is off (9-slice) |
 | `shadow.tga`, `glow_s.tga`, `glow_l.tga` | blurred rounded rectangles for shadows and glows |
 | `pill.tga`, `circle.tga`, `blob_radial.tga` | pill, circle and radial fall-off |
-| `icons.tga` | the icon sheet above |
 
 ## The logos
 

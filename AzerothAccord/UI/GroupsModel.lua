@@ -40,7 +40,7 @@ function Model.KindText(kind) return L["GRP_KIND_" .. tostring(kind):upper()] en
 function Model.RoleText(role) return L["GRP_ROLE_" .. tostring(role):upper()] end
 
 local function icon(name)
-	return ns.Assets and ns.Assets.IconText(name, 12) or ""
+	return ns.Assets and ns.Assets.IconText(name, 14) or ""
 end
 
 -- The roles still wanted as icons with a number: "[shield]1 [heal]1 [sword]2".

@@ -47,7 +47,7 @@ function Widgets.FullRadius(height)
 	return 8
 end
 
--- A square icon of the icon sheet, `size` points, tinted with `token`.
+-- A square icon of the atlas (UI/Assets.lua), `size` points, tinted with `token`.
 local function newIcon(parent, name, size, token, layer)
 	local t = parent:CreateTexture(nil, layer or "ARTWORK")
 	t:SetTexture(Assets.textures.icons.path)
@@ -141,7 +141,7 @@ local BUTTON_KINDS = {
 }
 Widgets.BUTTON_KINDS = BUTTON_KINDS
 -- opts: text, style ("filled" | "tonal" | "outlined" | "text"; default tonal: a view or a dialog has at most one filled
--- button), icon (a name of the icon sheet, 18 points before the label), width (without it the button fits its
+-- button), icon (an icon name of UI/Assets.lua, 20 points before the label), width (without it the button fits its
 -- text), height (40; 36 with `dense`, the toolbars and the lines of a form;
 -- Widgets.HEIGHT), onClick. Full shape, label large. Padding 24 (16 before an icon; 12
 -- at each side of a text button), icon and label 8 apart. Hover lays a state layer in the label's colour at 8 % and
@@ -174,8 +174,8 @@ function Widgets.Button(parent, opts)
 	b.label = Theme.NewText(b, "label-large", style.ink)
 	local lead, trail, extra = style.pad, style.pad, 0
 	if opts.icon then
-		lead, extra = min(style.pad, 16), 18 + 8
-		b.icon = newIcon(b, opts.icon, 18, style.ink, "OVERLAY")
+		lead, extra = min(style.pad, 16), 20 + 8
+		b.icon = newIcon(b, opts.icon, 20, style.ink, "OVERLAY")
 		b.icon:SetPoint("RIGHT", b.label, "LEFT", -8, 0)
 	end
 	b.label:SetPoint("CENTER", b, "CENTER", (extra + lead - trail) / 2, 0)
@@ -219,8 +219,8 @@ end
 
 -- --- Icon button ------------------------------------------------------------------------------------------------------
 
--- An icon alone: 40 points (32 with `dense`), the icon 20 in text-2, a round state layer. opts: icon (a name of the icon
--- sheet), dense, size, ink (a token for the icon), tooltip (translated), onClick. :SetIcon(name), :SetEnabled(bool).
+-- An icon alone: 40 points (32 with `dense`), the icon 20 in text-2, a round state layer. opts: icon (an icon name of
+-- UI/Assets.lua), dense, size, ink (a token for the icon), tooltip (translated), onClick. :SetIcon(name), :SetEnabled(bool).
 function Widgets.IconButton(parent, opts)
 	opts = opts or {}
 	local ink = opts.ink or "text-2"
@@ -369,7 +369,7 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	ind:Hide()
 	bar.indicator = ind
 
-	local PAD, TIGHT, ICON, ICON_GAP, BADGE_GAP = 16, 8, 18, 8, 4
+	local PAD, TIGHT, ICON, ICON_GAP, BADGE_GAP = 16, 8, 20, 8, 4
 	-- the width of a tab: its content (icon, text and the badge when it shows one) and `pad` points each side
 	local function wanted(b, pad)
 		local content = b.label:GetStringWidth()
@@ -532,7 +532,11 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 			local ink = id == bar.active and "accent-text" or "text-2"
 			Theme.Text(b.label, ink)
 			Widgets.SetStateColor(b.over, ink)
-			if b.icon then Theme.Tint(b.icon, ink) end
+			if b.icon then
+				-- the chosen view's icon is the filled one (docs/specs/ui-style.md §9.10)
+				b.icon:SetTexCoord(Assets.IconCoords(b.iconName, id == bar.active))
+				Theme.Tint(b.icon, ink)
+			end
 		end
 	end
 	bar.Paint = paint
@@ -589,7 +593,9 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	for _, t in ipairs(tabs) do
 		local b = newTab(t.text)
 		b.id = t.id
-		if t.icon and Assets.IconCoords(t.icon) then b.icon = newIcon(b, t.icon, ICON, "text-2") end
+		if t.icon and Assets.IconCoords(t.icon) then
+			b.icon, b.iconName = newIcon(b, t.icon, ICON, "text-2"), t.icon
+		end
 		b:SetScript("OnClick", function() bar:Select(t.id) end)
 		bar.buttons[t.id] = b
 		bar.order[#bar.order + 1] = t.id
@@ -917,7 +923,8 @@ Widgets.SIDE_SHEET = { width = 400, pad = 24, densePad = 16, header = 72 }
 
 -- The detail of one item beside a list (docs/specs/ui-style.md §9.6): surface-1, radius 16, a shadow, at most 400 wide,
 -- a header of 72 with the title (title large), a subtitle and a close icon button; padding 24 (16 dense).
--- opts: width (400), height, pad, indent (room before the title, for a mark), onClose. Fields .title, .subtitle,
+-- opts: width (400), height, pad, indent (room before the title, for a mark), onClose, closeLabel (the close button's
+-- tooltip, translated). Fields .title, .subtitle,
 -- .close, .pad, .header. :SetPad(pad) places the header again; :SetTitleEnd(points) is what the title leaves free at the
 -- right (the close button, or a caller's own button).
 function Widgets.SideSheet(parent, opts)
@@ -932,7 +939,7 @@ function Widgets.SideSheet(parent, opts)
 	if f.title.SetWordWrap then f.title:SetWordWrap(false) end
 	f.subtitle = Theme.NewText(f, "body-small", "text-2")
 	f.subtitle:SetJustifyH("LEFT")
-	f.close = Widgets.IconButton(f, { icon = "cross", dense = true, onClick = opts.onClose })
+	f.close = Widgets.IconButton(f, { icon = "cross", dense = true, onClick = opts.onClose, tooltip = opts.closeLabel })
 	function f:SetTitleEnd(points)
 		self.title:ClearAllPoints()
 		self.title:SetPoint("TOPLEFT", self, "TOPLEFT", self.pad + self.indent, -16)

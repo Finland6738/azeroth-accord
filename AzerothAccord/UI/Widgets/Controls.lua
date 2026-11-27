@@ -157,7 +157,7 @@ function Widgets.Select(parent, opts)
 	sel.label:SetJustifyH("LEFT")
 	sel.arrow = Widgets.Icon(sel, "chevron", 18, "text-2", "OVERLAY")
 	sel.arrow:SetPoint("RIGHT", sel, "RIGHT", -8, 0)
-	Motion.Rotate(sel.arrow, -math.pi / 2, 0)   -- the chevron points right in the sheet: down while closed
+	Motion.Rotate(sel.arrow, -math.pi / 2, 0)   -- the chevron of the atlas points right: down while closed
 	sel.choices = opts.choices or {}
 
 	-- the popup: a catcher over the screen (a click outside closes) and the menu under the field

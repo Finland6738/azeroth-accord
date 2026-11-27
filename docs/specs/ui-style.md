@@ -33,7 +33,8 @@ una chiave di locale, `enUS` e `itIT`), nessun colore scritto fuori da `UI/Theme
 | Chiavi di locale | quelle di FDCP | quelle di Accord (`Locale/enUS.lua`, `itIT.lua`); i testi nuovi di questa famiglia (temi, Aspetto, Info, crediti) hanno chiavi proprie e un test controlla che nulla arrivi a schermo senza chiave (M6.14) |
 | Slash command | `/fdcp` | `/accord`, `/acc` (invariati, [SPEC-04 §4](SPEC-04-ui-guild-tab-shell.md)) |
 
-I file media hanno gli stessi nomi di FDCP (`rr_fill_8`, `shadow`, `glow_s`, `logo_256`, `icons`…) più i loghi NEBULA
+I file media hanno gli stessi nomi di FDCP (`rr_fill_8`, `shadow`, `glow_s`, `logo_256`…; per le icone, da M13.6, l'atlante
+`symbols` di §9.10) più i loghi NEBULA
 (§5). `UI/Assets.lua` resta la tabella unica di texture e font; `tools/check_addon.py` controlla che ogni file di
 `Media/` sia in tabella e in `docs/third-party.md` (M6.9).
 
@@ -133,7 +134,7 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   flessibili restano; le colonne **fisse a sinistra e a destra come liste sincronizzate** non sono state fatte (nessuna
   vista di Accord ne ha bisogno: i pannelli sono stretti e le colonne le sceglie il giocatore).
 - **Schede.** *Superato da [§9.6](#96-componenti) con M12.7: niente riquadri, tinta né badge `accent`.* Dal 2026-11-27 (proprietario) le schede delle viste sono **riquadri arrotondati** (`surface-2`, anello
-  `border-subtle`) con l'**icona** della vista (dal foglio delle icone dell'addon, `Shell.VIEW_ICONS`) prima del nome;
+  `border-subtle`) con l'**icona** della vista (dall'atlante delle icone, [§9.10](#910-icone-material-symbols-proprietario-2026-11-27), `Shell.VIEW_ICONS`) prima del nome;
   i riquadri sono tutti uguali e quella attiva si distingue solo come nelle schede di Material Design 3: la
   **sottolineatura `accent` da 2 pt** in fondo al suo riquadro (scorre da una scheda all'altra) e nome e icona in
   `accent-text` invece di `text-2` / `text-3` (prima `text-1`: il proprietario non la distingueva, "non è arancione"), con
@@ -169,7 +170,7 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   fallita la ricostruisce.
 - **Cornici.** Finestra: `Theme.Panel` raggio 12, riempimento `bg`, bordo `border`, ombra, linea di luce in alto.
   Finestra Gilda: una texture quadrata `bg` (gli angoli dell'area di Blizzard restano coperti), nessun bordo. La maniglia
-  di ridimensionamento è l'icona `dashed` del foglio delle icone (`text-3`, `accent-text` sotto il mouse), nessuna
+  di ridimensionamento è l'icona `dashed` (`south_east`, [§9.10](#910-icone-material-symbols-proprietario-2026-11-27); `text-3`, `accent-text` sotto il mouse), nessuna
   texture di Blizzard.
 - **Linguetta.** Icona invariata (SPEC-10 Q2); il badge delle richieste è il badge del kit (`err` / `on-error`, M12.8).
 - Le viste (corpo del pannello) restano col vecchio aspetto fino a M6.13-M6.14 (M6.13 ha fatto Roster, scheda e Professions): ognuna riceve un frame semplice che
@@ -586,6 +587,25 @@ Nulla di questo è provato nel client vero.
 - Misure: 20 punti nei pulsanti e nelle schede, 24 nella barra di navigazione, 18 nei chip; colore del ruolo del contenuto (§9.1).
 - **Restano le icone del gioco** dove dicono una cosa del gioco: classi, oggetti, ricette, istanze.
 - Un'icona sola, senza testo, ha **sempre un tooltip** con il suo nome.
+
+**Realizzazione (M13.6).**
+
+- **Fonte**: il font variabile `MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf` del repository ufficiale
+  `google/material-design-icons`, commit `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7` (2026-10-23). `tools/make_icons.py`
+  lo scarica in `tools/.cache/` (non versionata), ne controlla lo SHA-256 e disegna i glifi con peso 400, grado 0,
+  dimensione ottica 24. Il font non si distribuisce.
+- **Atlante**: `Media/symbols.tga`, 512 × 512, celle di 48 px, 10 per riga: 48 glifi vuoti, poi 22 pieni (le nove
+  destinazioni di §9.11, le icone delle schede, il cuore e il punto). Il testo di Apache 2.0 è in
+  `Media/symbols-LICENSE.txt`.
+- **Nomi**: `UI/Assets.lua` ripete le liste dello strumento (`tools/check_addon.py` le confronta). `IconCoords(nome,
+  filled)` accetta i nomi di Accord (`cross`, `bell`, `hammer` → `construction`…) e quelli di Material Symbols; un'icona
+  senza variante piena risponde con quella vuota. I nove nomi della mappa di §9.11 **sono confermati**: esistono tutti.
+- **Stato attivo**: la scheda della vista scelta ha l'icona piena. Interruttori e chip non hanno un'icona propria oltre
+  alla spunta, che è uguale nelle due varianti.
+- **Misure**: 20 punti in schede e pulsanti (anche il cuore dei like e la croce sulla finestra della gilda), 18 nei chip
+  e nei menu, 14 le icone dentro un testo, 12 la freccia dell'ordinamento (le tabelle si rivedono in M13.8).
+
+Non provato nel client vero.
 
 ### 9.11 Navigazione: due livelli (proprietario, 2026-11-27)
 

@@ -118,7 +118,7 @@ function Widgets.DataTable(parent, columns, opts)
 		b.label = Theme.NewText(b, "label-medium", "text-3")
 		b.arrow = b:CreateTexture(nil, "OVERLAY")
 		b.arrow:SetTexture(Assets.textures.icons.path)
-		b.arrow:SetSize(10, 10)
+		b.arrow:SetSize(12, 12)
 		Theme.Tint(b.arrow, "accent-text")
 		b.arrow:Hide()
 		b.index = i

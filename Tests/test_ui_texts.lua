@@ -87,7 +87,8 @@ describe("an Italian client on screen", function()
 	local LINEN, POTION = 2589, 118
 	local DATA = { "Accord", "Bob", "Boss", "Testchar", "Linen Cloth", "Minor Healing Potion", "Consumables", "Alchemy",
 		"Azeroth Accord", "AZEROTH ACCORD",
-		"Finland", "NEBULA", "GPL-3.0", "https://github.com/Finland6738/azeroth-accord", "https://github.com/Finland6738/azeroth-accord/issues",
+		"Finland", "NEBULA", "GPL-3.0", "Apache License 2.0", "github.com/google/material-design-icons",
+		"https://github.com/Finland6738/azeroth-accord", "https://github.com/Finland6738/azeroth-accord/issues",
 		"https://nebula-community.github.io/giochi/wow-forever/", "https://ko-fi.com/finland6738" }
 
 	before_boot(function(M)

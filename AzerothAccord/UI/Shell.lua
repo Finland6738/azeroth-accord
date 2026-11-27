@@ -213,7 +213,7 @@ local function tabsKey(list)
 	return table.concat(parts, "\n")
 end
 
--- The icon of each view's tab (a name of the icon sheet, UI/Assets.lua; owner, 2026-11-27: tabs with icons).
+-- The icon of each view's tab (an icon name of UI/Assets.lua; owner, 2026-11-27: tabs with icons).
 Shell.VIEW_ICONS = {
 	actions = "bell", roster = "users", professions = "hammer", reputation = "heart", bank = "coin", groups = "sword",
 	season = "flag", events = "calendar", availability = "clock", raid = "skull", handbook = "book", addons = "gem",

@@ -68,7 +68,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
   - the old custom icon sheet goes;
   - the game's own icons (classes, items) stay.
 - Done when:
-  - [ ] No icon of the addon's interface comes from the old sheet; `tools/check_addon.py` checks the atlas and its licence entry.
+  - [x] No icon of the addon's interface comes from the old sheet; `tools/check_addon.py` checks the atlas and its licence entry.
 
 ### M13.7 — Interface: navigation rail and two levels
 - Branch: `step/m13-7-navigation`

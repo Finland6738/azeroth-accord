@@ -33,7 +33,7 @@ Assets.textures = {
 	pill        = { path = "Interface\\AddOns\\AzerothAccord\\Media\\pill.tga",        w = 64,  h = 32,  slice = 16 },
 	circle      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\circle.tga",      w = 64,  h = 64 },
 	blob_radial = { path = "Interface\\AddOns\\AzerothAccord\\Media\\blob_radial.tga", w = 128, h = 128 },
-	icons       = { path = "Interface\\AddOns\\AzerothAccord\\Media\\icons.tga",       w = 256, h = 256, cell = 16 },
+	icons       = { path = "Interface\\AddOns\\AzerothAccord\\Media\\symbols.tga",     w = 512, h = 512, cell = 48 },
 }
 
 -- The addon's logo (the AddOn Compartment icon is the TOC's `## IconTexture`, logo_64) and the logos of the Italian
@@ -45,14 +45,32 @@ Assets.logos = {
 	nebula_light = { path = "Interface\\AddOns\\AzerothAccord\\Media\\nebula_light_256.tga", w = 256, h = 256 },
 }
 
--- Cells of the icon sheet, in the order of tools/make_media.py (16 per row): 42 icons drawn for this addon.
-Assets.icons = { "chevron", "check", "cross", "dashed", "skull", "shield", "heal", "sword", "star", "gear", "arrow_up",
-	"arrow_down", "lock", "eye", "dot", "plus",
-	"info", "warn", "search", "filter", "copy", "trash", "edit", "calendar", "clock", "user", "users", "crown",
-	"coin", "refresh", "download", "upload",
-	"bell", "flag", "minus", "gem", "bag", "book", "link", "arrow_left",
-	"heart",   -- 2026-11-26: the Like button
-	"hammer" }   -- 2026-11-27: the Professions tab
+-- The icons: Google's Material Symbols Rounded (Apache 2.0, docs/third-party.md), in one atlas built by
+-- tools/make_icons.py, whose lists these three mirror (tools/check_addon.py compares them).
+-- Glyphs in the order of the cells, 10 per row: the outlined ones first...
+Assets.glyphs = {
+	"chevron_right", "check", "close", "south_east", "skull", "shield", "health_and_safety", "swords", "star",
+	"settings", "arrow_upward", "arrow_downward", "lock", "visibility", "fiber_manual_record", "add", "info",
+	"warning", "search", "filter_alt", "content_copy", "delete", "edit", "calendar_month", "schedule", "person",
+	"group", "crown", "paid", "refresh", "download", "upload", "notifications", "flag", "remove", "diamond",
+	"shopping_bag", "menu_book", "link", "arrow_back", "favorite", "home", "groups", "group_add", "construction",
+	"account_balance", "celebration", "shield_person" }
+-- ...then the filled ones, for the icons that show an active state (ui-style.md §9.10).
+Assets.filledGlyphs = {
+	"home", "groups", "swords", "group_add", "construction", "account_balance", "celebration", "shield_person",
+	"settings", "notifications", "group", "favorite", "paid", "flag", "calendar_month", "schedule", "skull",
+	"menu_book", "diamond", "crown", "star", "fiber_manual_record" }
+-- Accord's name of an icon -> the glyph that draws it. A glyph's own name works too ("home", "groups").
+Assets.iconNames = {
+	chevron = "chevron_right", check = "check", cross = "close", dashed = "south_east", skull = "skull",
+	shield = "shield", heal = "health_and_safety", sword = "swords", star = "star", gear = "settings",
+	arrow_up = "arrow_upward", arrow_down = "arrow_downward", lock = "lock", eye = "visibility",
+	dot = "fiber_manual_record", plus = "add", info = "info", warn = "warning", search = "search",
+	filter = "filter_alt", copy = "content_copy", trash = "delete", edit = "edit", calendar = "calendar_month",
+	clock = "schedule", user = "person", users = "group", crown = "crown", coin = "paid", refresh = "refresh",
+	download = "download", upload = "upload", bell = "notifications", flag = "flag", minus = "remove",
+	gem = "diamond", bag = "shopping_bag", book = "menu_book", link = "link", arrow_left = "arrow_back",
+	heart = "favorite", hammer = "construction" }
 
 -- Fonts (docs/third-party.md). Orbitron ships whole (it declares a Reserved Font Name): it is used for the title only, in
 -- capitals, and has no middle dot or arrow. `fallback` is the game font used when SetFont fails or the player chose the
@@ -91,25 +109,30 @@ function Assets.TexturePaths()
 	return out
 end
 
--- An icon of the sheet as an inline texture escape for a text ("|T...|t"), `size` points high (default 12); "" for an unknown name.
+-- glyph -> its cell (1-based) in the atlas
+local outlinedCell, filledCell = {}, {}
+for i, glyph in ipairs(Assets.glyphs) do outlinedCell[glyph] = i end
+for i, glyph in ipairs(Assets.filledGlyphs) do filledCell[glyph] = #Assets.glyphs + i end
+
+-- An icon as an inline texture escape for a text ("|T...|t"), `size` points high (default 14); "" for an unknown name.
 function Assets.IconText(name, size)
 	local l, r, t, b = Assets.IconCoords(name)
 	if not l then return "" end
 	local sheet = Assets.textures.icons
-	size = size or 12
+	size = size or 14
 	return ("|T%s:%d:%d:0:0:%d:%d:%d:%d:%d:%d|t"):format(sheet.path, size, size, sheet.w, sheet.h,
 		l * sheet.w, r * sheet.w, t * sheet.h, b * sheet.h)
 end
 
--- Texture coordinates of an icon of the sheet: left, right, top, bottom.
-function Assets.IconCoords(name)
-	for i, n in ipairs(Assets.icons) do
-		if n == name then
-			local sheet = Assets.textures.icons
-			local per = sheet.w / sheet.cell
-			local col, row = (i - 1) % per, math.floor((i - 1) / per)
-			local s = sheet.cell / sheet.w
-			return col * s, (col + 1) * s, row * s, (row + 1) * s
-		end
-	end
+-- Texture coordinates of an icon in the atlas: left, right, top, bottom; nil for an unknown name. `filled` asks for the
+-- filled variant; an icon that has none answers with the outlined one.
+function Assets.IconCoords(name, filled)
+	local glyph = Assets.iconNames[name] or name
+	local i = (filled and filledCell[glyph]) or outlinedCell[glyph]
+	if not i then return nil end
+	local sheet = Assets.textures.icons
+	local per = math.floor(sheet.w / sheet.cell)
+	local col, row = (i - 1) % per, math.floor((i - 1) / per)
+	local s = sheet.cell / sheet.w
+	return col * s, (col + 1) * s, row * s, (row + 1) * s
 end

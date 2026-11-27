@@ -85,7 +85,7 @@ La pagina **Info** (`UI/About.lua`) è la seconda pagina della vista Settings, d
 La pagina è una colonna di quattro schede (larghezza 520, come le Impostazioni), che scorre con la rotella:
 
 1. **L'addon**: il logo (`logo_256`, 72 punti), il nome, la versione (quella del TOC, "sviluppo" quando il TOC non è ancora impacchettato) e due righe su che cosa fa.
-2. **Crediti**: "Creato e progettato da Finland" e "Realizzato con la gilda italiana NEBULA", con il logo di NEBULA (64 punti) scelto dal tema, scuro in Nebula e Accord e chiaro in Aurora, che segue `Theme.Apply` senza `/reload`; sotto, la nota "Il logo di NEBULA è usato con il permesso della gilda".
+2. **Crediti**: "Creato e progettato da Finland" e "Realizzato con la gilda italiana NEBULA", con il logo di NEBULA (64 punti) scelto dal tema, scuro in Nebula e Accord e chiaro in Aurora, che segue `Theme.Apply` senza `/reload`; sotto, la nota "Il logo di NEBULA è usato con il permesso della gilda" e, da M13.6, la riga delle icone: Material Symbols Rounded di Google, Apache License 2.0, con la fonte (`github.com/google/material-design-icons`).
 3. **Link**: quattro caselle di sola lettura da copiare (il gioco non apre pagine web): il repository, le issue, la pagina di NEBULA e Ko-fi. Un clic seleziona il testo; scrivere nella casella lo rimette com'era.
 4. **Licenza e note**: GPL-3.0, il rinvio a `docs/third-party.md` e l'avviso che l'addon è creato dai fan e non è né realizzato né affiliato a Blizzard Entertainment.
 

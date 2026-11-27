@@ -180,7 +180,7 @@ local function placeCross(cf, skin)
 			skin.overlay = CreateFrame("Frame", nil, cf)
 			skin.overlay:EnableMouse(false)
 			skin.overlay:SetSize(28, 28)
-			skin.cross = icon(skin.overlay, "cross", 16, "text-2", "OVERLAY")
+			skin.cross = icon(skin.overlay, "cross", 20, "text-2", "OVERLAY")
 			skin.cross:SetPoint("CENTER", skin.overlay, "CENTER", 0, 0)
 		end
 		skin.overlay:ClearAllPoints()
