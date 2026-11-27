@@ -130,8 +130,9 @@ Chip, TitleBar, Dialog, EditBox, ChoiceList; `Controls.lua`: Switch, Slider, Sel
   vista di Accord ne ha bisogno: i pannelli sono stretti e le colonne le sceglie il giocatore).
 - **Schede.** Dal 2026-11-27 (proprietario) le schede delle viste sono **riquadri arrotondati** (`surface-2`, anello
   `border-subtle`) con l'**icona** della vista (dal foglio delle icone dell'addon, `Shell.VIEW_ICONS`) prima del nome;
-  quella attiva ha l'anello `accent`, un bagliore `accent` e nome e icona in `accent-text`, senza sottolineatura
-  (`Widgets.Tabs(..., { boxed = true })`). Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
+  i riquadri sono tutti uguali e quella attiva si distingue solo come nelle schede di Material Design 3: la
+  **sottolineatura `accent` da 2 pt** in fondo al suo riquadro (scorre da una scheda all'altra) e nome e icona in
+  `text-1` invece di `text-2` / `text-3`; niente bagliore né anello colorato (`Widgets.Tabs(..., { boxed = true })`). Senza `boxed` resta la barra con l'indicatore da 2 pt, che **scorre** da una
   scheda all'altra in 200 ms (`Translation`, poi si posa) e si dissolve solo alla prima comparsa; una scheda può avere un **badge con il conteggio** (le richieste in attesa della
   Banca: `Tabs:SetBadge(id, testo|nil, tono)`; il testo lo passa il chiamante).
 - **Tooltip.** Un solo frame proprio dell'addon (`AzerothAccordTooltip`, strato `TOOLTIP`, creato al primo uso): dal

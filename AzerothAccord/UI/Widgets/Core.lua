@@ -177,9 +177,10 @@ end
 -- they are first drawn closer (10 points each side) and, if they are still too many, the ones that do not fit go into a
 -- menu behind a last tab, opts.moreText, which carries the sum of their counts. The active tab always stays on the bar.
 -- A bar whose width is not known yet shows every tab.
--- opts.boxed (owner, 2026-11-27): every tab is a rounded box (surface-2 with a border-subtle ring) with its icon (t.icon,
--- a name of the icon sheet) before the name; the active one has the accent ring, an accent glow and its name and icon in
--- the accent's text colour; no underline.
+-- opts.boxed (owner, 2026-11-27): every tab is the same quiet rounded box (surface-2 with a border-subtle ring) with its
+-- icon (t.icon, a name of the icon sheet) before the name. The active one differs only as Material Design 3 tabs do: the
+-- 2 pt accent underline at the bottom of its box (it slides to the next tab) and its name and icon in text-1 instead of
+-- text-2 / text-3. No glow, no accent ring, nothing that makes it look like a lit button (owner's follow-up the same day).
 function Widgets.Tabs(parent, tabs, onSelect, opts)
 	local BOXED = opts and opts.boxed
 	local bar = CreateFrame("Frame", nil, parent)
@@ -197,17 +198,14 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 
 	local GAP, PAD, TIGHT = BOXED and 6 or 4, BOXED and 14 or 16, 10
 	local ICON, ICON_GAP = 14, 6
-	-- the box of a boxed tab (fill, ring, glow), 6 points below the bar's top and 2 above its line
+	-- the box of a boxed tab (fill, ring), 6 points below the bar's top and BOX_BOTTOM above its line
+	local BOX_BOTTOM = 2
 	local function box(b)
 		b.fill = Theme.Slice(b, "rr_fill_8", "surface-2", "BACKGROUND")
 		b.fill:SetPoint("TOPLEFT", b, "TOPLEFT", 0, -6)
-		b.fill:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 0, 2)
+		b.fill:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 0, BOX_BOTTOM)
 		b.ring = Theme.Slice(b, "rr_ring_8", "border-subtle", "BORDER")
 		b.ring:SetAllPoints(b.fill)
-		b.glow = Theme.Glow(b, "glow_s", "accent", { layer = "BACKGROUND", alpha = 0.35 })
-		b.glow:SetPoint("TOPLEFT", b.fill, "TOPLEFT", -10, 10)
-		b.glow:SetPoint("BOTTOMRIGHT", b.fill, "BOTTOMRIGHT", 10, -10)
-		Theme.GlowShow(b.glow, false)
 	end
 	Widgets.TabBox = box
 	-- the width of a tab: its text, `pad` points each side, its icon, and the badge when it shows one
@@ -333,16 +331,16 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	-- puts the indicator under the active tab; from `fromX` (its old place) it slides there, otherwise it appears
 	local function place(fromX, fromW, changed)
 		local ind = bar.indicator
-		if BOXED then ind:Hide() return end   -- the boxed tabs show the active one by its ring and glow
 		local b = bar.active and bar.buttons[bar.active]
 		if not b or bar.hidden[bar.active] or not b.x then
 			ind:Hide(); bar.ix, bar.iw = nil, nil
 			return
 		end
-		local x, w = b.x + 8, b.w - 16
+		local inset = BOXED and 12 or 8   -- a boxed tab's underline sits on the bottom of its box, inside the round corners
+		local x, w = b.x + inset, b.w - 2 * inset
 		local function put(px, pw)
 			ind:ClearAllPoints()
-			ind:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", px, 0)
+			ind:SetPoint("BOTTOMLEFT", bar, "BOTTOMLEFT", px, BOXED and BOX_BOTTOM or 0)
 			ind:SetWidth(pw)
 			bar.ix, bar.iw = px, pw
 		end
@@ -361,10 +359,9 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		for id, b in pairs(bar.buttons) do
 			local on = id == bar.active
 			if BOXED then
-				Theme.Text(b.label, on and "accent-text" or "text-2")
-				if b.icon then Theme.Tint(b.icon, on and "accent-text" or "text-3") end
-				Theme.Tint(b.ring, on and "accent" or (b.hot and "border-strong" or "border-subtle"))
-				Theme.GlowShow(b.glow, on)
+				Theme.Text(b.label, on and "text-1" or "text-2")
+				if b.icon then Theme.Tint(b.icon, on and "text-1" or "text-3") end
+				Theme.Tint(b.ring, b.hot and "border-strong" or "border-subtle")
 			else
 				Theme.Text(b.label, on and "text-1" or "text-3")
 				if b.icon then Theme.Tint(b.icon, on and "text-1" or "text-3") end
