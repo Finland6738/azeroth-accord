@@ -26,6 +26,7 @@ local L, Widgets, Theme, Model = ns.L, ns.Widgets, ns.Theme, ns.RosterModel
 local type, ipairs, pairs, max, min = type, ipairs, pairs, math.max, math.min
 
 Card.WIDTH = 290           -- beside or over the table in the guild window's panel
+Card.ROLE_ICON = 16
 Card.DETACHED_WIDTH = 400  -- the detail window beside the Accord window (a side sheet: at most 400)
 Card.DETACH = true         -- in the Accord window the card is a window of its own (the tests switch it off for the panel)
 Card.GAP = 8
@@ -201,6 +202,8 @@ function Card.Describe(e)
 		notInGuild = e.notInGuild == true, sections = {},
 	}
 	d.badges = Card.Badges(e)
+	local Model = ns.RosterModel
+	d.role = Model and Model.Role(e, Model.Season()) or nil
 	d.sections[1] = detailsSection(e)
 	d.sections[2] = professionsSection(e)
 	d.sections[3] = accountSection(e)
@@ -243,6 +246,11 @@ function Card:Build(parent)
 	f:EnableMouse(true)
 	f:EnableMouseWheel(true)
 	f.mark = Widgets.ClassMark(f, 12)
+	f.role = f:CreateTexture(nil, "ARTWORK")   -- the table's role icon, in the square's place (owner, 2026-11-28)
+	f.role:SetTexture(ns.Assets.textures.icons.path)
+	f.role:SetSize(Card.ROLE_ICON, Card.ROLE_ICON)
+	f.role:Hide()
+	Theme.Call(f.role, function(icon, themeId) if ns.RosterView then ns.RosterView.PaintRoleIcon(icon, themeId) end end)
 	-- on a narrow panel, the Back button takes the place of the close button
 	f.back = Widgets.Button(f, { text = L["CARD_BACK"], style = "text", dense = true, onClick = function() Card:Close() end })
 	f.badges = {}
@@ -341,7 +349,18 @@ function Card:Layout()
 	-- the name ends before the close button, or before the Back button
 	f:SetTitleEnd(self.narrow and (pad + (f.back:GetWidth() or 64)) or (pad + 32))
 	Theme.ClassText(f.title, classColor(d.classFile))
-	if d.classFile then Widgets.PaintClassMark(f.mark, classColor(d.classFile)) else Widgets.ClearClassMark(f.mark) end
+	f.role:ClearAllPoints()
+	f.role:SetPoint("TOPLEFT", f, "TOPLEFT", pad - 2, -18)
+	if d.role and ns.RosterView then
+		Widgets.ClearClassMark(f.mark)
+		f.role:SetTexCoord(ns.Assets.IconCoords("role_" .. d.role, true))
+		f.role.classFile = d.classFile
+		ns.RosterView.PaintRoleIcon(f.role)
+		f.role:Show()
+	else
+		f.role:Hide()
+		if d.classFile then Widgets.PaintClassMark(f.mark, classColor(d.classFile)) else Widgets.ClearClassMark(f.mark) end
+	end
 	f.subtitle:SetText(d.subtitle or "")
 	f.back:SetShown(self.narrow == true)
 	f.close:SetShown(self.narrow ~= true)

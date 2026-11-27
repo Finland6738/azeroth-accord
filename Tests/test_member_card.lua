@@ -347,6 +347,7 @@ describe("the frame", function()
 	it("a click on another character of the account opens its card and selects it", function()
 		open()
 		V().frame:SetWidth(900)
+		V().frame.toolbar.grouped:Click()   -- the flat list, where the alt has its own row
 		rowOf("Bobalt"):Click()
 		local target
 		for _, it in ipairs(Card().frame.items) do if it:IsShown() and it.guid == BOB then target = it end end

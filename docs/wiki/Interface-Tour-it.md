@@ -59,7 +59,7 @@ Il pannello ha **due livelli di navigazione**, uguali nella finestra della gilda
 I controlli hanno lo stesso aspetto e lo stesso comportamento in ogni vista (le regole di Material 3 di Google, disegnate con i temi di Accord):
 
 - **Pulsanti**: l'unico pulsante **pieno**, nel colore d'accento del tema, è l'azione principale di una vista o di una finestra (per esempio *Salva* o *Invia richiesta*); gli altri sono tenuemente pieni, contornati o di solo testo.
-- I **filtri** sono riquadri arrotondati da accendere e spegnere: un filtro acceso è pieno e mostra una **spunta** (*Online*, *Solo main*, le schede della banca di gilda).
+- I **filtri** sono riquadri arrotondati da accendere e spegnere: un filtro acceso è pieno e mostra una **spunta** (*Online*, *Per account*, le schede della banca di gilda).
 - Una scelta tra poche voci (il tema, il font) è una fila di pulsanti uniti, quello scelto pieno e con la spunta. Servono a scegliere, mai a spostarti in un'altra pagina.
 - La **riga scelta** di un elenco (il membro di cui è aperta la scheda, il gruppo o la pagina del manuale scelti) è riempita dello stesso colore tenue.
 - Il puntatore sopra un controllo lo ombreggia leggermente; un controllo che ora non si può usare è sbiadito.

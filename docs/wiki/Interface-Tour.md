@@ -59,7 +59,7 @@ The panel has **two levels of navigation**, the same in the guild window and in 
 The controls look and behave the same in every view (the rules of Google's Material 3, drawn with Accord's themes):
 
 - **Buttons**: the one **filled** button, in the theme's accent, is the main action of a view or of a window (for example *Save* or *Send request*); the others are softly filled, outlined or plain text.
-- **Filters** are rounded boxes you can switch on and off: a filter that is on is filled and shows a **check mark** (*Online*, *Mains only*, the tabs of the guild bank).
+- **Filters** are rounded boxes you can switch on and off: a filter that is on is filled and shows a **check mark** (*Online*, *By account*, the tabs of the guild bank).
 - A choice between a few things (the theme, the font) is a row of joined buttons, the chosen one filled with a check mark. They choose; they never move you to another page.
 - The **selected row** of a list (the member whose card is open, the group or the handbook page you chose) is filled with the same soft colour.
 - A pointer over a control shades it lightly; a control that cannot be used now is faded.

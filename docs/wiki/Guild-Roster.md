@@ -8,7 +8,7 @@ The **Roster** view is a table of every member: name, level, class, rank, zone, 
 
 ## The table
 
-![The Roster table: sortable columns, filters for online, mains only, class, rank and profession, and the column chooser](../specs/mockups/previews/roster-table.webp)
+![The Roster table: sortable columns, filters for online, class, rank and profession, and the column chooser](../specs/mockups/previews/roster-table.webp)
 
 Click a title to sort, click it again to reverse. Before every name there is a **mark in the colour of the class**: a **role icon** when the role is known (a shield for a **tank**, crossed swords for **damage**, a medical bag for a **healer**), else a small square. The name is written in the class colour too (in the light theme the name stays dark and only the mark carries the colour).
 
@@ -33,14 +33,14 @@ Click a row to open the **member card**. In the Accord window it opens as a **de
 
 ## Characters of the same account
 
-On your own characters the card offers **[Make this my main]**. The card lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. Turn on *By account* in the table to see one row per player with the alts underneath (click **+** to show them).
+On your own characters the card offers **[Make this my main]**. The card lists **all the characters of the same Battle.net account on the realm**, also those outside the guild, for every member who uses the addon. *By account* in the table, on by default, shows one row per player with the alts underneath (click **+** to show them).
 
 A character that is not in the guild appears too. The main is the one the player chose, otherwise the highest-level character.
 
-**Alts in another guild.** For a character outside the guild the card and the grouped rows say where it is: *Other guild: <name> · seen 3 d ago*, or *No guild · seen today* when the character has no guild. The line is read from the characters of that player who are in your guild, so:
+**Alts in another guild.** For a character outside the guild the member card (and the tooltip of its grouped row) says where it is; the *Last online* column shows only how long ago it last logged in: *Other guild: <name> · seen 3 d ago*, or *No guild · seen today* when the character has no guild. The line is read from the characters of that player who are in your guild, so:
 
 - it is **as old as the last login of that alt** with the addon (shown by day: *today*, *3 d ago*); if the alt joins or leaves a guild, you see it only after that alt has logged in and the player has logged in with a character of your guild. A line older than a month is dimmed, and its label says who shared it;
-- a character known only from a public note shows no guild, and neither does one the addon has not seen since this feature was added: it shows *not in guild* as before;
+- a character known only from a public note shows no guild, and neither does one the addon has not seen since this feature was added: the card shows *not in guild* as before (the column says *unknown*);
 - **the other guild does not see anything of Accord's data in your guild.** Only the guild's name and the day of the last login of that alt travel in the account list your guild already receives.
 
 For members without the addon, a public guild note written as `main: <name>` (my main is that character) or `alt: <name>` (that character is my alt) is shown as a hint, labelled *declared in the note*. A member who has the addon is never moved by a note.

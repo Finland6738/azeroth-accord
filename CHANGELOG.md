@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **Member card** (owner, 2026-11-28): beside the name, the same role icon as in the table (the class square only without a role).
+- **Roster role icons** (owner, 2026-11-28): the role icon before a member's name is **filled** instead of outlined.
+- **Roster** (owner, 2026-11-28): *By account* is on by default (once for everybody, then the choice is remembered); the *Mains only* chip is gone; in the grouped view a character outside the guild shows in *Last online* only when it last logged in (its guild stays on the member card and in the row's tooltip) and sorts by it. **Not checked in the real game.**
+
 ### Fixed
 
 - A pale shape no longer stays behind an item of the navigation rail after changing destination (the icon disappeared under it). The state layer under the mouse became fully opaque whenever it changed colour, or the theme changed; the same could happen on other buttons, chips and the guild window's side tabs. It now keeps its opacity (new `Theme.Ink`). **Not checked in the real game.**

@@ -8,7 +8,7 @@ La vista **Roster** è una tabella di tutti i membri: nome, livello, classe, gra
 
 ## La tabella
 
-![La tabella del Roster: colonne ordinabili, filtri per online, solo main, classe, grado e professione, e la scelta delle colonne](../specs/mockups/previews/roster-table.webp)
+![La tabella del Roster: colonne ordinabili, filtri per online, classe, grado e professione, e la scelta delle colonne](../specs/mockups/previews/roster-table.webp)
 
 Clicca un titolo per ordinare, cliccalo di nuovo per invertire. Prima di ogni nome c'è un **segno nel colore della classe**: l'**icona del ruolo** quando il ruolo è noto (uno scudo per il **tank**, spade incrociate per i **danni**, una borsa medica per il **guaritore**), altrimenti un quadratino. Anche il nome è scritto nel colore della classe (nel tema chiaro il nome resta scuro e solo il segno porta il colore).
 
@@ -32,14 +32,14 @@ Clicca una riga per aprire la **scheda del membro**. Nella finestra di Accord si
 
 ## Personaggi dello stesso account
 
-Sui tuoi personaggi la scheda offre **[Rendi questo il mio main]**. La scheda elenca **tutti i personaggi dello stesso account Battle.net nel reame**, anche quelli fuori dalla gilda, per ogni membro che usa l'addon. Attiva *Per account* nella tabella per vedere una riga per giocatore con gli alt sotto (clicca **+** per mostrarli).
+Sui tuoi personaggi la scheda offre **[Rendi questo il mio main]**. La scheda elenca **tutti i personaggi dello stesso account Battle.net nel reame**, anche quelli fuori dalla gilda, per ogni membro che usa l'addon. *Per account* nella tabella, acceso di default, mostra una riga per giocatore con gli alt sotto (clicca **+** per mostrarli).
 
 Un personaggio che non è in gilda compare lo stesso. Il main è quello scelto dal giocatore, altrimenti il personaggio di livello più alto.
 
-**Alt in un'altra gilda.** Per un personaggio fuori dalla gilda la scheda e le righe raggruppate dicono dov'è: *Altra gilda: <nome> · visto 3 g fa*, oppure *Nessuna gilda · visto oggi* se il personaggio non ha gilda. La riga è letta dai personaggi di quel giocatore che sono nella tua gilda, quindi:
+**Alt in un'altra gilda.** Per un personaggio fuori dalla gilda la scheda del membro (e il suggerimento della sua riga raggruppata) dice dov'è; la colonna *ultimo accesso* mostra solo da quanto tempo non entra: *Altra gilda: <nome> · visto 3 g fa*, oppure *Nessuna gilda · visto oggi* se il personaggio non ha gilda. La riga è letta dai personaggi di quel giocatore che sono nella tua gilda, quindi:
 
 - è **vecchia quanto l'ultimo accesso di quell'alt** con l'addon (si mostra a giorni: *oggi*, *3 g fa*); se l'alt entra in una gilda o ne esce, lo vedi solo dopo che quell'alt ha fatto l'accesso e il giocatore ha fatto l'accesso con un personaggio della tua gilda. Una riga più vecchia di un mese è attenuata, e la sua etichetta dice chi l'ha condivisa;
-- un personaggio noto solo da una nota pubblica non mostra nessuna gilda, e nemmeno uno che l'addon non ha più visto da prima di questa funzione: mostra *fuori gilda* come prima;
+- un personaggio noto solo da una nota pubblica non mostra nessuna gilda, e nemmeno uno che l'addon non ha più visto da prima di questa funzione: la scheda mostra *fuori gilda* come prima (la colonna dice *sconosciuto*);
 - **l'altra gilda non vede nulla dei dati di Accord della tua gilda.** Nell'elenco dei personaggi che la tua gilda già riceve viaggiano solo il nome della gilda e il giorno dell'ultimo accesso di quell'alt.
 
 Per i membri senza l'addon, una nota pubblica di gilda scritta come `main: <nome>` (il mio main è quel personaggio) o `alt: <nome>` (quel personaggio è un mio alt) è mostrata come indizio, con l'etichetta *dichiarato nella nota*. Un membro che ha l'addon non viene mai spostato da una nota.

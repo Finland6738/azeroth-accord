@@ -628,12 +628,12 @@ Non provato nel client vero.
   senza variante piena risponde con quella vuota. I nove nomi della mappa di §9.11 **sono confermati**: esistono tutti.
 - **Ruoli**: `role_tank` (`shield`), `role_damage` (`swords`), `role_healer` (`medical_services`: `healing`, i cerotti
   incrociati, a 14–16 px si confonde con le spade), vuoti e pieni. Il **roster** (M13.8, proprietario, 2026-11-27) li usa
-  al posto del quadratino prima del nome: icona vuota da 14 nel colore della classe (più scuro nel tema chiaro). Il ruolo
+  al posto del quadratino prima del nome: icona piena (proprietario, 2026-11-28) da 14 nel colore della classe (più scuro nel tema chiaro). Il ruolo
   è la **prima parola di ruolo** della nota pubblica, parola intera, maiuscole o minuscole: `tank` → tank; `heal`,
   `healer`, `healing`, `cura`, `curatore`, `guaritore` → guaritore; `dps`, `dd`, `melee`, `ranged`, `caster`, `damage` →
   danni. Senza, vale il ruolo di MS1 della dichiarazione del personaggio per la season corrente (solo con Accord come
   fonte, [Q55](SPEC-10-risks-open-questions.md)); senza nessuno dei due resta il quadratino. La riga del roster e la
-  scheda del membro dicono il ruolo e da dove viene.
+  scheda del membro dicono il ruolo e da dove viene; la stessa icona (16) sta accanto al nome nella scheda (2026-11-28).
 - **Stato attivo**: la scheda della vista scelta ha l'icona piena. Interruttori e chip non hanno un'icona propria oltre
   alla spunta, che è uguale nelle due varianti.
 - **Misure**: 20 punti in schede e pulsanti (anche il cuore dei like e la croce sulla finestra della gilda), 18 nei chip

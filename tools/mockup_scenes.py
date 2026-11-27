@@ -99,12 +99,12 @@ def roster_row(m, i=0, prefix=""):
             last_online(on, h), prof(p1, i % 3 == 2), prof(p2, i % 3 == 2), str(likes) if likes else "", f'<span class="green">{esc(ver)}</span>' if ver else ""]
 
 
-def roster_toolbar(online=False, mains=False, grouped=False, count=None, shown=None, compact=False):
-    """The Roster's toolbar: three filter chips, three lists (Select), Columns and Export, and the count at the right."""
+def roster_toolbar(online=False, grouped=True, count=None, shown=None, compact=False):
+    """The Roster's toolbar: two filter chips, three lists (Select), Columns and Export, and the count at the right."""
     total = len(MEMBERS)
     count = T("ROSTER_COUNT", shown or total, total)
     menus = "" if compact else (select(T("COL_CLASS")) + select(T("COL_RANK")) + select(T("FILTER_PROFESSION")) + btn(T("COLUMNS"), dense=True) + btn(T("EXPORT_BUTTON"), dense=True))
-    return tools(chk(T("FILTER_ONLINE"), online), chk(T("FILTER_MAINS"), mains), chk(T("FILTER_GROUPED"), grouped), menus,
+    return tools(chk(T("FILTER_ONLINE"), online), chk(T("FILTER_GROUPED"), grouped), menus,
                  right="" if compact else f'<span class="muted small">{esc(count)}</span>')
 
 

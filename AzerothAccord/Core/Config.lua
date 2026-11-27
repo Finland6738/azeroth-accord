@@ -76,7 +76,7 @@ Config.defaults = {
 	},
 	char = {
 		schemaVersion = Config.SCHEMA_VERSION,
-		ui = { lastView = "roster", columns = {}, sort = {}, tableSort = {}, grouped = false },   -- windowPos, windowSize: nil until the user moves it
+		ui = { lastView = "roster", columns = {}, sort = {}, tableSort = {}, byAccount = true },   -- windowPos, windowSize: nil until the user moves it
 		outbox = {},         -- messages waiting at logout, sent again at the next login (Net/Transport.lua, SPEC-02 §5)
 		groups = { next = 0, apps = {}, mine = {} },   -- the group finder (SPEC-13 §6.5): ids, applications; Data/Groups.lua
 	},
@@ -134,7 +134,7 @@ Config.rules = {
 		end
 		return true
 	end },
-	["char.ui.grouped"] = { type = "boolean" },
+	["char.ui.byAccount"] = { type = "boolean" },   -- "grouped" until 2026-11-28, off by default
 	["char.ui.windowPos"] = posRule(),
 	["char.ui.windowSize"] = sizeRule(),
 	["char.outbox"] = { type = "table" },

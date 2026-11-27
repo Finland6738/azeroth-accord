@@ -3,7 +3,7 @@
 -- (UI/Theme.lua): every colour is a token, class colours come from the game. The table is a Widgets.DataTable: its rows are a
 -- pool refilled while the list scrolls, so a guild of 1000 members never creates 1000 frames, and the model (not the table)
 -- sorts, because the grouped view orders whole accounts.
---   toolbar    chips Online, Mains only, By account (grouped); selects Class / Rank / Profession; the column chooser
+--   toolbar    chips Online, By account (grouped, on by default); selects Class / Rank / Profession; the column chooser
 --              (Widgets.Menu); the count. On a narrow panel the toolbar wraps to a second line.
 --   header     one clickable title per visible column: sorts, a second click reverses (the sorted one in accent with an arrow)
 --   rows       a class mark and the class-coloured name, one cell per column; in the grouped view the main leads its
@@ -86,11 +86,6 @@ local function buildToolbar(self, f)
 		model:SetFilter("online", not chip:IsSelected())
 		View:Changed()
 	end })
-	bar.mains = Widgets.Chip(bar, { text = L["FILTER_MAINS"], onResize = resized, onClick = function(chip)
-		model:SetFilter("mains", not chip:IsSelected())
-		View:Changed()
-	end })
-	Widgets.Tooltip.Attach(bar.mains, { L["FILTER_MAINS"], L["FILTER_MAINS_TIP"] }, "BOTTOM")
 	bar.grouped = Widgets.Chip(bar, { text = L["FILTER_GROUPED"], onResize = resized, onClick = function(chip)
 		model:SetGrouped(not chip:IsSelected())
 		View:Changed()
@@ -115,7 +110,7 @@ local function buildToolbar(self, f)
 		if w ~= View.toolbarWidth then View.toolbarWidth = w View:LayoutToolbar() end   -- the height it sets is not a reason to run again
 	end)
 	f.toolbar = bar
-	self.toolbarItems = { bar.online, bar.mains, bar.grouped, bar.class, bar.rank, bar.profession, bar.columns, bar.export }
+	self.toolbarItems = { bar.online, bar.grouped, bar.class, bar.rank, bar.profession, bar.columns, bar.export }
 	bar.export:SetShown(exportAllowed())
 end
 
@@ -172,7 +167,6 @@ local function syncToolbar(self)
 	if not (f and f.toolbar) then return end
 	local bar, model = f.toolbar, self:Model()
 	bar.online:SetSelected(model.filters.online == true)
-	bar.mains:SetSelected(model.filters.mains == true)
 	bar.grouped:SetSelected(model.grouped == true)
 	for _, fl in ipairs(FILTERS) do
 		local sel = bar[fl.kind]
@@ -271,6 +265,8 @@ local function paintRoleIcon(icon, themeId)
 	icon:SetVertexColor(r * k, g * k, b * k, 1)
 end
 
+View.PaintRoleIcon = paintRoleIcon   -- the member card draws the same icon
+
 -- How far the name is pushed right: the +/- slot (when grouped) and the indent of an alt, then the mark (the role icon,
 -- or the class square of a member without a role).
 local function nameOffset(self, data)
@@ -360,7 +356,7 @@ local function rowUpdate(row, data)
 	row.role:SetPoint("LEFT", row, "LEFT", at - 2, 0)
 	if role then
 		Widgets.ClearClassMark(row.mark)
-		row.role:SetTexCoord(ns.Assets.IconCoords("role_" .. role))
+		row.role:SetTexCoord(ns.Assets.IconCoords("role_" .. role, true))   -- filled (owner, 2026-11-28)
 		row.role.classFile = e.classFile
 		paintRoleIcon(row.role)
 		row.role:Show()

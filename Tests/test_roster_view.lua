@@ -115,7 +115,7 @@ describe("headers and the toolbar", function()
 		eq(V().frame.toolbar.count:GetText(), "31 of 31 members")
 	end)
 
-	it("Online, Mains only and By account act on the model", function()
+	it("Online and By account act on the model, By account on by default", function()
 		open(30)
 		local bar = V().frame.toolbar
 		bar.online:Click()
@@ -123,11 +123,10 @@ describe("headers and the toolbar", function()
 		eq(V().frame.toolbar.count:GetText(), "7 of 31 members")
 		bar.online:Click()
 		falsy(V():Model().filters.online)
-		bar.mains:Click()
-		truthy(V():Model().filters.mains)
-		bar.grouped:Click()
+		isNil(bar.mains)
 		truthy(V():Model().grouped)
-		truthy(A().Config:Get("char.ui.grouped") == false, "grouping is saved by the model, not by the checkbox")
+		bar.grouped:Click()
+		falsy(V():Model().grouped)
 	end)
 
 	it("the class select lists the classes of the guild and filters by the chosen one", function()
@@ -254,7 +253,6 @@ describe("the grouped view", function()
 
 	it("shows an account as one row with a + button that reveals the alts", function()
 		twoAlts()
-		V().frame.toolbar.grouped:Click()
 		local rows = V().frame.table.rows
 		local bob
 		for _, r in ipairs(rows) do if r:IsShown() and r.data.kind == "group" then bob = r end end
@@ -270,7 +268,6 @@ describe("the grouped view", function()
 
 	it("follows the data: a new accounts record changes the rows without reopening", function()
 		twoAlts()
-		V().frame.toolbar.grouped:Click()
 		eq(V().frame.toolbar.count:GetText(), "2 of 3 members")
 		A().Store:Records("accounts")[BOBALT] = nil
 		A().Accounts:MarkDirty()
@@ -292,7 +289,7 @@ describe("saved choices", function()
 		Mock.Slash("/accord roster")
 		eq(V():Model().sort.key, "level")
 		truthy(V():Model().sort.desc)
-		truthy(V():Model().grouped)
+		falsy(V():Model().grouped)
 		falsy(V():Model():HasColumn("zone"))
 	end)
 

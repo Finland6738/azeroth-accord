@@ -142,7 +142,10 @@ function Model.Cell(id, e)
 	elseif id == "zone" then
 		return e.zone or ""
 	elseif id == "lastOnline" then
-		if e.notInGuild then return ns.Provenance.AltGuildText(e.altGuild), "muted" end
+		if e.notInGuild then   -- a character outside the guild: only when it last logged in (its guild is in the details)
+			local seen = e.altGuild and e.altGuild.seen
+			return seen and ns.Provenance.SeenText(seen) or L["LAST_UNKNOWN"], "muted"
+		end
 		if e.online then return L["ONLINE"], "green" end
 		return Model.LastOnlineText(e.lastOnlineHours), "muted"
 	elseif id == "prof1" or id == "prof2" then
@@ -193,7 +196,10 @@ local function sortValue(id, e)
 	elseif id == "rank" then return e.rankIndex
 	elseif id == "zone" then return e.zone and lower(e.zone) or nil
 	elseif id == "lastOnline" then
-		if e.notInGuild then return nil end
+		if e.notInGuild then
+			local seen = e.altGuild and e.altGuild.seen
+			return seen and math.max(0, ns.Compat.ServerTime() - seen) / 3600 or nil
+		end
 		if e.online then return -1 end
 		return e.lastOnlineHours
 	elseif id == "prof1" or id == "prof2" then
@@ -257,8 +263,8 @@ function Model:SetSearch(text)
 	return true
 end
 
--- key: "online" (boolean), "class" (class file), "rank" (rank index), "profession" (id or lower-case name),
--- "mains" (boolean). nil or false clears it.
+-- key: "online" (boolean), "class" (class file), "rank" (rank index), "profession" (id or lower-case name).
+-- nil or false clears it.
 function Model:SetFilter(key, value)
 	if value == false then value = nil end
 	if self.filters[key] == value then return false end
@@ -369,14 +375,12 @@ local function hasProfession(e, key)
 	return false
 end
 
--- `isMain`: the member is the main of its group, or has no group.
-local function matches(self, e, isMain)
+local function matches(self, e)
 	local f = self.filters
 	if f.online and not e.online then return false end
 	if f.class and e.classFile ~= f.class then return false end
 	if f.rank ~= nil and e.rankIndex ~= f.rank then return false end
 	if f.profession ~= nil and not hasProfession(e, f.profession) then return false end
-	if f.mains and not isMain then return false end
 	return matchesSearch(self, e)
 end
 
@@ -417,9 +421,7 @@ Model.PseudoEntry = pseudoEntry
 local function flatRows(self, members)
 	local list = {}
 	for _, e in ipairs(members) do
-		local g = e.guid and self:GroupOf(e.guid) or nil
-		local isMain = g == nil or g.main == e.guid
-		if matches(self, e, isMain) then list[#list + 1] = e end
+		if matches(self, e) then list[#list + 1] = e end
 	end
 	local col = self.sort.key
 	sortEntries(self, list, function(e) return sortValue(col, e) end)
@@ -455,19 +457,16 @@ local function groupedRows(self, members)
 		local head
 		for _, x in ipairs(u.entries) do if x.isMain then head = x.entry end end
 		head = head or u.entries[1].entry
-		-- an account is listed when any of its members matches (the "mains only" filter shapes the rows, below)
-		local mainsOnly = self.filters.mains
-		self.filters.mains = nil
+		-- an account is listed when any of its members matches
 		local alts, any = {}, false
 		for _, x in ipairs(u.entries) do
-			if matches(self, x.entry, x.isMain) then
+			if matches(self, x.entry) then
 				any = true
 				if x.entry ~= head then alts[#alts + 1] = x.entry end
 			end
 		end
-		self.filters.mains = mainsOnly
 		if any then
-			if mainsOnly or not u.group then alts = {} end
+			if not u.group then alts = {} end
 			shown[#shown + 1] = { head = head, alts = alts, group = u.group }
 		end
 	end
@@ -577,7 +576,7 @@ function Model:Save()
 	if not C then return end
 	C:Set("char.ui.columns", { unpack(self.columns) })
 	C:Set("char.ui.sort", { key = self.sort.key, desc = self.sort.desc })
-	C:Set("char.ui.grouped", self.grouped)
+	C:Set("char.ui.byAccount", self.grouped)
 end
 
 function Model:Load()
@@ -599,7 +598,7 @@ function Model:Load()
 	end
 	local sort = C:Get("char.ui.sort")
 	if type(sort) == "table" and byId[sort.key] then self.sort = { key = sort.key, desc = sort.desc == true } end
-	self.grouped = C:Get("char.ui.grouped") == true
+	self.grouped = C:Get("char.ui.byAccount") ~= false
 	self:Invalidate()
 end
 

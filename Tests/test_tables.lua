@@ -175,11 +175,21 @@ describe("the roster's role mark", function()
 		open()
 		local tank, heal, none = rowOf(TANK), rowOf(HEAL), rowOf(NONE)
 		truthy(tank.role:IsShown()); falsy(tank.mark:IsShown())
-		deepEq(tank.role._texCoord, { A().Assets.IconCoords("role_tank") })
-		deepEq(heal.role._texCoord, { A().Assets.IconCoords("role_healer") })
+		deepEq(tank.role._texCoord, { A().Assets.IconCoords("role_tank", true) })
+		deepEq(heal.role._texCoord, { A().Assets.IconCoords("role_healer", true) })
 		local c = RAID_CLASS_COLORS.WARRIOR
 		near((tank.role:GetVertexColor()), c.r, 1e-6)
 		falsy(none.role:IsShown()); truthy(none.mark:IsShown())
+	end)
+
+	it("is the same icon on the member card, the square without a role", function()
+		open()
+		local Card = A().MemberCard
+		rowOf(TANK):Click()
+		truthy(Card.frame.role:IsShown()); falsy(Card.frame.mark:IsShown())
+		deepEq(Card.frame.role._texCoord, { A().Assets.IconCoords("role_tank", true) })
+		rowOf(NONE):Click()
+		falsy(Card.frame.role:IsShown()); truthy(Card.frame.mark:IsShown())
 	end)
 
 	it("is said by the member card, with where it comes from", function()

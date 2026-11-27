@@ -191,8 +191,6 @@ describe("Roster", function()
 		local list = m:Entries()
 		eq(#list, 7, "the alt of a closed account is exported, the character outside the guild is not")
 		falsy(next(m.expanded), "the view stays closed")
-		m:SetFilter("mains", true)
-		eq(#m:Entries(), 6)
 	end)
 end)
 
