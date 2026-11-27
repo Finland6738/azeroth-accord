@@ -43,7 +43,7 @@ Gli ufficiali e il Guild Master premono **Esporta** per avere le dichiarazioni d
 
 ## Testo di reclutamento
 
-> **Non ancora disponibile**: resta nascosto finché le funzioni di reclutamento (M12) non sono complete. Niente di questa parte è stato controllato nel gioco vero.
+> **Novità della `v0.12.0`**. Niente di questa parte è stato controllato nel gioco vero.
 
 Gli ufficiali e il Guild Master premono **Testo di reclutamento** nella vista Season, oppure scrivono `/accord recruit`, e ottengono un annuncio costruito con ciò che la gilda ha già:
 

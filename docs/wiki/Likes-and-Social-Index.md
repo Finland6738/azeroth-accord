@@ -65,7 +65,7 @@ The **Someone new** mode of the Reputation view suggests guildmates who are **on
 
 ## Mentors
 
-> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+> **New in `v0.12.0`**. Nothing of it has been checked in the real game.
 
 The **Mentors** mode of the Reputation view lists the members who offer to help new members; **everybody** sees it.
 

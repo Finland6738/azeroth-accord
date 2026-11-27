@@ -1,7 +1,8 @@
 -- The feature switches (Core/Features.lua): with "raid" and "season" off nothing of M10.2 and M11.7 is visible, no FDCP
 -- callback is registered and nothing of it is written or sent, even with FDCP loaded and a guild choice of FDCP left
--- over from a development build. The shipped code has every switch on (M9 since M9.10, M10 since M10.10, "raid" since
--- M11.8): their features are there, and each switch still hides its own when a test turns it off.
+-- over from a development build. The shipped code has every milestone's switch on (M9 since M9.10, M10 since M10.10,
+-- "raid" since M11.8, "recruit" since M12.9): their features are there, and each switch still hides its own when a
+-- test turns it off.
 local function A() return AzerothAccord end
 
 local FOLDER, GLOBAL = "FinlandDragonCreditPoints", "FinlandDragonCreditPointsAPI"
@@ -243,6 +244,57 @@ describe("the switch of M11, as shipped (M11.8)", function()
 	it("remembers the Handbook view as the last one", function()
 		Mock.Slash("/accord handbook")
 		eq(A().Config:Get("char.ui.lastView"), "handbook")
+	end)
+end)
+
+describe("the switch of M12, as shipped (M12.9)", function()
+	before_boot(withFDCP)
+
+	it("is on", function()
+		eq(A().Features.recruit, true)
+		truthy(A().Features.On("recruit"))
+		for _, set in ipairs({ "trials", "mentor" }) do truthy(A().Store.IsActive(set), set) end
+	end)
+
+	it("shows its commands and help lines, the Mentors mode, the Trials page and the sharing rows", function()
+		Mock.Slash("/accord help")
+		local help = table.concat(Mock.PlainOutput(), "\n")
+		contains(help, "/accord recruit")
+		contains(help, "/accord welcome")
+		Mock.Slash("/accord recruit")
+		Mock.Slash("/accord welcome")
+		Mock.Slash("/accord reputation")
+		truthy(A().ReputationView:SetMode("mentors"))
+		truthy(A().OfficersView:OpenPage("trials"))
+		local share = {}
+		for _, section in ipairs(A().ShareModel.Describe()) do share[section.id] = true end
+		truthy(share.welcome); truthy(share.mentor)
+		eq(#Mock.errors, 0)
+	end)
+end)
+
+describe("the switch recruit (M12), off", function()
+	before_boot(function(M)
+		withFDCP(M)
+		M.features = { recruit = false }
+	end)
+
+	-- the whole behaviour of each part with the switch off is in the tests of M12.2-M12.5
+	it("hides the commands, the Mentors mode and the sharing rows, and takes no record", function()
+		eq(A().Features.recruit, false)
+		falsy(A().Features.On("recruit"))
+		for _, set in ipairs({ "trials", "mentor" }) do falsy(A().Store.IsActive(set), set) end
+		Mock.Slash("/accord help")
+		local help = table.concat(Mock.PlainOutput(), "\n")
+		falsy(help:find("/accord recruit", 1, true))
+		falsy(help:find("/accord welcome", 1, true))
+		Mock.Slash("/accord reputation")
+		falsy(A().ReputationView:SetMode("mentors"))
+		falsy(A().OfficersView:OpenPage("trials"))
+		for _, section in ipairs(A().ShareModel.Describe()) do
+			truthy(section.id ~= "welcome" and section.id ~= "mentor", section.id)
+		end
+		eq(#Mock.errors, 0)
 	end)
 end)
 

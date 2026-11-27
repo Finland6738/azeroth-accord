@@ -467,7 +467,7 @@ describe("the view", function()
 		local page = open()
 		local chips = {}
 		for _, c in ipairs(View().Chips()) do chips[#chips + 1] = c.text end
-		deepEq(chips, { "All", "Groups", "Rallies", "Handbook", "Bank", "Events", "Crafting", "Officers and absences" })
+		deepEq(chips, { "All", "Groups", "Rallies", "Handbook", "Bank", "Events", "Crafting", "Officers and absences", "Trials" })
 		eq(#page.table:VisibleRows(), 2)
 		local craft = page.chips.buttons[7]
 		craft:GetScript("OnClick")(craft)
@@ -585,7 +585,7 @@ describe("the view", function()
 		contains(text(), "/accord inbox")
 		request(BOB, 1, "open")
 		settle()
-		contains(A().Diagnostics.Report(), "Actions: 1 row(s), 1 to do, providers: groups, rally, handbook, bank, events, craft, officer, 0 error(s)")
+		contains(A().Diagnostics.Report(), "Actions: 1 row(s), 1 to do, providers: groups, rally, handbook, bank, events, craft, officer, trials, 0 error(s)")
 	end)
 end)
 

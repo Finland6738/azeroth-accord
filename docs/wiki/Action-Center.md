@@ -20,8 +20,8 @@ It keeps nothing of its own and decides nothing for you. Every line is read from
 | *Your absence ends on …* | you, within three days of the end | the **Absence** card of [[Settings|Settings]] | after the return |
 | *… wants to join as …* | you, as the leader of a [[group|Groups]] | the **My group** page of Groups | you accept or decline, or the group closes |
 | *PvP rally: …* and *World rally: …* *(from `v0.10.0`)* | everybody, while the [[rally|Events]] is open | the **Rallies** page of Events | the rally ends or is closed |
-| *Trial of … ended on …: decide* and *… left the guild during the trial* *(hidden until M12 is complete)* | officers and the Guild Master, from the end day | the **Trials** page of the [[Officers tab|Guild-Roster]], on that trial | an officer closes or extends the trial |
-| *Welcome checklist: 2 of 4 done* *(hidden until M12 is complete)* | you, as a new member | the [welcome checklist](#welcome-checklist), on top of the same page | every item is done, you press **Dismiss**, or 30 days after you joined |
+| *Trial of … ended on …: decide* and *… left the guild during the trial* *(from `v0.12.0`)* | officers and the Guild Master, from the end day | the **Trials** page of the [[Officers tab|Guild-Roster]], on that trial | an officer closes or extends the trial |
+| *Welcome checklist: 2 of 4 done* *(from `v0.12.0`)* | you, as a new member | the [welcome checklist](#welcome-checklist), on top of the same page | every item is done, you press **Dismiss**, or 30 days after you joined |
 
 An officer who asks the bank for something sees the request twice: to decide it, and as their own reminder.
 
@@ -29,7 +29,7 @@ A craft request is only a whisper that you send yourself (see [[Professions and 
 
 ## Welcome checklist
 
-> *Hidden until M12 is complete.* Nothing of it has been checked in the real game.
+> **New in `v0.12.0`**. Nothing of it has been checked in the real game.
 
 If you have just joined the guild, a **Welcome** card appears on top of the Action Center and a chat line tells you about it. It lists up to four things to do; each one **ticks itself** when done, and stays ticked. Click an item to go where you can do it.
 
@@ -78,7 +78,7 @@ The second page of the Action Center, **Notices**, is the history of what the ad
 | *… accepted you* / *declined your application* | the applicant | a chat line and an on-screen box |
 | *New group: …* | you, for a group that fits your filters | **off** (here only) |
 | *… calls a PvP rally at …* (or a world rally) *(from `v0.10.0`)* | everybody but the caller | a chat line |
-| *Trial of … ended on …: decide* *(hidden until M12 is complete)* | officers and the Guild Master, once per trial on its end day | a chat line |
+| *Trial of … ended on …: decide* *(from `v0.12.0`)* | officers and the Guild Master, once per trial on its end day | a chat line |
 
 ### Chat, screen or sound
 

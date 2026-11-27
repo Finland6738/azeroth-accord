@@ -18,7 +18,7 @@ M12 helps a guild recruit and welcome people: a recruitment text built from the 
 2. **Trials are an officer-only data set.** `trials` follows every rule of ADR 0023 and SPEC-12 §1 (restricted records, officer senders, `OFFICER` and officer whispers only, local until the officer channel is proven, deleted when the account is no longer an officer). One record per trial (start, length, end, state; extended or closed, never reopened) and one note per officer per trial with the limits of M8.5. The Action Center row and one notice appear on the end day; a decision is taken by hand in the game, Accord only records it.
 3. **Onboarding is local.** The new member's own client decides that the character is new (it saw the guild change, or the game's guild log says so, and the guild used Accord before), shows the checklist, ticks items from data it already holds, and sends nothing. Officers do not see the progress.
 4. **Mentors opt in; pairs stay on officers' clients.** A data set `mentor`, one record per account, written only by its own account from a click, off by default, left with one click (`off`, delivered to everyone). The list is public. Suggested pairs are computed on an officer's client from the co-play graph, shared companions, the group map and availability, never stored or sent, and nobody is told of a pair.
-5. Everything is behind a new switch `recruit`, off until M12.9, which does not turn on other switches; each part that reads M10 or M11 asks for their switch and says what is missing.
+5. Everything is behind a new switch `recruit`, off until M12.9 (on since then, 2026-11-27), which does not turn on other switches; each part that reads M10 or M11 asks for their switch and says what is missing.
 
 ## Alternatives considered
 

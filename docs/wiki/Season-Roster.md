@@ -43,7 +43,7 @@ Officers and the Guild Master press **Export** to get the declarations of the sh
 
 ## Recruitment text
 
-> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+> **New in `v0.12.0`**. Nothing of it has been checked in the real game.
 
 Officers and the Guild Master press **Recruitment text** in the Season view, or type `/accord recruit`, and get an advert built from what the guild already has:
 

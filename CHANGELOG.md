@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- M12.9: **the features of M12 are switched on** for the next release (`Core/Features.lua`: `recruit`): the **recruitment text** (its button in the Season view and `/accord recruit`, M12.2), the **trials** of new members for officers (the Trials page, the member card, the end reminder, M12.3), the **welcome checklist** and `/accord welcome` (M12.4), the **mentors** (the Mentors mode of Reputation, the suggested pairs for officers, the *What I share* rows, M12.5), and the data sets `trials` and `mentor`. The entries of M12 below that say "behind the switch `recruit`" were written before this. **Nothing of M12 is checked in the real game.**
+
 - **Material 3 views** (M12.8, [ADR 0027](docs/adr/0027-material-3-rules-adapted-to-accord.md), ui-style §9). Every view and dialog uses the right component, and the pictures are redrawn. **Not checked in the real game.**
   - At most **one filled button** per view or dialog (*Save*, *Sign up*, *Apply*, *Send request*...); the others are tonal, outlined or text. The old style names are gone from the widget kit.
   - Controls have three heights: 40 in dialogs and pages, 36 in toolbars and form lines, 32 inside a list row; chips are 32. Table and list rows are 32 (36 when they hold a button).
@@ -49,6 +51,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- Tests (M12.9): the offline tests that expected the switch `recruit` to be off now expect the shipped switches (the *Trials* chip and provider of the Action Center, the *Mentors* mode, the *Trial* section of the member card, the rows of *What I share*), and `test_features` checks the switch on and off. Nothing changes in the addon.
+
 - **The guild recipe catalogue no longer upsets the sync with older clients** (fix of PR #153). The `recipecat` set was summarised in the census's extra summary (`c`), which a v0.9.0-v0.11.0 client computes for the census alone: in a guild mixing them the two would never agree and would keep sending each other records, and a client with the census off still sent an (empty) `c`. The catalogue now has a summary of its own (`rc` in HELLO and DIGEST, `rcb` in BHELLO, one block), compared only with clients that send it; the census's `c` is again exactly what an older client computes. New simulator test with a client that does not know the set (`Tests/test_recipe_catalogue.lua`); the two failing tests of `Tests/test_addons_census.lua` pass again. **Not checked in the real game.**
 
 - **The guild bank was never read on WoW Forever** (owner's `/accord debug`, 2026-11-27: "the vault has not been opened this session"). Accord waited for `GUILDBANKFRAME_OPENED`, but the newer client opens the vault through the interaction manager. The capture now also starts on `PLAYER_INTERACTION_MANAGER_FRAME_SHOW` for the guild banker (`Enum.PlayerInteractionType.GuildBanker`, 10) and stops on its `HIDE`. When both events come there is one capture. `/accord debug` says which event opened the vault.
@@ -86,6 +90,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- M12.9: `docs/checklists/M12.md`, the in-game check of M12 for the owner (upgrade from `v0.11.0`, the recruitment text, trials, the welcome checklist, mentors, the Material 3 look of every view in the three themes, the fixes made since `v0.11.0`, traffic, with the exit criterion and the unverified client questions); README and wiki describe M12 as part of the next release.
 - Planning (owner, 2026-11-27): **new milestone M18, the guild group finder like the game's** ([docs/roadmap/M18-group-finder.md](docs/roadmap/M18-group-finder.md)), behind a new switch `groupfinder`.
   - Active groups on the left with role slots and Join; on the right, the selected group or a three-step create form.
   - Each role has a count, a required level range and recommended classes; dungeons of 5 and raids of 10/20/40.

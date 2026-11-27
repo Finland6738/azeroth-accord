@@ -11,8 +11,8 @@ Scrivili nella casella della chat. `/acc` funziona ovunque funzioni `/accord`.
 | `/accord groups` | Apre la vista **Gruppi**, il cercagruppi della gilda (vedi [[Gruppi|Groups-it]]) *(M9.7, dalla `v0.9.0`)* |
 | `/accord addons` | Apre la vista **Addon della gilda**: quali addon usano i membri (vedi [[Addon della gilda|Guild-Addons-it]]) *(M9.9, dalla `v0.9.0`)* |
 | `/accord season` | Apre la vista **Season**: il roster della season e la tua dichiarazione (vedi [[Roster della season|Season-Roster-it]]) *(M10.3, dalla `v0.10.0`)* |
-| `/accord recruit` | Apre il **testo di reclutamento** da copiare e pubblicare a mano, solo ufficiali (vedi [[Roster della season|Season-Roster-it]]) *(M12.2, nascosto finché M12 non è completa)* |
-| `/accord welcome` | Apre la **lista di benvenuto** per i nuovi membri (vedi [[Centro azioni|Action-Center-it]]) *(M12.4, nascosto finché M12 non è completa)* |
+| `/accord recruit` | Apre il **testo di reclutamento** da copiare e pubblicare a mano, solo ufficiali (vedi [[Roster della season|Season-Roster-it]]) *(M12.2, dalla `v0.12.0`)* |
+| `/accord welcome` | Apre la **lista di benvenuto** per i nuovi membri (vedi [[Centro azioni|Action-Center-it]]) *(M12.4, dalla `v0.12.0`)* |
 | `/accord events` | Apre la vista **Eventi**: gli eventi della gilda e la tua iscrizione nel calendario del gioco (vedi [[Eventi|Events-it]]) *(M10.5, dalla `v0.10.0`)* |
 | `/accord availability` | Apre la vista **Disponibilità**: quando la gilda gioca di solito (vedi [[Disponibilità|Availability-it]]) *(M10.8, dalla `v0.10.0`)* |
 | `/accord raid` | Apre la vista **Raid**: le fonti della gilda e ciò che FDCP pubblica (vedi [[Addon di raid e di loot|Raid-and-Loot-Addons-it]]) *(M11.7, dalla `v0.11.0`)* |

@@ -595,7 +595,7 @@ describe("What I share: the panel shows the records last sent", function()
 			truthy(r.to ~= "" and r.when ~= "")
 		end
 		deepEq(ids, { "accounts", "contacts", "recipes", "addons", "coplay", "bank", "bankreq", "likes", "hello", "absence",
-			"season", "raidev", "avail", "rally" })
+			"welcome", "season", "raidev", "avail", "rally", "mentor" })
 		truthy(row("contacts").always)
 	end)
 
@@ -744,6 +744,7 @@ describe("What I share: the co-play switch", function()
 		for _, r in ipairs(SM().Describe()) do
 			if r.id == "addons" then eq(r.switch, "shareAddons")
 			elseif r.id == "avail" then eq(r.switch, "shareAvailability")
+			elseif r.id == "mentor" then eq(r.switch, "mentorOffer")
 			elseif r.id ~= "coplay" then isNil(r.switch) end
 		end
 	end)

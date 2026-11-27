@@ -75,7 +75,7 @@ Gli ufficiali e il Maestro di gilda vedono nella scheda del membro un riquadro *
 
 ## Prove (solo ufficiali)
 
-> **Non ancora disponibile**: è nascosto finché le funzioni del reclutamento (M12) non sono complete. Nulla è stato verificato nel gioco vero.
+> **Novità della `v0.12.0`**. Nulla è stato verificato nel gioco vero.
 
 Gli ufficiali e il Guild Master possono seguire un nuovo membro **in prova**. Il membro non vede nulla della prova in Accord; se la gilda ha un grado per le prove, lo mostra già il gioco.
 

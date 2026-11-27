@@ -64,7 +64,7 @@ La modalità **Qualcuno di nuovo** della vista Reputazione suggerisce compagni d
 
 ## Mentori
 
-> **Non ancora disponibile**: è nascosto finché le funzioni del reclutamento (M12) non sono complete. Nulla è stato verificato nel gioco vero.
+> **Novità della `v0.12.0`**. Nulla è stato verificato nel gioco vero.
 
 La modalità **Mentori** della vista Reputazione elenca i membri che si offrono di aiutare i nuovi; la vedono **tutti**.
 

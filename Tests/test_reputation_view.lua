@@ -170,11 +170,11 @@ describe("the view", function()
 		contains(table.concat(Mock.PlainOutput(), " "), "Your like for Dan was not recorded")
 	end)
 
-	it("has a button per mode: Likes, Social and Someone new (Groups only for officers)", function()
+	it("has a button per mode: Likes, Social, Someone new and Mentors (Groups only for officers)", function()
 		open()
 		local shown = 0
 		for _, b in ipairs(V().frame.bar.buttons) do if b:IsShown() then shown = shown + 1 end end
-		eq(shown, 3)
+		eq(shown, 4)
 	end)
 end)
 

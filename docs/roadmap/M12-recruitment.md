@@ -84,5 +84,6 @@
 - Branch: `step/m12-9-check`
 - Scope: `docs/checklists/M12.md` and the README status. The owner releases `v0.12.0`.
 - Done when:
-  - [ ] The checklist exists.
+  - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.12.0`.
+  - *Done in code (2026-11-27):* [the M12 checklist](../checklists/M12.md); the switch `recruit` is on in `Core/Features.lua`; README and wiki describe M12 as part of the next release. The release preparation of the changelog and the tag are a separate step. Nothing of M12 has been checked in the real game.

@@ -76,7 +76,7 @@ Officers and the Guild Master see an **Officer notes** box on the member card: a
 
 ## Trials (officers only)
 
-> **Not available yet**: it is hidden until the recruitment features (M12) are complete. Nothing of it has been checked in the real game.
+> **New in `v0.12.0`**. Nothing of it has been checked in the real game.
 
 Officers and the Guild Master can follow a new member **on trial**. The member sees nothing of it in Accord; if the guild has a rank for trials, the game already shows it.
 
