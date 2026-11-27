@@ -33,7 +33,7 @@ local function capture()
 end
 
 describe("the whisper", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("the chat box opens with /w, the name and the text; a bad name or text opens nothing", function()
 		local box = capture()
@@ -95,7 +95,7 @@ local function out() return table.concat(Mock.PlainOutput(), "\n") end
 local function rowFor(i) return V().frame.table.rows[i] end
 
 describe("the button in the recipe list", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("shows on each recipe of an online member, and a click opens the whisper", function()
 		put(BOB, { 2330, 3447 })
@@ -143,7 +143,7 @@ describe("the button in the recipe list", function()
 end)
 
 describe("the button in who can craft", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("is on the online crafters only, never on the recipe row", function()
 		put(BOB, { 2330 })

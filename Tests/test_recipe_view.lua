@@ -41,7 +41,7 @@ end
 local function names(rows) local t = {} for i, r in ipairs(rows) do t[i] = r.name end return t end
 
 describe("the model", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	local function model(guid, line)
 		local m = A().RecipeModel.new()
@@ -201,7 +201,7 @@ local function visibleNames()
 end
 
 describe("the Professions view", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("registers after the Roster, with the panel's search box", function()
 		notNil(Shell().views.professions)
@@ -377,7 +377,7 @@ describe("the Professions view", function()
 end)
 
 describe("from the Roster table and the member card", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("the profession cells show rank and maximum, and have a button that opens the recipes (PRO-01, PRO-02)", function()
 		spells()

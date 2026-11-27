@@ -9,7 +9,7 @@
 La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per nome. WoW Forever non dice agli addon il livello di abilità che una ricetta richiede, quindi la vista non lo mostra.
 
 - **Clicca una ricetta** per vedere **chi può crearla**, subito sotto: prima i personaggi online, gli alt di uno stesso giocatore insieme, con **Chiedi di crearlo** accanto a chi è online. Un altro clic la chiude.
-- **Clicca un personaggio** per aprire **le sue ricette** di quella professione: all'inizio quelle che ha imparato e può creare. L'elenco sopra la tabella offre anche *Tutte le ricette* (quelle che gli mancano sono attenuate e segnate "non imparata") e *Non imparate da …*. **Torna alle ricette della gilda** riporta indietro.
+- **Clicca la professione di un membro** nella tabella del Roster o nella scheda del membro: questo elenco si apre su quella professione. Per ora un clic su un personaggio sotto una ricetta non apre nulla (l'elenco del singolo membro è spento, vedi sotto).
 - Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. Ogni professione che scegli riparte da *Qualcuno può crearla*, e un clic sulla scheda **Professioni** riporta sempre a questo elenco con il menu delle professioni. La casella di ricerca filtra per nome.
 - Passa il mouse su una ricetta per vedere il suggerimento del gioco, subito accanto al nome.
 - La riga sotto il titolo dice chi ha condiviso l'elenco completo e quanto è vecchio.
@@ -17,6 +17,8 @@ La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si
 L'elenco completo viene dal gioco stesso: lo condivide il primo compagno di gilda che apre la finestra di quella professione con Azeroth Accord, e si condivide di nuovo solo quando il gioco mostra qualcosa di nuovo. Fino ad allora la vista mostra solo le ricette che qualcuno della gilda conosce, e lo dice. Niente viene da un elenco spedito con l'addon.
 
 ## Aprire le ricette di un membro
+
+> **Spento per ora** (2026-11-27): un clic sulla professione di un membro apre le **Ricette della gilda** su quella professione, e un clic su un personaggio sotto una ricetta non apre nulla. Il testo qui sotto descrive l'elenco del singolo membro per quando tornerà.
 
 Nella tabella del **Roster**, le celle **Professione 1** e **Professione 2** mostrano la professione e il suo livello (`Alchimia 285/300` quando il massimo è noto). Passa il mouse su una cella per vedere **da dove viene l'informazione** (il gioco, o l'addon del membro e quanto è vecchia) e cliccala: la vista **Professioni** si apre sull'elenco delle ricette di quel membro. Le righe delle professioni della **scheda del membro** fanno lo stesso.
 

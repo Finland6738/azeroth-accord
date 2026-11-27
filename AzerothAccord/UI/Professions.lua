@@ -96,10 +96,19 @@ function View:SetMode(mode)
 	return true
 end
 
+-- true while a member's own recipe list can be opened. The owner switched it off for now (2026-11-27): every way in (a
+-- profession cell of the roster, the member card, a crafter, the Action Center) shows the guild's recipes of that
+-- profession instead. The switch `memberRecipes` (Core/Features.lua) brings it back; the code stays, tested.
+function View.MemberListOn()
+	return ns.Features ~= nil and ns.Features.On("memberRecipes")
+end
+
 -- Opens the list of `guid` for `skillLine` (nil: the game did not say which profession it is) and shows the view. `from`
--- says where Back goes: "roster" (the default), "catalogue" or "craft".
+-- says where Back goes: "roster" (the default), "catalogue" or "craft". With the member list switched off it shows the
+-- guild's recipes of that profession.
 function View:Open(guid, skillLine, from)
 	if type(guid) ~= "string" then return false end
+	if not View.MemberListOn() then return self:OpenCatalogue(type(skillLine) == "number" and skillLine or nil) end
 	self.cameFrom = (from == "craft" or from == "catalogue") and from or "roster"
 	self.model:SetTarget(guid, skillLine)
 	self.mode = "recipes"
@@ -316,7 +325,7 @@ function View:ShowTooltip(row)
 	if d.kind == "member" then
 		local m = d.member
 		Widgets.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
-			L["CR_TIP_CLICK"] }, at)
+			View.MemberListOn() and L["CR_TIP_CLICK"] or nil }, at)
 		return
 	end
 	if d.kind == "cat" and not d.resolved then
@@ -369,6 +378,7 @@ function View:RowClicked(row)
 	local d = row.data
 	if not d then return end
 	if d.kind == "member" then
+		if not View.MemberListOn() then return end   -- the member list is switched off: a crafter's row only shows who
 		self:Open(d.member.guid, d.member.skillLine or self.cat.skillLine, self.mode == "catalogue" and "catalogue" or "craft")
 	elseif d.kind == "cat" and d.count > 0 then
 		self.cat:Toggle(d.id)

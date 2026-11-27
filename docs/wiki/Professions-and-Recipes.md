@@ -9,7 +9,7 @@
 The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by name. WoW Forever does not tell addons the skill level a recipe needs, so the view does not show it.
 
 - **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
-- **Click a character** to open **their recipes** of that profession: at first the ones they learned and can craft. The list above the table also offers *All recipes* (the ones they miss are dimmed and marked "not learned") and *Not learned by …*. **Back to guild recipes** returns.
+- **Click a member's profession** in the Roster table or on the member card: this list opens on that profession. For now a click on a character under a recipe opens nothing (the member's own list is switched off, see below).
 - The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Every profession you pick starts again on *Somebody can craft it*, and a click on the **Professions** tab always brings back this list with the profession menu. The search box filters by name.
 - Hover a recipe to see the game's tooltip, right next to its name.
 - The line under the title says who shared the full list and how old it is.
@@ -17,6 +17,8 @@ The **Professions** view (`/accord professions`, or the **Professions** tab) ope
 The full list comes from the game itself: the first guildmate who opens that profession's window with Azeroth Accord shares it, and it is shared again only when the game shows something new. Until then the view shows only the recipes somebody in the guild knows, and says so. Nothing comes from a list shipped with the addon.
 
 ## Opening a member's recipes
+
+> **Switched off for now** (2026-11-27): a click on a member's profession opens **Guild recipes** on that profession, and a click on a character under a recipe opens nothing. The text below describes the member's own list for when it comes back.
 
 In the **Roster** table, the **Profession 1** and **Profession 2** cells show the profession and its rank (`Alchemy 285/300` when the maximum is known). Hover a cell to see **where the information comes from** (the game, or the member's addon and how old) and click it: the **Professions** view opens on that member's recipe list. The profession lines of the **member card** do the same.
 

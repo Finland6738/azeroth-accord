@@ -56,7 +56,7 @@ local function texts()
 end
 
 describe("the search", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("opens on the craft search with the hint, and the nav button is there", function()
 		open()
@@ -152,7 +152,7 @@ describe("the search", function()
 end)
 
 describe("from the list of crafters to a member's recipes and back", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	it("a click on a crafter opens that member's list; Back and the header button return to the search", function()
 		put(BOB, ALCHEMY, { 2330, 3447 })

@@ -370,7 +370,7 @@ local function visible()
 end
 
 describe("the Professions view opens on the guild's recipes", function()
-	before_boot(function() guild() end)
+	before_boot(function(M) guild() M.features = { memberRecipes = true } end)   -- the member list is switched off by default
 
 	local function setup()
 		put(BOB, ALCHEMY, { 2330, 3447 })
@@ -518,6 +518,58 @@ describe("the Professions view opens on the guild's recipes", function()
 		Mock.Slash("/accord professions")
 		V():SetProfession(LEATHER)
 		eq(V().frame.head.title:GetText(), "Guild recipes - Alchemy", "the shared record's name (the helper writes Alchemy)")
+	end)
+end)
+
+describe("with the member list switched off (owner, 2026-11-27: the default)", function()
+	before_boot(function()
+		guild()
+		Mock.club.fill.professions = true
+		Mock.guild.Set{ name = "Accord", myRank = 3, members = {
+			{ name = "Bob", level = 50, class = "MAGE", rank = 3, guid = BOB, online = true,
+				professions = { { id = ALCHEMY, name = "Alchemy", rank = 285 } } },
+			{ name = "Ann", level = 60, class = "PRIEST", rank = 3, guid = ANN, online = false },
+		} }
+	end)
+
+	local function setup()
+		put(BOB, ALCHEMY, { 2330, 3447 })
+		put(ANN, ALCHEMY, { 2330 })
+		S():Accept("recipecat", catalogue(BOB, ALCHEMY, { 2330, 2332, 3447, 4000 }), from("Bob"))
+	end
+
+	it("a member's profession opens the guild's recipes of that profession, on what can be crafted", function()
+		setup()
+		falsy(V().MemberListOn())
+		truthy(V():Open(BOB, ALCHEMY))
+		eq(Shell().selected, "professions")
+		eq(V().mode, "catalogue"); eq(V().cat.skillLine, ALCHEMY); eq(V().cat.filter, "crafted")
+		eq(V().frame.head.title:GetText(), "Guild recipes - Alchemy")
+		eq(V().frame.bar.count:GetText(), "2 of 4 recipes, 2 can be crafted in the guild")
+		isNil(V().model.guid, "no member list was opened")
+	end)
+
+	it("the roster's profession cell does the same", function()
+		setup()
+		Mock.Slash("/accord roster")
+		local row
+		for _, r in ipairs(A().RosterView.frame.table.rows) do
+			if r:IsShown() and r.data and r.data.entry.guid == BOB then row = r end
+		end
+		row.profButtons[7]:Click()
+		eq(Shell().selected, "professions")
+		eq(V().mode, "catalogue"); eq(V().cat.skillLine, ALCHEMY)
+	end)
+
+	it("a crafter's row opens nothing and its tooltip does not offer it", function()
+		setup()
+		Mock.Slash("/accord professions")
+		visible()[1].row:Click()
+		local crafter = visible()[2].row
+		crafter:Click()
+		eq(V().mode, "catalogue")
+		V():ShowTooltip(crafter)
+		for _, line in ipairs(A().Widgets.Tooltip.Lines()) do ne(line, "Click to see all their recipes.") end
 	end)
 end)
 
