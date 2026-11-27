@@ -57,7 +57,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
   - a deal is closed only when both players confirm it by hand;
   - prices are text, and the addon does not trade.
 - Done when:
-  - [ ] A deal confirmed by one side only stays open; posts expire by themselves.
+  - [x] A deal confirmed by one side only stays open; posts expire by themselves.
 
 ### M13.6 — Guild goals
 - Branch: `step/m13-6-goals`

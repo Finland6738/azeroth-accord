@@ -11,7 +11,7 @@
 --   View:Press(id, action)                first click: "armed"; second: true, or false and a reason
 --   View:OpenNew(crafter, recipe, opts)   the New order window (opts = { from = an earlier request }); View:Place()
 --   View:Whisper(guid)
---   View.CardSection(entry)               "Market" on the member card: the open orders and the wishes of that character
+--   View.CardSection(entry)               "Market" on the member card: the open orders, wishes and board posts of that character
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local View = {}
@@ -610,7 +610,8 @@ function View.CardSection(e)
 	if not (M and M.Enabled()) or type(e) ~= "table" or type(e.guid) ~= "string" or e.notInGuild then return nil end
 	local buying, crafting = M:OfMember(e.guid)
 	local wishes = ns.WishlistView and ns.WishlistView.CardLines(e.guid) or {}
-	if #buying == 0 and #crafting == 0 and #wishes == 0 then return nil end
+	local posts = ns.BoardView and ns.BoardView.CardLines(e.guid) or {}
+	if #buying == 0 and #crafting == 0 and #wishes == 0 and #posts == 0 then return nil end
 	local lines = {}
 	local function add(list, key, side)
 		for _, row in ipairs(list) do
@@ -622,6 +623,7 @@ function View.CardSection(e)
 	add(buying, "ORD_CARD_BUYING", "crafterName")
 	add(crafting, "ORD_CARD_CRAFTING", "buyerName")
 	for _, line in ipairs(wishes) do lines[#lines + 1] = line end   -- then the character's wishes (M13.3)
+	for _, line in ipairs(posts) do lines[#lines + 1] = line end    -- and open posts of the board (M13.5)
 	return { id = "market", title = L["ORD_CARD_TITLE"], lines = lines }
 end
 

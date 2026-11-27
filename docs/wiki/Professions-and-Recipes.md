@@ -103,6 +103,16 @@ Accord adds up the materials the game gives for those recipes, one row per mater
 
 Nothing of the list or of your counts leaves your computer until you press one of those two buttons, and then only what is missing. Accord never buys, mails or moves anything. If a line says the materials of some recipes are unknown, open that profession once with any character of this computer.
 
+## Buy and sell board
+
+> **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
+
+In the **Market** view, the *Board* chip holds the guild's *WTS* (selling) and *WTB* (buying) posts. **New post** asks whether you sell or buy, the item (a pasted link, its number, or the name of an item your game already knows), how many, for how many days (3 unless you say otherwise, 7 at most), a price in your own words and a note. You can have at most 10 open posts, and **the whole guild sees them**. A post cannot be edited: to change the price, withdraw it and post again. It disappears by itself when its days are over.
+
+If a post interests you, press **Deal**: the author sees your name (**Whisper** opens the chat box if you want to talk). Then you meet and trade **in the game, by hand**. When it is done, both confirm: the author picks you and presses **Deal done with ...**, you press **Deal done**. The deal is **closed only with both confirmations**; with one, the post stays open for everybody and says who is missing. Until the other one confirms you can **Take back** your confirmation or say **Not interested**. A closed deal stays visible for 7 days. Every step asks for a second click (**Confirm**).
+
+**Accord never trades or moves gold or items**: prices are what the author wrote, so check the trade window. The chips show *Selling*, *Buying* or all, and **Only what I can help with** keeps the items people look for that you own, and the items on sale that are in your wishlist or shopping list. **Hide posts** hides a person's posts on your computer only; *Settings* shows them again. There are no ratings of players and no moderation by officers.
+
 ## If something is missing
 
 - **The list of a member is not there**: the game does not always give recipe lists, and a member's addon shares theirs only after they open the profession window with Azeroth Accord. The panel says so, and asks for the list by itself while somebody who has it is online.

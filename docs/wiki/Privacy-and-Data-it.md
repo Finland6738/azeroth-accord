@@ -47,6 +47,12 @@ Un **ordine** di crafting che fai (la ricetta, quanti, l'artigiano, chi porta i 
 
 La tua **lista dei desideri** (gli oggetti, quanti, fino a quale giorno, se una voce viene dalla lista della spesa, e la tua nota) va alla tua gilda, e la vede tutta la gilda. Le voci scadono da sole, e una lista vuota si cancella 30 giorni dopo l'ultima modifica. La domanda di materiali e i materiali delle ricette restano sul tuo computer e non si mandano mai.
 
+## Bacheca compro/vendo
+
+> In arrivo con la milestone M13, nascosta finché M13 non è completa.
+
+I tuoi **annunci** (vendo o compro, l'oggetto, quanti, il prezzo scritto a parole tue, la nota, fino a quando) e le tue **risposte** agli annunci degli altri (interessato, confermato o ritirato, con la tua nota) vanno alla tua gilda, e li vede tutta la gilda. Si cancellano 7 giorni dopo la fine dell'annuncio o la chiusura dell'affare. Quali autori hai nascosto, e che hai letto l'avviso, restano sul tuo computer. Accord non commercia e non sposta mai oro né oggetti.
+
 ## Lista della spesa e i tuoi conteggi
 
 > In arrivo con la milestone M13, nascosta finché M13 non è completa.

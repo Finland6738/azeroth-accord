@@ -294,6 +294,9 @@ local function refreshData(f)
 		fs:SetShown(lines[i] ~= nil)
 	end
 	f.clear:SetEnabled(ns.Role ~= nil and ns.Role:InGuild() and ns.GuildKey ~= nil and ns.GuildKey:Current() ~= nil)
+	local hidden = ns.Board and ns.Board.Enabled() and ns.Board:HiddenCount() or 0
+	if hidden > 0 then f.unhide:SetLabel(L["SET_BOARD_UNHIDE"]:format(hidden)) end
+	f.unhide:SetShown(hidden > 0)
 end
 
 -- The Backup card (SPEC-11 §4.3): no export in the demo, no import in the demo nor with read-only data; the card says why.
@@ -662,6 +665,10 @@ local function buildData(f, page)
 	f.clearText = card:Add(text(card, "Small", "text-3"), 8)
 	f.clearText:SetText(L["SET_CLEAR_TEXT"])
 	f.clearStatus = card:Add(text(card, "Small", "text-2"), 6)
+	-- the authors whose posts of the buy and sell board are hidden on this computer (SPEC-17 §6.3)
+	f.unhide = card:Add(Widgets.Button(card, { text = L["SET_BOARD_UNHIDE"]:format(0), style = "text", width = 320,
+		onClick = function() if ns.Board then ns.Board:UnhideAll() end View:Refresh() end }), 10)
+	f.unhide:Hide()
 	return card
 end
 

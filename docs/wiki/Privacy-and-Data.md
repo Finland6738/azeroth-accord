@@ -48,6 +48,12 @@ A craft **order** you place (the recipe, how many, the crafter, who brings the m
 
 Your **wishlist** (the items, how many, until which day, whether an entry came from the shopping list, and your note) is sent to your guild, and everybody in the guild sees it. Entries expire by themselves, and an empty list is deleted 30 days after your last change. The material demand and the recipe materials stay on your computer and are never sent.
 
+## Buy and sell board
+
+> Coming with milestone M13, hidden until M13 is complete.
+
+Your **posts** (selling or buying, the item, how many, your price as text, your note, until when) and your **answers** to other people's posts (interested, confirmed or taken back, with your note) are sent to your guild, and everybody in the guild sees them. They are deleted 7 days after the post ends or the deal closes. Which authors you hid, and that you read the warning, stay on your computer. Accord never trades or moves gold or items.
+
 ## Shopping list and your counts
 
 > Coming with milestone M13, hidden until M13 is complete.

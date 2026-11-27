@@ -68,6 +68,7 @@ local SAME = {
 	RALLY_KIND_PVP = true,   -- M10.9
 	LOOT_SYSTEM_SOFTRES = true, LOOT_SYSTEM_COUNCIL = true, LOOT_SYSTEM_DKP = true, LOOT_URL_HINT = true,   -- M11.6
 	ORD_ITEM = true, ORD_NOTE_OF = true, ORD_CHOICE_ONLINE = true,   -- M13.2: "2 × name", "name: text", "online"
+	BRD_KIND_WTS = true, BRD_KIND_WTB = true, BRD_DAYS_LEFT = true, BRD_HOURS_LEFT = true, BRD_BAR_INFO = true,   -- M13.5
 }
 
 describe("the two locale tables", function()

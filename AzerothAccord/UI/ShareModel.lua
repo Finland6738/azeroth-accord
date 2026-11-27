@@ -516,6 +516,33 @@ end
 Model.Add("wish", { set = "wish", feature = "econ", build = builders.wish, title = "SHARE_WISH",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_WISH" })
 
+-- the own posts and answers of the buy and sell board (M13.5, SPEC-17 §11): the records as they were last sent
+builders.board = function(guid)
+	local lines, recs = {}, {}
+	local Board, esc = ns.Board, ns.Contacts and ns.Contacts.Escape or tostring
+	for _, rec in ipairs(own("board", guid)) do
+		local kind = Board and Board.Parse(rec.id)
+		local post = kind == "P" and rec or kind == "D" and S():Get("board", "P" .. rec.id:sub(2):gsub(":[^:]+$", ""))
+		if kind then
+			recs[#recs + 1] = rec
+			local what = "?"
+			if post then
+				local name = ns.Wishlist and ns.Wishlist.ItemName(post.item) or tostring(post.item)
+				what = L["BRD_KIND_" .. post.kind:upper()] .. " " .. L["ORD_ITEM"]:format(post.count, esc(name))
+			end
+			local parts = { L[kind == "P" and "SHARE_BOARD_POST" or "SHARE_BOARD_ANSWER"]:format(what,
+				L["SHARE_BOARD_" .. rec.state:upper()]) }
+			if rec.price then parts[#parts + 1] = L["SHARE_ORDER_PRICE"]:format(esc(rec.price)) end
+			if rec.note then parts[#parts + 1] = L["SHARE_ORDER_NOTE"]:format(esc(rec.note)) end
+			lines[#lines + 1] = concat(parts, " · ")
+		end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("board", { set = "board", feature = "econ", build = builders.board, title = "SHARE_BOARD",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_BOARD" })
+
 -- the inventory counts and the shopping list (M13.4, SPEC-17 §11): listed to say that they stay on this computer
 Model.Add("inventory", { feature = "econ", title = "SHARE_INVENTORY", to = "SHARE_TO_LOCAL", when = "SHARE_WHEN_NEVER",
 	build = function() return { L["SHARE_INVENTORY_TEXT"] }, {} end })

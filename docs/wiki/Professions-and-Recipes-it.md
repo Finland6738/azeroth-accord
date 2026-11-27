@@ -103,6 +103,16 @@ Accord somma i materiali che il gioco dà per quelle ricette, una riga per mater
 
 Nulla della lista o dei tuoi conteggi lascia il tuo computer finché non premi uno di quei due pulsanti, e anche allora solo ciò che manca. Accord non compra, non spedisce e non sposta nulla. Se una riga dice che i materiali di alcune ricette sono sconosciuti, apri una volta quella professione con un personaggio di questo computer.
 
+## Bacheca compro/vendo
+
+> **In arrivo con la milestone M13, nascosta finché M13 non è completa**: l'addon rilasciato non mostra ancora nulla di questo, e niente di quanto segue è stato provato nel gioco vero.
+
+Nella vista **Mercato**, il chip *Bacheca* raccoglie gli annunci della gilda: *WTS* (vendo) e *WTB* (compro). **Nuovo annuncio** chiede se vendi o compri, l'oggetto (un link incollato, il suo numero o il nome di un oggetto che il tuo gioco conosce già), quanti, per quanti giorni (3 se non dici altro, al massimo 7), un prezzo scritto a parole tue e una nota. Puoi avere al massimo 10 annunci aperti, e **li vede tutta la gilda**. Un annuncio non si modifica: per cambiare il prezzo ritiralo e pubblicane un altro. Alla fine dei suoi giorni sparisce da solo.
+
+Se un annuncio ti interessa premi **Mi interessa**: l'autore vede il tuo nome (**Sussurra** apre la casella della chat se vuoi parlargli). Poi vi incontrate e scambiate **nel gioco, a mano**. A scambio fatto confermate tutti e due: l'autore ti sceglie e preme **Affare fatto con ...**, tu premi **Affare fatto**. L'affare è **concluso solo con le due conferme**; con una sola l'annuncio resta aperto per tutti e dice chi manca. Finché l'altro non ha confermato puoi usare **Annulla conferma** o **Non mi interessa**. Un affare concluso resta visibile 7 giorni. Ogni passo chiede un secondo clic (**Conferma**).
+
+**Accord non commercia e non sposta mai oro né oggetti**: i prezzi sono quelli scritti dall'autore, quindi controlla la finestra di scambio. I chip mostrano *Vendo*, *Compro* o tutti, e **Solo dove posso aiutare** tiene gli oggetti cercati che possiedi e quelli in vendita che stanno nella tua lista dei desideri o della spesa. **Nascondi annunci** nasconde gli annunci di una persona solo sul tuo computer; da *Impostazioni* tornano. Non ci sono voti ai giocatori né moderazione degli ufficiali.
+
 ## Se manca qualcosa
 
 - **L'elenco di un membro non c'è**: il gioco non dà sempre gli elenchi delle ricette, e l'addon di un membro condivide il suo solo dopo che apre la finestra della professione con Azeroth Accord. Il pannello lo dice, e chiede da solo l'elenco finché è online qualcuno che lo ha.

@@ -562,6 +562,30 @@ function DemoData.Build(now)
 		list(3, 20, nil, { { 2840, 20, 4 }, { 2589, 10, 1 } })
 		list(7, 50, "No hurry", { { 774, 3, 20 } })
 		D.wish = wish
+
+		-- Six posts of the buy and sell board and a deal half way (SPEC-17 §11): the player's post that member 3
+		-- confirmed and the player has not yet.
+		local board = {}
+		local function post(index, n, hoursAgo, kind, item, count, price, note)
+			local guid, t = members[index].guid, now - hoursAgo * HOUR
+			local id = "P:" .. guid .. ":" .. n
+			board[id] = { id = id, author = guid, rev = 1, time = t, kind = kind, item = item, count = count, price = price,
+				note = note, ["until"] = t + 3 * DAY, state = "open" }
+			return id
+		end
+		local function answer(id, index, hoursAgo, state, note)
+			local guid = members[index].guid
+			local key = "D" .. id:sub(2) .. ":" .. guid
+			board[key] = { id = key, author = guid, rev = 1, time = now - hoursAgo * HOUR, state = state, note = note }
+		end
+		local mine = post(PLAYER_INDEX, 1, 20, "wts", 2589, 40, "1g per stack", "In the bank until tonight")
+		answer(mine, 3, 2, "done")
+		answer(post(PLAYER_INDEX, 2, 6, "wtb", 4306, 12, "your price"), 7, 1, "want", "I have eight")
+		post(3, 1, 3, "wts", 2840, 20, "2g")
+		post(7, 1, 30, "wtb", 774, 3, "50s each")
+		answer(post(12, 1, 9, "wts", 118, 10, "5s each"), 18, 4, "want")
+		post(18, 1, 45, "wtb", 2447, 60, nil, "Any amount helps")
+		D.board = board
 	end
 
 	-- Six listings of the guild group finder and two applications to the player's own (SPEC-13 §6.10), outside D.sets:

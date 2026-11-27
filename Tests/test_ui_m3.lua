@@ -89,6 +89,12 @@ describe("every view follows ui-style §9", function()
 			A().OrdersView:Select(row.id)
 			check(open("market"), "market/orders " .. row.id, seen)
 		end
+		-- and every post of the board (M13.5)
+		A().MarketView:SetMode("board")
+		for _, row in ipairs(A().Board:List()) do
+			A().BoardView:Select(row.id)
+			check(open("market"), "market/board " .. row.id, seen)
+		end
 		pages("professions", function() return { "catalogue", "craft", "shopping" } end, function(p) A().RecipeView:SetMode(p) end)
 		pages("reputation", ids(A().ReputationView.modes), function(p) A().ReputationView:SetMode(p) end)
 		pages("settings", ids(A().SettingsView.pages), function(p) A().SettingsView:ShowPage(p) end)
@@ -110,6 +116,7 @@ describe("every view follows ui-style §9", function()
 			recruit = function() A().RecruitView:Open() return A().RecruitView.frame end,
 			trial = function() return A().TrialsView:OpenStart() end,
 			order = function() return A().OrdersView:OpenNew(nil, 2330) end,
+			post = function() return A().BoardView:OpenNew() end,
 			shopGuild = function() local d = A().ShoppingView:BuildGuildDialog() d:Open() return d end,
 			shopBank = function() A().ShoppingView:BankList() return A().ShoppingView.bankDialog end,
 			shopClear = function() return A().ShoppingView:ConfirmClear() end,
