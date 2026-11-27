@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Documentation
+
+- M13.1: **SPEC-17, guild economy** ([docs/specs/SPEC-17-guild-economy.md](docs/specs/SPEC-17-guild-economy.md), in Italian) and [ADR 0028](docs/adr/0028-guild-economy-never-moves-gold-or-items-each-side-writes-its-own-record.md). It specifies every later step of M13 behind a new switch `econ` (off until M13.8): craft orders as two records, one per side, delivered only when both confirm, and the migration of the M3 craft reminders (M13.2); the material demand and the wishlist data set `wish` (M13.3); the personal **shopping list** with owned/needed from the bags, the bank, the alts and the mail kept only on this computer (the counting module M17 reuses), reagents read from the game, the intermediate breakdown, prices read-only from Auctionator, *Ask the guild* and *Ask the bank* (M13.4); the buy and sell board with a double manual confirmation (M13.5); guild goals computed from the bank logs (M13.6); and a host-authoritative auction design, described only (M13.7). Accord never moves gold or items. New owner questions Q40–Q49 and risks R21–R24 in SPEC-10, each applied as proposed until the owner answers; ADR 0022 point 4 now also covers Auctionator. Documentation only: no code changes.
+
 ## [0.12.0] - 2026-11-27
 
 ### Changed

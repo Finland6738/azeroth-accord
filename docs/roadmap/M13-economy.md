@@ -18,7 +18,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Branch: `step/m13-1-spec`
 - Scope: write a new SPEC-17 ("Economia di gilda"), in Italian. It covers order states, material demand, the shopping list (with the inventory counts M17 reuses), the WTS/WTB board, goals, and a later host-authoritative auction design.
 - Done when:
-  - [ ] SPEC-17 is linked from the spec index; `tools/check_docs.py` passes.
+  - [x] SPEC-17 is linked from the spec index; `tools/check_docs.py` passes.
 
 ### M13.2 — Craft orders
 - Branch: `step/m13-2-orders`

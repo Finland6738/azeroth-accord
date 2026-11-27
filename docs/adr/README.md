@@ -29,9 +29,10 @@ They record *why* the project is built a certain way. A decision that changes is
 | [0019](0019-design-previews-original-art-invented-data.md) | Design previews: original art, invented data, drawn from the addon's texts | accepted (updated in M6.8 and M6.16) |
 | [0020](0020-one-version-per-milestone.md) | One version per milestone; `v1.0.0` after the last milestone | accepted |
 | [0021](0021-interface-follows-the-ecosystem-style-of-fdcp.md) | The interface follows the ecosystem style of FDCP | accepted |
-| [0022](0022-integrations-with-raid-and-loot-addons.md) | Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared | accepted (updated in M10.1: the game calendar, the season roster, Raid-Helper) |
+| [0022](0022-integrations-with-raid-and-loot-addons.md) | Integrations with raid and loot addons: one source per datum, read-only, the game calendar shared | accepted (updated in M10.1: the game calendar, the season roster, Raid-Helper; in M13.1: Auctionator's prices) |
 | [0023](0023-officer-tools-observe-and-suggest-officer-data-stays-among-officers.md) | Officer tools observe and suggest; officer data stays among officers | accepted |
 | [0024](0024-guild-group-finder-short-lived-listings-private-game-listing.md) | Guild group finder: short-lived listings outside the sync summary; the game's finder only private and on the leader's click | accepted |
 | [0025](0025-guild-handbook-pages-shared-on-guild-revisions-local.md) | Guild handbook: pages written by chosen ranks, shared once on GUILD, past revisions kept locally | accepted |
 | [0026](0026-recruitment-copied-by-hand-trials-among-officers-mentors-opt-in.md) | Recruitment copied by hand, trials among officers, onboarding local, mentors opt in | accepted |
 | [0027](0027-material-3-rules-adapted-to-accord.md) | Material 3 rules adapted to Accord: M3 gives the structure, FDCP keeps the look | accepted |
+| [0028](0028-guild-economy-never-moves-gold-or-items-each-side-writes-its-own-record.md) | Guild economy: Accord never moves gold or items, each side writes its own record, owned counts stay local | accepted |
