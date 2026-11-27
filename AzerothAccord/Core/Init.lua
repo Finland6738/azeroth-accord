@@ -40,6 +40,7 @@ ACC.commands = {
 	{ name = "professions", help = L["HELP_PROFESSIONS"], handler = viewCommand("professions") },
 	{ name = "reputation", help = L["HELP_REPUTATION"], handler = viewCommand("reputation") },
 	{ name = "bank", help = L["HELP_BANK"], handler = viewCommand("bank") },
+	{ name = "market", feature = "econ", help = L["HELP_MARKET"], handler = viewCommand("market") },
 	{ name = "groups", feature = "groups", help = L["HELP_GROUPS"], handler = viewCommand("groups") },
 	{ name = "season", feature = "season", help = L["HELP_SEASON"], handler = viewCommand("season") },
 	{ name = "events", feature = "season", help = L["HELP_EVENTS"], handler = viewCommand("events") },

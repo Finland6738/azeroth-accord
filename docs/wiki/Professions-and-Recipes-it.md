@@ -54,6 +54,23 @@ La ricerca copre i membri **di cui l'elenco delle ricette è noto**: gli elenchi
 
 Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto la ricetta in *Chi può creare*) c'è un pulsante **Chiedi di crearlo**. Apre la casella della chat con un sussurro a quel membro già scritto, con il link della ricetta: *"Ciao! Potresti creare [ricetta] per me? Grazie!"*. **Azeroth Accord non lo invia mai**: lo leggi, lo cambi se vuoi e premi Invio. Il pulsante non si vede per i membri offline (un sussurro non li raggiungerebbe), per le tue ricette e sulla riga di intestazione di una ricetta. Dalla `v0.9.0` il [[Centro azioni|Action-Center-it]] tiene un promemoria della richiesta per 7 giorni, solo sul tuo computer.
 
+## Gli ordini di crafting
+
+> **In arrivo con la milestone M13, nascosti finché M13 non è completa**: l'addon pubblicato non mostra ancora niente di tutto questo, e nulla di ciò che segue è stato provato nel gioco vero.
+
+**Chiedi di crearlo** (*Request craft*) aprirà la finestra **Nuovo ordine** invece del solo sussurro: scegli l'artigiano (anche offline: vedrà l'ordine al prossimo accesso), quanti, chi porta i materiali, un prezzo a parole tue, una nota e, se vuoi, il giorno entro cui ti serve. *Sussurra anche a* tiene il messaggio di prima, spento di predefinito. L'ordine lo vede tutta la gilda.
+
+La vista **Mercato** (`/accord market`) elenca gli ordini, *Per me*, *I miei* o *Tutti*, e a richiesta anche i chiusi. Un ordine passa per **richiesto, accettato, in lavorazione, pronto, consegnato**, oppure finisce **annullato**:
+
+| Chi | Passi |
+|---|---|
+| L'artigiano | *Accetta* o *Rifiuta*, poi *Ci lavoro*, *Pronto*, *Consegnato* (e *Rifiuta* fino ad allora) |
+| Il compratore | *Annulla ordine* in ogni momento prima di confermare; *Ricevuto* quando ha l'oggetto |
+
+Ogni passo chiede un secondo clic (**Conferma**). Un ordine è **consegnato solo quando lo confermano entrambi**: con una conferma sola resta *pronto* e dice chi manca. Ognuno dei due scrive solo la propria parte; nessun altro, ufficiali compresi, può cambiare un ordine. **Accord non sposta mai oro né oggetti**: li scambi o li spedisci tu, e il prezzo è solo il testo che hai scritto.
+
+Un ordine che nessuno accetta scade dopo 14 giorni; uno con un giorno "entro", 7 giorni dopo quel giorno; uno accettato senza giorno, dopo 60 giorni senza un passo. Gli ordini chiusi si cancellano dopo 30 giorni. Puoi avere al massimo 10 ordini aperti. Il [[Centro azioni|Action-Center-it]] mostra ciò che aspetta te. Le richieste fatte prima come sussurri compaiono una volta sotto *Dalle tue richieste precedenti*, con *Crea l'ordine* e *Scarta*: niente si pubblica senza un tuo clic.
+
 ## Se manca qualcosa
 
 - **L'elenco di un membro non c'è**: il gioco non dà sempre gli elenchi delle ricette, e l'addon di un membro condivide il suo solo dopo che apre la finestra della professione con Azeroth Accord. Il pannello lo dice, e chiede da solo l'elenco finché è online qualcuno che lo ha.

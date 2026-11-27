@@ -36,6 +36,12 @@ A broken or modified addon cannot jam yours either: a message that is too large,
 
 A [[group|Groups]] you post (type, activity, levels, size, roles still needed, your note and meeting point, never a position) is sent to your guild only, and every member's computer drops it 10 minutes after it ends. An **application** (your role, level and optional comment) goes by whisper to that group's leader only, and so does the answer: nobody else knows. Both are kept on the two computers until the group closes, and neither enters backups or exports. Your saved filters stay on your computer.
 
+## Craft orders
+
+> Coming with milestone M13, hidden until M13 is complete.
+
+A craft **order** you place (the recipe, how many, the crafter, who brings the materials, your price as text, your note, the needed-by day) and the steps you take as the crafter (with your note) are sent to your guild, and everybody in the guild sees them. Closed orders are deleted after 30 days. Your old craft requests are never published unless you press *Make it an order*. See [[Professions and Recipes|Professions-and-Recipes]].
+
 ## Your addon list
 
 > From `v0.9.0`.

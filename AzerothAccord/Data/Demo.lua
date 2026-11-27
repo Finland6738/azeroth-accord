@@ -16,6 +16,7 @@
 --                                likes, bank, bankreq, guildcfg, timeline, absence, onotes; ocfg stays empty: the default tiers), written as the clients would hold them
 --   guildData                    what GuildKey:Data() holds besides the store: { likes, bank, officer, craftAsks }
 --   recruit                      the records of M12, by set (switch "recruit"): the recruitment text, the trials, the mentors
+--   orders                       the records of the craft orders (M13.2, switch "econ")
 --   saltBytes                    32 bytes for the notary's salt (the player is an officer, so the like button works)
 -- The same call twice with the same `now` gives the same data.
 local ADDON_NAME, ns = ...
@@ -496,6 +497,33 @@ function DemoData.Build(now)
 		{ guid = members[7].guid, recipeId = 2660, at = now - 2 * DAY },
 		{ guid = members[3].guid, recipeId = 7418, at = now - 3 * HOUR },
 	}
+
+	-- Five craft orders in different states (SPEC-17 §11), outside D.sets: Core/Demo.lua puts them in place only while the
+	-- switch `econ` is on. The player (member 2) buys three, crafts one; one delivery is confirmed by one side only.
+	do
+		local orders = {}
+		local function order(n, buyer, crafter, recipe, count, daysAgo, fields, step, stepAgo)
+			local b, c = members[buyer], members[crafter]
+			local created = now - daysAgo * DAY
+			local id = "O:" .. b.guid .. ":" .. n
+			local rec = { id = id, author = b.guid, rev = 1, time = created, crafter = c.guid, recipe = recipe, count = count,
+				mats = "buyer", created = created, state = "open" }
+			for k, v in pairs(fields or {}) do rec[k] = v end
+			orders[id] = rec
+			if step then
+				local at = now - stepAgo * HOUR
+				local part = "A" .. id:sub(2)
+				orders[part] = { id = part, author = c.guid, rev = 1, time = at, crafter = c.guid, state = step, at = at }
+			end
+			return id
+		end
+		order(1, PLAYER_INDEX, 7, 2663, 2, 1, { price = "mats + tip", note = "No hurry." })
+		order(1, 12, PLAYER_INDEX, 2330, 5, 0.2, { mats = "crafter", price = "5g" })
+		order(2, PLAYER_INDEX, 3, 7418, 1, 4, { mats = "mixed" }, "ready", 3)
+		order(1, 18, 22, 2331, 10, 3, nil, "working", 20)
+		order(3, PLAYER_INDEX, 5, 2332, 3, 6, nil, "handed", 5)
+		D.orders = orders
+	end
 
 	-- Six listings of the guild group finder and two applications to the player's own (SPEC-13 §6.10), outside D.sets:
 	-- Core/Demo.lua puts them in place only while the switch `groups` is on.

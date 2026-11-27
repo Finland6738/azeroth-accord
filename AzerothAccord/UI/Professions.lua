@@ -14,6 +14,8 @@
 --             Rows come from UI/RecipeModel.lua: an icon, the name, a note when the player knows it too; with the
 --             profession's catalogue also the recipes the member has NOT learned ("not learned", dimmed); the game's own
 --             recipe tooltip; the search box filters by name; the Category menu; the message when there is no list.
+-- With the switch "econ" (M13.2, SPEC-17 §3.5) Request craft opens the New order window (UI/Orders.lua), for members
+-- offline too, and a recipe of the catalogue says how many open orders ask for it.
 -- The header has a Back button (to the roster, the catalogue or the craft list, where the list was opened from), and in the
 -- recipe list and the catalogue a "Who can craft" button, in the craft list a "Guild recipes" button; the source and the
 -- age of the list are always in the header.
@@ -352,17 +354,34 @@ local function requestTarget(d)
 	return View.model.guid, d.id
 end
 
+-- With the switch "econ" a request is an order (SPEC-17 §3.5).
+local function ordering() return ns.OrdersView ~= nil and ns.Orders ~= nil and ns.Orders.Enabled() end
+
+-- Whether a row of `guid` has the Request craft button: an order takes any member outside the own account, online or
+-- not; the whisper of M3 only an online one that is not the player.
+local function canRequest(guid, online, isSelf)
+	if not guid then return false end
+	if ordering() then return ns.Orders:CanOrder(guid) end
+	return online == true and isSelf ~= true
+end
+
 function View.RequestTip(d)
 	local guid, id = requestTarget(d)
 	if not guid then return nil end
+	if ordering() then
+		local e = ns.Roster and ns.Roster:ByGUID(guid)
+		return { L["CR_REQUEST"], e and L["ORD_REQUEST_TIP"]:format(e.short or e.name) or L["CR_REQUEST_NO"] }
+	end
 	local request = ns.Recipes and ns.Recipes:CraftRequest(guid, id)
 	return { L["CR_REQUEST"], request and L["CR_REQUEST_TIP"]:format(request.short) or L["CR_REQUEST_NO"] }
 end
 
--- The Request craft button: opens the chat box with the whisper written; the player sends it.
+-- The Request craft button: opens the chat box with the whisper written; the player sends it. With the switch "econ" it
+-- opens the New order window instead.
 function View:RequestCraft(d)
 	local guid, id = requestTarget(d)
 	if not guid then return false end
+	if ordering() then return ns.OrdersView:OpenNew(guid, id) ~= nil end
 	local ok, result = ns.Recipes:OpenCraftRequest(guid, id)
 	if ok then
 		if ns.addon then ns.addon:Print(L["CR_REQUEST_OPENED"]:format(result.short)) end
@@ -459,6 +478,11 @@ function View.RenderDetail(cell, d)
 	if d.kind == "member" then cell:SetText(View.MemberDetail(d.member))
 	elseif d.level then cell:SetText(L["CAT_LEVEL"]:format(d.level))
 	else cell:SetText("") end
+	local open = d.kind ~= "member" and View.orders and View.orders[d.id]
+	if open then
+		local text = L[open == 1 and "ORD_CAT_ONE" or "ORD_CAT_N"]:format(open)
+		cell:SetText(d.level and (cell:GetText() .. " · " .. text) or text)
+	end
 	Theme.Text(cell, "text-3")
 end
 
@@ -485,7 +509,7 @@ end
 function View.UpdateRow(row, d)
 	if d.kind == "member" then
 		row.icon:Hide()
-		row.request:SetShown(d.member.online == true and d.member.isSelf ~= true)
+		row.request:SetShown(canRequest(d.member.guid, d.member.online, d.member.isSelf))
 		return
 	end
 	row.icon:ClearAllPoints()
@@ -497,7 +521,7 @@ function View.UpdateRow(row, d)
 	end
 	local guid = requestTarget(d)
 	local e = guid and ns.Roster and ns.Roster:ByGUID(guid)
-	row.request:SetShown(e ~= nil and e.online == true and e.isSelf ~= true)
+	row.request:SetShown(e ~= nil and canRequest(guid, e.online, e.isSelf))
 end
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -652,6 +676,8 @@ function View:Redraw()
 	local f = self.frame
 	if not f then return end
 	if self.mode == "recipes" and not self.model.guid then self.mode = "catalogue" end
+	-- the open orders of each recipe, said next to it in the catalogue (SPEC-17 §8)
+	self.orders = ordering() and self.mode == "catalogue" and ns.Orders:OpenByRecipe() or nil
 	if self.mode == "craft" then redrawCraft(self)
 	elseif self.mode == "catalogue" then redrawCatalogue(self)
 	else redrawRecipes(self) end
@@ -701,6 +727,7 @@ if ns.addon then
 		end)
 		ns.Bus:On("RECIPE_NAMES_UPDATED", function() View:Changed() end)
 		ns.Bus:On("ROSTER_UPDATED", function() View:Changed() end)
+		ns.Bus:On("ORDERS_CHANGED", function() View:Changed() end)
 		ns.Bus:On("GUILD_CHANGED", function()
 			View.model = Model.new()
 			View.cat = Model.Catalogue.new()

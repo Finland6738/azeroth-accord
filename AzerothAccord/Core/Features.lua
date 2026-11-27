@@ -27,13 +27,18 @@
 --          the suggested pairs and the row of "What I share"). It turns on no other switch: each part asks `season`, `raid`
 --          or `actions` itself and says what is missing.
 --          Off: nothing of it is shown, written, accepted or sent. On since M12.9.
+--   econ   the M13 features (docs/roadmap/M13-economy.md, SPEC-17, ADR 0028): the craft orders (M13.2: the data set
+--          `orders` and its summary `ec`, the Market view and `/accord market`, the New order window behind Request craft,
+--          the Action Center rows, the notices, the row of "What I share") and the steps that follow (wishlist, shopping
+--          list, board, goals). It turns on no other switch; the rows of the Action Center also need `actions`.
+--          Off: nothing of it is shown, written, accepted or sent, and Request craft is the whisper of M3. Off until M13.8.
 --   memberRecipes  one member's own recipe list in the Professions view (SPEC-06 §2.1). Off since 2026-11-27 (owner): a
 --          click on a member's profession shows the guild's recipes of that profession instead, and a crafter's row
 --          opens nothing. The code and its tests stay (the tests switch it on).
 local ADDON_NAME, ns = ...
 local ipairs = ipairs
 ns = ns or {}
-local Features = { season = true, raid = true, actions = true, groups = true, census = true, recruit = true, memberRecipes = false }
+local Features = { season = true, raid = true, actions = true, groups = true, census = true, recruit = true, econ = false, memberRecipes = false }
 ns.Features, ns.modules = Features, ns.modules or {}
 ns.modules.Features = Features
 

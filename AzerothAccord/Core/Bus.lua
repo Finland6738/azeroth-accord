@@ -47,6 +47,8 @@
 --                                                     one of its items changed, M12.4.
 --   MENTORS_CHANGED()                                 Data/Mentors.lua; a mentor offer arrived, was written or taken back
 --                                                     (or the guild changed), M12.5.
+--   ORDERS_CHANGED(id)                                Data/Orders.lua; a craft order or the crafter's part of it arrived or was
+--                                                     written, or an earlier craft request was dismissed (nil: several), M13.2.
 --   DEMO_CHANGED(active)                              Core/Demo.lua; demo mode started (true) or ended (false), M7.4.
 --   BACKUP_IMPORTED(summary)                          Data/Backup.lua; a personal backup was imported ({ chars, settings,
 --                                                     records, token }), M7.5. SETTINGS_CHANGED("backup") follows.

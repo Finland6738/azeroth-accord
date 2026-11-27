@@ -63,6 +63,9 @@
 -- of BHELLO (RC_BLOCKS blocks) and in `rc` of DIGEST. It cannot share the census's `c`: a v0.9-v0.11 client computes `c`
 -- for the census alone, and a `c` with the catalogue in it would never agree with its own. Nothing of it is pushed to,
 -- asked of or compared with a client that did not send those fields.
+-- The summary of the sets of M13 (Store.SummaryKind "econ": the craft orders, SPEC-17 §10.2): a fifth kind, exchanged
+-- exactly like the catalogue's, apart from it: an entry per author (the key of "$" .. GUID), in `ec` of HELLO (sent even
+-- empty), in `ecb` of BHELLO (EC_BLOCKS blocks) and in `ec` of DIGEST, only while the switch `econ` is on.
 -- A REC of a set with `aloneOver` carries one record alone when it is bigger than that (a long page); `bulk` sets go as
 -- BULK. A client without the set ignores the fields: its summaries do not change.
 --
@@ -110,6 +113,7 @@ Sync.HB_BLOCKS = 1                  -- blocks of the handbook's summary in a BHE
                                     -- BHELLO of a large guild grew past 512 B (Tests/test_handbook.lua)
 Sync.RC_BLOCKS = 1                  -- blocks of the catalogue's summary in a BHELLO (`rcb`): one record per profession, so
                                     -- a few authors at most
+Sync.EC_BLOCKS = 1                  -- blocks of the summary of M13 in a BHELLO (`ecb`): the message stays under 512 B
 Sync.HB_REQ_DELAY = { 5, 20 }       -- seconds before a client that is behind asks for handbook pages (SPEC-15 §3.6)
 Sync.HB_REQ_AFTER = 600             -- seconds after login before the first handbook request: after the maps' first exchange
                                     -- (SPEC-15 §3.7, measured in Tests/test_handbook.lua)
@@ -214,17 +218,21 @@ function Sync.HandbookName(guid) return "#" .. tostring(guid) end
 -- The name of an author's group of the catalogue's summary.
 function Sync.CatalogueName(guid) return "%" .. tostring(guid) end
 
+-- The name of an author's group of the summary of M13.
+function Sync.EconName(guid) return "$" .. tostring(guid) end
+
 -- The name of the group an author's records of `set` are summarised in.
 function Sync.GroupName(set, guid)
 	local kind = store().SummaryKind(set)
 	if kind == "extra" then return Sync.ExtraName(guid) end
 	if kind == "handbook" then return Sync.HandbookName(guid) end
 	if kind == "catalogue" then return Sync.CatalogueName(guid) end
+	if kind == "econ" then return Sync.EconName(guid) end
 	return guid
 end
 
--- true when this client has a set of the summary `kind` ("extra" | "handbook" | "catalogue") switched on: only then it sends and reads
--- those fields.
+-- true when this client has a set of the summary `kind` ("extra" | "handbook" | "catalogue" | "econ") switched on: only
+-- then it sends and reads those fields.
 local function speaks(kind)
 	local S = store()
 	for set in pairs(S.SETS) do
@@ -235,10 +243,11 @@ end
 local function speaksExtra() return speaks("extra") end
 local function speaksHandbook() return speaks("handbook") end
 local function speaksCatalogue() return speaks("catalogue") end
+local function speaksEcon() return speaks("econ") end
 
--- The value of `g.extra` for a summary kind: true (the census), "hb" (the handbook), "rc" (the recipe catalogue), nil
--- (the summary per author).
-local HB, RC = "hb", "rc"
+-- The value of `g.extra` for a summary kind: true (the census), "hb" (the handbook), "rc" (the recipe catalogue), "ec"
+-- (the sets of M13), nil (the summary per author).
+local HB, RC, EC = "hb", "rc", "ec"
 local function sameKind(g, extra) return (g.extra or false) == (extra or false) end
 
 -- The groups of `groups` that are authors of the older sets (what decides between HELLO and BHELLO).
@@ -275,7 +284,8 @@ local function place(groups, set, id, rec)
 	local extra = nil
 	if kind == "extra" then extra, key = true, Sync.ExtraName(author)
 	elseif kind == "handbook" then extra, key = HB, Sync.HandbookName(author)
-	elseif kind == "catalogue" then extra, key = RC, Sync.CatalogueName(author) end
+	elseif kind == "catalogue" then extra, key = RC, Sync.CatalogueName(author)
+	elseif kind == "econ" then extra, key = EC, Sync.EconName(author) end
 	local into = groups[class]
 	local g = into[key]
 	if not g then g = { byId = {}, author = author, extra = extra } into[key] = g end
@@ -358,7 +368,8 @@ local function readBE(s, at, bytes)
 end
 
 -- The summary as a byte string: entries sorted by key, each key (4 bytes), digest (3), newest time (4). `extra` true
--- takes the groups of the extra summary instead of the others, "hb" those of the handbook, "rc" those of the catalogue.
+-- takes the groups of the extra summary instead of the others, "hb" those of the handbook, "rc" those of the catalogue,
+-- "ec" those of M13.
 function Sync:EncodeSummary(groups, extra)
 	local entries = {}
 	for _, g in pairs(groups or self:Groups()) do
@@ -395,6 +406,7 @@ end
 local function blockCount(extra)
 	if extra == HB then return Sync.HB_BLOCKS end
 	if extra == RC then return Sync.RC_BLOCKS end
+	if extra == EC then return Sync.EC_BLOCKS end
 	return extra and Sync.EXTRA_BLOCKS or Sync.BLOCKS
 end
 
@@ -402,6 +414,7 @@ end
 local function blockSlot(extra)
 	if extra == HB then return "hbBlocks" end
 	if extra == RC then return "rcBlocks" end
+	if extra == EC then return "ecBlocks" end
 	return extra and "extraBlocks" or "blocks"
 end
 
@@ -663,11 +676,12 @@ function Sync:SendHello()
 	Sync:Invalidate()   -- the summary sent is read from the whole store (a change without its event cannot linger)
 	local groups = self:Groups()
 	local authors, extra, hb, rc = authorCount(groups), speaksExtra(), speaksHandbook(), speaksCatalogue()
+	local ec = speaksEcon()
 	local ok
 	if authors > Sync.BLOCK_OVER and self:BlocksAllowed() then
 		ok = send("GUILD", { t = "BHELLO", b = self:EncodeBlocks(groups), cb = extra and self:EncodeBlocks(groups, true) or nil,
-			hbb = hb and self:EncodeBlocks(groups, HB) or nil, rcb = rc and self:EncodeBlocks(groups, RC) or nil, n = authors,
-			av = av }, { key = "HELLO" })
+			hbb = hb and self:EncodeBlocks(groups, HB) or nil, rcb = rc and self:EncodeBlocks(groups, RC) or nil,
+			ecb = ec and self:EncodeBlocks(groups, EC) or nil, n = authors, av = av }, { key = "HELLO" })
 		if ok then
 			state.stats.bhellosSent = state.stats.bhellosSent + 1
 			state.bhelloAt, state.digested = now(), {}
@@ -676,7 +690,8 @@ function Sync:SendHello()
 		local pages = hb and self:EncodeSummary(groups, HB) or ""
 		ok = send("GUILD", { t = "HELLO", d = {}, s = self:EncodeSummary(groups),
 			c = extra and self:EncodeSummary(groups, true) or nil, hb = pages ~= "" and pages or nil,
-			rc = rc and self:EncodeSummary(groups, RC) or nil, av = av }, { key = "HELLO" })
+			rc = rc and self:EncodeSummary(groups, RC) or nil, ec = ec and self:EncodeSummary(groups, EC) or nil, av = av },
+			{ key = "HELLO" })
 	end
 	if ok then
 		state.stats.hellosSent = state.stats.hellosSent + 1
@@ -813,6 +828,7 @@ local function behindOn(theirs, member, groups)
 		if mine == nil or entryTheirs.t > mine.t then
 			local canDeliver = senderOfficer or key == Sync.KeyOf(target) or key == Sync.KeyOf(Sync.ExtraName(target))
 				or key == Sync.KeyOf(Sync.HandbookName(target)) or key == Sync.KeyOf(Sync.CatalogueName(target))
+			or key == Sync.KeyOf(Sync.EconName(target))
 				or (mine ~= nil and S:SameAccount(target, mine.author))
 			-- this includes the client's own records: after a lost or older saved file it gets its versions back,
 			-- so its next write does not start again from rev 1
@@ -868,6 +884,9 @@ local function onHello(msg, sender)
 	-- the catalogue's summary, likewise apart
 	local recipes = speaksCatalogue() and Sync.DecodeSummary(msg.rc) or nil
 	for key, entry in pairs(recipes or {}) do theirs[key] = entry end
+	-- the summary of M13, likewise apart
+	local economy = speaksEcon() and Sync.DecodeSummary(msg.ec) or nil
+	for key, entry in pairs(economy or {}) do theirs[key] = entry end
 	-- the handbook's summary: only to see what this client is behind on (nothing of it is pushed)
 	local pages = speaksHandbook() and Sync.DecodeSummary(msg.hb) or nil
 	local member = touch(sender)
@@ -884,7 +903,8 @@ local function onHello(msg, sender)
 	-- push what the sender lacks and this client may deliver
 	local pushAuthors = {}
 	for name, g in pairs(groups) do
-		if (g.extra == nil or (g.extra == true and more ~= nil) or (g.extra == RC and recipes ~= nil)) and ahead(g, theirs[g.key]) then
+		if (g.extra == nil or (g.extra == true and more ~= nil) or (g.extra == RC and recipes ~= nil)
+			or (g.extra == EC and economy ~= nil)) and ahead(g, theirs[g.key]) then
 			local author = g.author
 			local targetsOwn = author == target or S:SameAccount(author, target)
 			if me and S:SameAccount(me, author) and not targetsOwn then
@@ -915,8 +935,10 @@ local function onBlockHello(msg, sender)
 	local extra = speaksExtra() and type(msg.cb) == "string" and #msg.cb == Sync.EXTRA_BLOCKS * 3
 	local hb = speaksHandbook() and type(msg.hbb) == "string" and #msg.hbb == Sync.HB_BLOCKS * 3
 	local rc = speaksCatalogue() and type(msg.rcb) == "string" and #msg.rcb == Sync.RC_BLOCKS * 3
+	local ec = speaksEcon() and type(msg.ecb) == "string" and #msg.ecb == Sync.EC_BLOCKS * 3
 	if msg.b == Sync:EncodeBlocks() and (not extra or msg.cb == Sync:EncodeBlocks(nil, true))
-		and (not hb or msg.hbb == Sync:EncodeBlocks(nil, HB)) and (not rc or msg.rcb == Sync:EncodeBlocks(nil, RC)) then
+		and (not hb or msg.hbb == Sync:EncodeBlocks(nil, HB)) and (not rc or msg.rcb == Sync:EncodeBlocks(nil, RC))
+		and (not ec or msg.ecb == Sync:EncodeBlocks(nil, EC)) then
 		return   -- the usual case: in step, nothing to compare (SPEC-11 §6.5: <= 1 ms)
 	end
 	local target, S, me = member.guid, store(), myGUID()
@@ -932,19 +954,22 @@ local function onBlockHello(msg, sender)
 	local differExtra = extra and differing(msg.cb, true) or {}
 	local differHb = hb and differing(msg.hbb, HB) or {}
 	local differRc = rc and differing(msg.rcb, RC) or {}
+	local differEc = ec and differing(msg.ecb, EC) or {}
 	if not any then return end
 	local all = designated(target)
 	local own = not all and me ~= nil and me ~= target and S:SameAccount(me, target)
 	if not (all or own) then return end
-	local byBlock, byExtra, byHb, byRc = {}, {}, {}, {}
+	local byBlock, byExtra, byHb, byRc, byEc = {}, {}, {}, {}, {}
 	for b in pairs(differ) do byBlock[b] = {} end
 	for b in pairs(differExtra) do byExtra[b] = {} end
 	for b in pairs(differHb) do byHb[b] = {} end
 	for b in pairs(differRc) do byRc[b] = {} end
+	for b in pairs(differEc) do byEc[b] = {} end
 	for _, g in pairs(Sync:Groups()) do
 		local list
 		if g.extra == HB then list = byHb[partOf(g.key, Sync.HB_BLOCKS)]
 		elseif g.extra == RC then list = byRc[partOf(g.key, Sync.RC_BLOCKS)]
+		elseif g.extra == EC then list = byEc[partOf(g.key, Sync.EC_BLOCKS)]
 		elseif g.extra then list = byExtra[partOf(g.key, Sync.EXTRA_BLOCKS)]
 		else list = byBlock[Sync.BlockOf(g.key)] end
 		if list and (all or S:SameAccount(me, g.author)) then list[#list + 1] = g end
@@ -966,8 +991,10 @@ local function onBlockHello(msg, sender)
 	local c = extra and digest(byExtra, true) or nil
 	local h = hb and digest(byHb, HB) or nil
 	local r = rc and digest(byRc, RC) or nil
-	if not next(d) and not (c and next(c)) and not (h and next(h)) and not (r and next(r)) then return end
-	if send("WHISPER", { t = "DIGEST", d = d, c = c, hb = h, rc = r, o = own and 1 or nil }, { target = sender, key = "DIGEST|" .. sender }) then
+	local e = ec and digest(byEc, EC) or nil
+	if not next(d) and not (c and next(c)) and not (h and next(h)) and not (r and next(r)) and not (e and next(e)) then return end
+	if send("WHISPER", { t = "DIGEST", d = d, c = c, hb = h, rc = r, ec = e, o = own and 1 or nil },
+		{ target = sender, key = "DIGEST|" .. sender }) then
 		state.stats.digestsSent = state.stats.digestsSent + 1
 	end
 end
@@ -980,7 +1007,7 @@ local function onDigest(msg, sender)
 	if state.digested[key] then return end   -- one answer per sender and BHELLO
 	local member = touch(sender)
 	if not member then return end
-	local theirs, blocks, extraBlocks, hbBlocks, rcBlocks, entries = {}, {}, {}, {}, {}, 0
+	local theirs, blocks, extraBlocks, hbBlocks, rcBlocks, ecBlocks, entries = {}, {}, {}, {}, {}, {}, 0
 	local theirsHb = {}
 	local function read(list, into, n, target)
 		target = target or theirs
@@ -1004,7 +1031,8 @@ local function onDigest(msg, sender)
 	if speaksExtra() and type(msg.c) == "table" and not read(msg.c, extraBlocks, Sync.EXTRA_BLOCKS) then return end
 	if speaksHandbook() and type(msg.hb) == "table" and not read(msg.hb, hbBlocks, Sync.HB_BLOCKS, theirsHb) then return end
 	if speaksCatalogue() and type(msg.rc) == "table" and not read(msg.rc, rcBlocks, Sync.RC_BLOCKS) then return end
-	if not (next(blocks) or next(extraBlocks) or next(hbBlocks) or next(rcBlocks)) then return end
+	if speaksEcon() and type(msg.ec) == "table" and not read(msg.ec, ecBlocks, Sync.EC_BLOCKS) then return end
+	if not (next(blocks) or next(extraBlocks) or next(hbBlocks) or next(rcBlocks) or next(ecBlocks)) then return end
 	state.digested[key] = true
 	state.stats.digestsHeard = state.stats.digestsHeard + 1
 	local S, me = store(), myGUID()
@@ -1014,6 +1042,7 @@ local function onDigest(msg, sender)
 		local listed
 		if g.extra == HB then listed = hbBlocks[partOf(g.key, Sync.HB_BLOCKS)]
 		elseif g.extra == RC then listed = rcBlocks[partOf(g.key, Sync.RC_BLOCKS)]
+		elseif g.extra == EC then listed = ecBlocks[partOf(g.key, Sync.EC_BLOCKS)]
 		elseif g.extra then listed = extraBlocks[partOf(g.key, Sync.EXTRA_BLOCKS)]
 		else listed = blocks[Sync.BlockOf(g.key)] end
 		if listed and (not ownOnly or (me and S:SameAccount(me, g.author))) then

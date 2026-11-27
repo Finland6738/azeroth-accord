@@ -298,6 +298,24 @@ describe("the switch recruit (M12), off", function()
 	end)
 end)
 
+describe("the switch of M13, as shipped (off until M13.8)", function()
+	before_boot(withFDCP)
+
+	-- the whole behaviour with the switch off and on is in Tests/test_orders.lua
+	it("is off: no Market view or command, and the craft orders take nothing", function()
+		eq(A().Features.econ, false)
+		falsy(A().Features.On("econ"))
+		falsy(A().Store.IsActive("orders"))
+		Mock.Slash("/accord help")
+		falsy(table.concat(Mock.PlainOutput(), "\n"):find("/accord market", 1, true))
+		Mock.Slash("/accord market")
+		contains(table.concat(Mock.PlainOutput(), "\n"), "Unknown command 'market'")
+		for _, v in ipairs(A().Shell:ViewList()) do truthy(v.id ~= "market") end
+		falsy(A().Shell:OpenView("market"))
+		eq(#Mock.errors, 0)
+	end)
+end)
+
 describe("the actions switch, off", function()
 	before_boot(function(M)
 		M.features = { actions = false }

@@ -25,7 +25,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Spec: SPEC-17; SPEC-06
 - Scope: the craft requests of M3 become orders with states: requested, accepted, in progress, ready, delivered and cancelled. An order is created from "who can craft".
 - Done when:
-  - [ ] Only the buyer and the crafter change an order; old M3 requests are migrated.
+  - [x] Only the buyer and the crafter change an order; old M3 requests are migrated.
 
 ### M13.3 — Material demand and wishlist
 - Branch: `step/m13-3-materials`

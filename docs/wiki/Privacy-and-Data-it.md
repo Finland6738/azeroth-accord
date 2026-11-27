@@ -35,6 +35,12 @@ Un addon rotto o modificato non può nemmeno bloccare il tuo: un messaggio tropp
 
 Un [[gruppo|Groups-it]] che pubblichi (tipo, attività, livelli, posti, ruoli cercati, la tua nota e il ritrovo, mai una posizione) va solo alla tua gilda, e il computer di ogni membro lo elimina 10 minuti dopo la fine. Una **candidatura** (il tuo ruolo, il livello e un commento facoltativo) va in sussurro solo al capo di quel gruppo, e così la risposta: nessun altro lo sa. Restano sui due computer finché il gruppo non si chiude, e non entrano nei backup né nelle esportazioni. I filtri salvati restano sul tuo computer.
 
+## Ordini di crafting
+
+> In arrivo con la milestone M13, nascosti finché M13 non è completa.
+
+Un **ordine** di crafting che fai (la ricetta, quanti, l'artigiano, chi porta i materiali, il prezzo come testo, la nota, il giorno "entro") e i passi che segni da artigiano (con la tua nota) vanno alla tua gilda, e li vede tutta la gilda. Gli ordini chiusi si cancellano dopo 30 giorni. Le vecchie richieste di crafting non si pubblicano mai se non premi *Crea l'ordine*. Vedi [[Professioni e ricette|Professions-and-Recipes-it]].
+
 ## L'elenco dei tuoi addon
 
 > Dalla `v0.9.0`.

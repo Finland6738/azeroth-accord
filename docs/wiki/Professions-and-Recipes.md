@@ -54,6 +54,23 @@ The search covers the members **whose recipe list is known**: lists shared by gu
 
 Next to every recipe of an **online** member (in their list, or under the recipe in *Who can craft*) there is a **Request craft** button. It opens the chat box with a whisper to that member already written, with the recipe link in it: *"Hello! Could you craft [recipe] for me? Thank you!"*. **Azeroth Accord never sends it**: you read it, change it if you like and press Enter. The button is not shown for offline members (a whisper would not reach them), for your own recipes, or on the recipe's header line. From `v0.9.0` the [[Action Center|Action-Center]] keeps a reminder of the request for 7 days, on your computer only.
 
+## Craft orders
+
+> **Coming with milestone M13, hidden until M13 is complete**: the released addon does not show any of this yet, and nothing below has been tried in the real game.
+
+**Request craft** will open a **New order** window instead of only a whisper: choose the crafter (offline ones too: they see the order at their next login), how many, who brings the materials, a price in your own words, a note and, if you like, the day you need it by. *Also whisper* keeps the old message, off by default. The whole guild sees the order.
+
+The **Market** view (`/accord market`) lists the orders, *For me*, *Mine* or *Everyone*, and the closed ones on request. An order goes through **requested, accepted, in progress, ready, delivered**, or ends **cancelled**:
+
+| Who | Steps |
+|---|---|
+| The crafter | *Accept* or *Decline*, then *Working on it*, *Ready*, *Handed over* (and *Decline* until then) |
+| The buyer | *Cancel order* at any time before confirming; *Received* once it is in their bags |
+
+Every step asks for a second click (**Confirm**). An order is **delivered only when both confirm it**: with one confirmation it stays *ready* and says who is missing. Each of the two writes only their own side; nobody else, officers included, can change an order. **Accord never moves gold or items**: you trade or mail them yourself, and the price is only the text you wrote.
+
+An order nobody accepted expires after 14 days; one with a needed-by day, 7 days after it; an accepted one without a day, after 60 days with no step. Closed orders are deleted after 30 days. You can have at most 10 open orders. The [[Action Center|Action-Center]] shows what waits for you. The requests you made before as whispers appear once under *From your earlier requests*, with *Make it an order* and *Dismiss*: nothing is published without your click.
+
 ## If something is missing
 
 - **The list of a member is not there**: the game does not always give recipe lists, and a member's addon shares theirs only after they open the profession window with Azeroth Accord. The panel says so, and asks for the list by itself while somebody who has it is online.

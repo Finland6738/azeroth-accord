@@ -66,6 +66,7 @@ local SAME = {
 	INTEG_ADDON = true, INTEG_KIND_LOOT = true, INTEG_VERSION_N = true,
 	RALLY_KIND_PVP = true,   -- M10.9
 	LOOT_SYSTEM_SOFTRES = true, LOOT_SYSTEM_COUNCIL = true, LOOT_SYSTEM_DKP = true, LOOT_URL_HINT = true,   -- M11.6
+	ORD_ITEM = true, ORD_NOTE_OF = true, ORD_CHOICE_ONLINE = true,   -- M13.2: "2 × name", "name: text", "online"
 }
 
 describe("the two locale tables", function()
@@ -143,6 +144,16 @@ describe("the keys the code reads", function()
 		for _, kind in ipairs({ "WITHDRAW", "DEPOSIT", "DONATION" }) do
 			truthy(en["BANKREQ_KIND_" .. kind], kind)
 			truthy(en["BANKREQ_TIP_" .. kind], kind)
+		end
+		for _, action in ipairs({ "ACCEPT", "DECLINE", "WORKING", "READY", "HANDED", "RECEIVED", "CANCEL" }) do   -- M13.2
+			truthy(en["ORD_DO_" .. action], action)
+			truthy(en["ORD_ASK_" .. action], action)
+		end
+		for _, state in ipairs({ "REQUESTED", "ACCEPTED", "PROGRESS", "READY", "HANDED", "DELIVERED", "CANCELLED", "DECLINED",
+			"EXPIRED", "LEFT" }) do truthy(en["ORD_ST_" .. state], state) end
+		for _, step in ipairs({ "ACCEPTED", "DECLINED", "WORKING", "READY", "HANDED" }) do
+			truthy(en["ORD_STEP_" .. step], step)
+			truthy(en["ORD_NOTE_" .. step], step)
 		end
 		for _, status in ipairs({ "OPEN", "APPROVED", "REJECTED", "FULFILLED", "CANCELLED" }) do
 			truthy(en["BANKREQ_STATUS_" .. status], status)

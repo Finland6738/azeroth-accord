@@ -53,6 +53,12 @@
 -- The mentor offers (`mentor`, SPEC-16 §6) are an ordinary set (first hand, officer relay, saved): one record per account
 -- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04).
 --
+-- The craft orders (`orders`, SPEC-17 §3) are an ordinary set (first hand, officer relay, saved) with two records per
+-- order, one per side, so that nobody writes the other's: a crafter part that arrives before its order waits for it
+-- (`wait`, not counted against the sender: `quietWait`), content never changes and states only move forward
+-- (`transition` "locked"), and a receiver takes at most 30 revisions of an author an hour (`rate`). The sets of M13 are
+-- summarised apart (`summary = "econ"`, Net/Sync.lua). Data/Orders.lua.
+--
 -- The guild handbook (`handbook`, SPEC-15 §3) is an ordinary set (first hand, officer relay, saved) with three rules of
 -- its own: only a writer (Data/Handbook.lua: the Guild Master, the officers and the ranks the officers chose) passes a page
 -- first hand (`writer`, HBK-01: refused as "authority"); a receiver takes at most Handbook.WRITES_PER_HOUR new revisions
@@ -62,6 +68,7 @@
 --
 -- Retention (SPEC-01 §4, SPEC-03): co-play 90 days, bank snapshots 90 days, bank logs 365 days, closed bank requests and deletions 60 days.
 -- The observed roster timeline has no age limit (SPEC-12 TL-07, the owner's answer to SPEC-10 Q14): only its size limits.
+-- A closed craft order and the crafter's part of it go 30 days after it closed (SPEC-17 §3.4).
 -- An extended note is kept forever, also after its character left the guild (SPEC-12 §5.1, Q14); a deletion expires after 60 days.
 -- A trial is kept forever, closed or not (SPEC-16 §4.1, Q35); a deleted trial note expires after 60 days. A left mentor
 -- offer expires after 60 days.
@@ -196,7 +203,8 @@ function Store.IsExtraSummary(set)
 end
 
 -- The summary a set's records go to apart from the older sets: "extra" (the addon census), "handbook" (the guild
--- handbook, SPEC-15 §3.6), "catalogue" (the guild recipe catalogue, SPEC-06 §1.5) or nil (the summary per author).
+-- handbook, SPEC-15 §3.6), "catalogue" (the guild recipe catalogue, SPEC-06 §1.5), "econ" (the sets of M13, SPEC-17
+-- §10.2) or nil (the summary per author).
 -- A set a released client does not know never joins an existing kind: it gets one of its own, or that client's summary
 -- of the kind and a newer one's never agree.
 function Store.SummaryKind(set)
@@ -397,6 +405,17 @@ Store.SETS = {
 		rate = function(rec) return ns.Mentors ~= nil and ns.Mentors.Within(rec) end,               -- MEN-04
 		expires = function(rec, t) return ns.Mentors ~= nil and ns.Mentors.Expired(rec, t) end,     -- an `off` after 60 days
 	},
+	orders = {     -- the craft orders (Data/Orders.lua, M13.2, SPEC-17 §3): "O:<buyer>:<n>" the buyer's order,
+		feature = "econ",                          -- "A:<buyer>:<n>" the crafter's side of it
+		maxBytes = 512,                            -- an order; a part is held to 384 bytes by Orders.ValidRecord
+		summary = "econ",                          -- its own entries in the summaries, with the other sets of M13 (§10.2)
+		owner = function(rec, s) if not ns.Orders then return false end return ns.Orders.ValidRecord(rec, s) end,   -- ORD-01, 02
+		transition = function(held, rec) return ns.Orders.Transition(held, rec) end,                     -- ORD-03, 04: "locked"
+		wait = function(rec, ctx) if ns.Orders then ns.Orders.Wait(rec, ctx) end end,                    -- ORD-05
+		quietWait = true,                          -- a part before its order is an honest client's (no quarantine count)
+		rate = function(rec) return ns.Orders ~= nil and ns.Orders.Within(rec) end,                      -- ORD-06
+		expires = function(rec, t) return ns.Orders ~= nil and ns.Orders.Expired(rec, t) end,            -- 30 days closed
+	},
 	ocfg = {       -- the officers' choices (Data/Inactivity.lua, M8.3): id = "tiers", { tiers = { n1, n2, n3, n4 } }
 		maxBytes = 256,
 		officerTool = true,
@@ -407,12 +426,12 @@ Store.SETS = {
 		group = function() return "ocfg" end,
 	},
 }
-Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor" }
+Store.SET_ORDER = { "accounts", "contacts", "recipes", "recipecat", "coplay", "likes", "bank", "bankreq", "guildcfg", "timeline", "absence", "onotes", "ocfg", "groups", "addons", "season", "raidev", "avail", "rally", "handbook", "trials", "mentor", "orders" }
 
 ---------------------------------------------------------------------------------------------------------------------
 -- Storage
 ---------------------------------------------------------------------------------------------------------------------
-local stats = { accepted = 0, unchanged = 0, rejected = 0, reasons = {}, written = 0, pruned = 0 }
+local stats = { accepted = 0, unchanged = 0, rejected = 0, reasons = {}, bySet = {}, written = 0, pruned = 0 }
 Store.stats = stats
 
 -- The store table of the current guild ({ sets = { [set] = { [id] = record } } }), or nil without a guild.
@@ -491,9 +510,14 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- Receiving and the trust rules
 ---------------------------------------------------------------------------------------------------------------------
-local function reject(reason)
+local function reject(reason, set)
 	stats.rejected = stats.rejected + 1
 	stats.reasons[reason] = (stats.reasons[reason] or 0) + 1
+	if Store.SETS[set] then
+		local by = stats.bySet[set]
+		if not by then by = {} stats.bySet[set] = by end
+		by[reason] = (by[reason] or 0) + 1
+	end
 	return false, reason
 end
 
@@ -587,10 +611,10 @@ function Store:Accept(set, rec, ctx)
 		-- a record that waits for another one (a season entry before its season, SPEC-14 SEA-03) is kept aside by its module
 		local def = Store.SETS[set]
 		if why == "wait" and def and def.wait then def.wait(rec, ctx) end
-		return reject(why)
+		return reject(why, set)
 	end
 	local records = root(true) and self:Records(set)
-	if not records then return reject("guild") end
+	if not records then return reject("guild", set) end
 	local held = records[rec.id]
 	if held and Store.SETS[set].immutable then
 		-- append-only: the entry held stays; the same entry again is nothing to do, a different one is refused
@@ -598,20 +622,20 @@ function Store:Accept(set, rec, ctx)
 			stats.unchanged = stats.unchanged + 1
 			return false, "same"
 		end
-		return reject("immutable")
+		return reject("immutable", set)
 	end
 	local def = Store.SETS[set]
 	if held and def.transition then
 		local okT, whyT = def.transition(held, rec)
-		if not okT then return reject(whyT or "transition") end
+		if not okT then return reject(whyT or "transition", set) end
 	end
 	local cmp = def.compare and held and def.compare(rec, held) or Store.Compare(rec, held)
 	if cmp <= 0 then
 		stats.unchanged = stats.unchanged + 1
 		return false, cmp == 0 and "same" or "older"
 	end
-	if def.expires and def.expires(rec, now()) then return reject("expired") end
-	if def.rate and not def.rate(rec) then return reject("rate") end
+	if def.expires and def.expires(rec, now()) then return reject("expired", set) end
+	if def.rate and not def.rate(rec) then return reject("rate", set) end
 	if def.replaced and held then def.replaced(held, rec, "remote") end
 	records[rec.id] = copy(rec)
 	stats.accepted = stats.accepted + 1
@@ -620,7 +644,7 @@ function Store:Accept(set, rec, ctx)
 end
 
 -- A batch of records of one set from `sender` (as AceComm gives it) over `dist`. Returns accepted, rejected (records
--- that were simply not newer count as neither).
+-- that were simply not newer count as neither, nor does one that waits for another in a set with `quietWait`).
 function Store:Receive(set, records, sender, dist)
 	if type(records) ~= "table" then return 0, 1 end
 	local ctx = { sender = sender, dist = dist }
@@ -628,7 +652,9 @@ function Store:Receive(set, records, sender, dist)
 	for _, rec in ipairs(records) do
 		local ok, why = self:Accept(set, rec, ctx)
 		if ok then accepted = accepted + 1
-		elseif why ~= "same" and why ~= "older" then rejected = rejected + 1 end
+		elseif why ~= "same" and why ~= "older" and not (why == "wait" and Store.SETS[set] and Store.SETS[set].quietWait) then
+			rejected = rejected + 1
+		end
 	end
 	return accepted, rejected
 end
@@ -657,15 +683,17 @@ function Store:Prune()
 	for set, def in pairs(Store.SETS) do
 		local records = r.sets[set]
 		if type(records) == "table" then
+			-- every record is judged before any goes: one may depend on another (an order and the crafter's part of it)
+			local gone = {}
 			for id, rec in pairs(records) do
-				local gone = type(rec) ~= "table"
+				if type(rec) ~= "table"
 					or (def.expires and def.expires(rec, t))
-					or (rec.del == true and not def.keepDeleted and (rec.time or 0) < t - 60 * DAY)
-				if gone then
-					records[id] = nil
-					removed = removed + 1
+					or (rec.del == true and not def.keepDeleted and (rec.time or 0) < t - 60 * DAY) then
+					gone[#gone + 1] = id
 				end
 			end
+			for _, id in ipairs(gone) do records[id] = nil end
+			removed = removed + #gone
 		end
 	end
 	stats.pruned = stats.pruned + removed

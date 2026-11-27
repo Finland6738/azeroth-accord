@@ -31,7 +31,8 @@ Tutto M13 è dietro un interruttore nuovo, **`econ`**, in [`Core/Features.lua`](
 | File | Contenuto | Passo |
 |---|---|---|
 | `Data/Orders.lua` | l'insieme `orders`, gli stati ricavati, la migrazione dei promemoria di M3, il fornitore `orders` del Centro azioni, gli avvisi (§3) | M13.2 |
-| `UI/Orders.lua` | la modalità *Orders* della vista *Market*, la finestra *New order* | M13.2 |
+| `UI/Market.lua` | la vista *Market* e le sue modalità (`View.AddMode`), usata da tutti i passi | M13.2 |
+| `UI/Orders.lua` | la modalità *Orders* della vista *Market*, la finestra *New order*, la sezione *Market* della scheda del membro | M13.2 |
 | `Data/Reagents.lua` | i materiali di una ricetta letti dal gioco, la loro cache, la scomposizione degli intermedi (§5.2, §5.3); riusato da M17 | M13.3 |
 | `Data/Demand.lua` | la domanda di materiali, calcolata (§4.1) | M13.3 |
 | `Data/Wishlist.lua`, `UI/Wishlist.lua` | l'insieme `wish` e la modalità *Wishlist* (§4.2) | M13.3 |
@@ -70,10 +71,12 @@ Un insieme sincronizzato su `GUILD`, con due tipi di record, uno per parte (ECO-
 
 | Record | Id | Campi | Chi scrive | `maxBytes` |
 |---|---|---|---|---|
-| Ordine | `O:<GUID compratore>:<n>` | `crafter` (GUID), `recipe` (spellID), `item` (itemID creato, se noto), `count` (1–`Orders.MAX_COUNT` = 200), `mats` = `buyer` \| `crafter` \| `mixed` (chi porta i materiali), `price` (0–24 byte, testo, ECO-04), `note` (0–80 byte), `by` (giorno, facoltativo: entro quando), `created`, `state` = `open` \| `received` \| `cancelled`, `closed` (ora, con uno stato diverso da `open`) | l'account del compratore | 384 |
-| Parte dell'artigiano | `A:<GUID compratore>:<n>` (lo stesso numero dell'ordine) | `crafter` (GUID), `state` = `accepted` \| `declined` \| `working` \| `ready` \| `handed`, `note` (0–80 byte), `at` (ora dell'ultimo passaggio) | l'account dell'artigiano dell'ordine | 256 |
+| Ordine | `O:<GUID compratore>:<n>` | `crafter` (GUID), `recipe` (spellID), `item` (itemID creato, se noto), `count` (1–`Orders.MAX_COUNT` = 200), `mats` = `buyer` \| `crafter` \| `mixed` (chi porta i materiali), `price` (0–24 byte, testo, ECO-04), `note` (0–80 byte), `by` (giorno, facoltativo: entro quando), `created`, `state` = `open` \| `received` \| `cancelled`, `closed` (ora, con uno stato diverso da `open`) | l'account del compratore | 512 |
+| Parte dell'artigiano | `A:<GUID compratore>:<n>` (lo stesso numero dell'ordine) | `crafter` (GUID), `state` = `accepted` \| `declined` \| `working` \| `ready` \| `handed`, `note` (0–80 byte), `at` (ora dell'ultimo passaggio) | l'account dell'artigiano dell'ordine | 384 |
 
-Il numero `n` cresce per compratore (`GuildKey:Data().econ.next`); un ordine non si riusa. `note` e `price` passano dalla pulizia di SPEC-15 §4.4 (niente `|`, a capo né caratteri di controllo).
+Le grandezze sono quelle stimate da `Config.EstimateSize`, che conta anche i nomi dei campi: con nota e prezzo al massimo un ordine arriva a circa 420 e una parte a circa 280, quindi i limiti sono 512 e 384 (M13.2; sul filo restano le stime del §10.1). `maxBytes` dell'insieme è 512, la parte è tenuta a 384 da `Orders.ValidRecord`. `item` per ora non si scrive: l'oggetto creato lo darà lo schema della ricetta (M13.3).
+
+Il numero `n` cresce per compratore (`GuildKey:Data().econ.next`, mai sotto il numero più alto che il client tiene); un ordine non si riusa. `note` e `price` passano dalla pulizia di SPEC-15 §4.4 (niente `|`, a capo né caratteri di controllo).
 
 ### 3.2 Gli stati che si vedono
 
@@ -88,15 +91,15 @@ Lo stato dell'ordine non si scrive: ogni client lo **ricava** dai due record, ne
 | *delivered* | ordine `received` **e** parte `handed` (ECO-03) | nessuno: è chiuso |
 | *cancelled* | ordine `cancelled`, oppure parte `declined`, oppure scaduto (§3.4) | nessuno: è chiuso |
 
-Con una consegna confermata da una parte sola la riga resta *ready* e dice chi manca: "Delivered on Bob's side, waiting for you to confirm" o "Waiting for Alice to confirm she received it". È il criterio di M13.2 ("both mark it delivered"). Il compratore può segnare `received` anche da *accepted* o *in progress* (l'artigiano ha consegnato senza passare da *ready*); l'artigiano può segnare `handed` dagli stessi stati.
+Con una consegna confermata da una parte sola la riga resta *ready* e dice chi manca: nella colonna *Confirm: you* o *Waiting: <nome>*, nella barra e nel tooltip "Delivered on Bob's side, waiting for you to confirm" o "Delivered on Alice's side, waiting for Bob to confirm". È il criterio di M13.2 ("both mark it delivered"). Il compratore può segnare `received` anche da *accepted* o *in progress* (l'artigiano ha consegnato senza passare da *ready*); l'artigiano può segnare `handed` dagli stessi stati. Il compratore può annullare finché il suo record è `open`, anche un ordine *ready* (un ordine pronto e mai consegnato non deve restare bloccato); dopo `received` non ha più passi, e l'artigiano può solo segnare `handed`.
 
 ### 3.3 Regole di fiducia (ORD-01…ORD-06)
 
 - **ORD-01 Solo il compratore e l'artigiano.** Un record `O:` si accetta solo se l'autore è il GUID del suo id o un personaggio dello stesso account con l'elenco reciproco (NET-10), o se lo ritrasmette un ufficiale (NET-11) con il contenuto dell'autore. Un record `A:` si accetta solo se l'autore è il `crafter` dell'ordine o un personaggio del suo account, con le stesse regole. Nessuno, ufficiali compresi, scrive la parte di un altro (`owner`). È il criterio di M13.2.
-- **ORD-02 Forma.** Campi e limiti di §3.1; `crafter` diverso dal compratore e dal suo account; `recipe` e `item` interi positivi; `by` non oltre 60 giorni dalla creazione. Altrimenti `owner`.
+- **ORD-02 Forma.** Campi e limiti di §3.1; `crafter` diverso dal compratore e dal suo account; `recipe` e `item` interi positivi; `by` tra il giorno della creazione e 60 giorni dopo; `created` non dopo il `time` del record e `closed` tra i due; nessun campo oltre quelli di §3.1. Altrimenti `owner`.
 - **ORD-03 Il contenuto non cambia.** Dopo la prima scrittura `crafter`, `recipe`, `item`, `count`, `mats`, `price` e `created` restano quelli; una revisione dell'ordine cambia solo `state`, `note` e `closed`. Anche `crafter` della parte deve essere quello dell'ordine. Altrimenti `locked`, come TRI-04.
 - **ORD-04 Passaggi.** L'ordine: `open` → `received` o `cancelled`, mai indietro. La parte: `accepted` → `working` → `ready` → `handed`, con `declined` da `accepted`, `working` o `ready` (e come prima scrittura), mai da `handed`; uno stato può saltare in avanti (`accepted` → `ready`), non tornare indietro. Una revisione che torna indietro si rifiuta (`locked`); una più vecchia di quella tenuta la scarta il deposito come `older`.
-- **ORD-05 La parte aspetta il suo ordine.** Una parte `A:` che arriva prima del suo `O:` non si può controllare (non si sa chi è l'artigiano): aspetta (motivo `wait`, al massimo 10 minuti e 50 record, come il catalogo delle ricette) e si accetta quando l'ordine arriva.
+- **ORD-05 La parte aspetta il suo ordine.** Una parte `A:` che arriva prima del suo `O:` non si può controllare (non si sa chi è l'artigiano): aspetta (motivo `wait`, al massimo 10 minuti e 200 record: un invio manda le parti prima degli ordini, `A:` prima di `O:`) e si accetta quando l'ordine arriva. `wait` si conta in `/accord debug` ma **non** contro il mittente (`quietWait`): è di un client onesto e non porta alla quarantena (SPEC-11 §6.3).
 - **ORD-06 Ritmo e limiti.** Al massimo `Orders.MAX_OPEN` = 10 ordini aperti per compratore (contando il suo account); al massimo 30 revisioni all'ora per autore si accettano da chi riceve (`rate`); `Orders:Create` rifiuta oltre i limiti (`limit`). L'artigiano non ha un limite di ordini ricevuti: rifiuta quelli che non vuole.
 
 Il motivo di rifiuto (`owner`, `locked`, `wait`, `rate`) arriva al contatore di `/accord debug` attraverso `Net/Store.lua`. Un client `v0.12` non conosce l'insieme e lo ignora (SPEC-02 §6), senza contarlo come rifiutato.
@@ -104,29 +107,31 @@ Il motivo di rifiuto (`owner`, `locked`, `wait`, `rate`) arriva al contatore di 
 ### 3.4 Durata e conservazione
 
 - Un ordine ancora *requested* dopo `Orders.REQUEST_DAYS` = 14 giorni, o con `by` passato da 7 giorni senza consegna, si mostra *cancelled* ("expired"): lo decide ogni client dalla data, senza scrivere nulla.
-- Un ordine chiuso (consegnato, annullato o scaduto) e la sua parte si cancellano **30 giorni** dopo la chiusura (la più recente tra `closed` e `at`), come le richieste chiuse della banca dopo 60 (SPEC-02 §6).
+- Un ordine **senza** `by`, accettato o confermato da una parte sola, senza un passaggio da `Orders.STALE_DAYS` = 60 giorni si mostra *cancelled* ("expired"), così nessun ordine resta aperto per sempre (SPEC-10 Q50).
+- Un ordine chiuso (consegnato, annullato o scaduto) e la sua parte si cancellano **30 giorni** dopo la chiusura (la più recente tra `closed` e `at`; per uno scaduto, il momento della scadenza), come le richieste chiuse della banca dopo 60 (SPEC-02 §6). La scadenza si giudica su ciò che il deposito tiene (la potatura giudica tutti i record prima di toglierne) o sulla parte in attesa; un ordine chiuso dal compratore di cui non si ha la parte scade 30 giorni dopo `closed`, così una consegna già cancellata non torna come confermata da una parte sola.
 - Un compratore o un artigiano che esce dalla gilda: i suoi ordini aperti si mostrano *cancelled* ("left the guild") dopo una lettura del roster non vuota; i record restano fino alla scadenza.
 
 ### 3.5 Nascita di un ordine
 
-- **Dal pulsante *Request craft*** (catalogo, "who can craft", scheda del membro): la finestra *New order* (`UI/Orders.lua`) mostra la ricetta con l'icona, l'artigiano (scelto; un menu degli altri che la sanno creare, online prima, da `Crafters:Who`), *How many*, *Materials* (*I bring them* / *You use yours* / *Some of each*, segmentati), *Price* e *Note*, e i materiali della ricetta con il proprio *posseduti/necessari* (§5) quando sono noti. Il pulsante pieno è *Place order*. Sotto, spento di predefinito, *Also whisper <nome>* apre la casella della chat con il sussurro di M3 (l'addon non lo manda, SPEC-06 §2.3).
+- **Dal pulsante *Request craft*** (catalogo, "who can craft" e l'elenco di un membro; dalla scheda del membro si arriva al catalogo con le righe delle professioni), con `econ` acceso su ogni artigiano che non è del proprio account, online o no: la finestra *New order* (`UI/Orders.lua`) mostra la ricetta con l'icona, l'artigiano (scelto; un menu degli altri che la sanno creare, online prima, da `Crafters:Who`), *How many*, *Materials* (*I bring them* / *You use yours* / *Some of each*, segmentati), *Price*, *Note*, *Needed by* (facoltativo, `AAAA-MM-GG`: il campo `by`) e, da M13.3–M13.4, i materiali della ricetta con il proprio *posseduti/necessari* (§5) quando sono noti. Il pulsante pieno è *Place order*. Sotto, spento di predefinito, *Also whisper <nome>* apre la casella della chat con il sussurro di M3 (l'addon non lo manda, SPEC-06 §2.3).
 - **Anche offline**: un ordine si può fare a un artigiano non online (arriva con la sincronizzazione); la finestra lo dice ("Bob is offline: he will see the order when he logs in").
 - **Un artigiano per ordine** (SPEC-10 Q41): un ordine "a chiunque sappia crearla" vorrebbe una gara tra artigiani su chi lo prende, cioè due scrittori dello stesso dato.
+- L'artigiano si può cambiare nella finestra; senza online l'interruttore del sussurro è disattivato.
 - `Orders:Create` emette ancora `CRAFT_REQUESTED(guid, recipeId)`; il fornitore `craft` di M9 (SPEC-13 §2.3) con `econ` acceso non registra più promemoria nuovi: li sostituiscono le righe degli ordini.
 
 ### 3.6 I promemoria di M3 (la migrazione)
 
-I promemoria locali di *Request craft* (`GuildKey:Data().craftAsks`, `{ guid, recipeId, at }`, al massimo 20, SPEC-13 §2.3) erano sussurri: l'artigiano non sa di averli in Accord. La migrazione **non li pubblica da sola** (SPEC-10 Q42): alla prima apertura della modalità *Orders* con `econ` acceso, ogni promemoria ancora aperto e più giovane di 7 giorni diventa una riga *From your earlier requests* con *Make it an order* (apre *New order* già compilata con la ricetta e l'artigiano, quantità 1) e *Dismiss*. Un promemoria offerto non torna (`econ.migrated[<guid>:<recipeId>:<at>]`); quelli non toccati scadono come prima dopo 7 giorni. È il criterio di M13.2 ("old M3 requests are migrated"): nessuna richiesta di prima si perde, nessuna diventa pubblica senza un clic.
+I promemoria locali di *Request craft* (`GuildKey:Data().craftAsks`, `{ guid, recipeId, at }`, al massimo 20, SPEC-13 §2.3) erano sussurri: l'artigiano non sa di averli in Accord. La migrazione **non li pubblica da sola** (SPEC-10 Q42): alla prima apertura della modalità *Orders* con `econ` acceso, ogni promemoria ancora aperto e più giovane di 7 giorni diventa una riga *From your earlier requests* con *Make it an order* (apre *New order* già compilata con la ricetta e l'artigiano, quantità 1) e *Dismiss*. Un promemoria offerto non torna (`econ.migrated[<guid>:<recipeId>:<at>]`); quelli non toccati scadono come prima dopo 7 giorni. Un promemoria si segna offerto quando il giocatore preme *Dismiss* o quando l'ordine nato da lì è scritto (chiudere la finestra lo lascia), e si toglie anche da `craftAsks`, quindi anche dal Centro azioni; la modalità ne mostra tre per volta e dice quanti restano. È il criterio di M13.2 ("old M3 requests are migrated"): nessuna richiesta di prima si perde, nessuna diventa pubblica senza un clic.
 
 ### 3.7 Centro azioni e avvisi
 
-- **Il fornitore `orders`** ([SPEC-13 §2.1](SPEC-13-action-center-notices.md#21-il-fornitore)), registrato da `Data/Orders.lua` con `feature = "econ"`: all'artigiano ogni ordine *requested* ("Alice ordered 2 × Flask of the Titans", urgenza 2); al compratore ogni ordine *ready* ("Bob has your Flask of the Titans ready", urgenza 2); a entrambi una consegna confermata solo dall'altro ("Confirm the delivery of …", urgenza 2); al compratore un ordine rifiutato o scaduto, una volta (urgenza 1, sparisce con *Done*). Ogni riga apre la modalità *Orders* su quell'ordine.
+- **Il fornitore `orders`** ([SPEC-13 §2.1](SPEC-13-action-center-notices.md#21-il-fornitore)), registrato da `Data/Orders.lua` con `feature = "econ"`: all'artigiano ogni ordine *requested* ("Alice ordered 2 × Flask of the Titans", urgenza 2); al compratore ogni ordine *ready* ("Bob has your Flask of the Titans ready", urgenza 2); a entrambi una consegna confermata solo dall'altro ("Confirm the delivery of …", urgenza 2); al compratore un ordine rifiutato o scaduto, una volta (urgenza 1, sparisce con *Done*, ricordato in `econ.done`). Ogni riga apre la modalità *Orders* su quell'ordine.
 - **Gli avvisi** del modulo `orders` (livello `normal`, chat, interruttori dei tipi `notify.orders.off.<tipo>`): `new` (all'artigiano), `state` (al compratore, quando la parte cambia), `delivered` (a entrambi, alla chiusura). Una volta per ordine e stato (chiave `<id>:<stato>` nel libro di `Notify:Seen("orders")`); la prima volta tutto ciò che c'è già conta come visto, come per la banca (SPEC-08 §10).
 - Con `actions` spento le righe non ci sono e gli avvisi escono in chat come quelli della banca prima di M9.
 
 ### 3.8 La modalità *Orders*
 
-Una tabella con tre chip in cima: *For me* (l'artigiano sono io o un mio alt), *Mine* (il compratore sono io), *Everyone* (tutti, SPEC-10 Q40). Colonne: oggetto (icona, nome, `× n`), compratore, artigiano, stato (con il token di §11), materiali, prezzo, età. Il chip *Show closed ones too* aggiunge i chiusi degli ultimi 30 giorni. I pulsanti sulla riga dipendono da chi guarda e dallo stato: per l'artigiano *Accept*, *Decline*, *Working on it*, *Ready*, *Handed over*; per il compratore *Cancel*, *Received*; ognuno chiude con un secondo clic **Confirm**, come le prove (SPEC-16 §4.5). Il tooltip della riga ha la nota di entrambi, la storia dei passaggi (le ore dei due record) e i materiali con il *posseduti/necessari* di chi guarda. *Whisper* apre la casella della chat verso l'altro.
+Una tabella con tre chip in cima: *For me* (l'artigiano sono io o un mio alt), *Mine* (il compratore sono io), *Everyone* (tutti, SPEC-10 Q40; la vista parte da qui). Colonne: oggetto (icona, nome, `n ×`), compratore, artigiano, stato (con il token di §11), materiali, prezzo, età. Il chip *Show closed ones too* aggiunge i chiusi degli ultimi 30 giorni; la casella di ricerca filtra per oggetto e nomi. I passi dipendono da chi guarda e dallo stato: per l'artigiano *Accept*, *Decline*, *Working on it*, *Ready*, *Handed over*; per il compratore *Cancel order*, *Received*. Cinque pulsanti non stanno in una riga: la riga ha il **passo successivo** (mai *Decline* o *Cancel*), e la riga scelta (un clic) ha sotto la tabella una **barra** con tutti i passi, un campo per la nota che parte con il passo (quella dell'artigiano resta se non se ne scrive una nuova) e *Whisper*, che apre la casella della chat verso l'altro. Ogni passo vuole un secondo clic **Confirm**, come le prove (SPEC-16 §4.5). Il tooltip della riga ha la nota di entrambi, i passaggi con le loro ore e, da M13.3–M13.4, i materiali con il *posseduti/necessari* di chi guarda. In cima, quando ci sono, le richieste di M3 (§3.6).
 
 ## 4. Domanda di materiali e lista dei desideri (M13.3)
 
@@ -292,8 +297,8 @@ Una card per obiettivo aperto: titolo, oggetto o oro, barra (`Widgets.ThinBar`),
 
 ## 8. Domanda, desideri e bacheca: che cosa si vede accanto
 
-- La **scheda del membro** (SPEC-05) aggiunge, con `econ` acceso, una sezione *Market*: i suoi ordini aperti come compratore e come artigiano, i suoi desideri, i suoi annunci aperti.
-- Il **catalogo delle ricette** (SPEC-06 §2.4) dice per ogni ricetta quanti ordini aperti ha ("2 open orders") e offre *Add to shopping list*.
+- La **scheda del membro** (SPEC-05) aggiunge, con `econ` acceso, una sezione *Market*: i suoi ordini aperti come compratore e come artigiano (M13.2; un clic apre l'ordine), i suoi desideri (M13.3), i suoi annunci aperti (M13.5).
+- Il **catalogo delle ricette** (SPEC-06 §2.4) dice per ogni ricetta quanti ordini aperti ha ("2 open orders", M13.2) e offre *Add to shopping list* (M13.4).
 - La vista *Bank* non cambia: gli obiettivi stanno nella vista *Market* e leggono i suoi registri.
 
 ## 9. Le aste con un ufficiale come host (M13.7, solo descritte)
@@ -331,6 +336,8 @@ Gli insiemi `orders`, `wish`, `board` e `goals` non esistono per nessun client g
 ### 10.3 Misure
 
 Ogni passo che scrive un insieme lo misura nel simulatore (`Tests/test_sync_sim.lua`, lo scenario di M10.8: 50 client, 45 minuti, accessi e uscite), con un carico più alto del reale: M13.2 un ordine nuovo ogni 5 minuti per tutta la gilda con tutti i passaggi; M13.3 un desiderio cambiato ogni 3 minuti; M13.5 un annuncio ogni 3 minuti e una risposta ogni 5. Il test fa rispettare i limiti di sopra e controlla che un client senza `econ` non riceva né mandi nulla di M13 oltre ai `REC` su `GUILD`, che ignora.
+
+**M13.2, misurato** (`Tests/test_orders.lua`, 9 ordini con tutti i 45 passaggi, nota e prezzo al massimo): in media **328 B/min** per client (283 senza ordini), il client più carico **1573 B/min** (859): dentro i limiti. Un `BHELLO` con tutti i riepiloghi, per 1000 autori, è di **509 B** su 512: un riepilogo in più (le aste di M13.7) vorrebbe prima spazio.
 
 ## 11. *What I share*, aspetto, diagnostica, demo
 

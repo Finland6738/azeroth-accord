@@ -145,6 +145,9 @@ local function fill(data, account, char)
 		end
 		guild.onboarding = data.onboarding   -- the welcome checklist of a new member (SPEC-16 §5), only here
 	end
+	if data.orders and ns.Features and ns.Features.On("econ") then   -- the craft orders (SPEC-17 §11)
+		data.sets.orders = data.orders
+	end
 	if data.groups and ns.Features and ns.Features.On("groups") then   -- the group finder (SPEC-13 §6.10)
 		data.sets.groups = data.groups.listings
 		char.groups = { guild = data.key, next = 1, apps = { [data.groups.own] = data.groups.apps }, mine = {} }

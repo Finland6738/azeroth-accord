@@ -472,6 +472,30 @@ Model.Add("mentor", { set = "mentor", feature = "recruit", build = builders.ment
 		end,
 	} })
 
+-- the own craft orders and the own steps on others' orders (M13.2, SPEC-17 §11): the records as they were last sent
+builders.orders = function(guid)
+	local lines, recs = {}, {}
+	local Orders = ns.Orders
+	for _, rec in ipairs(own("orders", guid)) do
+		local kind = Orders and Orders.KindOf(rec)
+		local order = kind == "O" and rec or kind == "A" and S():Get("orders", "O" .. rec.id:sub(2))
+		if kind then
+			recs[#recs + 1] = rec
+			local what = order and L["ORD_ITEM"]:format(order.count, Orders.RecipeName(order.recipe)) or "?"
+			local state = kind == "O" and L["SHARE_ORDER_" .. rec.state:upper()] or L["ORD_ST_" .. (rec.state == "working"
+				and "PROGRESS" or rec.state == "handed" and "HANDED" or rec.state:upper())]
+			local parts = { L[kind == "O" and "SHARE_ORDER_LINE" or "SHARE_ORDER_PART"]:format(what, state) }
+			if rec.price then parts[#parts + 1] = L["SHARE_ORDER_PRICE"]:format(ns.Contacts and ns.Contacts.Escape(rec.price) or rec.price) end
+			if rec.note then parts[#parts + 1] = L["SHARE_ORDER_NOTE"]:format(ns.Contacts and ns.Contacts.Escape(rec.note) or rec.note) end
+			lines[#lines + 1] = concat(parts, " · ")
+		end
+	end
+	if #recs == 0 then lines[1] = L["SHARE_NOTHING_YET"] end
+	return lines, recs
+end
+Model.Add("orders", { set = "orders", feature = "econ", build = builders.orders, title = "SHARE_ORDERS",
+	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ORDERS" })
+
 -- added after the sets above, under the recipes (SPEC-13 §8.3)
 Model.Add("addons", { set = "addons", feature = "census", build = builders.addons, order = 4, title = "SHARE_ADDONS",
 	to = "SHARE_TO_GUILD", when = "SHARE_WHEN_ADDONS", switch = "shareAddons", switchLabel = "SHARE_ADDONS_SWITCH",

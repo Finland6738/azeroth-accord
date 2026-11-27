@@ -519,7 +519,8 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- The whisper for asking a member to craft a recipe: { name = <name to whisper>, text = <the message, with the recipe
 -- link>, link, recipe } or nil plus a reason ("member" not in the roster, "self", "offline", "noname" the recipe has no
--- name yet). Nothing is sent: the player opens the chat box with it and sends it (V2 turns this into a recorded order).
+-- name yet). Nothing is sent: the player opens the chat box with it and sends it. With the switch `econ` on, Request craft
+-- places a recorded order instead and this whisper is an option of that window (SPEC-17 §3.5).
 function Recipes:CraftRequest(guid, recipeId)
 	local Ro, L = ns.Roster, ns.L
 	local e = Ro and type(guid) == "string" and Ro:ByGUID(guid)
@@ -549,7 +550,7 @@ end
 ---------------------------------------------------------------------------------------------------------------------
 -- A craft request is only a whisper, so the Action Center keeps a reminder for the one who asked, on this computer only:
 -- GuildKey:Data().craftAsks = { { guid, recipeId, at }, ... }, the oldest first. Never sent, never in the backup.
--- M13.2 replaces it with the orders.
+-- With the switch `econ` on the orders replace it (Data/Orders.lua): the reminders held are offered there as orders.
 Recipes.MAX_ASKS = 20
 Recipes.ASK_DAYS = 7
 
@@ -575,9 +576,9 @@ local function writeAsks(guid, recipeId, add)
 end
 
 -- A request was written in the chat box: asking the same member for the same recipe again renews the reminder. Nothing is
--- kept while the switch `actions` is off.
+-- kept while the switch `actions` is off, nor with the switch `econ` on: the orders replace the reminders (SPEC-17 §3.5).
 function Recipes:RememberAsk(guid, recipeId)
-	if not (ns.Features and ns.Features.On("actions")) then return false end
+	if not (ns.Features and ns.Features.On("actions")) or ns.Features.On("econ") then return false end
 	if type(guid) ~= "string" or type(recipeId) ~= "number" then return false end
 	writeAsks(guid, recipeId, true)
 	return true

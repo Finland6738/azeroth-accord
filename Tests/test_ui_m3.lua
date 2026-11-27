@@ -36,7 +36,9 @@ end
 local function newSeen() return { buttons = 0, chips = 0, fields = 0 } end
 
 describe("every view follows ui-style §9", function()
-	before_boot(function(M) M.features = { season = true, raid = true, actions = true, groups = true, census = true, recruit = true } end)
+	before_boot(function(M)
+		M.features = { season = true, raid = true, actions = true, groups = true, census = true, recruit = true, econ = true }
+	end)
 
 	local function demo()
 		Mock.Slash("/accord demo")
@@ -81,6 +83,12 @@ describe("every view follows ui-style §9", function()
 		pages("actions", ids(A().ActionsView.pages), function(p) A().ActionsView:ShowPage(p) end)
 		pages("officers", ids(A().OfficersView.pages), function(p) A().OfficersView:ShowPage(p) end)
 		pages("bank", ids(A().BankView.modes), function(p) A().BankView:SetMode(p) end)
+		pages("market", ids(A().MarketView.modes), function(p) A().MarketView:SetMode(p) end)
+		-- every order selected in turn: the buttons of the bar under the table
+		for _, row in ipairs(A().Orders:List()) do
+			A().OrdersView:Select(row.id)
+			check(open("market"), "market/orders " .. row.id, seen)
+		end
 		pages("reputation", ids(A().ReputationView.modes), function(p) A().ReputationView:SetMode(p) end)
 		pages("settings", ids(A().SettingsView.pages), function(p) A().SettingsView:ShowPage(p) end)
 		truthy(seen.buttons > 10 and seen.chips > 10, "the pages were walked")
@@ -100,6 +108,7 @@ describe("every view follows ui-style §9", function()
 			diagnostics = function() A().DiagnosticsBox:Open("QZ") return A().DiagnosticsBox.frame end,
 			recruit = function() A().RecruitView:Open() return A().RecruitView.frame end,
 			trial = function() return A().TrialsView:OpenStart() end,
+			order = function() return A().OrdersView:OpenNew(nil, 2330) end,
 		}
 		for name, show in pairs(dialogs) do
 			local d = show()
