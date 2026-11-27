@@ -79,6 +79,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Documentation
 
+- Planning (owner, 2026-11-27): **new milestone M18, the guild group finder like the game's** ([docs/roadmap/M18-group-finder.md](docs/roadmap/M18-group-finder.md)), behind a new switch `groupfinder`.
+  - Active groups on the left with role slots and Join; on the right, the selected group or a three-step create form.
+  - Each role has a count, a required level range and recommended classes; dungeons of 5 and raids of 10/20/40.
+  - Join is applied for and the invite goes out on the leader's click; older clients see a simplified listing.
+  - The "new group for you" notice is on by default, with a mute.
+
+  **`v1.0.0` now follows M18** (ADR 0020): M17.7 releases `v0.17.0` only.
+
 - Planning (owner, 2026-11-27):
   - **M13 gains a shopping list** (new step M13.4; the later steps move by one, the check is M13.8). The materials of the recipes a player picks show as owned/needed, counting the bags, the bank, the alts and the mail, with the guild bank apart. An on/off switch breaks intermediate materials down. Prices come from Auctionator when installed. Buttons ask the guild (wishlist) or the guild bank (request) for what is missing.
   - **New milestone M17, professions assistant** ([docs/roadmap/M17-professions.md](docs/roadmap/M17-professions.md)): a 1–300 route computed by Accord from a licence-verified thresholds table, plus the live best recipe. The levelling page and a tracker show owned/needed and a Create button. Gathering and Forever skills (Lockpicking, Camping, Merchant's Favor) get internal tables. Nothing points to a website, and other sites' guides are not copied without their author's permission.

@@ -112,7 +112,7 @@
   - `docs/checklists/M16.md`, and the switch `quests` turned on;
   - the wiki and both READMEs up to date.
 
-  The full release check, the full tests and `v1.0.0` moved to M17.7 (2026-11-27).
+  The full release check, the full tests and `v1.0.0` moved to M17.7, then to M18.7 (2026-11-27).
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.16.0`.

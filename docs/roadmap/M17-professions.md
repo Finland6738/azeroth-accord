@@ -1,6 +1,6 @@
 # M17 — Professions assistant
 
-**Goal:** an assistant that levels every profession from 1 to 300 inside Accord. For each step it shows what to craft or where to gather, and the materials as **owned/needed**. A small movable tracker follows the player while they craft. The owner asked for it on 2026-11-27 and answered the design questions the same day (below). After M17 comes the release of `v1.0.0` ([ADR 0020](../adr/0020-one-version-per-milestone.md), update of 2026-11-27).
+**Goal:** an assistant that levels every profession from 1 to 300 inside Accord. For each step it shows what to craft or where to gather, and the materials as **owned/needed**. A small movable tracker follows the player while they craft. The owner asked for it on 2026-11-27 and answered the design questions the same day (below). After M17 comes [M18](M18-group-finder.md), the guild group finder, and then `v1.0.0` ([ADR 0020](../adr/0020-one-version-per-milestone.md), update of 2026-11-27).
 
 **Switched off until complete.** Everything of M17 ships behind a new switch `professions` in `AzerothAccord/Core/Features.lua`. The last step turns it on.
 
@@ -85,14 +85,13 @@ They craft until the next skill level, and the assistant moves to the next step 
 - Done when:
   - [ ] Each skill shows the band for the player's level and the next one; nothing points to a website.
 
-## M17.7 — In-game check, `v0.17.0` and `v1.0.0`
+## M17.7 — In-game check and `v0.17.0`
 - Branch: `step/m17-7-release`
 - Scope:
   - `docs/checklists/M17.md`, and the switch `professions` turned on;
-  - the full release check of `docs/checklists/release.md`, run again over everything;
-  - the full test suite and CI back on (ADR 0012 point 9);
-  - the wiki and both READMEs complete.
+  - the wiki and both READMEs up to date.
+
+  The full release check, the full tests and `v1.0.0` moved to M18.7 (2026-11-27).
 - Done when:
   - [ ] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.17.0`.
-  - [ ] The full release check passes and the owner tags `v1.0.0`.

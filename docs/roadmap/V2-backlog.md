@@ -18,6 +18,7 @@ Ideas not yet planned, and what stays out of the addon. Every idea of the first 
 | Kudos with a reason | [M14](M14-board-polls.md) |
 | Mentors for new members | [M12](M12-recruitment.md) |
 | Shopping list | [M13](M13-economy.md) (owner, 2026-11-27) |
+| Guild group finder like the game's | [M18](M18-group-finder.md) (owner, 2026-11-27): role slots with level ranges and recommended classes |
 | Profession levelling | [M17](M17-professions.md) (owner, 2026-11-27): computed routes, owned/needed, tracker; no external links |
 | Guild quests | [M16](M16-quests.md) (owner, 2026-11-26); later, not in M16: objective progress, who already completed a quest, attunement quests, a login digest line for quests in common |
 
