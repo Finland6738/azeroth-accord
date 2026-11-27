@@ -6,7 +6,7 @@
 
 ## Le ricette della gilda
 
-La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco), il **livello di abilità che richiede** (*Abilità 175*, quando il gioco lo dà) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per livello richiesto, o per nome quando i livelli non sono noti.
+La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si apre sulle **ricette della gilda**: scegli una professione nell'elenco sopra la tabella e vedi **tutte le ricette di quella professione**, imparate da qualcuno della gilda o no. Ogni riga ha l'icona e il nome della ricetta (nella lingua del tuo gioco) e **quanti personaggi della gilda possono crearla** ("2 possono crearlo", o "ancora nessuno"). Le ricette sono ordinate per nome. WoW Forever non dice agli addon il livello di abilità che una ricetta richiede, quindi la vista non lo mostra.
 
 - **Clicca una ricetta** per vedere **chi può crearla**, subito sotto: prima i personaggi online, gli alt di uno stesso giocatore insieme, con **Chiedi di crearlo** accanto a chi è online. Un altro clic la chiude.
 - **Clicca un personaggio** per aprire **le sue ricette** di quella professione: quelle che ha imparato e, attenuate e segnate "non imparata", quelle che gli mancano. L'elenco sopra la tabella filtra *Imparate da …* o *Non imparate da …*. **Torna alle ricette della gilda** riporta indietro.

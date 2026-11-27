@@ -6,7 +6,7 @@
 
 ## Guild recipes
 
-The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language), the **skill level it needs** (*Skill 175*, when the game gives it) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by the level they need, or by name when the levels are not known.
+The **Professions** view (`/accord professions`, or the **Professions** tab) opens on the **guild's recipes**: pick a profession in the list above the table and you see **every recipe of that profession**, learned by somebody in the guild or not. Each line has the recipe's icon and name (in your game's language) and **how many guild characters can craft it** ("2 can craft it", or "nobody yet"). Recipes are sorted by name. WoW Forever does not tell addons the skill level a recipe needs, so the view does not show it.
 
 - **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
 - **Click a character** to open **their recipes** of that profession: the ones they learned and, dimmed and marked "not learned", the ones they miss. The list above the table filters *Learned by …* or *Not learned by …*. **Back to guild recipes** returns.
