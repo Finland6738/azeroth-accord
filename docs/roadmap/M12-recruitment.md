@@ -86,4 +86,5 @@
 - Done when:
   - [x] The checklist exists.
   - [ ] The in-game checks pass and the owner tags `v0.12.0`.
+  - *Released (2026-11-27):* `v0.12.0` was tagged before the in-game checks, while the owner was away, under their standing approval for milestone tags (ADR 0020 update of 2026-11-25), and without waiting for the full tests and CI (ADR 0012 point 9). This box stays open until the checks pass.
   - *Done in code (2026-11-27):* [the M12 checklist](../checklists/M12.md); the switch `recruit` is on in `Core/Features.lua`; README and wiki describe M12 as part of the next release. The release preparation of the changelog and the tag are a separate step. Nothing of M12 has been checked in the real game.

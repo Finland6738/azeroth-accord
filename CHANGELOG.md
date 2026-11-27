@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-27
+
 ### Changed
 
 - M12.9: **the features of M12 are switched on** for the next release (`Core/Features.lua`: `recruit`): the **recruitment text** (its button in the Season view and `/accord recruit`, M12.2), the **trials** of new members for officers (the Trials page, the member card, the end reminder, M12.3), the **welcome checklist** and `/accord welcome` (M12.4), the **mentors** (the Mentors mode of Reputation, the suggested pairs for officers, the *What I share* rows, M12.5), and the data sets `trials` and `mentor`. The entries of M12 below that say "behind the switch `recruit`" were written before this. **Nothing of M12 is checked in the real game.**
