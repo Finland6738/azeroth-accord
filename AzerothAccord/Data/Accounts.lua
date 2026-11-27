@@ -95,7 +95,7 @@ function Accounts:Register(info)
 	if type(info) ~= "table" or not isGUID(info.guid) then return nil, "guid" end
 	if type(info.name) ~= "string" or info.name == "" then return nil, "name" end
 	if ns.Config:IsReadOnly("account") then return nil, "read-only" end
-	local realm = info.realm or (compat() and compat().Player.Realm())
+	local realm = info.realm or (compat() and compat().Player.RealmKey())
 	if type(realm) ~= "string" or realm == "" then return nil, "realm" end
 	if type(db.chars) ~= "table" then db.chars = {} end
 	local list = db.chars[realm]
@@ -129,11 +129,42 @@ function Accounts:RegisterSelf()
 	return entry, why
 end
 
+-- WoW Forever has no realm: every character belongs under Player.NO_REALM. Builds of 2026-11-27 stored them under their
+-- SURNAME as if it were a realm (and the guild key with it); this moves them back once, keeping the newest entry of a GUID,
+-- and points their guild at the guild key without that surname.
+function Accounts.MergeNoRealm(C)
+	if C.Player.Realm() then return 0 end
+	local db = accountDB()
+	if not db or type(db.chars) ~= "table" or ns.Config:IsReadOnly("account") then return 0 end
+	local home = C.Player.NO_REALM
+	local into = type(db.chars[home]) == "table" and db.chars[home] or {}
+	local moved = 0
+	for r, list in pairs(db.chars) do
+		if r ~= home and type(list) == "table" then
+			for guid, e in pairs(list) do
+				local old = into[guid]
+				if type(e) == "table" and (type(old) ~= "table" or (e.seen or 0) > (old.seen or 0)) then
+					if type(e.guild) == "string" and e.guild ~= "" then
+						local _, gname = ns.GuildKey.Split(e.guild)
+						if gname then e.guild = ns.GuildKey.Make(home, gname) end
+					end
+					into[guid] = e
+				end
+				moved = moved + 1
+			end
+			db.chars[r] = nil
+		end
+	end
+	db.chars[home] = into
+	return moved
+end
+
 function Accounts:RegisterSelfNow()
 	local C = compat()
 	if not C then return nil, "compat" end
-	local guid, name = C.Player.GUID(), C.Player.Name()
+	local guid, name = C.Player.GUID(), (C.Player.FullName and C.Player.FullName()) or C.Player.Name()
 	if not guid then return nil, "no GUID from the game" end
+	Accounts.MergeNoRealm(C)
 	if not name then return nil, "no name from the game" end
 	local guild = ns.GuildKey and ns.GuildKey:Current() or nil
 	if guild == nil and not C.Guild.InGuild() then guild = "" end
@@ -147,7 +178,7 @@ function Accounts:OwnChars()
 	local db, out = accountDB(), {}
 	if not db or type(db.chars) ~= "table" then return out end
 	local C = compat()
-	local realm, me = C and C.Player.Realm(), C and C.Player.GUID()
+	local realm, me = C and C.Player.RealmKey(), C and C.Player.GUID()
 	local key = ns.GuildKey and ns.GuildKey:Current() or nil
 	local R = ns.Roster
 	local rosterLoaded = R and R:Count() > 1
@@ -181,7 +212,7 @@ function Accounts:Main()
 	if #list == 0 then return nil end
 	local db = accountDB()
 	local C = compat()
-	local realm = C and C.Player.Realm()
+	local realm = C and C.Player.RealmKey()
 	local chosen = db and type(db.mains) == "table" and realm and db.mains[realm]
 	if chosen then
 		for _, e in ipairs(list) do if e.guid == chosen then return chosen, "chosen" end end
@@ -200,7 +231,7 @@ end
 function Accounts:SetMain(guid)
 	local db = accountDB()
 	local C = compat()
-	local realm = C and C.Player.Realm()
+	local realm = C and C.Player.RealmKey()
 	if not db or not realm then return false, "db" end
 	if ns.Config:IsReadOnly("account") then return false, "read-only" end
 	local found = false

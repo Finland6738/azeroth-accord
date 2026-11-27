@@ -94,6 +94,55 @@ describe("the own list of characters (ACC-01)", function()
 	end)
 end)
 
+describe("WoW Forever: no realm, a surname (2026-11-27)", function()
+	before_boot(function(M) guild() end)
+
+	-- the client of WoW Forever: no realm name, and UnitFullName gives the surname where a realm would be
+	local function forever(surname)
+		local a, b, c = GetNormalizedRealmName, GetRealmName, UnitFullName
+		GetNormalizedRealmName, GetRealmName = function() return nil end, function() return "" end
+		UnitFullName = function(unit) if unit == "player" then return "Testchar", surname end end
+		return function() GetNormalizedRealmName, GetRealmName, UnitFullName = a, b, c end
+	end
+
+	it("names the character with its surname and files it under one realm, never the surname", function()
+		local undo = forever("Wintermane")
+		local C = AzerothAccord.Compat
+		isNil(C.Player.Realm())
+		eq(C.Player.FullName(), "Testchar Wintermane")
+		eq(C.Player.RealmKey(), "Forever")
+		local e = A():RegisterSelf()
+		undo()
+		eq(e.name, "Testchar Wintermane")
+		notNil(cfg().chars.Forever[ME])
+		isNil(cfg().chars.Wintermane)
+	end)
+
+	it("moves characters a surname filed as a realm back together, and the guild's data with them", function()
+		cfg().chars = {
+			Wintermane = { [ME] = { name = "Testchar", classID = 3, level = 38, added = 1, seen = 5, guild = "Wintermane/Accord" } },
+			Frozenbeard = { [ALT] = { name = "Testchar", classID = 7, level = 3, added = 2, seen = 6, guild = "" } },
+		}
+		cfg().guilds = { ["Wintermane/Accord"] = { firstSeen = 1, marker = "kept" } }
+		local undo = forever("Wintermane")
+		A():RegisterSelf()
+		local data = AzerothAccord.GuildKey:Data(AzerothAccord.GuildKey.Make("Forever", "Accord"))
+		undo()
+		notNil(cfg().chars.Forever[ME]); notNil(cfg().chars.Forever[ALT])
+		isNil(cfg().chars.Wintermane); isNil(cfg().chars.Frozenbeard)
+		eq(data.marker, "kept", "the guild's table moved to the key without the surname")
+		isNil(cfg().guilds["Wintermane/Accord"])
+	end)
+
+	it("recognises its own messages sent as \"Name Surname\" or \"Name-Surname\"", function()
+		local undo = forever("Wintermane")
+		local T = AzerothAccord.Transport
+		local a, b, c = T.IsSelf("Testchar Wintermane"), T.IsSelf("Testchar-Wintermane"), T.IsSelf("Testchar Other")
+		undo()
+		truthy(a); truthy(b); falsy(c)
+	end)
+end)
+
 describe("the own record", function()
 	before_boot(function(M) guild() end)
 

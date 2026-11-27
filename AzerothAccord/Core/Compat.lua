@@ -499,20 +499,31 @@ function Player.Name()
 	return str((first("UnitName", "player")))
 end
 
--- Normalized realm name (no spaces), falling back to GetRealmName without spaces, then to the realm part of
--- UnitFullName("player").
+-- Normalized realm name (no spaces), falling back to GetRealmName without spaces; nil when the client has none. On WoW
+-- Forever there is none, and the second result of UnitFullName is the character's SURNAME ("Finland", "Wintermane" for
+-- "Finland Wintermane"), never a realm: it was taken for one on 2026-11-27 and split one account's characters and the
+-- guild's key by surname.
 function Player.Realm()
 	local v = first("GetNormalizedRealmName")
 	if not str(v) then
 		v = first("GetRealmName")
 		if type(v) == "string" then v = v:gsub("[%s%-']", "") end
 	end
-	if not str(v) then
-		local full = all("UnitFullName", "player")
-		v = full and full[2]
-		if type(v) == "string" then v = v:gsub("[%s%-']", "") end
-	end
 	return str(v)
+end
+
+-- The surname of a Forever character (the second result of UnitFullName when the client has no realm), else nil.
+function Player.Surname()
+	if Player.Realm() then return nil end
+	local full = all("UnitFullName", "player")
+	return full and str(full[2]) or nil
+end
+
+-- The name as the roster shows it: "Name Surname" on Forever, else the plain name.
+function Player.FullName()
+	local name, surname = Player.Name(), Player.Surname()
+	if name and surname then return name .. " " .. surname end
+	return name
 end
 
 -- The realm for keys (the guild key, the own list of characters): Player.Realm, else Player.NO_REALM, so that a client

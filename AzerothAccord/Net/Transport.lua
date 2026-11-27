@@ -601,6 +601,11 @@ end
 function Transport.IsSelf(sender)
 	if type(sender) ~= "string" then return false end
 	local C = compat()
+	-- WoW Forever: no realm, and the surname may come as "Name Surname" or "Name-Surname"
+	local low = sender:lower()
+	local full = C.Player.FullName and C.Player.FullName()
+	local surname = C.Player.Surname and C.Player.Surname()
+	if full and (low == full:lower() or (surname and low == (C.Player.Name() .. "-" .. surname):lower())) then return true end
 	local name, realm = C.SplitName(sender)   -- "Name Surname-Realm": the realm after the last hyphen (SPEC-11 §6.6)
 	if not name or name ~= C.Player.Name() then return false end
 	return realm == nil or realm == C.Player.Realm()

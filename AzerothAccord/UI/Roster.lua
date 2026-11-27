@@ -65,9 +65,10 @@ end
 -- Toolbar
 ---------------------------------------------------------------------------------------------------------------------
 local FILTERS = {   -- the three selects: kind, the label of "all"
-	{ kind = "class", all = "FILTER_ALL_CLASSES", title = "COL_CLASS" },
-	{ kind = "rank", all = "FILTER_ALL_RANKS", title = "COL_RANK" },
-	{ kind = "profession", all = "FILTER_ALL_PROFESSIONS", title = "FILTER_PROFESSION" },
+	{ kind = "class", all = "FILTER_ALL_CLASSES", title = "COL_CLASS", width = 140 },
+	{ kind = "rank", all = "FILTER_ALL_RANKS", title = "COL_RANK", width = 150 },
+	-- wide enough for "All professions" on one line (owner, 2026-11-27: it wrapped at 128)
+	{ kind = "profession", all = "FILTER_ALL_PROFESSIONS", title = "FILTER_PROFESSION", width = 180 },
 }
 
 local function exportAllowed() return ns.Export ~= nil and ns.Export.Allowed() end
@@ -93,7 +94,7 @@ local function buildToolbar(self, f)
 	end })
 	Widgets.Tooltip.Attach(bar.grouped, { L["FILTER_GROUPED"], L["FILTER_GROUPED_TIP"] }, "BOTTOM")
 	for _, fl in ipairs(FILTERS) do
-		bar[fl.kind] = Widgets.Select(bar, { width = 128, rows = 8, placeholder = L[fl.title], onSelect = function(id)
+		bar[fl.kind] = Widgets.Select(bar, { width = fl.width or 128, rows = 8, placeholder = L[fl.title], onSelect = function(id)
 			model:SetFilter(fl.kind, id ~= View.ALL and id or nil)
 			View:Changed()
 		end })

@@ -119,6 +119,11 @@ function Store:Member(name)
 	if roster.dirty then self:IndexRoster() end
 	local entry = roster.byName[lower(name)]
 	if entry then return entry end
+	-- WoW Forever: a sender "Name-Surname" is the roster's "Name Surname" (no realm on that client)
+	if ns.Compat and not ns.Compat.Player.Realm() and name:find("-", 1, true) then
+		entry = roster.byName[lower((name:gsub("%-", " ")))]
+		if entry then return entry end
+	end
 	-- "Name" means the player's realm; a roster name without a realm also means the player's realm
 	local player = ns.Compat and ns.Compat.Player.Realm()
 	local _, senderRealm = split(name)

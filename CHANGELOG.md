@@ -12,6 +12,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **WoW Forever has no realm, and the "realm" was a surname** (found in game, 2026-11-27: a second character of the account was not shown). PR #149 fell back to the second result of `UnitFullName`, which on Forever is the character's **surname**. Each character was then filed under its own surname as if it were a realm, and the guild key was "<surname>/<guild>". Now `Player.Realm` has no such fallback. Characters and the guild key use `Player.RealmKey` ("Forever" when the client has no realm). `Player.FullName` gives "Name Surname", as the roster shows it. Saved characters are moved back together once (`Accounts.MergeNoRealm`), and the guild's table moves to the key without the surname (`GuildKey.AdoptNoRealm`). Own messages sent as "Name Surname" or "Name-Surname" are recognised, and a sender "Name-Surname" is matched to the roster's "Name Surname".
+- **Roster filters**: *All professions* fits on one line (the select is 180 points wide; class 140, rank 150).
+
 - **Accord sent nothing on WoW Forever** (owner's tests, 2026-11-27). Outside any instance, `C_ChatInfo.AreOutgoingAddonChatMessagesRestricted()` answered true, yet a `SendAddonMessage` to the guild returned 0 (sent). Accord held its whole queue on that flag, so no peer-to-peer exchange ever happened. Now the flag alone holds nothing: Accord sends, and holds for 60 seconds only after the client refused a send (`AddOnMessageLockdown`) while the flag is up. `/accord debug` says "the client says restricted, but its sends go through".
 - **No realm name, no guild key**: the realm for the guild key and the own character list now falls back to the realm part of `UnitFullName("player")`, then to "Forever" (`Compat.Player.RealmKey`). A client that gives no realm name still saves and shares the guild's data.
 

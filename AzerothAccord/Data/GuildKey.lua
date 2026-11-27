@@ -63,10 +63,35 @@ function GuildKey:Data(key)
 	if not key or type(db) ~= "table" or type(db.guilds) ~= "table" then return nil end
 	local data = db.guilds[key]
 	if type(data) ~= "table" then
+		data = GuildKey.AdoptNoRealm(db, key)
+	end
+	if type(data) ~= "table" then
 		data = { firstSeen = now() }
 		db.guilds[key] = data
 	end
 	data.lastSeen = now()
+	return data
+end
+
+-- WoW Forever (no realm): builds of 2026-11-27 keyed a guild by "<surname>/<guild>". The first time the right key
+-- "Forever/<guild>" is used, the one table of that guild under another prefix becomes it (when there is exactly one).
+function GuildKey.AdoptNoRealm(db, key)
+	local C = ns.Compat
+	if not (C and C.Player.NO_REALM) or C.Player.Realm() then return nil end
+	local realm, name = GuildKey.Split(key)
+	if realm ~= C.Player.NO_REALM or not name then return nil end
+	local found
+	for k, t in pairs(db.guilds) do
+		local r, n = GuildKey.Split(k)
+		if n == name and r ~= realm and type(t) == "table" then
+			if found then return nil end   -- more than one: leave them, nothing is guessed
+			found = k
+		end
+	end
+	if not found then return nil end
+	local data = db.guilds[found]
+	db.guilds[found] = nil
+	db.guilds[key] = data
 	return data
 end
 
