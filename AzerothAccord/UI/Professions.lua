@@ -276,28 +276,41 @@ local function build(self, f)
 	f.message = t.empty   -- the message in place of the rows
 end
 
+View.TIP_GAP = 12   -- points between the end of a name and its tooltip
+
+-- Where a row's tooltip goes: its left edge just after the end of the name (owner, 2026-11-27: next to the name, not at
+-- the far end of the row). A name longer than its cell ends at the cell's edge.
+function View.TipAnchor(row)
+	local cell = row.name
+	local w = cell and (cell:GetStringWidth() or 0) or 0
+	local room = cell and cell:GetWidth() or w
+	if room and room > 0 and w > room then w = room end
+	return { "LEFT", cell or row, "LEFT", w + View.TIP_GAP, 0 }
+end
+
 -- The game's own tooltip of a recipe (the spell link); the name and the category when it has none. A crafter row says who
--- they are and where the list comes from; a catalogue recipe that nobody knows says so.
+-- they are and where the list comes from; a catalogue recipe that nobody knows says so. Every tooltip opens next to the name.
 function View:ShowTooltip(row)
 	local d = row.data
 	if not d then return end
+	local at = View.TipAnchor(row)
 	if d.kind == "member" then
 		local m = d.member
 		Widgets.Tooltip.Show(row, { m.name, L["CR_TIP_RECIPE"]:format(d.recipeName), { text = View.MemberDetail(m), token = "text-3" },
-			L["CR_TIP_CLICK"] }, "RIGHT")
+			L["CR_TIP_CLICK"] }, at)
 		return
 	end
 	if d.kind == "cat" and not d.resolved then
-		Widgets.Tooltip.Show(row, { d.name, { text = d.count > 0 and L["CAT_TIP_CLICK"] or L["CAT_TIP_NOBODY"], token = "text-3" } }, "RIGHT")
+		Widgets.Tooltip.Show(row, { d.name, { text = d.count > 0 and L["CAT_TIP_CLICK"] or L["CAT_TIP_NOBODY"], token = "text-3" } }, at)
 		return
 	end
 	local link = ns.Recipes and ns.Recipes.LinkOf(d.id)
 	if link and GameTooltip and GameTooltip.SetHyperlink then
-		Widgets.Tooltip.Item(row, link, "ANCHOR_RIGHT")
+		Widgets.Tooltip.Item(row, link, at)
 	else
 		local lines = { d.name }
 		if d.category then lines[2] = { text = d.category, token = "text-3" } end
-		Widgets.Tooltip.Show(row, lines, "RIGHT")
+		Widgets.Tooltip.Show(row, lines, at)
 	end
 end
 
@@ -596,7 +609,7 @@ local function redrawCatalogue(self)
 		setRows(self, {}, d.message or "")
 		return
 	end
-	setRows(self, cat:Rows(), L["RV_NO_MATCH"])
+	setRows(self, cat:Rows(), d.message or L["RV_NO_MATCH"])
 	f.bar.count:SetText(L["CAT_COUNT"]:format(d.shown, d.total, d.crafted))
 end
 

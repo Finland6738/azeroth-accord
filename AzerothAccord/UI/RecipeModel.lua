@@ -352,8 +352,11 @@ local Cat = {}
 Cat.__index = Cat
 Model.Catalogue = Cat
 
+-- The filter starts on "crafted": by default only the recipes somebody in the guild can craft (owner, 2026-11-27).
+Cat.DEFAULT_FILTER = "crafted"
+
 function Cat.new()
-	return setmetatable({ skillLine = nil, search = "", filter = nil, expanded = {}, rows = nil, version = 0 }, Cat)
+	return setmetatable({ skillLine = nil, search = "", filter = Cat.DEFAULT_FILTER, expanded = {}, rows = nil, version = 0 }, Cat)
 end
 
 function Cat:Invalidate()
@@ -377,11 +380,11 @@ function Cat:SetFilter(key)
 	return true
 end
 
--- Shows another profession: its recipes start closed and unfiltered.
+-- Shows another profession: its recipes start closed; the filter the player chose stays.
 function Cat:SetProfession(skillLine)
 	skillLine = isLine(skillLine) and skillLine or nil
 	if skillLine == self.skillLine then return false end
-	self.skillLine, self.filter, self.expanded = skillLine, nil, {}
+	self.skillLine, self.expanded = skillLine, {}
 	self:Invalidate()
 	return true
 end
@@ -454,7 +457,10 @@ function Cat:Describe()
 	end
 	local rows = self:Rows()
 	d.total, d.crafted, d.shown = self.total, self.crafted, self.shownRecipes
-	if #rows == 0 then d.message = L["RV_NO_MATCH"] end
+	if #rows == 0 then
+		d.message = (self.filter == "crafted" and self.crafted == 0 and self.search == "") and L["CAT_NONE_CRAFTED"]:format(d.profession)
+			or L["RV_NO_MATCH"]
+	end
 	return d
 end
 

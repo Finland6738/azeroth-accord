@@ -254,8 +254,33 @@ describe("the catalogue merged with the members' lists", function()
 	local function model()
 		local c = A().RecipeModel.Catalogue.new()
 		c:SetProfession(ALCHEMY)
+		c:SetFilter(nil)   -- every recipe (the view starts on "crafted")
 		return c
 	end
+
+	it("starts on the recipes somebody in the guild can craft, and keeps the filter for another profession", function()
+		put(BOB, ALCHEMY, { 2330, 3447 })
+		S():Accept("recipecat", catalogue(BOB, ALCHEMY, { 2330, 2332, 3447, 4000 }), from("Bob"))
+		local c = A().RecipeModel.Catalogue.new()
+		eq(c.filter, "crafted")
+		c:SetProfession(ALCHEMY)
+		deepEq(names(c:Rows()), { "Minor Healing Potion", "Healing Potion" })
+		local d = c:Describe()
+		eq(d.shown, 2); eq(d.total, 4); eq(d.crafted, 2)
+		c:SetProfession(MINING)
+		eq(c.filter, "crafted")
+	end)
+
+	it("says so when nobody can craft any recipe of the profession yet", function()
+		Mock.tradeskill.own = {}
+		S():Records("recipes")[OFF .. ":" .. ALCHEMY] = { id = OFF .. ":" .. ALCHEMY, author = OFF, rev = 1, time = GetServerTime(),
+			char = OFF, skillLine = ALCHEMY, name = "Alchemy", ids = "", n = 0 }
+		S():Accept("recipecat", catalogue(OFF, ALCHEMY, { 2330, 2332 }), from("Officer"))
+		local c = A().RecipeModel.Catalogue.new()
+		c:SetProfession(ALCHEMY)
+		eq(#c:Rows(), 0)
+		eq(c:Describe().message:sub(1, 42), "Nobody in the guild is known to craft a re")
+	end)
 
 	it("lists every recipe of the catalogue by required level, with how many guild characters can craft it", function()
 		put(BOB, ALCHEMY, { 2330, 3447 })
@@ -348,7 +373,39 @@ describe("the Professions view opens on the guild's recipes", function()
 		put(ANN, ALCHEMY, { 2330 })
 		S():Accept("recipecat", catalogue(BOB, ALCHEMY, { 2330, 2332, 3447, 4000 }), from("Bob"))
 		Mock.Slash("/accord professions")
+		V().frame.bar.category:Select(V().ALL)   -- every recipe
 	end
+
+	it("opens on the recipes the guild can craft; All recipes shows the rest", function()
+		put(BOB, ALCHEMY, { 2330, 3447 })
+		put(ANN, ALCHEMY, { 2330 })
+		S():Accept("recipecat", catalogue(BOB, ALCHEMY, { 2330, 2332, 3447, 4000 }), from("Bob"))
+		Mock.Slash("/accord professions")
+		eq(V().frame.bar.category.label:GetText(), "Somebody can craft it")
+		eq(V().frame.bar.count:GetText(), "2 of 4 recipes, 2 can be crafted in the guild")
+		eq(#visible(), 2)
+		V().frame.bar.category:Select(V().ALL)
+		eq(#visible(), 4)
+	end)
+
+	it("a recipe's tooltip opens next to its name, not at the end of the row", function()
+		setup()
+		local row = visible()[1].row
+		local at
+		GameTooltip.SetPoint = function(_, ...) at = { ... } end
+		GameTooltip.SetHyperlink = function() end
+		V():ShowTooltip(row)
+		eq(at[1], "LEFT"); eq(at[2], row.name); eq(at[3], "LEFT")
+		local w = math.min(row.name:GetStringWidth(), row.name:GetWidth())
+		eq(at[4], w + V().TIP_GAP)
+		-- an open recipe's crafter: the addon's own tooltip, next to the character's name too
+		row:Click()
+		local member = visible()[2].row
+		V():ShowTooltip(member)
+		local _, rel, _, x = A().Widgets.Tooltip.Frame():GetPoint(1)
+		eq(rel, member.name)
+		eq(x, math.min(member.name:GetStringWidth(), member.name:GetWidth()) + V().TIP_GAP)
+	end)
 
 	it("shows every recipe of the profession with its level and how many can craft it", function()
 		setup()
@@ -417,7 +474,7 @@ describe("the Professions view opens on the guild's recipes", function()
 		eq(V().frame.bar.count:GetText(), "1 of 1 recipes, 1 can be crafted in the guild")
 		S():Accept("recipecat", catalogue(BOB, ALCHEMY, { 2330, 2332, 3447 }), from("Bob"))
 		Mock.Advance(1)
-		eq(V().frame.bar.count:GetText(), "3 of 3 recipes, 1 can be crafted in the guild")
+		eq(V().frame.bar.count:GetText(), "1 of 3 recipes, 1 can be crafted in the guild", "the default filter keeps the one somebody can craft")
 	end)
 
 	it("names a profession nobody's client names from the guild's data", function()

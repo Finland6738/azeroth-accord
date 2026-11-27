@@ -7,7 +7,8 @@
 --   Widgets.Tooltip.Hide()
 --   Widgets.Tooltip.Attach(frame, source, anchor)  source: content | function(owner) -> content (nil shows nothing)
 --   Widgets.Tooltip.Item(owner, link, anchor) / Widgets.Tooltip.HideItem() / Widgets.Tooltip.AttachItem(frame, function(owner) -> link)
--- anchor: "BOTTOM" (default, under the owner), "TOP", "RIGHT", "LEFT". The first line is the title (medium weight).
+-- anchor: "BOTTOM" (default, under the owner), "TOP", "RIGHT", "LEFT", or a point { point, relativeTo, relativePoint, x, y }
+-- (2026-11-27: a recipe's tooltip next to its name, not at the far end of the row). The first line is the title (medium weight).
 local ADDON_NAME, ns = ...
 ns = ns or {}
 local Widgets, Theme = ns.Widgets, ns.Theme
@@ -84,7 +85,8 @@ function Tooltip.Show(owner, content, anchor)
 	f.owner = owner
 	f:ClearAllPoints()
 	anchor = anchor or "BOTTOM"
-	if anchor == "TOP" then f:SetPoint("BOTTOM", owner, "TOP", 0, OFFSET)
+	if type(anchor) == "table" then f:SetPoint(unpack(anchor))
+	elseif anchor == "TOP" then f:SetPoint("BOTTOM", owner, "TOP", 0, OFFSET)
 	elseif anchor == "RIGHT" then f:SetPoint("LEFT", owner, "RIGHT", OFFSET, 0)
 	elseif anchor == "LEFT" then f:SetPoint("RIGHT", owner, "LEFT", -OFFSET, 0)
 	else f:SetPoint("TOP", owner, "BOTTOM", 0, -OFFSET) end
@@ -124,7 +126,13 @@ end
 -- The tooltip of an item (a link or an item id): the game's GameTooltip, which has the comparison with what is worn.
 function Tooltip.Item(owner, link, anchor)
 	if not GameTooltip or not link then return false end
-	GameTooltip:SetOwner(owner, anchor or "ANCHOR_RIGHT")
+	if type(anchor) == "table" then
+		GameTooltip:SetOwner(owner, "ANCHOR_NONE")
+		GameTooltip:ClearAllPoints()
+		GameTooltip:SetPoint(unpack(anchor))
+	else
+		GameTooltip:SetOwner(owner, anchor or "ANCHOR_RIGHT")
+	end
 	if type(link) == "number" and GameTooltip.SetItemByID then GameTooltip:SetItemByID(link)
 	elseif GameTooltip.SetHyperlink then GameTooltip:SetHyperlink(link) end
 	GameTooltip:Show()

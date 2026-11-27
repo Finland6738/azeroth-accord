@@ -10,7 +10,8 @@ The **Professions** view (`/accord professions`, or the **Professions** tab) ope
 
 - **Click a recipe** to see **who can craft it**, right under it: online characters first, the alts of one player together, with **Request craft** next to the ones who are online. Click it again to close it.
 - **Click a character** to open **their recipes** of that profession: the ones they learned and, dimmed and marked "not learned", the ones they miss. The list above the table filters *Learned by …* or *Not learned by …*. **Back to guild recipes** returns.
-- The second list above the table keeps *Somebody can craft it*, *Nobody can craft it yet*, or the recipes you know or do not know. The search box filters by name.
+- The second list above the table starts on *Somebody can craft it*: at first you see only the recipes somebody in the guild can craft. Choose *All recipes* to see the whole profession, or *Nobody can craft it yet*, or the recipes you know or do not know. Your choice stays when you pick another profession. The search box filters by name.
+- Hover a recipe to see the game's tooltip, right next to its name.
 - The line under the title says who shared the full list and how old it is.
 
 The full list comes from the game itself: the first guildmate who opens that profession's window with Azeroth Accord shares it, and it is shared again only when the game shows something new. Until then the view shows only the recipes somebody in the guild knows, and says so. Nothing comes from a list shipped with the addon.

@@ -10,7 +10,8 @@ La vista **Professioni** (`/accord professions`, o la scheda **Professioni**) si
 
 - **Clicca una ricetta** per vedere **chi può crearla**, subito sotto: prima i personaggi online, gli alt di uno stesso giocatore insieme, con **Chiedi di crearlo** accanto a chi è online. Un altro clic la chiude.
 - **Clicca un personaggio** per aprire **le sue ricette** di quella professione: quelle che ha imparato e, attenuate e segnate "non imparata", quelle che gli mancano. L'elenco sopra la tabella filtra *Imparate da …* o *Non imparate da …*. **Torna alle ricette della gilda** riporta indietro.
-- Il secondo elenco sopra la tabella tiene *Qualcuno può crearla*, *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. La casella di ricerca filtra per nome.
+- Il secondo elenco sopra la tabella parte su *Qualcuno può crearla*: all'inizio vedi solo le ricette che qualcuno della gilda sa creare. Scegli *Tutte le ricette* per vedere tutta la professione, oppure *Nessuno può ancora crearla*, o le ricette che conosci o non conosci. La scelta resta quando passi a un'altra professione. La casella di ricerca filtra per nome.
+- Passa il mouse su una ricetta per vedere il suggerimento del gioco, subito accanto al nome.
 - La riga sotto il titolo dice chi ha condiviso l'elenco completo e quanto è vecchio.
 
 L'elenco completo viene dal gioco stesso: lo condivide il primo compagno di gilda che apre la finestra di quella professione con Azeroth Accord, e si condivide di nuovo solo quando il gioco mostra qualcosa di nuovo. Fino ad allora la vista mostra solo le ricette che qualcuno della gilda conosce, e lo dice. Niente viene da un elenco spedito con l'addon.

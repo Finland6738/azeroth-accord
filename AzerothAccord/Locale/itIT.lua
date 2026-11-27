@@ -262,6 +262,7 @@ L["CAT_SRC_LISTS"] = "Solo le ricette che qualcuno della gilda conosce. Apri la 
 L["CAT_EMPTY"] = "Di %s non si sa ancora nulla. Basta che un membro che ce l'ha apra la finestra della professione con Azeroth Accord e qui compaiono tutte le ricette."
 L["CAT_PICK"] = "Nella gilda non è ancora nota nessuna professione. Apri la finestra di una delle tue professioni con Azeroth Accord: le sue ricette compaiono qui e le vede ogni compagno di gilda con l'addon."
 L["CAT_COUNT"] = "%d di %d ricette, %d si possono creare nella gilda"
+L["CAT_NONE_CRAFTED"] = "Nella gilda non si sa ancora di nessuno che crei una ricetta di %s. Scegli \"Tutte le ricette\" nell'elenco qui sopra per vederle tutte."
 L["CAT_NOBODY"] = "ancora nessuno"
 L["CAT_LEVEL"] = "Abilità %d"
 L["CAT_F_CRAFTED"] = "Qualcuno può crearla"

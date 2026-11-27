@@ -269,6 +269,7 @@ L["CAT_SRC_LISTS"] = "Only the recipes somebody in the guild knows. Open this pr
 L["CAT_EMPTY"] = "Nothing is known about %s yet. A member who has it opens the profession window with Azeroth Accord, and every recipe appears here."
 L["CAT_PICK"] = "No profession is known in the guild yet. Open one of your profession windows with Azeroth Accord: its recipes appear here and every guildmate with the addon sees them."
 L["CAT_COUNT"] = "%d of %d recipes, %d can be crafted in the guild"
+L["CAT_NONE_CRAFTED"] = "Nobody in the guild is known to craft a recipe of %s yet. Choose \"All recipes\" in the list above to see every recipe."
 L["CAT_NOBODY"] = "nobody yet"
 L["CAT_LEVEL"] = "Skill %d"
 L["CAT_F_CRAFTED"] = "Somebody can craft it"

@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **Guild recipes start on what the guild can craft; tooltips next to the name** (owner, 2026-11-27). The catalogue's filter now starts on *Somebody can craft it*: at first only the recipes a guild character knows show; *All recipes* shows the whole profession, and the choice stays for another profession. In every mode of the Professions view a row's tooltip (the game's for a recipe, the addon's for a crafter) opens right after the end of the name instead of at the far end of the row (`Widgets.Tooltip.Show` / `.Item` take an anchor point). **Not checked in the real game.**
+
 - **New look for the view tabs, the tooltips, the counts and the alts** (owner, 2026-11-27, after the game's own panels):
   - each view's tab is a rounded box with the view's icon before its name; the open one has the accent ring and glow, with its name and icon in the accent's text colour. The icons come from the addon's own sheet, which gains a `hammer` for Professions;
   - the addon's tooltip is a dark box (`surface-1` with a `border` ring), its title in `accent-text` and its lines in `text-1`;
