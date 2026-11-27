@@ -22,6 +22,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **The guild bank was never read on WoW Forever** (owner's `/accord debug`, 2026-11-27: "the vault has not been opened this session"). Accord waited for `GUILDBANKFRAME_OPENED`, but the newer client opens the vault through the interaction manager. The capture now also starts on `PLAYER_INTERACTION_MANAGER_FRAME_SHOW` for the guild banker (`Enum.PlayerInteractionType.GuildBanker`, 10) and stops on its `HIDE`. When both events come there is one capture. `/accord debug` says which event opened the vault.
+
 - **WoW Forever has no realm, and the "realm" was a surname** (found in game, 2026-11-27: a second character of the account was not shown). PR #149 fell back to the second result of `UnitFullName`, which on Forever is the character's **surname**. Each character was then filed under its own surname as if it were a realm, and the guild key was "<surname>/<guild>". Now `Player.Realm` has no such fallback. Characters and the guild key use `Player.RealmKey` ("Forever" when the client has no realm). `Player.FullName` gives "Name Surname", as the roster shows it. Saved characters are moved back together once (`Accounts.MergeNoRealm`), and the guild's table moves to the key without the surname (`GuildKey.AdoptNoRealm`). Own messages sent as "Name Surname" or "Name-Surname" are recognised, and a sender "Name-Surname" is matched to the roster's "Name Surname".
 - **Roster filters**: *All professions* fits on one line (the select is 180 points wide; class 140, rank 150).
 

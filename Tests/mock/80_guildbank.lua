@@ -20,14 +20,18 @@ W.bank = W.bank or { tabs = {}, money = 0, moneyLog = {}, isOpen = false, curren
 local bank = W.bank
 Mock.bank = bank
 
+-- Mock.bank.viaInteraction = true: the client opens and closes the vault only through the interaction manager, as WoW
+-- Forever does (found in game, 2026-11-27); otherwise the old GUILDBANKFRAME_* events.
 function bank.Open()
 	bank.isOpen = true
-	Mock.Fire("GUILDBANKFRAME_OPENED")
+	if bank.viaInteraction then Mock.Fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 10)
+	else Mock.Fire("GUILDBANKFRAME_OPENED") end
 end
 
 function bank.Close()
 	bank.isOpen = false
-	Mock.Fire("GUILDBANKFRAME_CLOSED")
+	if bank.viaInteraction then Mock.Fire("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", 10)
+	else Mock.Fire("GUILDBANKFRAME_CLOSED") end
 end
 
 C_GuildBank = { IsGuildBankEnabled = function() return bank.enabled end }

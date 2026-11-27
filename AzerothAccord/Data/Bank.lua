@@ -31,7 +31,17 @@ ns.modules.Bank = Bank
 local type, pairs, ipairs, tostring, tonumber, floor = type, pairs, ipairs, tostring, tonumber, math.floor
 local concat, sort = table.concat, table.sort
 
-Bank.EVENTS = { "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED", "GUILDBANKBAGSLOTS_CHANGED", "GUILDBANKLOG_UPDATE", "GUILDBANK_UPDATE_MONEY" }
+Bank.EVENTS = { "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED", "GUILDBANKBAGSLOTS_CHANGED", "GUILDBANKLOG_UPDATE", "GUILDBANK_UPDATE_MONEY",
+	-- WoW Forever's client opens the vault through the interaction manager (found in game, 2026-11-27: the vault was opened
+	-- and the bank was never read); the type of the guild banker is Enum.PlayerInteractionType.GuildBanker (10 on retail)
+	"PLAYER_INTERACTION_MANAGER_FRAME_SHOW", "PLAYER_INTERACTION_MANAGER_FRAME_HIDE" }
+Bank.GUILD_BANKER = 10
+
+local function isGuildBanker(kind)
+	local enum = Enum and Enum.PlayerInteractionType
+	local banker = type(enum) == "table" and enum.GuildBanker or Bank.GUILD_BANKER
+	return kind == banker
+end
 Bank.PAUSE = 1.0          -- seconds between two queries
 Bank.WAIT = 4             -- seconds to wait for a tab to load before reading what is there
 Bank.TABS_RETRY = 1.5     -- seconds before asking again for the tab count while the vault has not told it yet
@@ -374,10 +384,12 @@ local function begin(tries)
 	advance(run)
 end
 
-function Bank:OnOpened()
+function Bank:OnOpened(via)
 	local C = compat()
 	if not (C and ns.GuildKey and ns.GuildKey:Current()) then return end
+	if state.open and state.run then return end   -- both the old and the new event came: one capture
 	state.open = true
+	state.openedBy = via or "GUILDBANKFRAME_OPENED"
 	if not C.Bank.Enabled() then
 		state.last = "the guild bank is off"
 		return
@@ -504,7 +516,8 @@ function Bank:DebugLines()
 	return {
 		("Bank: vault %s, %d capture(s), %d tab(s) and %d log(s) read, %d published, %d unchanged, %d unreadable, %d aborted"):format(
 			state.open and "open" or "closed", s.captures, s.tabs, s.logs, s.published, s.unchanged, s.unreadable, s.aborted),
-		("  last: %s"):format(state.last or "the vault has not been opened this session"),
+		("  last: %s%s"):format(state.last or "the vault has not been opened this session",
+			state.openedBy and (" (opened by " .. state.openedBy .. ")") or ""),
 	}
 end
 
@@ -513,8 +526,10 @@ if ns.addon then
 	if ns.addon.AddDebugSection then ns.addon:AddDebugSection("Bank", function() return Bank:DebugLines() end) end
 	LibStub("AceEvent-3.0"):Embed(Bank)
 	local handlers = {
-		GUILDBANKFRAME_OPENED = function() Bank:OnOpened() end,
+		GUILDBANKFRAME_OPENED = function() Bank:OnOpened("GUILDBANKFRAME_OPENED") end,
 		GUILDBANKFRAME_CLOSED = function() Bank:OnClosed() end,
+		PLAYER_INTERACTION_MANAGER_FRAME_SHOW = function(_, kind) if isGuildBanker(kind) then Bank:OnOpened("interaction") end end,
+		PLAYER_INTERACTION_MANAGER_FRAME_HIDE = function(_, kind) if isGuildBanker(kind) and state.open then Bank:OnClosed() end end,
 		GUILDBANKBAGSLOTS_CHANGED = function() Bank:OnSlotsChanged() end,
 		GUILDBANKLOG_UPDATE = function() Bank:OnLogUpdate() end,
 		GUILDBANK_UPDATE_MONEY = function() Bank:OnMoney() end,

@@ -76,6 +76,18 @@ describe("the capture at the vault", function()
 		eq(t1.author, ME)
 	end)
 
+	it("reads the vault when the client opens it through the interaction manager (WoW Forever, 2026-11-27)", function()
+		Mock.bank.viaInteraction = true
+		open()
+		Mock.bank.Close()
+		Mock.bank.viaInteraction = nil
+		notNil(tabRecord(1), "the capture ran")
+		notNil(S():Get("bank", ME .. ":money"))
+		contains(table.concat(B():DebugLines(), " "), "opened by interaction")
+		Mock.Fire("PLAYER_INTERACTION_MANAGER_FRAME_SHOW", 5)   -- another interaction (a merchant) is not the vault
+		falsy(B():DebugLines()[1]:find("vault open", 1, true))
+	end)
+
 	it("asks for one tab at a time, a pause apart", function()
 		local at = {}
 		local original = QueryGuildBankTab
