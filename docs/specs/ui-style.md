@@ -594,12 +594,14 @@ Nulla di questo è provato nel client vero.
   `google/material-design-icons`, commit `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7` (2026-10-23). `tools/make_icons.py`
   lo scarica in `tools/.cache/` (non versionata), ne controlla lo SHA-256 e disegna i glifi con peso 400, grado 0,
   dimensione ottica 24. Il font non si distribuisce.
-- **Atlante**: `Media/symbols.tga`, 512 × 512, celle di 48 px, 10 per riga: 48 glifi vuoti, poi 22 pieni (le nove
-  destinazioni di §9.11, le icone delle schede, il cuore e il punto). Il testo di Apache 2.0 è in
+- **Atlante**: `Media/symbols.tga`, 512 × 512, celle di 48 px, 10 per riga: 49 glifi vuoti, poi 24 pieni (le nove
+  destinazioni di §9.11, le icone delle schede, il cuore, il punto e i tre ruoli). Il testo di Apache 2.0 è in
   `Media/symbols-LICENSE.txt`.
 - **Nomi**: `UI/Assets.lua` ripete le liste dello strumento (`tools/check_addon.py` le confronta). `IconCoords(nome,
   filled)` accetta i nomi di Accord (`cross`, `bell`, `hammer` → `construction`…) e quelli di Material Symbols; un'icona
   senza variante piena risponde con quella vuota. I nove nomi della mappa di §9.11 **sono confermati**: esistono tutti.
+- **Ruoli**: `role_tank` (`shield`), `role_damage` (`swords`), `role_healer` (`medical_services`: `healing`, i cerotti
+  incrociati, a 14–16 px si confonde con le spade), vuoti e pieni. Il roster li userà in un passo successivo.
 - **Stato attivo**: la scheda della vista scelta ha l'icona piena. Interruttori e chip non hanno un'icona propria oltre
   alla spunta, che è uguale nelle due varianti.
 - **Misure**: 20 punti in schede e pulsanti (anche il cuore dei like e la croce sulla finestra della gilda), 18 nei chip

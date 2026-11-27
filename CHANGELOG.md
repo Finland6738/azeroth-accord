@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **Role icons** in the atlas (`Media/symbols.tga`), for a later roster change: `role_tank` (`shield`), `role_damage` (`swords`) and `role_healer` (`medical_services`, clearer than `healing` at 14–16 px), outlined and filled. Nothing shows them yet. A client restart is needed.
 - M13.6: **Material Symbols icons** ([ui-style §9.10](docs/specs/ui-style.md#910-icone-material-symbols-proprietario-2026-11-27)). Every icon of the addon's own interface is now from Google's **Material Symbols Rounded** (Apache License 2.0): outlined, and **filled on the chosen view's tab**. The icons of the game (classes, items, recipes) stay.
   - New `tools/make_icons.py` builds one atlas, `Media/symbols.tga` (512 × 512, 48 px cells, 48 outlined and 22 filled glyphs), from the official repository at a pinned commit, with SHA-256 checks; the font is cached in `tools/.cache/` and not shipped. The licence text ships as `Media/symbols-LICENSE.txt`.
   - `UI/Assets.lua`: `IconCoords(name, filled)` takes Accord's names and Material Symbols names; the nine destinations of the future navigation rail are in the atlas, outlined and filled.

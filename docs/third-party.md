@@ -29,7 +29,7 @@ text accompanies them and a modified version does not reuse a Reserved Font Name
 |---|---|
 | Source | **Material Symbols Rounded**, by Google: the official repository [google/material-design-icons](https://github.com/google/material-design-icons), commit `10ecc14790612ca8fd164e3f4ffe9c16fc50d5b7` (2026-10-23), file `variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf` |
 | Licence | **Apache License 2.0**, text in `Media/symbols-LICENSE.txt` (the repository's `LICENSE`); compatible with GPL-3.0 |
-| What ships | `symbols.tga`: only the glyphs the addon uses, 48 outlined and 22 filled |
+| What ships | `symbols.tga`: only the glyphs the addon uses, 49 outlined and 24 filled |
 | Changes | `tools/make_icons.py` draws each glyph (weight 400, grade 0, optical size 24; fill 0 or 1) as a white picture and places it in one 512 × 512 atlas of 48 px cells; the theme tints them at run time |
 
 The font itself is **not** shipped and is not in the repository: the tool downloads it into `tools/.cache/` (git-ignored)

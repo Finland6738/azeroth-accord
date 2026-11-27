@@ -56,14 +56,17 @@ GLYPHS = [
     # the destinations of the navigation rail (ui-style section 9.11, M13.7); swords and settings are above
     # (construction is also the Professions icon)
     "home", "groups", "group_add", "construction", "account_balance", "celebration", "shield_person",
+    # the healer role (tank is shield, damage is swords)
+    "medical_services",
 ]
 # Also drawn filled (ui-style section 9.10: the chosen view, the switch that is on, the chosen filter): the rail's
-# destinations, the icons of the view tabs, the heart and the dot.
+# destinations, the icons of the view tabs, the heart, the dot and the three roles.
 FILLED = [
     "home", "groups", "swords", "group_add", "construction", "account_balance", "celebration", "shield_person",
     "settings",
     "notifications", "group", "favorite", "paid", "flag", "calendar_month", "schedule", "skull",
     "menu_book", "diamond", "crown", "star", "fiber_manual_record",
+    "shield", "medical_services",
 ]
 # What the code calls an icon -> the glyph that draws it (mirrored in UI/Assets.lua). A glyph's own name works too.
 NAMES = {
@@ -76,6 +79,8 @@ NAMES = {
     "download": "download", "upload": "upload", "bell": "notifications", "flag": "flag", "minus": "remove",
     "gem": "diamond", "bag": "shopping_bag", "book": "menu_book", "link": "link", "arrow_left": "arrow_back",
     "heart": "favorite", "hammer": "construction",
+    # the roles of a group member
+    "role_tank": "shield", "role_damage": "swords", "role_healer": "medical_services",
 }
 
 

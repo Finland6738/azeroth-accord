@@ -599,9 +599,9 @@ describe("assets table", function()
 		isNil(A.IconCoords(nil))
 	end)
 
-	it("holds 48 outlined and 22 filled distinct glyphs that fit the atlas, filled after outlined", function()
+	it("holds 49 outlined and 24 filled distinct glyphs that fit the atlas, filled after outlined", function()
 		local A = AzerothAccord.Assets
-		eq(#A.glyphs, 48); eq(#A.filledGlyphs, 22)
+		eq(#A.glyphs, 49); eq(#A.filledGlyphs, 24)
 		local outlined = {}
 		for _, g in ipairs(A.glyphs) do falsy(outlined[g], "duplicate " .. g); outlined[g] = true end
 		local seen = {}
@@ -624,10 +624,10 @@ describe("assets table", function()
 		end
 		for _, g in ipairs(A.glyphs) do cell(g) end
 		for _, g in ipairs(A.filledGlyphs) do cell(g, true) end
-		eq(n, 70)
+		eq(n, 73)
 		local s = 48 / 512
-		local l, _, t = A.IconCoords("home", true)   -- the first filled one: cell 49
-		near(l, 8 * s, 1e-9); near(t, 4 * s, 1e-9)
+		local l, _, t = A.IconCoords("home", true)   -- the first filled one: cell 50
+		near(l, 9 * s, 1e-9); near(t, 4 * s, 1e-9)
 	end)
 
 	it("every name the code used before keeps working and points at a glyph of the atlas", function()
@@ -638,7 +638,7 @@ describe("assets table", function()
 			"gem", "bag", "book", "link", "arrow_left", "heart", "hammer" }
 		local n = 0
 		for _ in pairs(A.iconNames) do n = n + 1 end
-		eq(n, #old)
+		eq(n, #old + 3)   -- and the three roles
 		for _, name in ipairs(old) do
 			notNil(A.iconNames[name], name)
 			notNil(A.IconCoords(name), name)
@@ -662,6 +662,17 @@ describe("assets table", function()
 			truthy(l ~= fl or t ~= ft, "the view tab icon " .. n .. " has a filled variant")
 		end
 		deepEq({ A.IconCoords("cross", true) }, { A.IconCoords("cross") })
+	end)
+
+	it("has the three roles, outlined and filled: tank, damage and healer", function()
+		local A = AzerothAccord.Assets
+		for name, glyph in pairs({ role_tank = "shield", role_damage = "swords", role_healer = "medical_services" }) do
+			eq(A.iconNames[name], glyph, name)
+			local l, _, t = A.IconCoords(name)
+			local fl, _, ft = A.IconCoords(name, true)
+			notNil(l, name); notNil(fl, name)
+			truthy(l ~= fl or t ~= ft, name .. " has a filled variant")
+		end
 	end)
 
 	it("writes an icon inside a text with the pixels of its cell, 14 high unless told", function()
