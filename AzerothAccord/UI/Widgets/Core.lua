@@ -5,7 +5,8 @@
 -- * Namespace: `ns.Widgets` (also `AzerothAccord.Widgets` for tests). Until M6.14 it was `ns.Widgets`, beside the old look of
 --   UI/Skin.lua and UI/Widgets/Base.lua; M6.14 removed those two files and gave the kit the name.
 -- * Every widget is made of ordinary frames and white textures tinted through UI/Theme.lua: a colour is a token, never a
---   value, and the theme follows Theme.Apply without /reload. The only colour written here is the white of the hover layer.
+--   value, and the theme follows Theme.Apply without /reload. States are Material 3 state layers in the colour of the
+--   content (Widgets.StateLayer, docs/specs/ui-style.md §9.2, M12.6), no longer white.
 -- * Text comes in already translated by the caller (L[...]): a widget never contains a sentence. Unprotected frames only.
 local ADDON_NAME, ns = ...
 ns = ns or {}
@@ -46,12 +47,77 @@ local BUTTON_STYLES = {
 	neon      = { fill = "surface-1", ink = "text-1",    ring = "neon", glow = "neon", glowAlpha = 0.5 },
 }
 Widgets.BUTTON_STYLES = BUTTON_STYLES
-Widgets.HOVER, Widgets.PRESSED = 0.08, 0.12   -- the white layers of the states (docs/specs/ui-style.md §3)
+
+-- --- State layers (Material 3, docs/specs/ui-style.md §9.2, M12.6) ------------------------------------------------------
+
+-- The opacities are Theme.STATE; HOVER and PRESSED are kept for the callers of M6.11 (they were white 8 % and 12 %).
+Widgets.HOVER, Widgets.PRESSED = Theme.STATE.hover, Theme.STATE.pressed
+
+-- A state layer of `frame`: a texture between the container and the content, in the colour of the content (`token`),
+-- invisible until a state shows it. opts: shape (a Theme.SHAPES name or radius: a 9-slice of that shape; without it a
+-- plain square, the rows of a list), layer ("ARTWORK"), fade (true: the opacity changes in Motion.FAST, 120 ms; false:
+-- at once), anchor (a region to cover instead of the whole frame). Returns the texture; Widgets.SetState paints it.
+function Widgets.StateLayer(frame, token, opts)
+	opts = opts or {}
+	local key = opts.shape ~= nil and Theme.ShapeSlice(opts.shape) or nil
+	local tex
+	if key then
+		tex = Theme.Slice(frame, key, token, opts.layer or "ARTWORK")
+	else
+		tex = frame:CreateTexture(nil, opts.layer or "ARTWORK")
+		Theme.Fill(tex, token)
+	end
+	tex:SetAllPoints(opts.anchor or frame)
+	tex:SetAlpha(0)
+	tex._stateToken, tex._stateFade, tex._sliced = token, opts.fade ~= false, key ~= nil
+	return tex
+end
+
+-- Shows `state` on a layer: nil (none), "hover", "focus", "pressed" or "dragged" (Theme.STATE). Returns the opacity.
+function Widgets.SetState(tex, state)
+	local a = state and Theme.STATE[state] or 0
+	tex._state = state
+	if tex._stateFade then Motion.Fade(tex, a, Motion.FAST) else tex:SetAlpha(a) end
+	return a
+end
+
+-- The content of the element changed colour (a chip that is selected): the layer follows it.
+function Widgets.SetStateColor(tex, token)
+	if tex._stateToken == token then return end
+	tex._stateToken = token
+	if tex._sliced then Theme.Tint(tex, token) else Theme.Fill(tex, token) end
+end
+
+-- The state of a frame that has `.hot` (mouse over), `.pressed` and `.focused`: pressed wins over focus, focus over hover;
+-- a disabled frame shows none.
+function Widgets.StateOf(frame)
+	if frame.IsEnabled and not frame:IsEnabled() then return nil end
+	if frame.pressed then return "pressed" end
+	if frame.focused then return "focus" end
+	if frame.hot then return "hover" end
+	return nil
+end
+
+-- Hover and press on `frame` paint `tex` (hooked: the frame keeps its own OnEnter / OnLeave). opts.press (true) adds the
+-- pressed layer. Returns tex.
+function Widgets.TrackState(frame, tex, opts)
+	opts = opts or {}
+	local function paint(self) Widgets.SetState(tex, Widgets.StateOf(self)) end
+	frame:HookScript("OnEnter", function(self) self.hot = true; paint(self) end)
+	frame:HookScript("OnLeave", function(self) self.hot, self.pressed = false, false; paint(self) end)
+	if opts.press ~= false then
+		frame:HookScript("OnMouseDown", function(self) self.pressed = true; paint(self) end)
+		frame:HookScript("OnMouseUp", function(self) self.pressed = false; paint(self) end)
+	end
+	frame._statePaint = paint
+	return tex
+end
 
 -- opts: text, style ("primary" | "secondary" | "ghost" | "neon"), width (without it the button fits its text), height,
 -- onClick. The primary button has the glow of the accent (dark themes, "Neon effects"), the neon one a ring and a glow in
--- the neon colour; hover lays 8 % white over the shape and pressed 12 % (faded in 120 ms), a press shrinks the button to
--- 0.97 (Motion.Press). :SetLabel(text), :GetLabel(), :SetEnabled(bool).
+-- the neon colour; hover lays a state layer in the label's colour at 8 % over the shape and pressed 10 % (faded in 120 ms,
+-- M12.6), a press shrinks the button to 0.97 (Motion.Press). Disabled: the label at 38 %, the fill and ring at 12 % of
+-- text-1, no glow and no layer (docs/specs/ui-style.md §9.2). :SetLabel(text), :GetLabel(), :SetEnabled(bool).
 function Widgets.Button(parent, opts)
 	opts = opts or {}
 	local style = BUTTON_STYLES[opts.style or "secondary"] or BUTTON_STYLES.secondary
@@ -67,8 +133,10 @@ function Widgets.Button(parent, opts)
 		b.fill = Theme.Slice(b, "rr_fill_8", style.fill, "BACKGROUND")
 		b.fill:SetAllPoints(b)
 		if style.gradient then
-			Theme.Call(b.fill, function(region)   -- accent -> accent-2, two colours (the spec: SetGradient)
-				if region.SetGradient then region:SetGradient("HORIZONTAL", gradientColor("accent"), gradientColor("accent-2")) end
+			Theme.Call(b.fill, function(region)   -- accent -> accent-2, two colours (the spec: SetGradient); none while disabled
+				if region.SetGradient and not b.disabled then
+					region:SetGradient("HORIZONTAL", gradientColor("accent"), gradientColor("accent-2"))
+				end
 			end)
 		end
 	end
@@ -76,11 +144,8 @@ function Widgets.Button(parent, opts)
 		b.ring = Theme.Slice(b, "rr_ring_8", style.ring, "BORDER")
 		b.ring:SetAllPoints(b)
 	end
-	-- hover 8 % and pressed 12 % white over the shape (a white texture whose alpha is faded)
-	b.over = Theme.Slice(b, "rr_fill_8", nil, "ARTWORK")
-	b.over:SetAllPoints(b)
-	b.over:SetVertexColor(1, 1, 1, 1)   -- theme-ok: the white of the hover and pressed layers
-	b.over:SetAlpha(0)
+	-- the state layer: the label's colour, hover 8 % and pressed 10 %, faded (M12.6)
+	b.over = Widgets.StateLayer(b, style.ink, { shape = 8 })
 	b.label = Theme.NewText(b, "Button", style.ink)
 	b.label:SetPoint("CENTER", b, "CENTER", 0, 0)
 	b.fit = opts.width == nil
@@ -91,20 +156,30 @@ function Widgets.Button(parent, opts)
 	function b:GetLabel() return self.label:GetText() end
 	b:SetLabel(opts.text)
 	if opts.width == nil then b:SetWidth(max(64, b.label:GetStringWidth() + 32)) end
-	local function layer(self)
-		if not self:IsEnabled() then return 0 end
-		if self.pressed then return Widgets.PRESSED end
-		return self.hot and Widgets.HOVER or 0
-	end
-	local function paint(self) Motion.Fade(self.over, layer(self), Motion.FAST) end
+	local function paint(self) Widgets.SetState(self.over, Widgets.StateOf(self)) end
 	b:SetScript("OnEnter", function(self) self.hot = true; paint(self) end)
 	b:SetScript("OnLeave", function(self) self.hot, self.pressed = false, false; paint(self) end)
 	b:SetScript("OnMouseDown", function(self) self.pressed = true; paint(self) end)
 	b:SetScript("OnMouseUp", function(self) self.pressed = false; paint(self) end)
 	local setEnabled = b.SetEnabled
+	local STATE = Theme.STATE
 	function b:SetEnabled(enabled)
-		setEnabled(self, enabled and true or false)
-		self:SetAlpha(enabled and 1 or 0.45)
+		enabled = enabled and true or false
+		setEnabled(self, enabled)
+		self.disabled = not enabled
+		self.label:SetAlpha(enabled and 1 or STATE.disabledContent)
+		if self.fill then
+			if enabled then
+				Theme.Tint(self.fill, style.fill)
+				if style.gradient and self.fill.SetGradient then
+					self.fill:SetGradient("HORIZONTAL", gradientColor("accent"), gradientColor("accent-2"))
+				end
+			else
+				Theme.Tint(self.fill, "text-1", STATE.disabledContainer)
+			end
+		end
+		if self.ring then Theme.Tint(self.ring, enabled and style.ring or "text-1", not enabled and STATE.disabledContainer or nil) end
+		if self.glow then Theme.GlowShow(self.glow, enabled) end
 		if not enabled then self.hot, self.pressed = false, false end
 		paint(self)
 	end
@@ -210,6 +285,10 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		b.ring = Theme.Slice(b, "rr_ring_8", "border-subtle", "BORDER")
 		b.ring:SetAllPoints(b.fill)
 	end
+	-- the state layer of a tab (M12.6): the label's colour over the box (boxed) or over the whole tab
+	local function stateLayer(b, ink)
+		b.over = Widgets.TrackState(b, Widgets.StateLayer(b, ink, { shape = BOXED and 8 or nil, anchor = b.fill }))
+	end
 	Widgets.TabBox = box
 	-- the width of a tab: its text, `pad` points each side, its icon, and the badge when it shows one
 	local function wanted(b, pad)
@@ -261,6 +340,7 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 		end)
 		more:SetScript("OnEnter", function(self) Theme.Text(self.label, "text-2") end)
 		more:SetScript("OnLeave", function(self) Theme.Text(self.label, "text-3") end)
+		stateLayer(more, BOXED and "text-2" or "text-3")   -- after SetScript: its hooks would be replaced
 		bar.more = more
 		return more
 	end
@@ -361,6 +441,7 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 	local function paint()
 		for id, b in pairs(bar.buttons) do
 			local on = id == bar.active
+			Widgets.SetStateColor(b.over, on and (BOXED and "accent-text" or "text-1") or (BOXED and "text-2" or "text-3"))
 			if BOXED then
 				Theme.Text(b.label, on and "accent-text" or "text-2")
 				if b.icon then Theme.Tint(b.icon, on and "accent-text" or "text-3") end
@@ -452,6 +533,7 @@ function Widgets.Tabs(parent, tabs, onSelect, opts)
 				if BOXED then Theme.Tint(self.ring, "border-subtle") end
 			end
 		end)
+		stateLayer(b, BOXED and "text-2" or "text-3")   -- after SetScript: its hooks would be replaced
 		bar.buttons[t.id] = b
 		bar.order[#bar.order + 1] = t.id
 		if t.badge ~= nil and t.badge ~= "" then
@@ -465,8 +547,9 @@ end
 
 -- --- Segmented (pill selector) ----------------------------------------------------------------------------------------
 
--- items: { { id, text } }. A surface-2 pill with the selected segment raised. :Select(id), :Active(), :Clear(),
--- :SetEnabled(bool), :SetItemText(id, text). onSelect(id) runs after a change.
+-- items: { { id, text } }. A surface-2 pill with the selected segment raised; each segment has a state layer in its
+-- label's colour (hover 8 %, pressed 10 %, M12.6). :Select(id), :Active(), :Clear(), :SetEnabled(bool) (locked: the labels
+-- at 38 %), :SetItemText(id, text). onSelect(id) runs after a change.
 function Widgets.Segmented(parent, items, onSelect)
 	local seg = CreateFrame("Frame", nil, parent)
 	seg:SetHeight(32)
@@ -487,7 +570,11 @@ function Widgets.Segmented(parent, items, onSelect)
 		self.thumb:SetPoint("TOPLEFT", b, "TOPLEFT", 0, 0)
 		self.thumb:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 0, 0)
 		self.thumb:Show()
-		for other, ob in pairs(self.buttons) do Theme.Text(ob.label, other == id and "text-1" or "text-3") end
+		for other, ob in pairs(self.buttons) do
+			local ink = other == id and "text-1" or "text-3"
+			Theme.Text(ob.label, ink)
+			Widgets.SetStateColor(ob.over, ink)
+		end
 		if changed and onSelect then onSelect(id) end
 		return true
 	end
@@ -496,18 +583,23 @@ function Widgets.Segmented(parent, items, onSelect)
 	function seg:Clear()
 		self.active = nil
 		self.thumb:Hide()
-		for _, ob in pairs(self.buttons) do Theme.Text(ob.label, "text-3") end
+		for _, ob in pairs(self.buttons) do Theme.Text(ob.label, "text-3"); Widgets.SetStateColor(ob.over, "text-3") end
 	end
 	-- Locked: the segments stop answering clicks and dim; the selection stays visible.
 	function seg:SetEnabled(enabled)
 		self.enabled = enabled ~= false
-		self:SetAlpha(self.enabled and 1 or 0.55)
-		for _, ob in pairs(self.buttons) do ob:SetEnabled(self.enabled) end
+		for _, ob in pairs(self.buttons) do
+			ob:SetEnabled(self.enabled)
+			ob.label:SetAlpha(self.enabled and 1 or Theme.STATE.disabledContent)
+			if not self.enabled then ob.hot, ob.pressed = false, false end
+			Widgets.SetState(ob.over, Widgets.StateOf(ob))
+		end
 	end
 
 	local x = 4
 	for _, item in ipairs(items) do
 		local b = CreateFrame("Button", nil, seg)
+		b.over = Widgets.TrackState(b, Widgets.StateLayer(b, "text-3", { shape = 12, layer = "OVERLAY" }))
 		b.label = Theme.NewText(b, "BodyMedium", "text-3")
 		b.label:SetPoint("CENTER", b, "CENTER", 0, 0)
 		b.label:SetText(item.text or "")
@@ -540,7 +632,8 @@ end
 
 -- --- Chip (label) -----------------------------------------------------------------------------------------------------
 
--- A pill with a border (28 high), filled with the accent when selected (the site's filter chip).
+-- A pill with a border (28 high), filled with the accent when selected (the site's filter chip). Hover is a state layer
+-- in the label's colour (8 %, M12.6); disabled, the label is at 38 % and the ring at 12 % of text-1.
 -- opts: text, onClick(chip), height, font (a Theme font id, default BodyMedium), pad (text padding, default 28).
 -- :SetSelected(bool), :IsSelected(), :SetLabel(text), :SetEnabled(bool).
 function Widgets.Chip(parent, opts)
@@ -551,18 +644,25 @@ function Widgets.Chip(parent, opts)
 	c.fill:SetAllPoints(c)
 	c.ring = Theme.Slice(c, "rr_ring_12", "border", "BORDER")
 	c.ring:SetAllPoints(c)
+	c.over = Widgets.StateLayer(c, "text-2", { shape = 12, fade = false })
 	c.label = Theme.NewText(c, opts.font or "BodyMedium", "text-2")
 	c.label:SetPoint("CENTER", c, "CENTER", 0, 0)
 	function c:Paint()
+		local off = not self:IsEnabled()
 		if self.selected then
 			Theme.Tint(self.fill, "accent", 1)
 			Theme.Tint(self.ring, "accent")
 			Theme.Text(self.label, "on-accent")
+			Widgets.SetStateColor(self.over, "on-accent")
 		else
-			Theme.Tint(self.fill, "surface-2", self.hot and 1 or 0)
-			Theme.Tint(self.ring, self.hot and "border-strong" or "border")
+			Theme.Tint(self.fill, "surface-2", 0)
+			if off then Theme.Tint(self.ring, "text-1", Theme.STATE.disabledContainer)
+			else Theme.Tint(self.ring, self.hot and "border-strong" or "border") end
 			Theme.Text(self.label, "text-2")
+			Widgets.SetStateColor(self.over, "text-2")
 		end
+		self.label:SetAlpha(off and Theme.STATE.disabledContent or 1)
+		Widgets.SetState(self.over, Widgets.StateOf(self))
 	end
 	function c:SetLabel(text)
 		self.label:SetText(text or "")
@@ -573,10 +673,13 @@ function Widgets.Chip(parent, opts)
 	local setEnabled = c.SetEnabled
 	function c:SetEnabled(enabled)
 		setEnabled(self, enabled and true or false)
-		self:SetAlpha(enabled and 1 or 0.45)
+		if not enabled then self.hot, self.pressed = false, false end
+		self:Paint()
 	end
 	c:SetScript("OnEnter", function(self) if self:IsEnabled() then self.hot = true; self:Paint() end end)
-	c:SetScript("OnLeave", function(self) self.hot = false; self:Paint() end)
+	c:SetScript("OnLeave", function(self) self.hot, self.pressed = false, false; self:Paint() end)
+	c:SetScript("OnMouseDown", function(self) if self:IsEnabled() then self.pressed = true; self:Paint() end end)
+	c:SetScript("OnMouseUp", function(self) self.pressed = false; self:Paint() end)
 	if opts.onClick then c:SetScript("OnClick", function(self) if self:IsEnabled() then opts.onClick(self) end end) end
 	c:SetLabel(opts.text)
 	c:Paint()
@@ -624,16 +727,14 @@ function Widgets.TitleBar(parent, opts)
 	bar.close = CreateFrame("Button", nil, bar)
 	bar.close:SetSize(28, 28)
 	bar.close:SetPoint("RIGHT", bar, "RIGHT", -14, 0)
-	bar.close.bg = Theme.Slice(bar.close, "rr_fill_8", "surface-3", "BACKGROUND", 0)
-	bar.close.bg:SetAllPoints(bar.close)
+	-- an icon button: a state layer in the icon's colour (M12.6), no fill of its own
+	bar.close.bg = Widgets.TrackState(bar.close, Widgets.StateLayer(bar.close, "text-2", { shape = 8, layer = "BACKGROUND" }))
 	bar.close.icon = bar.close:CreateTexture(nil, "OVERLAY")
 	bar.close.icon:SetTexture(Assets.textures.icons.path)
 	bar.close.icon:SetTexCoord(Assets.IconCoords("cross"))
 	bar.close.icon:SetSize(16, 16)
 	bar.close.icon:SetPoint("CENTER")
 	Theme.Tint(bar.close.icon, "text-2")
-	bar.close:SetScript("OnEnter", function(self) Theme.Tint(self.bg, "surface-3", 1) end)
-	bar.close:SetScript("OnLeave", function(self) Theme.Tint(self.bg, "surface-3", 0) end)
 	if opts.onClose then bar.close:SetScript("OnClick", opts.onClose) end
 	if opts.closeLabel and Widgets.Tooltip then Widgets.Tooltip.Attach(bar.close, opts.closeLabel, "BOTTOM") end
 	return bar
@@ -817,15 +918,12 @@ function Widgets.Text(parent, id, token, justify, layer)
 	return fs
 end
 
--- The hover of a list row: a surface-2 layer under the row's texts, shown while the mouse is over it (the DataTable's).
--- Hooked, so the row keeps its own OnEnter / OnLeave (a tooltip). Returns the texture (`row.hover`).
+-- The hover of a list row: a state layer of text-1 under the row's texts (8 % while the mouse is over it, 10 % pressed;
+-- docs/specs/ui-style.md §9.6, M12.6), like the DataTable's. Hooked, so the row keeps its own OnEnter / OnLeave (a
+-- tooltip). Returns the texture (`row.hover`).
 function Widgets.RowHover(row)
-	row.hover = row:CreateTexture(nil, "BACKGROUND")
-	Theme.Fill(row.hover, "surface-2", 0)
-	row.hover:SetAllPoints(row)
-	row:HookScript("OnEnter", function(self) Theme.Fill(self.hover, "surface-2", 1) end)
-	row:HookScript("OnLeave", function(self) Theme.Fill(self.hover, "surface-2", 0) end)
-	return row.hover
+	row.hover = Widgets.StateLayer(row, "text-1", { layer = "BACKGROUND", fade = false })
+	return Widgets.TrackState(row, row.hover)
 end
 
 -- A player's name in the class colour of the game (Theme.ClassText: text-1 on the light theme), text-1 for an unknown class.

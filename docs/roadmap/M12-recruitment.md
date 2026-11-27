@@ -58,7 +58,7 @@
   - the shape slices 4, 16 and 28 (`tools/make_media.py`) and the radius of each component;
   - the type roles of ui-style §9.4.
 - Done when:
-  - [ ] Every theme passes the contrast rules for the new roles; a hovered button on Aurora shows a darker, not a whiter, layer.
+  - [x] Every theme passes the contrast rules for the new roles; a hovered button on Aurora shows a darker, not a whiter, layer.
 
 ### M12.7 — Material 3: the components
 - Branch: `step/m12-7-m3-components`

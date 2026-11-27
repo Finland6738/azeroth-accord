@@ -157,6 +157,34 @@ describe("contrast", function()
 		end
 	end)
 
+	it("the M3 roles of M12.6: text on its container 4.5:1, the tonal fill a visible step from surface-1 (ui-style §9.1)", function()
+		for id in pairs(Th().themes) do
+			local r = pair(id, "on-secondary-container", "secondary-container")
+			truthy(r >= 4.5, ("%s on-secondary-container = %.2f"):format(id, r))
+			r = pair(id, "inverse-on-surface", "inverse-surface")
+			truthy(r >= 4.5, ("%s inverse-on-surface = %.2f"):format(id, r))
+			r = pair(id, "on-error", "err")
+			truthy(r >= 4.5, ("%s on-error on err = %.2f"):format(id, r))
+			r = pair(id, "secondary-container", "surface-1")
+			truthy(r >= 1.3, ("%s secondary-container on surface-1 = %.2f"):format(id, r))
+			-- the inverse surface stands out of the window (a tooltip on the dark themes is light, on Aurora dark)
+			r = pair(id, "inverse-surface", "bg")
+			truthy(r >= 3, ("%s inverse-surface on bg = %.2f"):format(id, r))
+		end
+	end)
+
+	it("the M3 roles' worst cases are the ones of the spec table (ui-style §9.1)", function()
+		local function worst(a, b)
+			local w = math.huge
+			for id in pairs(Th().themes) do w = math.min(w, pair(id, a, b)) end
+			return w
+		end
+		near(worst("on-secondary-container", "secondary-container"), 8.24, 0.01)
+		near(worst("inverse-on-surface", "inverse-surface"), 12.01, 0.01)
+		near(worst("on-error", "err"), 5.90, 0.01)
+		near(worst("secondary-container", "surface-1"), 1.42, 0.01)
+	end)
+
 	it("the worst cases of the Accord theme are the ones the spec table says", function()
 		local worst = math.huge
 		for _, s in ipairs({ "bg", "surface-1", "surface-2", "surface-3", "raised" }) do
@@ -362,7 +390,10 @@ describe("fonts", function()
 	end)
 
 	it("the game fonts can be chosen on purpose", function()
-		eq(Th().SetupFonts("game"), 14)
+		local n = 0
+		for _ in pairs(Th().fontSpecs) do n = n + 1 end
+		eq(n, 16)
+		eq(Th().SetupFonts("game"), n)
 		for id in pairs(Th().fontSpecs) do eq(Th().fontStatus[id], "game") end
 	end)
 
@@ -373,6 +404,26 @@ describe("fonts", function()
 		eq(Th().fontStatus.Body, "addon")
 		local ok, err = C():Set("account.settings.font", "serif")
 		falsy(ok); contains(err, "not an allowed value")
+	end)
+
+	it("the M3 type roles have the sizes of ui-style §9.4 and the old font ids stay (M12.6)", function()
+		local sizes = { ["headline-small"] = 22, ["title-large"] = 18, ["title-medium"] = 16, ["title-small"] = 14,
+			["body-large"] = 14, ["body-medium"] = 13, ["body-small"] = 11, ["label-large"] = 13, ["label-medium"] = 11,
+			["label-small"] = 10 }
+		local n = 0
+		for role, id in pairs(Th().TYPE_ROLES) do
+			n = n + 1
+			notNil(sizes[role], role)
+			eq(Th().fontSpecs[id][2], sizes[role], role)
+			eq(Th().Font(role), Th().Font(id), role)
+		end
+		eq(n, 10)
+		for _, id in ipairs({ "Display", "DisplaySmall", "H1", "H2", "Body", "BodyMedium", "Small", "Eyebrow", "Th", "Tab",
+			"Button", "Mono", "MonoMedium", "MonoSmall" }) do notNil(Th().fontSpecs[id], id) end
+		eq(Th().fontSpecs.Tab[2], 14); eq(Th().fontSpecs.MonoSmall[2], 10)
+		local fs = Th().NewText(CreateFrame("Frame"), "title-large", "text-1")
+		eq(fs._fontObject, Th().Font("TitleLarge"))
+		eq(Th().FontId("Body"), "Body")
 	end)
 
 	it("a text made by the theme takes its font object and registers its colour", function()
@@ -439,6 +490,28 @@ describe("pixels and shapes", function()
 		falsy(Th().Panel(CreateFrame("Frame"), { radius = 8 }).shadow)
 	end)
 
+	it("the M3 shape scale picks its slice by name or radius (M12.6)", function()
+		eq(Th().ShapeSlice("extra-small"), "rr_fill_4")
+		eq(Th().ShapeSlice("small", "ring"), "rr_ring_8")
+		eq(Th().ShapeSlice("medium"), "rr_fill_12")
+		eq(Th().ShapeSlice("large"), "rr_fill_16")
+		eq(Th().ShapeSlice("extra-large", "ring"), "rr_ring_28")
+		eq(Th().ShapeSlice(18), "rr_fill_18")
+		eq(Th().ShapeSlice("full"), "pill")
+		falsy(Th().ShapeSlice("full", "ring"))
+		falsy(Th().ShapeSlice("none")); falsy(Th().ShapeSlice("huge")); falsy(Th().ShapeSlice(5))
+		for name in pairs(Th().SHAPES) do
+			local key = Th().ShapeSlice(name)
+			if key then notNil(AzerothAccord.Assets.textures[key], name) end
+			key = Th().ShapeSlice(name, "ring")
+			if key then notNil(AzerothAccord.Assets.textures[key], name .. " ring") end
+		end
+		local p = Th().Panel(CreateFrame("Frame"), { radius = "extra-large" })
+		eq(p.fill._asset, "rr_fill_28"); eq(p.ring._asset, "rr_ring_28")
+		eq(Th().Panel(CreateFrame("Frame"), { radius = 4 }).fill._asset, "rr_fill_4")
+		deepEq({ Th().Slice(CreateFrame("Frame"), "rr_fill_16"):GetTextureSliceMargins() }, { 16, 16, 16, 16 })
+	end)
+
 	it("the probes answer without an error", function()
 		local p = Th().Probes()
 		eq(type(p.pixel), "number")
@@ -480,16 +553,16 @@ describe("assets table", function()
 		end
 	end)
 
-	it("has the thirteen textures, four logos and six fonts of Media/, each file once", function()
+	it("has the nineteen textures, four logos and six fonts of Media/, each file once", function()
 		local A = AzerothAccord.Assets
 		local n = 0
 		for _ in pairs(A.textures) do n = n + 1 end
-		eq(n, 13)
+		eq(n, 19)   -- 13 of M6.9 and the shape slices 4, 16 and 28 of M12.6
 		n = 0
 		for _ in pairs(A.logos) do n = n + 1 end
 		eq(n, 4)
-		eq(#A.AllPaths(), 13 + 4 + 6)
-		eq(#A.TexturePaths(), 13 + 4)
+		eq(#A.AllPaths(), 19 + 4 + 6)
+		eq(#A.TexturePaths(), 19 + 4)
 		local seen = {}
 		for _, p in ipairs(A.AllPaths()) do falsy(seen[p], "duplicate " .. p); seen[p] = true end
 		truthy(seen["Interface\\AddOns\\AzerothAccord\\Media\\logo_64.tga"])

@@ -35,8 +35,8 @@ comes from outside the repository (GPL-3.0):
 
 | Files | What |
 |---|---|
-| `rr_fill_8.tga`, `rr_fill_12.tga`, `rr_fill_18.tga` | filled rounded rectangles (9-slice) |
-| `rr_ring_8.tga`, `rr_ring_12.tga`, `rr_ring_18.tga` | 1 px rings of the same shapes (9-slice) |
+| `rr_fill_4.tga`, `rr_fill_8.tga`, `rr_fill_12.tga`, `rr_fill_16.tga`, `rr_fill_18.tga`, `rr_fill_28.tga` | filled rounded rectangles (9-slice) |
+| `rr_ring_4.tga`, `rr_ring_8.tga`, `rr_ring_12.tga`, `rr_ring_16.tga`, `rr_ring_18.tga`, `rr_ring_28.tga` | 1 px rings of the same shapes (9-slice) |
 | `shadow.tga`, `glow_s.tga`, `glow_l.tga` | blurred rounded rectangles for shadows and glows |
 | `pill.tga`, `circle.tga`, `blob_radial.tga` | pill, circle and radial fall-off |
 | `icons.tga` | the icon sheet above |

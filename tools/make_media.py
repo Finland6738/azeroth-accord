@@ -5,8 +5,9 @@ Adapted from FinlandDragonCreditPoints (tools/make_media.py), same owner, GPL-3.
 Every shape is WHITE with an alpha channel: the addon tints it with the colour of a theme token (SetVertexColor), so no
 file belongs to a theme. All files are 32-bit uncompressed TGA with power-of-two sizes.
 
-  rr_fill_8/12/18   64x64    filled rounded rectangle, 9-slice (margin = radius)
-  rr_ring_8/12/18   64x64    1 px ring of the same shape, 9-slice
+  rr_fill_4/8/12/16/18/28  64x64  filled rounded rectangle, 9-slice (margin = radius); 4, 16 and 28 are the M3 shape
+                                   scale of docs/specs/ui-style.md section 9.3 (M12.6)
+  rr_ring_4/8/12/16/18/28  64x64  1 px ring of the same shape, 9-slice
   shadow            128x128  blurred rounded rectangle for the soft shadow under windows and cards, 9-slice
   glow_s, glow_l    128x128  blurred rounded rectangle for the neon / amber glow (ADD blend), 9-slice
   pill              64x32    pill (half-circle ends), 9-slice on the left and right
@@ -274,7 +275,7 @@ def fit_width(img, width):
 def main():
     os.makedirs(OUT, exist_ok=True)
     made = []
-    for r in (8, 12, 18):
+    for r in (4, 8, 12, 16, 18, 28):
         made.append(save(white(rounded((64, 64), r)), f"rr_fill_{r}"))
         made.append(save(white(rounded((64, 64), r, ring=1.0)), f"rr_ring_{r}"))
     made.append(save(white(blurred((128, 128), 18, 40, 9)), "shadow"))

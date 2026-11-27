@@ -398,6 +398,27 @@ I token nuovi hanno un valore per tema (Nebula, Aurora, Accord), scelto nel pass
 su `inverse-surface` almeno 4,5:1, `secondary-container` distinguibile da `surface-1` (almeno 1,3:1, è un riempimento,
 non un bordo). `ok` e `warn` restano ruoli di Accord per gli stati, come oggi.
 
+I valori scelti in M12.6 (`UI/Theme.lua`), con il contrasto calcolato da `Tests/test_theme.lua`:
+
+| Token | Nebula | Aurora | Accord |
+|---|---|---|---|
+| `secondary-container` | `#3B2A52` (prugna spenta) | `#C8DAF0` (azzurro chiaro) | `#3D4426` (oro oliva scuro, l'oro dello stendardo spento) |
+| `on-secondary-container` | `#EBDDF8` | `#0A2A4F` | `#F1E7BE` |
+| `inverse-surface` | `#E9E2F0` | `#24303D` | `#DDEBE3` |
+| `inverse-on-surface` | `#251B30` | `#EEF3F7` | `#10292A` |
+| `on-error` | `#3D0509` | `#FFFFFF` | `#3D0702` |
+
+| Regola | Minimo | Nebula | Aurora | Accord |
+|---|---|---|---|---|
+| `on-secondary-container` su `secondary-container` | 4,5:1 | 9,90 | 10,12 | **8,24** |
+| `inverse-on-surface` su `inverse-surface` | 4,5:1 | 12,99 | **12,01** | 12,43 |
+| `on-error` su `err` | 4,5:1 | 5,92 | **5,90** | 6,11 |
+| `secondary-container` su `surface-1` | 1,3:1 | 1,51 | **1,42** | 1,60 |
+| `inverse-surface` su `bg` (il tooltip si stacca dalla finestra) | 3:1 | 15,83 | **12,58** | 14,94 |
+
+In grassetto il caso peggiore, che il test controlla. Sui temi scuri `inverse-surface` è chiaro e `on-error` è un
+inchiostro scuro (come in M3 scuro); su Aurora il contrario.
+
 ### 9.2 Stati
 
 Uno **strato di stato** sta tra il contenitore e il contenuto, ha il **colore del contenuto** (il ruolo *on-…*, oppure
@@ -415,6 +436,14 @@ Un solo strato per volta. Sostituisce gli strati **bianchi** all'8 % e al 12 % d
 `Widgets.PRESSED`): sul tema chiaro Aurora il bianco non si vedeva. La pressione resta anche come lieve rimpicciolimento
 (`Motion.Press`) se le animazioni sono accese.
 
+Nel codice (M12.6): le opacità sono `Theme.STATE`; il kit ha un aiuto condiviso, `Widgets.StateLayer(frame, token, opts)`
+(una texture fra contenitore e contenuto, del colore del contenuto, con la forma del componente), `Widgets.SetState(layer,
+stato)` e `Widgets.TrackState(frame, layer)` (passaggio e pressione agganciati). Lo usano il pulsante (colore
+dell'etichetta, sfumato in 120 ms), il chip, i segmenti, le schede, il pulsante di chiusura della barra del titolo, le
+righe di `Widgets.RowHover`, della tabella e del menu (strato di `text-1`). `Widgets.HOVER` e `Widgets.PRESSED` restano
+come nomi, con i valori 0,08 e 0,10. Il disattivato del pulsante, del chip e dei segmenti segue la riga della tabella
+(prima era tutto il widget al 45 % o al 55 %).
+
 ### 9.3 Forme
 
 La scala di M3: **0, 4, 8, 12, 16, 28, piena**. Ai media si aggiungono le fette mancanti (`rr_fill_4`, `rr_ring_4`,
@@ -429,6 +458,11 @@ La scala di M3: **0, 4, 8, 12, 16, 28, piena**. Ai media si aggiungono le fette 
 | 16 | side sheet (la scheda del membro) |
 | 28 | dialog |
 | piena | pulsanti, pulsanti segmentati, badge, interruttori, indicatore della scheda (in alto) |
+
+Nel codice (M12.6): `Theme.SHAPES` dà i nomi di M3 (`none` 0, `extra-small` 4, `small` 8, `medium` 12, `large` 16,
+`extra-large` 28, `full`) e `Theme.ShapeSlice(forma, "fill" | "ring")` la fetta dei media (`large` → `rr_fill_16`,
+`full` → `pill`, senza anello); `Theme.Panel` accetta anche il nome della forma. Il raggio 18 di M6 resta finché M12.7 non
+porta card e dialog a 12 e 28.
 
 ### 9.4 Tipografia
 
@@ -446,6 +480,10 @@ I ruoli di M3, con i font di FDCP e, per testo e etichette, **un punto sotto** M
 | Label large (14, medio) | `Button` | 13 | pulsanti, chip |
 | Label medium (12, medio) | `Eyebrow` | 11 | sopratitoli, intestazioni delle colonne |
 | Label small (11, medio) | `Th`, `MonoSmall` | 10 | badge, piccole etichette |
+
+Nel codice (M12.6): `Theme.TYPE_ROLES` lega ogni ruolo (`"title-large"`, `"body-medium"`…) a un oggetto font;
+`Theme.Font`, `Theme.NewText` e `Widgets.Text` accettano il nome del ruolo come un id. Si aggiungono `TitleLarge`
+(SemiBold 18) e `BodyLarge` (14); `MonoSmall` passa da 11 a 10 come dice la tabella. Gli id esistenti restano.
 
 Gli stili "enfatizzati" di M3 (più pesanti) servono solo per la scelta attiva: la scheda attiva, la riga selezionata,
 l'azione principale.

@@ -11,12 +11,18 @@ ns.Assets = Assets
 if ns.addon then ns.addon.Assets = Assets end   -- also reachable from tests
 
 Assets.textures = {
+	rr_fill_4   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_4.tga",   w = 64,  h = 64,  slice = 4 },
 	rr_fill_8   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_8.tga",   w = 64,  h = 64,  slice = 8 },
 	rr_fill_12  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_12.tga",  w = 64,  h = 64,  slice = 12 },
+	rr_fill_16  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_16.tga",  w = 64,  h = 64,  slice = 16 },
 	rr_fill_18  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_18.tga",  w = 64,  h = 64,  slice = 18 },
+	rr_fill_28  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_fill_28.tga",  w = 64,  h = 64,  slice = 28 },
+	rr_ring_4   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_4.tga",   w = 64,  h = 64,  slice = 4 },
 	rr_ring_8   = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_8.tga",   w = 64,  h = 64,  slice = 8 },
 	rr_ring_12  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_12.tga",  w = 64,  h = 64,  slice = 12 },
+	rr_ring_16  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_16.tga",  w = 64,  h = 64,  slice = 16 },
 	rr_ring_18  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_18.tga",  w = 64,  h = 64,  slice = 18 },
+	rr_ring_28  = { path = "Interface\\AddOns\\AzerothAccord\\Media\\rr_ring_28.tga",  w = 64,  h = 64,  slice = 28 },
 	shadow      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\shadow.tga",      w = 128, h = 128, slice = 48 },
 	glow_s      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\glow_s.tga",      w = 128, h = 128, slice = 48 },
 	glow_l      = { path = "Interface\\AddOns\\AzerothAccord\\Media\\glow_l.tga",      w = 128, h = 128, slice = 56 },

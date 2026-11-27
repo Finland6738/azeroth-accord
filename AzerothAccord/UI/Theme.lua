@@ -26,7 +26,9 @@ local function rgba(r, g, b, a) return { r / 255, g / 255, b / 255, a } end
 -- Token names, in the order of the spec's table. Every theme defines every one of them (tests check the parity).
 Theme.TOKENS = { "bg", "surface-1", "surface-2", "surface-3", "raised", "border-subtle", "border", "border-strong",
 	"text-1", "text-2", "text-3", "on-accent", "accent", "accent-hover", "accent-text", "accent-2", "neon", "neon-core",
-	"ok", "warn", "err", "highlight", "scrim", "grad-1", "grad-2", "grad-3", "grad-4" }
+	"ok", "warn", "err", "highlight", "scrim", "grad-1", "grad-2", "grad-3", "grad-4",
+	-- the colour roles Accord adds for Material 3 (docs/specs/ui-style.md §9.1, M12.6)
+	"secondary-container", "on-secondary-container", "inverse-surface", "inverse-on-surface", "on-error" }
 
 local function lightBorders(r, g, b) return rgba(r, g, b, .07), rgba(r, g, b, .13), rgba(r, g, b, .24) end
 
@@ -42,6 +44,9 @@ Theme.themes = {
 		ok = hex("#46C28F"), warn = hex("#F2B33D"), err = hex("#FF6369"),
 		highlight = rgba(255, 255, 255, .06), scrim = rgba(5, 2, 10, .72),
 		["grad-1"] = hex("#FC8C46"), ["grad-2"] = hex("#EE4662"), ["grad-3"] = hex("#9A2A9A"), ["grad-4"] = hex("#702AA8"),
+		-- M3 roles (§9.1): a muted plum tonal fill with a pale lilac on it, a light inverse surface, a dark ink on err
+		["secondary-container"] = hex("#3B2A52"), ["on-secondary-container"] = hex("#EBDDF8"),
+		["inverse-surface"] = hex("#E9E2F0"), ["inverse-on-surface"] = hex("#251B30"), ["on-error"] = hex("#3D0509"),
 	},
 	aurora = {
 		name = "Aurora", dark = false,
@@ -53,6 +58,9 @@ Theme.themes = {
 		ok = hex("#1B7A50"), warn = hex("#8F5B00"), err = hex("#C0262D"),
 		highlight = rgba(255, 255, 255, .6), scrim = rgba(11, 27, 43, .45),
 		["grad-1"] = hex("#0054B6"), ["grad-2"] = hex("#007EA8"), ["grad-3"] = hex("#00A89A"), ["grad-4"] = hex("#70C446"),
+		-- M3 roles (§9.1): a light blue tonal fill with a deep navy on it, a dark inverse surface, white on err
+		["secondary-container"] = hex("#C8DAF0"), ["on-secondary-container"] = hex("#0A2A4F"),
+		["inverse-surface"] = hex("#24303D"), ["inverse-on-surface"] = hex("#EEF3F7"), ["on-error"] = hex("#FFFFFF"),
 	},
 	accord = {
 		name = "Accord", dark = true,
@@ -65,6 +73,10 @@ Theme.themes = {
 		ok = hex("#5CCB8D"), warn = hex("#F2B33D"), err = hex("#FF6B5E"),
 		highlight = rgba(255, 255, 255, .06), scrim = rgba(1, 10, 12, .72),
 		["grad-1"] = hex("#D9B54E"), ["grad-2"] = hex("#9FE3A8"), ["grad-3"] = hex("#4FBF8E"), ["grad-4"] = hex("#1F7A64"),
+		-- M3 roles (§9.1): a dark olive-gold tonal fill (the banner's gold, muted) with a pale gold on it, a light mint
+		-- inverse surface, a dark ink on err
+		["secondary-container"] = hex("#3D4426"), ["on-secondary-container"] = hex("#F1E7BE"),
+		["inverse-surface"] = hex("#DDEBE3"), ["inverse-on-surface"] = hex("#10292A"), ["on-error"] = hex("#3D0702"),
 	},
 }
 do
@@ -89,6 +101,11 @@ function Theme.Color(token, themeId)
 	if not c then return 1, 0, 1, 1 end
 	return c[1], c[2], c[3], c[4]
 end
+
+-- The opacities of the Material 3 state layers (docs/specs/ui-style.md §9.2, M12.6): a layer in the colour of the
+-- element's content (its on-... role, or its label's colour) over the container. Disabled shows no layer: the content at
+-- 38 % and the container at 12 % of text-1. One layer at a time.
+Theme.STATE = { hover = 0.08, focus = 0.10, pressed = 0.10, dragged = 0.16, disabledContent = 0.38, disabledContainer = 0.12 }
 
 -- Series of a chart or a map (the communities of the group map, M6.14): tokens in an order where neighbours differ.
 Theme.SERIES = { "accent", "neon", "ok", "warn", "accent-2", "grad-4", "err", "text-3" }
@@ -287,11 +304,29 @@ end
 -- Font objects: id -> { key of Assets.fonts, size }. Names are AzerothAccordFont<Id> (docs/specs/ui-style.md §1).
 Theme.fontSpecs = {
 	Display = { "display", 22 }, DisplaySmall = { "display", 15 },
-	H1 = { "textSemiBold", 16 }, H2 = { "textSemiBold", 14 },
-	Body = { "text", 13 }, BodyMedium = { "textMedium", 13 }, Small = { "text", 11 },
+	TitleLarge = { "textSemiBold", 18 }, H1 = { "textSemiBold", 16 }, H2 = { "textSemiBold", 14 },
+	BodyLarge = { "text", 14 }, Body = { "text", 13 }, BodyMedium = { "textMedium", 13 }, Small = { "text", 11 },
 	Eyebrow = { "textMedium", 11 }, Th = { "textSemiBold", 10 }, Tab = { "textMedium", 14 }, Button = { "textMedium", 13 },
-	Mono = { "mono", 13 }, MonoMedium = { "monoMedium", 13 }, MonoSmall = { "mono", 11 },
+	Mono = { "mono", 13 }, MonoMedium = { "monoMedium", 13 }, MonoSmall = { "mono", 10 },
 }
+
+-- The Material 3 type roles (docs/specs/ui-style.md §9.4, M12.6) and the font object each one uses: body and label text
+-- one point under M3, like the game's text. Theme.Font, Theme.NewText and Widgets.Text take a role name as well as a font
+-- id, so a view can say "title-large" instead of picking a size. The old ids stay as they are.
+Theme.TYPE_ROLES = {
+	["headline-small"] = "Display",   -- 22: the title "AZEROTH ACCORD"
+	["title-large"] = "TitleLarge",   -- 18: dialogs, the member card
+	["title-medium"] = "H1",          -- 16: card titles
+	["title-small"] = "H2",           -- 14: section titles (the tabs' labels use Tab, the same size)
+	["body-large"] = "BodyLarge",     -- 14: long text (the handbook)
+	["body-medium"] = "Body",         -- 13: text and table cells
+	["body-small"] = "Small",         -- 11: help text, subtitles, tooltips
+	["label-large"] = "Button",       -- 13: buttons, chips
+	["label-medium"] = "Eyebrow",     -- 11: eyebrows, column headers
+	["label-small"] = "Th",           -- 10: badges, small labels
+}
+-- The font id of a role or of an id ("title-large" -> "TitleLarge", "Body" -> "Body").
+function Theme.FontId(idOrRole) return Theme.TYPE_ROLES[idOrRole] or idOrRole end
 Theme.fontStatus = {}   -- id -> "addon" | "game"
 Theme.fontObjects = {}  -- id -> font object
 
@@ -332,14 +367,14 @@ local function ensureFonts()
 end
 Theme.EnsureFonts = ensureFonts
 
-function Theme.Font(id) ensureFonts() return Theme.fontObjects[id] or Theme.fontObjects.Body end
+function Theme.Font(id) ensureFonts() return Theme.fontObjects[Theme.FontId(id)] or Theme.fontObjects.Body end
 function Theme.FontName(id) return "AzerothAccordFont" .. id end
 
 -- A FontString of `parent` in font `id` and colour `token` (registered).
 function Theme.NewText(parent, id, token, layer)
 	local fs = parent:CreateFontString(nil, layer or "OVERLAY")
 	ensureFonts()
-	fs:SetFontObject(Theme.fontObjects[id] or Theme.fontObjects.Body)
+	fs:SetFontObject(Theme.fontObjects[Theme.FontId(id)] or Theme.fontObjects.Body)
 	Theme.Text(fs, token or "text-1")
 	return fs
 end
@@ -363,13 +398,30 @@ function Theme.Slice(parent, key, token, layer, alpha)
 	return tex
 end
 
-local RADII = { [8] = true, [12] = true, [18] = true }
+local RADII = { [4] = true, [8] = true, [12] = true, [16] = true, [18] = true, [28] = true }
 
--- Fill + 1 px ring (+ optional shadow) behind `frame`: returns the table of the regions. opts: radius (8|12|18),
+-- The Material 3 shape scale (docs/specs/ui-style.md §9.3, M12.6): shape name -> radius in points. "none" is a plain
+-- square texture, "full" the pill. 18 is the radius of M6 (cards, dialogs) until M12.7 moves them to 12 and 28.
+Theme.SHAPES = { none = 0, ["extra-small"] = 4, small = 8, medium = 12, large = 16, ["extra-large"] = 28, full = "full" }
+
+-- The Media key of a shape: Theme.ShapeSlice("large") -> "rr_fill_16", Theme.ShapeSlice("small", "ring") -> "rr_ring_8".
+-- `shape` is a name of Theme.SHAPES or a radius (4, 8, 12, 16, 18, 28); kind is "fill" (default) or "ring". "full" is
+-- the pill for a fill and has no ring (nil); "none" has no slice (nil: the caller uses a plain texture), nor has an
+-- unknown shape.
+function Theme.ShapeSlice(shape, kind)
+	local r = Theme.SHAPES[shape] or shape
+	kind = kind == "ring" and "ring" or "fill"
+	if r == "full" then return kind == "fill" and "pill" or nil end
+	if not RADII[r] then return nil end
+	return "rr_" .. kind .. "_" .. r
+end
+
+-- Fill + 1 px ring (+ optional shadow) behind `frame`: returns the table of the regions. opts: radius (4|8|12|16|18|28),
 -- fill token, border token, shadow (bool), shadowAlpha.
 function Theme.Panel(frame, opts)
 	opts = opts or {}
-	local r = RADII[opts.radius] and opts.radius or 12
+	local r = Theme.SHAPES[opts.radius] or opts.radius   -- a radius or an M3 shape name ("medium")
+	r = RADII[r] and r or 12
 	local p = {}
 	if opts.shadow then
 		p.shadow = Theme.Slice(frame, "shadow", "scrim", "BACKGROUND", opts.shadowAlpha or 0.6)
