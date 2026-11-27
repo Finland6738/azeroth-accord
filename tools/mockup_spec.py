@@ -58,7 +58,7 @@ def pages():
     out = {"00-design-system": _page(design_system())}
     out["01-accord-tab"] = _page(s1.s_accord_tab() + "".join([callout(1, 1100, 330), callout(2, 30, 132), callout(3, 905, 50), callout(4, 124, 132), callout(5, 124, 176),
                                                               callout(6, 1064, 262), callout(7, 1031, 50), callout(8, 420, 672)]) +
-                                 legend(["The Accord tab, under the game's four (the addon's logo)", "The navigation rail: one icon per destination, the open one on its pill; the name in a tooltip", "Search, and Pop out: the same panel in a window of its own",
+                                 legend(["The Accord tab, under the game's four (the addon's logo)", "The navigation rail: one icon per destination, the open one in the accent; the name in a tooltip", "Search, and Pop out: the same panel in a window of its own",
                                          "Filters: online, mains only, by account, class, rank, profession, and the column chooser", "Sortable column titles; the sorted one is in the accent colour",
                                          "A click on a row opens the member card", "Pop out", "The sync state: guildmates with the addon, last update"]))
     out["02-member-card"] = _page(s1.s_member_card() + "".join([callout(1, 764, 148), callout(2, 764, 238), callout(3, 764, 366), callout(4, 764, 474), callout(5, 764, 582), callout(6, 764, 650)]) +

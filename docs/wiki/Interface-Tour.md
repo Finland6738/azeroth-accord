@@ -23,7 +23,7 @@ Open the guild window (default key `J`). Under the four tabs of the game (Chat, 
 
 The panel has **two levels of navigation**, the same in the guild window and in the standalone window *(from `v0.13.0`)*:
 
-- **The rail** down the left side: one icon per place of the addon. Hover an icon for its name; click it to go there. The open one has its icon filled with a soft rounded shape behind it, and an icon carries a small red number when something waits there (the bank requests on *Economy*, the things to do on *Home*). **Settings** is at the bottom. Officers and the Guild Master also have **Officers**; members do not see that icon.
+- **The rail** down the left side: one icon per place of the addon. Hover an icon for its name; click it to go there. The open one has its icon filled and in the accent colour of the theme (orange in Nebula, blue in Aurora, gold in Accord); a soft rounded shape shows only behind the icon under your mouse. An icon carries a small red number when something waits there (the bank requests on *Economy*, the things to do on *Home*). **Settings** is at the bottom. Officers and the Guild Master also have **Officers**; members do not see that icon.
 - **One row of tabs** at the top of each place: its name first, then one tab per page; the open page is bright with a short line under it, which slides to the tab you click. A place with a single page shows only its name. Inside a page there is never a second row of tabs: what you see in it is chosen with the filters or a **Show** menu (for example the Bank's Tabs, Items, Requests…).
 - The page you opened last is remembered for each character, and the rail opens each place on the page you left it on.
 

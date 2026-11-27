@@ -74,7 +74,7 @@ The addon never moves gold or items. Release: `v0.13.0`.
 - Branch: `step/m13-7-navigation`
 - Spec: [ui-style §9.11](../specs/ui-style.md#911-navigazione-due-livelli-proprietario-2026-11-27)
 - Scope (owner, 2026-11-27):
-  - the views move from the top tab bar to a vertical **navigation rail** on the left: icons only, the name in a tooltip on hover, the active one filled with the indicator;
+  - the views move from the top tab bar to a vertical **navigation rail** on the left: icons only, the name in a tooltip on hover, the active one filled with the indicator (replaced on 2026-11-27: filled and in the accent, a background only under the mouse, ui-style §9.11);
   - the 15 views are grouped into the **8 destinations** of the map in ui-style §9.11 (Home, Guild, Raid, Groups, Professions, Economy, Community, Officers) plus Settings, each with its pages (owner, 2026-11-27);
   - inside a view, **one** row of tabs for its pages, the same in every view, with the view's name at its start;
   - no third navigation row: what was a sub-category becomes filter chips or a "Category" menu;

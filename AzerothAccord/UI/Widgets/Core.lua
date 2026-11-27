@@ -76,9 +76,10 @@ function Widgets.StateLayer(frame, token, opts)
 	if circle then
 		tex = frame:CreateTexture(nil, opts.layer or "ARTWORK")
 		tex:SetTexture(Assets.textures.circle.path)
-		Theme.Tint(tex, token)
+		Theme.Ink(tex, token)
 	elseif key then
-		tex = Theme.Slice(frame, key, token, opts.layer or "ARTWORK")
+		tex = Theme.Slice(frame, key, nil, opts.layer or "ARTWORK")
+		Theme.Ink(tex, token)
 	else
 		tex = frame:CreateTexture(nil, opts.layer or "ARTWORK")
 		Theme.Fill(tex, token)
@@ -101,7 +102,7 @@ end
 function Widgets.SetStateColor(tex, token)
 	if tex._stateToken == token then return end
 	tex._stateToken = token
-	if tex._sliced then Theme.Tint(tex, token) else Theme.Fill(tex, token) end
+	if tex._sliced then Theme.Ink(tex, token) else Theme.Fill(tex, token) end
 end
 
 -- The state of a frame that has `.hot` (mouse over), `.pressed` and `.focused`: pressed wins over focus, focus over hover;

@@ -510,8 +510,9 @@ describe("the rail and the pages (SPEC-04 §2, ui-style.md §9.11, M13.7)", func
 		eq(content.bar.title:GetText(), "Economy", "the destination's name at the start of the row")
 		isNil(content.tabs, "a destination with one page has no tabs")
 		truthy(item("economy").active)
-		truthy(item("economy").indicator:IsShown(), "the indicator behind the active icon")
-		falsy(item("guild").indicator:IsShown())
+		isNil(item("economy").indicator, "nothing behind the active icon")
+		eq((item("economy").icon:GetVertexColor()), (A().Theme.Color("accent-text")), "the active icon in the accent")
+		eq((item("guild").icon:GetVertexColor()), (A().Theme.Color("text-2")))
 		notNil(built.bank)
 		isNil(built.roster, "a view is built when first shown")
 		eq(built.bank:GetParent(), content.body, "the view's frame fills the body")
@@ -556,6 +557,39 @@ describe("the rail and the pages (SPEC-04 §2, ui-style.md §9.11, M13.7)", func
 			Mock.RunScript(it, "OnLeave")
 			falsy(A().Widgets.Tooltip.IsShown())
 		end
+	end)
+
+	it("a background shows only under the mouse, on the clicked item too, after a change of destination and of theme", function()
+		local Th, STATE = A().Theme, A().Theme.STATE
+		local function clean(where)   -- a recolour must not raise a layer's opacity (the white pill, 2026-11-27)
+			for _, id in ipairs(rail().order) do eq(item(id).over:GetAlpha(), 0, where .. ": " .. id) end
+		end
+		Mock.Slash("/accord roster")
+		for _, id in ipairs({ "raid", "guild", "economy" }) do item(id):Click() end
+		clean("after the clicks")
+		for _, theme in ipairs(Th.ORDER) do
+			Th.Apply(theme)
+			clean(theme)
+			eq((item("economy").icon:GetVertexColor()), (Th.Color("accent-text", theme)), theme)
+		end
+		-- the pointed item, through a click and out
+		local raid = item("raid")
+		Mock.RunScript(raid, "OnEnter")
+		Mock.RunScript(raid, "OnMouseDown")
+		Mock.RunScript(raid, "OnMouseUp")
+		raid:Click()
+		raid.over:SetAlpha(STATE.hover)   -- where the 120 ms fade ends
+		A().Widgets.SetStateColor(raid.over, "text-2")
+		eq(raid.over:GetAlpha(), STATE.hover, "a recolour under the mouse keeps the hover opacity")
+		A().Widgets.SetStateColor(raid.over, "accent-text")
+		Mock.RunScript(raid, "OnLeave")
+		eq(raid.over._state, nil, "gone when the mouse leaves")
+		Mock.RunScript(raid, "OnEnter")
+		eq(raid.over._state, "hover")
+		Mock.Slash("/accord")
+		falsy(Win():IsShown())
+		Mock.RunScript(raid, "OnHide")
+		eq(raid.over._state, nil, "an item hidden under the mouse comes back without the layer")
 	end)
 
 	it("what is typed in the search box goes to the selected view only", function()

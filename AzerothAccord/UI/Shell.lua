@@ -5,8 +5,8 @@
 -- guild window: a fill of the theme over Blizzard's content area). Navigation has two levels (ui-style §9.11, M13.7):
 --   * level 1, the navigation rail at the left: one icon per destination of Shell.DESTINATIONS (Home, Guild, Raid,
 --     Groups, Professions, Economy, Community, Officers, and Settings at the bottom), 24 pt icons on 56 pt items, the name
---     in a tooltip; the active one has its icon filled and the secondary-container indicator behind it; a destination
---     carries the sum of its views' badges. A destination without a visible view has no icon (Officers for a member);
+--     in a tooltip; the active one has its icon filled and in accent-text, with nothing behind it (a background shows
+--     only under the mouse); a destination carries the sum of its views' badges. A destination without a visible view has no icon (Officers for a member);
 --   * level 2, one row at the top of the content: the destination's name, then one tab (ns.Widgets.Tabs) per page of it.
 --     A page is a registered view (Roster, Bank...) or, for a view that has pages of its own (`pages`), one of them
 --     (Officers: Inactive, Queue, Timeline...). A destination with one page shows only its name;
@@ -39,7 +39,7 @@ Shell.RAIL = 80           -- the width of the navigation rail (ui-style §9.11)
 Shell.RAIL_ITEM = 56      -- the height of one of its items
 Shell.RAIL_ICON = 24
 Shell.RAIL_TOP = 8        -- above its first item and under its last (Settings)
-Shell.INDICATOR = { 56, 32 }   -- the active destination's indicator, a pill behind the icon (M3)
+Shell.RAIL_STATE = { 56, 32 }  -- the state layer of an item (hover, press), a pill behind the icon
 Shell.TITLE_GAP = 24      -- between the destination's name and its first tab
 
 -- The destinations of the rail (owner, 2026-11-27, ui-style §9.11): id, Material Symbols icon, name, order. A new
@@ -276,15 +276,10 @@ local function newRailItem(rail, dest)
 	local item = CreateFrame("Button", nil, rail)
 	item:SetSize(Shell.RAIL, Shell.RAIL_ITEM)
 	item.id, item.name, item.iconName = dest.id, dest.label or dest.id, dest.icon
-	local w, h = Shell.INDICATOR[1], Shell.INDICATOR[2]
-	-- the indicator: a pill of secondary-container behind the icon, shown on the active destination; the state layer
-	-- (hover, press) has the same shape, in the colour of the icon
-	item.indicator = Theme.Slice(item, Theme.ShapeSlice("full"), "secondary-container", "BACKGROUND")
-	item.indicator:SetSize(w, h)
-	item.indicator:SetPoint("CENTER", item, "CENTER", 0, 0)
-	item.indicator:Hide()
+	-- the only background of an item: the state layer under the mouse (hover, press), in the colour of the icon; the
+	-- active destination has none of its own (ui-style §9.11, owner, 2026-11-27)
 	local hit = CreateFrame("Frame", nil, item)
-	hit:SetSize(w, h)
+	hit:SetSize(Shell.RAIL_STATE[1], Shell.RAIL_STATE[2])
 	hit:SetPoint("CENTER", item, "CENTER", 0, 0)
 	item.over = Widgets.TrackState(item, Widgets.StateLayer(item, "text-2", { shape = "full", anchor = hit, layer = "BORDER" }))
 	item.icon = Widgets.Icon(item, dest.icon, Shell.RAIL_ICON, "text-2", "ARTWORK")
@@ -292,11 +287,15 @@ local function newRailItem(rail, dest)
 	function item:SetActive(on)
 		on = on and true or false
 		self.active = on
-		self.indicator:SetShown(on)
 		self.icon:SetTexCoord(ns.Assets.IconCoords(self.iconName, on))
-		Theme.Tint(self.icon, on and "on-secondary-container" or "text-2")
-		Widgets.SetStateColor(self.over, on and "on-secondary-container" or "text-2")
+		Theme.Tint(self.icon, on and "accent-text" or "text-2")
+		Widgets.SetStateColor(self.over, on and "accent-text" or "text-2")
 	end
+	-- an item hidden under the mouse (the window closes) gets no OnLeave: it comes back without the layer
+	item:HookScript("OnHide", function(self)
+		self.hot, self.pressed = false, false
+		Widgets.SetState(self.over, nil)
+	end)
 	-- the M3 badge: the count at the top right of the icon (the err badge of the kit)
 	function item:SetCount(text)
 		if not text then

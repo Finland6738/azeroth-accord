@@ -135,6 +135,9 @@ local function applyOne(region, entry)
 	if kind == "vertex" then
 		local r, g, b, a = Theme.Color(entry.token)
 		region:SetVertexColor(r, g, b, (a or 1) * (entry.alpha or 1))
+	elseif kind == "ink" then
+		local r, g, b = Theme.Color(entry.token)
+		region:SetVertexColor(r, g, b, region:GetAlpha() or 1)   -- the opacity stays the one of the state shown
 	elseif kind == "color" then
 		local r, g, b, a = Theme.Color(entry.token)
 		region:SetColorTexture(r, g, b, (a or 1) * (entry.alpha or 1))
@@ -159,12 +162,16 @@ end
 -- replaces the others, so a pooled row that is filled again never keeps the colour of its previous data.
 local TEXT_COLOUR = { text = true, class = true, rgb = true }
 
+-- A texture shows one vertex colour: "vertex" (Tint) and "ink" (Ink) replace each other.
+local VERTEX_COLOUR = { vertex = true, ink = true }
+
 local function add(region, entry)
 	local list = registry[region]
 	if not list then list = {}; registry[region] = list end
 	-- one entry per kind: registering again replaces the token (a button that changes style)
 	for i, e in ipairs(list) do
-		if e.kind ~= "fn" and (e.kind == entry.kind or (TEXT_COLOUR[e.kind] and TEXT_COLOUR[entry.kind])) then
+		if e.kind ~= "fn" and (e.kind == entry.kind or (TEXT_COLOUR[e.kind] and TEXT_COLOUR[entry.kind])
+			or (VERTEX_COLOUR[e.kind] and VERTEX_COLOUR[entry.kind])) then
 			list[i] = entry; applyOne(region, entry); return region
 		end
 	end
@@ -175,6 +182,9 @@ end
 
 -- A white texture shows `token` through SetVertexColor; `alpha` multiplies the token's own alpha.
 function Theme.Tint(region, token, alpha) return add(region, { kind = "vertex", token = token, alpha = alpha }) end
+-- A white texture whose opacity somebody else sets (a state layer) shows `token` and keeps that opacity, here and on
+-- Apply: in the game SetVertexColor's alpha and SetAlpha are one value, so Tint would make an invisible layer opaque.
+function Theme.Ink(region, token) return add(region, { kind = "ink", token = token }) end
 -- A solid-colour texture (SetColorTexture) in `token`.
 function Theme.Fill(region, token, alpha) return add(region, { kind = "color", token = token, alpha = alpha }) end
 -- A FontString (or font object) coloured with `token`.

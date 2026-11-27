@@ -150,12 +150,11 @@ p { margin: 0 0 8px; }
 .gw-tab img { width: 30px; height: 30px; border-radius: 50%; }
 .inset { position: absolute; left: 0; right: 0; top: 44px; bottom: 0; background: var(--bg); border-radius: 0 0 12px 12px; overflow: hidden; }
 .pn { position: absolute; inset: 0; background: var(--bg); color: var(--text-1); }
-/* the navigation rail (ui-style §9.11, M13.7): 80 wide, 56-point items, the pill indicator behind the active icon */
+/* the navigation rail (ui-style §9.11, M13.7): 80 wide, 56-point items, the active icon in the accent, no background */
 .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 80px; border-right: 1px solid var(--border-subtle); }
 .rail .ri { position: absolute; left: 0; width: 80px; height: 56px; display: grid; place-items: center; color: var(--text-2); }
 .rail .ri svg { position: relative; width: 24px; height: 24px; }
-.rail .ri.on { color: var(--on-secondary-container); }
-.rail .ri.on::before { content: ""; position: absolute; left: 12px; top: 12px; width: 56px; height: 32px; border-radius: 16px; background: var(--secondary-container); }
+.rail .ri.on { color: var(--accent-text); }
 .rail .ri .n { position: absolute; left: 44px; top: 8px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--err); color: var(--on-error);
   font: 500 10px/16px var(--body); text-align: center; }
 .tabbar { position: absolute; left: 96px; right: 16px; top: 4px; height: 48px; display: flex; align-items: stretch; gap: 4px; border-bottom: 1px solid var(--border); }

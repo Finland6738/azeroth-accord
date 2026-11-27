@@ -4,8 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- A pale shape no longer stays behind an item of the navigation rail after changing destination (the icon disappeared under it). The state layer under the mouse became fully opaque whenever it changed colour, or the theme changed; the same could happen on other buttons, chips and the guild window's side tabs. It now keeps its opacity (new `Theme.Ink`). **Not checked in the real game.**
+
 ### Changed
 
+- Navigation rail (owner, 2026-11-27): the open destination has **no background** any more: its icon, filled, is in the theme's accent (`accent-text`: orange in Nebula, blue in Aurora, gold in Accord). A background shows only under the mouse. It replaces the pill indicator of M13.7.
 - M13.8: **sortable tables everywhere** ([ui-style §9.9](docs/specs/ui-style.md#99-tabelle-sempre-ordinabili-proprietario-2026-11-27)). Every list with columns is a `Widgets.DataTable`: a click on a title sorts ascending, a second click descending, with the arrow; rows with nothing in the column go last, and columns of buttons have no sort. Each list remembers its order per character (new `char.ui.tableSort`).
   - Rebuilt as tables: the bank's items, log, donations, money log, requests and officers' inbox (its sort chips are gone), likes, *Someone new*, the social list, the group map's communities, mentors, the handbook's revisions, and the lists of **Season** (declarations, counts by role), **Raid** (FDCP's pool and costs, who has each addon), **Events** (the events, the roles of a Raid-Helper import) and **Rallies** (a new table of all rallies). A click on an event or a rally chooses it.
   - Sorting is now on in the tables that had it off: Action Center and Notices, Group finder and applicants, Inactive, Timeline, Queue and the cleanup review, Trials, recipes, Orders, Wishlist, Demand, Board, Shopping list.

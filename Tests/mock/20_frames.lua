@@ -88,7 +88,11 @@ function Widget:SetWidth(w) self._width = w end
 function Widget:SetHeight(h) self._height = h end
 function Widget:GetWidth() return self._width end
 function Widget:GetHeight() return self._height end
-function Widget:SetAlpha(a) self._alpha = a end
+-- As in the game, a texture's alpha and the alpha of its vertex colour are one value: each setter changes both.
+function Widget:SetAlpha(a)
+	self._alpha = a
+	if self._type == "Texture" and self._vertex then self._vertex[4] = a end
+end
 function Widget:GetAlpha() return self._alpha end
 function Widget:GetEffectiveAlpha() return self._alpha end
 function Widget:SetScale(s) self._scale = s end
@@ -296,7 +300,10 @@ function Widget:SetJustifyH(j) self._justifyH = j end
 function Widget:SetTextColor(r, g, b, a) self._textColor = { r, g, b, a or 1 } end
 function Widget:GetTextColor() local c = self._textColor or { 1, 1, 1, 1 }; return c[1], c[2], c[3], c[4] end
 function Widget:SetTexCoord(...) self._texCoord = { ... } end
-function Widget:SetVertexColor(r, g, b, a) self._vertex = { r, g, b, a or 1 } end
+function Widget:SetVertexColor(r, g, b, a)
+	self._vertex = { r, g, b, a or 1 }
+	if self._type == "Texture" then self._alpha = a or 1 end
+end
 function Widget:GetVertexColor() local c = self._vertex or { 1, 1, 1, 1 }; return c[1], c[2], c[3], c[4] end
 function Widget:SetAtlas(atlas) self._atlas = atlas end
 function Widget:SetPropagateKeyboardInput(v) self._propagate = v and true or false end

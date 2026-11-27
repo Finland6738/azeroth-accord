@@ -643,7 +643,7 @@ Non provato nel client vero.
 
 ### 9.11 Navigazione: due livelli (proprietario, 2026-11-27)
 
-- **Livello 1, le viste**: una **barra di navigazione verticale** a sinistra (la *navigation rail* di M3), **solo icone** di 24 su elementi alti 56, con il nome della vista in un tooltip al passaggio del mouse. La vista attiva ha l'icona piena, l'indicatore in `secondary-container` dietro l'icona e i badge di M3. La barra contiene tutte le viste, quindi non c'è più "Altro".
+- **Livello 1, le viste**: una **barra di navigazione verticale** a sinistra (la *navigation rail* di M3), **solo icone** di 24 su elementi alti 56, con il nome della vista in un tooltip al passaggio del mouse. La destinazione attiva ha l'icona piena nel colore `accent-text` (quello della scheda attiva) e **nessuno sfondo**; uno sfondo compare solo sotto il mouse, su qualsiasi voce, e sparisce quando il mouse esce (proprietario, 2026-11-27: sostituisce l'indicatore a pillola di M3). Le voci hanno i badge di M3. La barra contiene tutte le viste, quindi non c'è più "Altro".
 - **Livello 2, le pagine di una vista**: **una sola** riga di schede in cima al contenuto, uguale in tutte le viste (schede primarie di §9.6), con il **nome della vista** a sinistra della riga, così si sa sempre dove si è. Una vista con una sola pagina mostra solo il nome.
 - **Nessun terzo livello di navigazione.** Le sotto-categorie diventano **filtri** (chip nella barra degli strumenti) o un **menu** "Categoria". Il selettore segmentato serve solo per **scelte**, non per navigare.
 - Vale nella finestra di Accord e nel pannello dentro la finestra della gilda.
@@ -668,8 +668,11 @@ Un membro vede 7 icone più le Impostazioni. Una milestone nuova aggiunge **pagi
 destinazione di ogni vista; una vista può dire la sua con `dest`). Le viste si registrano come prima (`Shell:RegisterView`);
 una vista con pagine proprie le dà alla shell (`pages`, `showPage`, `page`, `pageBadge`) e ogni pagina è una scheda della riga.
 
-- **Barra**: larga 80, elementi alti 56, icona di 24 al centro, indicatore a pillola 56 × 32 in `secondary-container`
-  (l'icona attiva è piena, in `on-secondary-container`; le altre vuote in `text-2`); strato di stato della stessa forma;
+- **Barra**: larga 80, elementi alti 56, icona di 24 al centro (l'icona attiva è piena, in `accent-text`: arancione in
+  Nebula, blu in Aurora, oro in Accord, almeno 4,5:1 sul fondo della barra; le altre vuote in `text-2`); **nessun
+  indicatore** dietro la voce attiva; l'unico sfondo è lo strato di stato sotto il mouse (§9.2), una pillola 56 × 32 nel
+  colore dell'icona, anche sulla voce appena cliccata. Un cambio di colore dello strato ne conserva l'opacità
+  (`Theme.Ink`: nel gioco `SetVertexColor` e `SetAlpha` sono lo stesso valore; prima restava una pillola chiara);
   tooltip semplice a destra con il nome; badge `err` in alto a destra dell'icona con la **somma** dei conteggi delle viste
   della destinazione. Una destinazione senza viste visibili non ha l'icona (Ufficiali per un membro; Economia resta per la
   Banca). Impostazioni sta in fondo. Un clic apre la pagina della destinazione vista per ultima, altrimenti la prima.
