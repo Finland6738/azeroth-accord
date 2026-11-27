@@ -44,9 +44,11 @@
 -- The availability map (`avail`, SPEC-14 §8.2) is an ordinary set (first hand, officer relay, saved): one small record per
 -- character, the 168 levels of when its account is online, or its withdrawal.
 --
--- The recipe catalogue (`recipecat`, SPEC-06 §1.5) is an ordinary set (first hand, officer relay, saved) summarised apart
--- (`summary = "extra"`): one record per profession that any member who has the profession may write; one that arrives
--- before its author's recipe list waits for it (`wait`, Data/RecipeCatalogue.lua).
+-- The recipe catalogue (`recipecat`, SPEC-06 §1.5) is an ordinary set (first hand, officer relay, saved) with a summary of
+-- its own (`summary = "catalogue"`, Net/Sync.lua): not the census's extra summary, which a v0.9-v0.11 client computes for
+-- the census alone, so adding a set to it would make the two never agree. One record per profession that any member who
+-- has the profession may write; one that arrives before its author's recipe list waits for it (`wait`,
+-- Data/RecipeCatalogue.lua).
 --
 -- The mentor offers (`mentor`, SPEC-16 §6) are an ordinary set (first hand, officer relay, saved): one record per account
 -- that offers, only for its own characters (MEN-01), at most 10 revisions of an author an hour (`rate`, MEN-04).
@@ -194,7 +196,9 @@ function Store.IsExtraSummary(set)
 end
 
 -- The summary a set's records go to apart from the older sets: "extra" (the addon census), "handbook" (the guild
--- handbook, SPEC-15 §3.6) or nil (the summary per author).
+-- handbook, SPEC-15 §3.6), "catalogue" (the guild recipe catalogue, SPEC-06 §1.5) or nil (the summary per author).
+-- A set a released client does not know never joins an existing kind: it gets one of its own, or that client's summary
+-- of the kind and a newer one's never agree.
 function Store.SummaryKind(set)
 	local def = Store.SETS[set]
 	return def ~= nil and def.summary or nil
@@ -244,7 +248,7 @@ Store.SETS = {
 	},
 	recipecat = {  -- every recipe of a profession (Data/RecipeCatalogue.lua, SPEC-03 §3.1): id = "<skillLine>", { skillLine, ids, lv, n, h }
 		maxBytes = 12288,
-		summary = "extra",                         -- apart from the older sets, with the census: an older client compares the same
+		summary = "catalogue",                     -- a summary of its own: a client without the set compares the same (SPEC-13 §8.2)
 		owner = function(rec) if not ns.RecipeCatalogue then return false end return ns.RecipeCatalogue.ValidRecord(rec) end,
 		wait = function(rec, ctx) if ns.RecipeCatalogue then ns.RecipeCatalogue.Wait(rec, ctx) end end,   -- before its author's list
 	},

@@ -237,8 +237,9 @@ describe("trust and size of a catalogue record", function()
 		truthy(size <= 4096, "estimated " .. size)
 	end)
 
-	it("is summarised apart from the older sets", function()
-		eq(S().SummaryKind("recipecat"), "extra")
+	it("is summarised apart from the older sets, and apart from the census's extra summary", function()
+		eq(S().SummaryKind("recipecat"), "catalogue")
+		eq(A().Sync.GroupName("recipecat", BOB), A().Sync.CatalogueName(BOB))
 	end)
 end)
 
@@ -641,5 +642,84 @@ describe("one catalogue reaches the guild (simulator)", function()
 		eq(sim:client(2):addon().RecipeCatalogue.state.stats.unchanged, 1)
 		notNil(sim:client(3):addon().Store:Get("recipes", sim:client(2):guid() .. ":165"))
 		eq(sim:client(3):addon().Crafters:CountOf(learned[1]), 2)
+	end)
+
+	-- A client of v0.11.0 knows the census but not the catalogue: here the set is switched off in it, after every login.
+	local function makeOld(c)
+		local Store = c:addon().Store
+		local original = Store.IsActive
+		Store.IsActive = function(set) if set == "recipecat" then return false end return original(set) end
+	end
+
+	-- Every catalogue record each client hands to its transport.
+	local function watchCatalogue(sim)
+		local seen = {}
+		for i, c in ipairs(sim.clients) do
+			local Tr = c:addon().Transport
+			local original = Tr.Send
+			Tr.Send = function(self, dist, msg, opts)
+				if msg.t == "REC" and msg.s == "recipecat" then seen[#seen + 1] = { from = i, dist = dist, target = opts and opts.target } end
+				return original(self, dist, msg, opts)
+			end
+		end
+		return seen
+	end
+
+	it("leaves a client that does not know the catalogue as before: same summaries, nothing pushed, asked or refused", function()
+		local learned, unlearned, levels = bigProfession()
+		local sim = Sim.new{ clients = 4, officers = { 1 }, offline = { 3 }, latency = { 0.05, 0.3 }, seed = 67, setup = function(M, i)
+			if i == 1 then
+				M.tradeskill.AddAllRecipeIDs()
+				M.tradeskill.own = { { name = "Leatherworking", skillLine = LEATHER, rank = 120, maxRank = 150,
+					recipes = learned, unlearned = unlearned, levels = levels } }
+			end
+		end }
+		makeOld(sim:client(4))
+		for i = 1, 4 do
+			local guid = Sim.guidOf(i)
+			sim:client(i):addon().Store:Put("accounts", guid, { token = "T" .. i, chars = { { guid = guid } } })
+		end
+		sim:advance(60)
+		sim:client(1).Mock.tradeskill.open = 1
+		sim:client(1).Mock.Fire("TRADE_SKILL_SHOW")
+		sim:advance(120)
+		notNil(sim:client(2):addon().Store:Get("recipecat", "165"))
+		local old = sim:client(4):addon()
+		eq(old.Store:Count("recipecat"), 0)
+		-- a newer client that comes later gets the catalogue through its own summary
+		sim:client(3):login()
+		local ok = sim:advanceUntil(function() return sim:client(3):addon().Store:Get("recipecat", "165") ~= nil end, 300)
+		truthy(ok, "the newcomer holds the catalogue")
+		sim:advance(600)   -- and the older sets
+		-- the summaries an older client compares are the same as its own
+		local s, c = old.Sync:EncodeSummary(), old.Sync:EncodeSummary(nil, true)
+		for i = 1, 3 do
+			local Sy = sim:client(i):addon().Sync
+			eq(Sy:EncodeSummary(), s, "the per-author summary, client " .. i)
+			eq(Sy:EncodeSummary(nil, true), c, "the census's extra summary, client " .. i)
+			truthy(#Sy:EncodeSummary(nil, "rc") > 0, "the catalogue's summary, client " .. i)
+		end
+		-- the old client logs in again (HELLO), then again with block summaries (BHELLO): nothing of the catalogue travels
+		local seen = watchCatalogue(sim)
+		local pushes = 0
+		for i = 1, 3 do pushes = pushes + sim:client(i):addon().Sync.state.stats.pushes end
+		for round = 1, 2 do
+			sim:client(4):logout()
+			sim:client(4):login()
+			makeOld(sim:client(4))
+			if round == 2 then for i = 1, 4 do sim:client(i):addon().Sync.BLOCK_OVER = -1 end end
+			sim:advance(45 * 60)
+		end
+		truthy(sim:client(4):addon().Sync.state.stats.bhellosSent >= 1, "the old client sent a BHELLO")
+		eq(#seen, 0, "no catalogue record sent to it or because of it")
+		local after = 0
+		for i = 1, 3 do after = after + sim:client(i):addon().Sync.state.stats.pushes end
+		eq(after, pushes, "nobody pushed anything to it")
+		eq(sim:client(4):addon().Sync.state.stats.requests, 0, "and it asked for nothing")
+		for i = 1, 4 do
+			local Ci = sim:client(i):addon()
+			eq(Ci.Store.stats.rejected, 0, "client " .. i)
+			eq(Ci.Sync.state.stats.quarantined, 0)
+		end
 	end)
 end)

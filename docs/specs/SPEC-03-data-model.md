@@ -43,7 +43,7 @@ La **fonte** non è un campo: i record di questo insieme sono sempre condivisi (
 
 ### 3.1 Catalogo delle ricette (`recipecat`, 2026-11-27)
 
-Un record per professione: `id` = la linea di abilità come testo (per esempio `"165"`; un `id` diverso si rifiuta), con **tutte** le ricette della professione lette dalla finestra del gioco, imparate o no ([SPEC-06 §1.5](SPEC-06-professions-recipes.md#15-il-catalogo-delle-ricette-della-gilda-datarecipecataloguelua-2026-11-27)). Lo può scrivere chi ha quella professione (il suo record `recipes` di quella linea, o il roster); un ufficiale lo può rilanciare. Riepilogo a parte con il censimento (`summary = "extra"`), mai scaduto.
+Un record per professione: `id` = la linea di abilità come testo (per esempio `"165"`; un `id` diverso si rifiuta), con **tutte** le ricette della professione lette dalla finestra del gioco, imparate o no ([SPEC-06 §1.5](SPEC-06-professions-recipes.md#15-il-catalogo-delle-ricette-della-gilda-datarecipecataloguelua-2026-11-27)). Lo può scrivere chi ha quella professione (il suo record `recipes` di quella linea, o il roster); un ufficiale lo può rilanciare. Riepilogo **suo** (`summary = "catalogue"`, campi `rc`/`rcb`, [SPEC-02 §4](SPEC-02-network-protocol.md#4-sincronizzazione)), non quello del censimento: la `v0.11.0` calcola `c` con il solo censimento. Mai scaduto.
 
 | Campo | Tipo | Note |
 |---|---|---|
