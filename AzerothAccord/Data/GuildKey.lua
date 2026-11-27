@@ -42,7 +42,7 @@ function GuildKey.Compute()
 	if not C or not C.Guild.InGuild() then return nil end
 	local name = C.Guild.GuildName()
 	local realm = C.Guild.GuildRealm and C.Guild.GuildRealm() or nil
-	return GuildKey.Make(realm or C.Player.Realm(), name)
+	return GuildKey.Make(realm or (C.Player.RealmKey and C.Player.RealmKey()) or C.Player.Realm(), name)
 end
 
 -- The key the addon works with: the one Role computed (it changes only on the guild events).

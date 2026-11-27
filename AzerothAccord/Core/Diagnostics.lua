@@ -128,8 +128,14 @@ end
 function Diag.SendingLines()
 	local C = ns.Compat
 	if not (C and C.Chat) then return { "sending: unknown (Compat not loaded)" } end
-	local lockdown, readOnly, restriction = C.Chat.InChatLockdown(), C.Chat.OutgoingAddonRestricted(), C.Chat.RestrictionAny()
-	if not lockdown and not readOnly and not restriction then return { "sending: allowed" } end
+	local lockdown, restriction = C.Chat.InChatLockdown(), C.Chat.RestrictionAny()
+	-- read-only is what the Transport decided (the client's flag alone does not stop it: Net/Transport.lua)
+	local T = ns.Transport
+	local readOnly = T and T.IsReadOnly and T:IsReadOnly() or false
+	local flagged = C.Chat.OutgoingAddonRestricted()
+	if not lockdown and not readOnly and not restriction then
+		return { flagged and "sending: allowed (the client says restricted, but its sends go through)" or "sending: allowed" }
+	end
 	return { ("sending: held (lockdown %s, read-only %s, restriction %s)"):format(lockdown and "yes" or "no",
 		readOnly and "yes" or "no", tostring(restriction or "none")) }
 end

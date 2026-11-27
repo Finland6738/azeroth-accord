@@ -81,6 +81,16 @@ describe("Resolve and Call", function()
 end)
 
 describe("guild helpers", function()
+	it("the guild key is known also when the client gives no realm name", function()
+		Mock.guild.Set{ name = "Test Guild", myRank = 0 }
+		local a, b = GetNormalizedRealmName, GetRealmName
+		GetNormalizedRealmName, GetRealmName = function() return nil end, function() return "" end
+		local key = AzerothAccord.GuildKey.Compute()
+		GetNormalizedRealmName, GetRealmName = a, b
+		notNil(key)
+		eq(key, "Forever/Test Guild")
+	end)
+
 	it("takes the guild's name from the guild club when GetGuildInfo gives none (WoW Forever, 2026-11-27)", function()
 		local C = compat()
 		Mock.guild.Set{ name = "Test Guild", myRank = 0 }

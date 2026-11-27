@@ -137,7 +137,7 @@ function Accounts:RegisterSelfNow()
 	if not name then return nil, "no name from the game" end
 	local guild = ns.GuildKey and ns.GuildKey:Current() or nil
 	if guild == nil and not C.Guild.InGuild() then guild = "" end
-	return self:Register{ guid = guid, name = name, realm = C.Player.Realm(), classID = C.Player.ClassID(), level = C.Player.Level(),
+	return self:Register{ guid = guid, name = name, realm = (C.Player.RealmKey and C.Player.RealmKey()) or C.Player.Realm(), classID = C.Player.ClassID(), level = C.Player.Level(),
 		guild = guild }
 end
 

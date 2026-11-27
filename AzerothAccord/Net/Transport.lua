@@ -40,6 +40,8 @@ local tinsert, tremove, sort = table.insert, table.remove, table.sort
 ---------------------------------------------------------------------------------------------------------------------
 -- Constants
 ---------------------------------------------------------------------------------------------------------------------
+Transport.REFUSED_HOLD = 60   -- seconds the queue holds after the client refused a send as restricted
+
 Transport.GAP = { GUILD = 1.0, OFFICER = 1.0, WHISPER = 0.25 }   -- seconds between two messages of a distribution
 Transport.BULK_TTL = 600          -- a BULK message waiting longer than this is dropped
 Transport.MAX_RETRIES = 3
@@ -112,6 +114,7 @@ local function resetState()
 		inflight = 0, ticker = nil,
 		lastAt = {}, typeLog = {}, holdUntil = {},
 		held = nil, readOnly = false,                -- why nothing is handed to the client right now
+		refusedAt = nil, flagged = false,            -- the last send the client refused as restricted; the client's flag
 		newerNotified = false,
 		flood = {}, quarantine = {},                 -- lower-case sender -> { start, bytes } / time the quarantine ends
 		stats = newStats(),
@@ -439,6 +442,7 @@ end
 local function onResult(item, result)
 	state.inflight = state.inflight - 1
 	local t, s, c = now(), state.stats, codes()
+	if result == c.AddOnMessageLockdown then state.refusedAt = t end   -- the client really refused: hold (see pass)
 	if result == c.Success then
 		s.sent, s.sentBytes = s.sent + 1, s.sentBytes + item.size
 		s.sentBy[item.dist] = s.sentBy[item.dist] + 1
@@ -501,7 +505,13 @@ pass = function()
 	guildCheck(current)
 	local Chat = compat().Chat
 	local held = (Chat.InChatLockdown() and "lockdown") or Chat.RestrictionAny() or nil
-	local readOnly = Chat.OutgoingAddonRestricted()
+	-- WoW Forever answers true to AreOutgoingAddonChatMessagesRestricted outside any instance while a send to GUILD still
+	-- succeeds (owner's test, 2026-11-27: SendAddonMessage returned 0). The flag alone no longer holds the queue: Accord
+	-- sends, and holds for REFUSED_HOLD seconds only after the client refused a send (AddOnMessageLockdown) while the flag
+	-- is up.
+	local flagged = Chat.OutgoingAddonRestricted()
+	state.flagged = flagged
+	local readOnly = flagged and state.refusedAt ~= nil and t - state.refusedAt < Transport.REFUSED_HOLD
 	setGate(held, readOnly)
 	local boss = Transport.BossSilence()
 	state.boss = boss
@@ -733,7 +743,7 @@ function Transport:Stats()
 		received = s.received, rxDropped = s.rxDropped, rxReasons = copyCounts(s.rxReasons), rxNewer = s.rxNewer,
 		quarantined = s.quarantined, quarantinedNow = Transport:QuarantineCount(),
 		echoes = s.echoes, encodeFailed = s.encodeFailed, callbackErrors = s.callbackErrors,
-		readOnly = state.readOnly, held = state.held,
+		readOnly = state.readOnly, held = state.held, flagged = state.flagged,
 	}
 end
 
@@ -747,7 +757,8 @@ end
 function Transport:DebugLines()
 	local st = self:Stats()
 	local mode = "normal"
-	if st.readOnly then mode = mode .. ", read-only" end
+	if st.readOnly then mode = mode .. ", read-only"
+	elseif st.flagged then mode = mode .. ", the client says restricted but sends go through" end
 	if st.held then mode = mode .. ", held (" .. tostring(st.held) .. ")" end
 	return {
 		("Transport: %s, prefix %s, registered %s"):format(mode, tostring(Transport.PREFIX), Transport.registered and "yes" or "no"),

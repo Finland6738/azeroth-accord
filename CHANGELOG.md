@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Accord sent nothing on WoW Forever** (owner's tests, 2026-11-27). Outside any instance, `C_ChatInfo.AreOutgoingAddonChatMessagesRestricted()` answered true, yet a `SendAddonMessage` to the guild returned 0 (sent). Accord held its whole queue on that flag, so no peer-to-peer exchange ever happened. Now the flag alone holds nothing: Accord sends, and holds for 60 seconds only after the client refused a send (`AddOnMessageLockdown`) while the flag is up. `/accord debug` says "the client says restricted, but its sends go through".
+- **No realm name, no guild key**: the realm for the guild key and the own character list now falls back to the realm part of `UnitFullName("player")`, then to "Forever" (`Compat.Player.RealmKey`). A client that gives no realm name still saves and shares the guild's data.
+
 - **The guild's key was unknown on WoW Forever** (owner's `/accord debug`, 2026-11-27: "guild key known: no" with 63 members read): without it Accord saves and shares nothing for the guild. `GetGuildInfo("player")` gave no name there, and the guild club's name was asked only when the function was missing. It is now asked whenever `GetGuildInfo` gives no name. `/accord debug` → *Accounts* also says why the own character was not registered (`own character: last registration …`).
 
 - **The member card no longer narrows the table** (owner, 2026-11-27). In the Accord window a click on a member opens the card as a **detail window of its own**, 340 points wide and as tall as the Accord window. It sits on the window's right, or on its left when the screen has no room, and follows the window when it moves. The table keeps its whole width. The guild window's panel keeps the card beside or over the table (`UI/MemberCard.lua`, wiki *Guild Roster*).

@@ -499,15 +499,26 @@ function Player.Name()
 	return str((first("UnitName", "player")))
 end
 
--- Normalized realm name (no spaces), falling back to GetRealmName without spaces.
+-- Normalized realm name (no spaces), falling back to GetRealmName without spaces, then to the realm part of
+-- UnitFullName("player").
 function Player.Realm()
 	local v = first("GetNormalizedRealmName")
 	if not str(v) then
 		v = first("GetRealmName")
 		if type(v) == "string" then v = v:gsub("[%s%-']", "") end
 	end
+	if not str(v) then
+		local full = all("UnitFullName", "player")
+		v = full and full[2]
+		if type(v) == "string" then v = v:gsub("[%s%-']", "") end
+	end
 	return str(v)
 end
+
+-- The realm for keys (the guild key, the own list of characters): Player.Realm, else Player.NO_REALM, so that a client
+-- that gives no realm name at all still keeps the guild's data apart from other guilds by the guild's name.
+Player.NO_REALM = "Forever"
+function Player.RealmKey() return Player.Realm() or Player.NO_REALM end
 
 -- The realm as the game shows it (with spaces), nil when unknown.
 function Player.RealmDisplay()

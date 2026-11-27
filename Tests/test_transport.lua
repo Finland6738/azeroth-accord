@@ -176,19 +176,31 @@ describe("lockdown, restrictions, keys and expiry (NET-05)", function()
 		eq(#W.calls, 1)
 	end)
 
-	it("reports the read-only state, holds, and releases", function()
+	it("the client's restricted flag alone does not hold: the send goes (WoW Forever, 2026-11-27)", function()
 		local W = fakeWire()
+		Mock.chat.restricted = true
+		Tr():Send("GUILD", rec())
+		Mock.Advance(3)
+		Mock.chat.restricted = false
+		eq(#W.calls, 1, "sent although the flag was up")
+		falsy(Tr():IsReadOnly())
+	end)
+
+	it("a send the client refuses as restricted holds the queue (read-only) until the hold ends or the flag drops", function()
+		local W = fakeWire({ R.AddOnMessageLockdown })
 		local events = listen("TRANSPORT_READ_ONLY")
 		Mock.chat.restricted = true
 		Tr():Send("GUILD", rec())
 		Mock.Advance(3)
-		eq(#W.calls, 0)
+		eq(#W.calls, 1, "tried once, refused")
 		truthy(Tr():IsReadOnly())
 		eq(#events, 1); eq(events[1][1], true)
+		Mock.Advance(10)
+		eq(#W.calls, 1, "held while the client refuses")
 		Mock.chat.restricted = false
-		Mock.Advance(1)
+		Mock.Advance(20)
 		falsy(Tr():IsReadOnly())
-		eq(#W.calls, 1)
+		eq(#W.calls, 2)
 		eq(events[2][1], false)
 	end)
 
