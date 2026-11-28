@@ -55,6 +55,19 @@ describe("the sync between a few clients", function()
 		eq(#fingerprint(sim:client(4)) > 0, true)
 	end)
 
+	it("who has just logged in counts the guildmates with the addon within a minute, also when all are in step", function()
+		local sim = Sim.new{ clients = 4, offline = { 4 }, seed = 11 }
+		sim:advance(120)
+		sim:client(4):login()
+		sim:advance(60)
+		eq(sim:client(4):addon().Sync:Status().peers, 3)
+		for i = 1, 4 do eq(sim:client(i):addon().Sync.state.stats.refused, 0, "client " .. i) end
+		sim:client(4):logout()
+		sim:client(4):login()   -- a /reload soon after: no second answer within five minutes, its own wait decides
+		sim:advance(60)
+		for i = 1, 4 do eq(sim:client(i):addon().Sync.state.stats.quarantined, 0, "client " .. i) end
+	end)
+
 	it("an officer relays the data of an author who is offline, and only one officer answers", function()
 		local sim = Sim.new{ clients = 5, officers = { 1, 2 }, offline = { 5 }, seed = 9 }
 		for i = 1, 4 do write(sim:client(i)) end

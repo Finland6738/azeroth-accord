@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- **"0 guildmates with Accord online" after a login or a /reload** (owner, 2026-11-28): guildmates whose data was already in step stayed silent until their next periodic HELLO (15-20 minutes). The first HELLO of a session is now answered with a tiny presence whisper, so the count fills in about half a minute. Both sides need this version. **Not checked in the real game.**
+
 ### Changed
 
 - **Roster buttons** (owner, 2026-11-28): *Columns* and *Export* are round buttons with an icon, in the same style (the names are in their tooltips). A new icon is in the atlas: **restart the game** (a `/reload` does not load it). **Not checked in the real game.**

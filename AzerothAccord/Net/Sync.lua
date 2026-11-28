@@ -97,6 +97,9 @@ Sync.HELLO_PERIOD = { 900, 1200 }   -- seconds between two HELLOs while online
 Sync.PUSH_DELAY = { 0.5, 3 }
 Sync.REQ_DELAY = { 1, 5 }
 Sync.BATCH = 5                      -- seconds a local change waits, so several changes go out together
+Sync.HI_DELAY = { 2, 30 }         -- seconds before the answer to a first HELLO (the presence reply)
+Sync.HI_EVERY = 300               -- at most one presence reply to a sender in this many seconds
+Sync.HI_SET = "hi"                -- a REC of this unknown set with no record: only "I am here", for every release
 Sync.PRESENCE = 1500                -- a peer counts as online this long after its last message
 Sync.REC_BYTES = 2500               -- estimated size of the records in one REC (the codec limit is far above)
 Sync.ENTRY = 11                     -- bytes per author in a summary
@@ -152,6 +155,8 @@ local function resetState()
 		rates = {},            -- "<what>|<lower-case sender>" -> { start, count }: the limits per sender (SPEC-11 §6.3)
 		heard = {},            -- lower-case sender -> when its last HELLO or BHELLO was handled
 		waiting = {},          -- lower-case sender -> { msg, sender, handler }: its latest HELLO or BHELLO, held to the minute's end
+		joined = false,        -- true after the first HELLO of this session went out (it carries `j`)
+		greeted = {},          -- lower-case sender -> when its presence reply was scheduled
 		versions = {},         -- sender name -> the `av` of its last HELLO or BHELLO
 		digested = {},         -- lower-case sender -> true: its DIGEST to the current BHELLO was handled
 		bhelloAt = nil,        -- when this client last sent a BHELLO
@@ -690,11 +695,12 @@ function Sync:SendHello()
 	local authors, extra, hb, rc = authorCount(groups), speaksExtra(), speaksHandbook(), speaksCatalogue()
 	local ec, mn = speaksEcon(), speaksMentor()
 	local ok
+	local j = (not state.joined) and 1 or nil   -- the first of the session: those who hear it say they are here
 	if authors > Sync.BLOCK_OVER and self:BlocksAllowed() then
 		ok = send("GUILD", { t = "BHELLO", b = self:EncodeBlocks(groups), cb = extra and self:EncodeBlocks(groups, true) or nil,
 			hbb = hb and self:EncodeBlocks(groups, HB) or nil, rcb = rc and self:EncodeBlocks(groups, RC) or nil,
 			ecb = ec and self:EncodeBlocks(groups, EC) or nil, mnb = mn and self:EncodeBlocks(groups, MN) or nil, n = authors,
-			av = av }, { key = "HELLO" })
+			av = av, j = j }, { key = "HELLO" })
 		if ok then
 			state.stats.bhellosSent = state.stats.bhellosSent + 1
 			state.bhelloAt, state.digested = now(), {}
@@ -704,9 +710,10 @@ function Sync:SendHello()
 		ok = send("GUILD", { t = "HELLO", d = {}, s = self:EncodeSummary(groups),
 			c = extra and self:EncodeSummary(groups, true) or nil, hb = pages ~= "" and pages or nil,
 			rc = rc and self:EncodeSummary(groups, RC) or nil, ec = ec and self:EncodeSummary(groups, EC) or nil,
-			mn = mn and self:EncodeSummary(groups, MN) or nil, av = av }, { key = "HELLO" })
+			mn = mn and self:EncodeSummary(groups, MN) or nil, av = av, j = j }, { key = "HELLO" })
 	end
 	if ok then
+		state.joined = true
 		state.stats.hellosSent = state.stats.hellosSent + 1
 		emit("SYNC_HELLO", true)
 	end
@@ -862,6 +869,20 @@ local function heardHello(msg, sender, member)
 	end
 end
 
+-- The presence reply (2026-11-28): somebody who has just logged in or reloaded knows nobody until a message reaches
+-- them, and a client with nothing to push or ask stays silent. So the first HELLO of a session is answered with one tiny
+-- whisper after a random pause. Not by a client whose own first HELLO is still to come: that one tells them anyway.
+local function greet(msg, sender)
+	if msg.j ~= 1 or not state.joined then return end
+	local key, t = lowerName(sender), now()
+	local last = state.greeted[key]
+	if last and t - last < Sync.HI_EVERY then return end
+	state.greeted[key] = t
+	after(between(Sync.HI_DELAY), function()
+		send("WHISPER", { t = "REC", s = Sync.HI_SET, r = {} }, { target = sender, key = "HI|" .. key })
+	end)
+end
+
 -- true when a HELLO or BHELLO of `sender` may be handled now: one per HELLO_EVERY seconds (SPEC-11 §6.3). One that comes
 -- sooner is counted (`flood`) but not lost: only the latest is kept and handled when the time is up, because an honest
 -- client that logs in again (a /reload) sends its next HELLO within the minute.
@@ -910,6 +931,7 @@ local function onHello(msg, sender)
 	if not helloAllowed(msg, sender, onHello) then return end
 	state.stats.hellosHeard = state.stats.hellosHeard + 1
 	heardHello(msg, sender, member)
+	greet(msg, sender)
 	local target, S = member.guid, store()
 	local me = myGUID()
 	local groups = Sync:Groups()
@@ -948,6 +970,7 @@ local function onBlockHello(msg, sender)
 	if not helloAllowed(msg, sender, onBlockHello) then return end
 	state.stats.bhellosHeard = state.stats.bhellosHeard + 1
 	heardHello(msg, sender, member)
+	greet(msg, sender)
 	local extra = speaksExtra() and type(msg.cb) == "string" and #msg.cb == Sync.EXTRA_BLOCKS * 3
 	local hb = speaksHandbook() and type(msg.hbb) == "string" and #msg.hbb == Sync.HB_BLOCKS * 3
 	local rc = speaksCatalogue() and type(msg.rcb) == "string" and #msg.rcb == Sync.RC_BLOCKS * 3
