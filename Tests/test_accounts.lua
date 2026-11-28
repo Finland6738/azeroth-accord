@@ -125,6 +125,8 @@ describe("WoW Forever: no realm, a surname (2026-11-27)", function()
 		}
 		cfg().guilds = { ["Wintermane/Accord"] = { firstSeen = 1, marker = "kept" } }
 		local undo = forever("Wintermane")
+		-- the boot computed the key with the mock's realm: a Forever client never has it, nor a table under it
+		AzerothAccord.Role:Refresh()
 		A():RegisterSelf()
 		local data = AzerothAccord.GuildKey:Data(AzerothAccord.GuildKey.Make("Forever", "Accord"))
 		undo()
@@ -132,6 +134,16 @@ describe("WoW Forever: no realm, a surname (2026-11-27)", function()
 		isNil(cfg().chars.Wintermane); isNil(cfg().chars.Frozenbeard)
 		eq(data.marker, "kept", "the guild's table moved to the key without the surname")
 		isNil(cfg().guilds["Wintermane/Accord"])
+	end)
+
+	it("leaves the guild's tables alone when two surnames filed one each: nothing is guessed", function()
+		cfg().guilds = { ["Wintermane/Accord"] = { marker = "one" }, ["Frozenbeard/Accord"] = { marker = "two" } }
+		local undo = forever("Wintermane")
+		local data = AzerothAccord.GuildKey:Data(AzerothAccord.GuildKey.Make("Forever", "Accord"))
+		undo()
+		isNil(data.marker)
+		eq(cfg().guilds["Wintermane/Accord"].marker, "one")
+		eq(cfg().guilds["Frozenbeard/Accord"].marker, "two")
 	end)
 
 	it("recognises its own messages sent as \"Name Surname\" or \"Name-Surname\"", function()

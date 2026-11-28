@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- Tests only, no change to the addon: the `test_accounts.lua` check that a guild's data saved under a surname moves to the key without it failed because the test kept the guild key computed at boot (the mock's realm), whose table counted as a second candidate. It now computes the key as a WoW Forever client does, and a new test covers two surname tables of one guild (both are left untouched).
 - A pale shape no longer stays behind an item of the navigation rail after changing destination (the icon disappeared under it). The state layer under the mouse became fully opaque whenever it changed colour, or the theme changed; the same could happen on other buttons, chips and the guild window's side tabs. It now keeps its opacity (new `Theme.Ink`). **Not checked in the real game.**
 
 ### Changed
