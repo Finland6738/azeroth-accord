@@ -19,8 +19,8 @@
 -- The shopping list (M13.4, SPEC-17 §5.6, switch "econ") is a page of its own of the Professions destination since M13.7
 -- (UI/Shopping.lua); the catalogue's header has a "Shopping list" button that opens it and every recipe "Add to list".
 -- The header has a Back button (to the roster, the catalogue or the craft list, where the list was opened from), and in the
--- recipe list and the catalogue a "Who can craft" button, in the craft list a "Guild recipes" button; the source and the
--- age of the list are always in the header.
+-- craft list a "Guild recipes" button; the source and the age of the list are always in the header. The "Who can craft"
+-- button is gone (owner, 2026-11-28): a click on a recipe of the catalogue says who can craft it.
 -- Drawn with the widget kit (M6.13): ghost / secondary Widgets.Buttons, a Widgets.Select for the category, a Widgets.Chip for "online
 -- only" and one Widgets.DataTable (a pool of rows refilled while the list scrolls) for both lists.
 local ADDON_NAME, ns = ...
@@ -266,17 +266,15 @@ local function build(self, f)
 	head:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, 0)
 	head.back = Widgets.Button(head, { text = L["RV_BACK"], style = "text", dense = true, onClick = function() View:Back() end })
 	head.back:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
-	head.craft = Widgets.Button(head, { text = L["CR_BUTTON"], style = "tonal", dense = true, onClick = function() View:SetMode("craft") end })
-	head.craft:SetPoint("LEFT", head.back, "RIGHT", 8, 0)
 	-- "Guild recipes" in the craft search; "All members" in a member's list: the guild's recipes of that profession
 	head.cat = Widgets.Button(head, { text = L["CAT_BUTTON"], style = "tonal", dense = true, onClick = function()
 		if View.mode == "recipes" and View.model.skillLine then View:OpenCatalogue(View.model.skillLine) else View:SetMode("catalogue") end
 	end })
 	head.cat:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.cat:Hide()
-	-- the shopping list (M13.4), next to "Who can craft" in the catalogue
+	-- the shopping list (M13.4), at the left in the catalogue
 	head.shop = Widgets.Button(head, { text = L["SHOP_TITLE"], style = "tonal", dense = true, onClick = function() View:SetMode("shopping") end })
-	head.shop:SetPoint("LEFT", head.craft, "RIGHT", 8, 0)
+	head.shop:SetPoint("TOPLEFT", head, "TOPLEFT", 0, 0)
 	head.shop:Hide()
 	Widgets.Tooltip.Attach(head.shop, { L["SHOP_TITLE"], L["SHOP_OPEN_TIP"] }, "BOTTOM")
 	Widgets.Tooltip.Attach(head.cat, function()
@@ -285,7 +283,7 @@ local function build(self, f)
 	end, "BOTTOM")
 	head.title = Theme.NewText(head, "H1", "text-1")
 	head.title:SetJustifyH("LEFT")
-	head.title:SetPoint("LEFT", head.craft, "RIGHT", 16, 0)
+	head.title:SetPoint("LEFT", head.back, "RIGHT", 16, 0)
 	head.title:SetPoint("RIGHT", head, "RIGHT", 0, 0)
 	head.source = Theme.NewText(head, "Small", "text-3")
 	head.source:SetJustifyH("LEFT")
@@ -299,12 +297,12 @@ local function build(self, f)
 	bar:SetHeight(View.TOOLBAR_HEIGHT)
 	bar:SetPoint("TOPLEFT", head, "BOTTOMLEFT", 0, 0)
 	bar:SetPoint("TOPRIGHT", head, "BOTTOMRIGHT", 0, 0)
-	bar.profession = Widgets.Select(bar, { width = 240, rows = 10, placeholder = L["CAT_PROFESSION"], onSelect = function(id)
+	bar.profession = Widgets.Select(bar, { width = 300, rows = 10, placeholder = L["CAT_PROFESSION"], onSelect = function(id)
 		View:SetProfession(id)
 	end })
 	bar.profession:SetPoint("LEFT", bar, "LEFT", 0, 0)
 	bar.profession:Hide()
-	bar.category = Widgets.Select(bar, { width = 220, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
+	bar.category = Widgets.Select(bar, { width = 260, rows = 8, placeholder = L["RV_CATEGORY"], onSelect = function(id)
 		local key = id ~= View.ALL and id or nil
 		if View.mode == "catalogue" then View.cat:SetFilter(key) else View.model:SetCategory(key) end
 		View:ResetScroll()
@@ -592,7 +590,6 @@ local function redrawCraft(self)
 	research(self)
 	local result = c.result
 	f.head.back:Hide()
-	f.head.craft:Hide()
 	f.head.cat:SetLabel(L["CAT_BUTTON"])
 	f.head.cat:ClearAllPoints()
 	f.head.cat:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, 0)
@@ -631,18 +628,15 @@ local function redrawRecipes(self)
 	local model = self.model
 	f.head.back:Show()
 	f.head.back:SetLabel(self.cameFrom == "catalogue" and L["CAT_BACK"] or (self.cameFrom == "craft" and L["CR_BACK"]) or L["RV_BACK"])
-	f.head.craft:ClearAllPoints()
-	f.head.craft:SetPoint("LEFT", f.head.back, "RIGHT", 8, 0)
-	f.head.craft:Show()
 	f.head.cat:SetLabel(L["RV_ALL_MEMBERS"])
 	f.head.cat:ClearAllPoints()
-	f.head.cat:SetPoint("LEFT", f.head.craft, "RIGHT", 8, 0)
+	f.head.cat:SetPoint("LEFT", f.head.back, "RIGHT", 8, 0)
 	f.head.cat:SetShown(model.skillLine ~= nil)
 	f.bar.profession:Hide()
 	f.bar.category:ClearAllPoints()
 	f.bar.category:SetPoint("LEFT", f.bar, "LEFT", 0, 0)
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("LEFT", model.skillLine and f.head.cat or f.head.craft, "RIGHT", 16, 0)
+	f.head.title:SetPoint("LEFT", model.skillLine and f.head.cat or f.head.back, "RIGHT", 16, 0)
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.source:ClearAllPoints()
 	f.head.source:SetPoint("TOPLEFT", f.head.back, "BOTTOMLEFT", 2, -8)
@@ -683,19 +677,17 @@ local function redrawCatalogue(self)
 	if not cat.skillLine then cat:SetProfession(cat:DefaultProfession()) end
 	f.head.back:Hide()
 	f.head.cat:Hide()
-	f.head.craft:ClearAllPoints()
-	f.head.craft:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, 0)
-	f.head.craft:Show()
 	f.head.shop:SetShown(View.ShoppingOn())
 	f.bar.online:Hide()
 	local d = cat:Describe()
 	f.head.title:ClearAllPoints()
-	f.head.title:SetPoint("LEFT", View.ShoppingOn() and f.head.shop or f.head.craft, "RIGHT", 16, 0)
+	if View.ShoppingOn() then f.head.title:SetPoint("LEFT", f.head.shop, "RIGHT", 16, 0)
+	else f.head.title:SetPoint("TOPLEFT", f.head, "TOPLEFT", 0, -8) end
 	f.head.title:SetPoint("RIGHT", f.head, "RIGHT", 0, 0)
 	f.head.title:SetText(d.skillLine and L["CAT_TITLE_OF"]:format(d.profession) or L["CAT_TITLE"])
 	Theme.Text(f.head.title, "text-1")
 	f.head.source:ClearAllPoints()
-	f.head.source:SetPoint("TOPLEFT", f.head.craft, "BOTTOMLEFT", 2, -8)
+	f.head.source:SetPoint("TOPLEFT", f.head, "TOPLEFT", 2, -(Widgets.HEIGHT.dense + 8))
 	f.head.source:SetText(d.sourceText or "")
 	f.head.prov:SetSource(d.provenance)
 	f.head.source:SetPoint("RIGHT", f.head.prov, "LEFT", -8, 0)

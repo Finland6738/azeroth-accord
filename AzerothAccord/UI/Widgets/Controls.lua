@@ -155,6 +155,7 @@ function Widgets.Select(parent, opts)
 	sel.label:SetPoint("LEFT", sel, "LEFT", 12, 0)
 	sel.label:SetPoint("RIGHT", sel, "RIGHT", -34, 0)
 	sel.label:SetJustifyH("LEFT")
+	if sel.label.SetWordWrap then sel.label:SetWordWrap(false) end   -- one line: a long choice is cut
 	sel.arrow = Widgets.Icon(sel, "chevron", 18, "text-2", "OVERLAY")
 	sel.arrow:SetPoint("RIGHT", sel, "RIGHT", -8, 0)
 	Motion.Rotate(sel.arrow, -math.pi / 2, 0)   -- the chevron of the atlas points right: down while closed

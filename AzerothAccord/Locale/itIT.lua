@@ -295,7 +295,6 @@ L["RV_ALL_MEMBERS_TIP"] = "Le ricette di questa professione di tutti i membri de
 L["RV_NOT_LEARNED"] = "non imparata"
 L["RV_COUNT_LEARNED"] = "%d di %d ricette, %d imparate"
 L["CR_TITLE"] = "Chi può creare"
-L["CR_BUTTON"] = "Chi può creare"
 L["CR_HINT"] = "Scrivi un oggetto o una ricetta nella casella di ricerca qui sopra. Gli elenchi vengono dal gioco e dai compagni che usano Azeroth Accord."
 L["CR_TYPE"] = "Scrivi il nome di un oggetto o di una ricetta (almeno due lettere) nella casella di ricerca qui sopra per vedere chi può crearlo."
 L["CR_LOADING"] = "Carico i nomi delle ricette..."

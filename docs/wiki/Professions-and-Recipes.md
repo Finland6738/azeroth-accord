@@ -26,7 +26,7 @@ The list is a table with the columns *Recipe*, *Details* and *Status*: an icon a
 
 - **Search**: type in the search box at the top of the panel to filter by recipe name.
 - **Category**: the list above the table offers *Recipes I know* and *Recipes I do not know* (compared with your own list of the same profession, once you have opened that profession yourself) and, when the game tells it, the recipe categories. Recipes you know too are marked "you know it".
-- **Back to roster** returns to the table, and **Who can craft** opens the search below.
+- **Back to roster** returns to the table.
 - The list starts on the recipes the member **learned and can craft**. When the guild has the profession's full list, choose *All recipes* above the table to see every recipe of the profession: the ones the member has not learned are dimmed and marked "not learned".
 - **All members** shows the recipes of that profession for the whole guild (see *Guild recipes*), starting with the ones somebody can craft.
 
@@ -42,17 +42,11 @@ Your own recipes are shared when you open your profession window with the addon:
 
 ## Who can craft
 
-Open the **Professions** view (`/accord professions`, or the **Recipes** page of the **Professions** icon), click **Who can craft** and type the name of an item or a recipe in the search box at the right of the tabs (at least two letters; you can also paste an item link). The view lists the recipes that match and, under each one, the members who can craft it: **online members first**, then by name, with the characters of one player together (the alts a little to the right). Each line says the profession and rank and where the list comes from and how old it is. The button **Online only** (lit while it is on) keeps just the members who are online now. Click a member to see all their recipes; **Back to the search** returns to the search, and **Guild recipes** to the guild's recipes.
-
-The search covers the members **whose recipe list is known**: lists shared by guildmates who use Azeroth Accord, and lists the game gave you when you opened a member's recipes. If nobody is found, open a few members' recipes (the addon asks for them) and search again.
-
-![Who can craft: the guildmates who know each recipe, online first, with the source and age of their list and a Request craft button](../specs/mockups/previews/professions-who-can-craft.webp)
-
-*Design previews, not screenshots: drawn from the addon's own layout and texts with invented characters and items, because the addon has not been run in the game yet ([all previews](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md)).*
+Open the **Professions** view (`/accord professions`, or the **Recipes** page of the **Professions** icon), pick the profession and **click a recipe**: the characters who can craft it appear right under it, **online members first**, with the characters of one player together. The search box at the right of the tabs filters the recipes by name. Click a member to see all their recipes. The search covers the members **whose recipe list is known**; if nobody shows, open a few members' recipes (the addon asks for them).
 
 ## Request craft
 
-Next to every recipe of an **online** member (in their list, or under the recipe in *Who can craft*) there is a **Request craft** button. It opens the chat box with a whisper to that member already written, with the recipe link in it: *"Hello! Could you craft [recipe] for me? Thank you!"*. **Azeroth Accord never sends it**: you read it, change it if you like and press Enter. The button is not shown for offline members (a whisper would not reach them), for your own recipes, or on the recipe's header line. From `v0.9.0` the [[Action Center|Action-Center]] keeps a reminder of the request for 7 days, on your computer only.
+Next to every recipe of an **online** member (in their list, or under a recipe of the guild recipes) there is a **Request craft** button. It opens the chat box with a whisper to that member already written, with the recipe link in it: *"Hello! Could you craft [recipe] for me? Thank you!"*. **Azeroth Accord never sends it**: you read it, change it if you like and press Enter. The button is not shown for offline members (a whisper would not reach them), for your own recipes, or on the recipe's header line. From `v0.9.0` the [[Action Center|Action-Center]] keeps a reminder of the request for 7 days, on your computer only.
 
 ## Craft orders
 

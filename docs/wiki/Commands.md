@@ -21,7 +21,7 @@ Type them in the chat box. `/acc` works everywhere `/accord` does.
 | `/accord raid` | Opens the **Raid** view: the guild's sources and what FDCP publishes (see [[Raid and loot addons|Raid-and-Loot-Addons]]) *(M11.7, from `v0.11.0`)* |
 | `/accord handbook [page]` | Opens the **guild handbook**, on that page or on the last one read (see [[Guild handbook|Guild-Handbook]]) *(M11.3, from `v0.11.0`)* |
 | `/accord roster` | Opens the Roster view |
-| `/accord professions` | Opens the Professions view on **who can craft** (see [[Professions and Recipes|Professions-and-Recipes]]) |
+| `/accord professions` | Opens the Professions view on the **guild recipes** (click one to see who can craft it) (see [[Professions and Recipes|Professions-and-Recipes]]) |
 | `/accord reputation` | Opens the Reputation view: likes of every player and the Like button, your social index, the group map (officers), *Someone new* to play with *(M4)* |
 | `/accord bank` | Opens the Bank view *(M5)* |
 | `/accord settings` | Opens the Settings view: Discord name, main character, notices, Roster columns, saved data (see [[Settings|Settings]]) |

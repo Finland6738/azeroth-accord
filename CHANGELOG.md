@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Removed
+
+- **Professions** (owner, 2026-11-28): the *Who can craft* button is gone (a click on a recipe still shows who can craft it); the profession and category menus are wider and their text stays on one line. **Not checked in the real game.**
+
 ### Changed
 
 - **Member card** (owner, 2026-11-28): beside the name, the same role icon as in the table (the class square only without a role).

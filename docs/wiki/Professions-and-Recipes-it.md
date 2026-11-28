@@ -26,7 +26,7 @@ L'elenco è una tabella con le colonne *Ricetta*, *Dettagli* e *Stato*: un'icona
 
 - **Cerca**: scrivi nella casella di ricerca in alto nel pannello per filtrare per nome della ricetta.
 - **Categoria**: l'elenco sopra la tabella offre *Ricette che conosco* e *Ricette che non conosco* (confrontate con il tuo elenco della stessa professione, dopo che hai aperto quella professione) e, quando il gioco le dice, le categorie delle ricette. Le ricette che conosci anche tu sono segnate "la conosci".
-- **Torna al roster** riporta alla tabella, e **Chi può creare** apre la ricerca qui sotto.
+- **Torna al roster** riporta alla tabella.
 - L'elenco parte dalle ricette che il membro **ha imparato e può creare**. Quando la gilda ha l'elenco completo della professione, scegli *Tutte le ricette* sopra la tabella per vederle tutte: quelle che il membro non ha imparato sono attenuate e segnate "non imparata".
 - **Tutti i membri** mostra le ricette di quella professione per tutta la gilda (vedi *Le ricette della gilda*), a partire da quelle che qualcuno sa creare.
 
@@ -42,17 +42,11 @@ Le tue ricette si condividono quando apri la finestra della professione con l'ad
 
 ## Chi può creare
 
-Apri la vista **Professioni** (`/accord professions`, o la pagina **Ricette** dell'icona **Professioni**), clicca **Chi può creare** e scrivi il nome di un oggetto o di una ricetta nella casella di ricerca a destra delle schede (almeno due lettere; puoi anche incollare il link di un oggetto). La vista elenca le ricette che corrispondono e, sotto ognuna, i membri che possono crearla: **prima i membri online**, poi per nome, con i personaggi di un giocatore insieme (gli alt un po' più a destra). Ogni riga dice la professione e il livello e da dove viene l'elenco e quanto è vecchio. Il pulsante **Solo online** (acceso finché è attivo) tiene solo i membri online adesso. Clicca un membro per vedere tutte le sue ricette; **Torna alla ricerca** riporta alla ricerca, e **Ricette della gilda** alle ricette della gilda.
-
-La ricerca copre i membri **di cui l'elenco delle ricette è noto**: gli elenchi condivisi dai compagni che usano Azeroth Accord e quelli che il gioco ti ha dato quando hai aperto le ricette di un membro. Se non si trova nessuno, apri le ricette di qualche membro (l'addon le chiede) e cerca di nuovo.
-
-![Chi può creare: i compagni che conoscono ogni ricetta, prima gli online, con la fonte e l'età del loro elenco e un pulsante Chiedi di crearlo](../specs/mockups/previews/professions-who-can-craft.webp)
-
-*Anteprime di progetto, non screenshot: sono disegnate dal layout e dai testi dell'addon (qui in inglese), con personaggi e oggetti inventati, perché l'addon non è ancora stato provato nel gioco ([tutte le anteprime](https://github.com/Finland6738/azeroth-accord/blob/main/docs/specs/mockups/previews/README.md), anche in italiano).*
+Apri la vista **Professioni** (`/accord professions`, o la pagina **Ricette** dell'icona **Professioni**), scegli la professione e **clicca una ricetta**: sotto compaiono i personaggi che possono crearla, **prima i membri online**, con i personaggi di un giocatore insieme. La casella di ricerca a destra delle schede filtra le ricette per nome. Clicca un membro per vedere tutte le sue ricette. La ricerca copre i membri **di cui l'elenco delle ricette è noto**; se non compare nessuno, apri le ricette di qualche membro (l'addon le chiede).
 
 ## Chiedi di crearlo
 
-Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto la ricetta in *Chi può creare*) c'è un pulsante **Chiedi di crearlo**. Apre la casella della chat con un sussurro a quel membro già scritto, con il link della ricetta: *"Ciao! Potresti creare [ricetta] per me? Grazie!"*. **Azeroth Accord non lo invia mai**: lo leggi, lo cambi se vuoi e premi Invio. Il pulsante non si vede per i membri offline (un sussurro non li raggiungerebbe), per le tue ricette e sulla riga di intestazione di una ricetta. Dalla `v0.9.0` il [[Centro azioni|Action-Center-it]] tiene un promemoria della richiesta per 7 giorni, solo sul tuo computer.
+Accanto a ogni ricetta di un membro **online** (nel suo elenco, o sotto una ricetta della gilda) c'è un pulsante **Chiedi di crearlo**. Apre la casella della chat con un sussurro a quel membro già scritto, con il link della ricetta: *"Ciao! Potresti creare [ricetta] per me? Grazie!"*. **Azeroth Accord non lo invia mai**: lo leggi, lo cambi se vuoi e premi Invio. Il pulsante non si vede per i membri offline (un sussurro non li raggiungerebbe), per le tue ricette e sulla riga di intestazione di una ricetta. Dalla `v0.9.0` il [[Centro azioni|Action-Center-it]] tiene un promemoria della richiesta per 7 giorni, solo sul tuo computer.
 
 ## Gli ordini di crafting
 

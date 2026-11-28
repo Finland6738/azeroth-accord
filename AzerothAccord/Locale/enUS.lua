@@ -302,7 +302,6 @@ L["RV_ALL_MEMBERS_TIP"] = "The recipes of this profession of every guild member,
 L["RV_NOT_LEARNED"] = "not learned"
 L["RV_COUNT_LEARNED"] = "%d of %d recipes, %d learned"
 L["CR_TITLE"] = "Who can craft"
-L["CR_BUTTON"] = "Who can craft"
 L["CR_HINT"] = "Type an item or a recipe in the search box above. Lists come from the game and from guildmates who use Azeroth Accord."
 L["CR_TYPE"] = "Type the name of an item or a recipe (at least two letters) in the search box above to see who can craft it."
 L["CR_LOADING"] = "Loading the names of the recipes..."

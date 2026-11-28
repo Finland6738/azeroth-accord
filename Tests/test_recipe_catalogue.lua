@@ -496,7 +496,7 @@ describe("the Professions view opens on the guild's recipes", function()
 
 	it("Who can craft and Guild recipes switch between the search and the catalogue", function()
 		setup()
-		V().frame.head.craft:Click()
+		V():SetMode("craft")
 		eq(V().mode, "craft")
 		truthy(V().frame.head.cat:IsShown()); falsy(V().frame.head.back:IsShown())
 		V().frame.head.cat:Click()

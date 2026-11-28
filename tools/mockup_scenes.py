@@ -199,7 +199,7 @@ def s_member_card_accord():
 
 
 def _recipe_head(title_html, source, count=None, craft=True):
-    return (f'<div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}{btn(T("CR_BUTTON"), dense=True) if craft else ""}'
+    return (f'<div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}'
             f'<span style="font:600 16px/1 var(--body);margin-left:8px">{title_html}</span></div>'
             f'<div class="muted small" style="margin:8px 0 0 2px">{source}</div>')
 
@@ -244,7 +244,7 @@ def s_craft():
     rows += rowset("Superior Healing Potion", 3, [("Brynn", "MAGE", True, "Alchemy 285/300", T("RV_SRC_NATIVE"), 0), ("Lyra", "MAGE", True, "Alchemy 240/300", T("RV_SRC_NATIVE"), 0), ("Zephyr", "DRUID", True, "Alchemy 240/300", T("RV_SRC_NATIVE"), 0)])
     rows += rowset("Healing Potion", 7, [("Elowen", "DRUID", False, "Alchemy 190/300", ago("AGO_DAYS", 1), 0), ("Maren", "PRIEST", False, "Alchemy 85/300", ago("AGO_DAYS", 4), 0)])
     head = (f'<table class="tbl"><thead><tr><th style="width:34%">{esc(T("RV_COL_RECIPE"))}</th><th>{esc(T("RV_COL_DETAILS"))}</th><th style="width:140px;text-align:right">{esc(T("RV_COL_STATUS"))}</th><th style="width:116px"></th></tr></thead></table>')
-    body = (f'<div class="rel"><div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}{btn(T("CR_BUTTON"), dense=True)}<span style="font:600 16px/1 var(--body);margin-left:8px">{esc(T("CR_TITLE"))}</span></div>'
+    body = (f'<div class="rel"><div style="display:flex;align-items:center;gap:8px;height:36px">{btn(T("RV_BACK"), "text", dense=True)}<span style="font:600 16px/1 var(--body);margin-left:8px">{esc(T("CR_TITLE"))}</span></div>'
             f'<div class="muted small" style="margin:8px 0 0 2px">{esc(T("CR_COUNT", 3))}</div>'
             f'<div style="display:flex;align-items:center;gap:8px;height:40px;margin-top:6px">{chk(T("CR_ONLINE_ONLY"))}</div>'
             f'<div style="position:relative">{head}<table class="tbl tall"><tbody>{rows}</tbody></table></div></div>')
