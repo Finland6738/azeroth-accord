@@ -101,7 +101,7 @@ local function buildToolbar(self, f)
 	bar.columns = Widgets.IconButton(bar, { icon = "columns", dense = true, onClick = function(b) View:ShowColumnMenu(b) end })
 	Widgets.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
 	-- officers only (SPEC-12 §6): the export of the characters the table shows
-	bar.export = Widgets.IconButton(bar, { icon = "download", dense = true, filled = true,
+	bar.export = Widgets.IconButton(bar, { icon = "download", dense = true,
 		onClick = function() View:OpenExport() end })
 	Widgets.Tooltip.Attach(bar.export, { L["EXPORT_BUTTON"] }, "BOTTOM")
 	bar.count = Theme.NewText(bar, "Small", "text-3")
