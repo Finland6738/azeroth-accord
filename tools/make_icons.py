@@ -58,6 +58,8 @@ GLYPHS = [
     "home", "groups", "group_add", "construction", "account_balance", "celebration", "shield_person",
     # the healer role (tank is shield, damage is swords)
     "medical_services",
+    # the Roster's column chooser
+    "view_column",
 ]
 # Also drawn filled (ui-style section 9.10: the chosen view, the switch that is on, the chosen filter): the rail's
 # destinations, the icons of the view tabs, the heart, the dot and the three roles.
@@ -81,6 +83,7 @@ NAMES = {
     "heart": "favorite", "hammer": "construction",
     # the roles of a group member
     "role_tank": "shield", "role_damage": "swords", "role_healer": "medical_services",
+    "columns": "view_column",
 }
 
 

@@ -221,13 +221,20 @@ end
 -- --- Icon button ------------------------------------------------------------------------------------------------------
 
 -- An icon alone: 40 points (32 with `dense`), the icon 20 in text-2, a round state layer. opts: icon (an icon name of
--- UI/Assets.lua), dense, size, ink (a token for the icon), tooltip (translated), onClick. :SetIcon(name), :SetEnabled(bool).
+-- UI/Assets.lua), dense, size, ink (a token for the icon), filled (an accent circle under an on-accent icon), tooltip
+--- (translated), onClick. :SetIcon(name), :SetEnabled(bool).
 function Widgets.IconButton(parent, opts)
 	opts = opts or {}
-	local ink = opts.ink or "text-2"
+	local ink = opts.filled and "on-accent" or opts.ink or "text-2"
 	local size = opts.size or (opts.dense and 32 or 40)
 	local b = CreateFrame("Button", nil, parent)
 	b:SetSize(size, size)
+	if opts.filled then
+		b.fill = b:CreateTexture(nil, "BACKGROUND", nil, -1)
+		b.fill:SetTexture(Assets.textures.circle.path)
+		b.fill:SetAllPoints(b)
+		Theme.Tint(b.fill, "accent")
+	end
 	b.over = Widgets.TrackState(b, Widgets.StateLayer(b, ink, { shape = "circle", layer = "BACKGROUND" }))
 	b.icon = newIcon(b, opts.icon, 20, ink, "OVERLAY")
 	b.icon:SetPoint("CENTER", b, "CENTER", 0, 0)

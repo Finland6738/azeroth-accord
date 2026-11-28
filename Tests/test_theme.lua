@@ -599,9 +599,9 @@ describe("assets table", function()
 		isNil(A.IconCoords(nil))
 	end)
 
-	it("holds 49 outlined and 24 filled distinct glyphs that fit the atlas, filled after outlined", function()
+	it("holds 50 outlined and 24 filled distinct glyphs that fit the atlas, filled after outlined", function()
 		local A = AzerothAccord.Assets
-		eq(#A.glyphs, 49); eq(#A.filledGlyphs, 24)
+		eq(#A.glyphs, 50); eq(#A.filledGlyphs, 24)
 		local outlined = {}
 		for _, g in ipairs(A.glyphs) do falsy(outlined[g], "duplicate " .. g); outlined[g] = true end
 		local seen = {}
@@ -624,10 +624,10 @@ describe("assets table", function()
 		end
 		for _, g in ipairs(A.glyphs) do cell(g) end
 		for _, g in ipairs(A.filledGlyphs) do cell(g, true) end
-		eq(n, 73)
+		eq(n, 74)
 		local s = 48 / 512
-		local l, _, t = A.IconCoords("home", true)   -- the first filled one: cell 50
-		near(l, 9 * s, 1e-9); near(t, 4 * s, 1e-9)
+		local l, _, t = A.IconCoords("home", true)   -- the first filled one: cell 51
+		near(l, 0, 1e-9); near(t, 5 * s, 1e-9)
 	end)
 
 	it("every name the code used before keeps working and points at a glyph of the atlas", function()
@@ -635,7 +635,7 @@ describe("assets table", function()
 		local old = { "chevron", "check", "cross", "dashed", "skull", "shield", "heal", "sword", "star", "gear", "arrow_up",
 			"arrow_down", "lock", "eye", "dot", "plus", "info", "warn", "search", "filter", "copy", "trash", "edit",
 			"calendar", "clock", "user", "users", "crown", "coin", "refresh", "download", "upload", "bell", "flag", "minus",
-			"gem", "bag", "book", "link", "arrow_left", "heart", "hammer" }
+			"gem", "bag", "book", "link", "arrow_left", "heart", "hammer", "columns" }
 		local n = 0
 		for _ in pairs(A.iconNames) do n = n + 1 end
 		eq(n, #old + 3)   -- and the three roles

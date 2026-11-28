@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **Roster buttons** (owner, 2026-11-28): *Columns* and *Export* are round buttons with an icon (the names are in their tooltips), *Export* in the accent colour. A new icon is in the atlas: **restart the game** (a `/reload` does not load it). **Not checked in the real game.**
+
 ### Removed
 
 - **Professions** (owner, 2026-11-28): the *Who can craft* button is gone (a click on a recipe still shows who can craft it); the profession and category menus are wider and their text stays on one line. **Not checked in the real game.**

@@ -54,7 +54,7 @@ Assets.glyphs = {
 	"warning", "search", "filter_alt", "content_copy", "delete", "edit", "calendar_month", "schedule", "person",
 	"group", "crown", "paid", "refresh", "download", "upload", "notifications", "flag", "remove", "diamond",
 	"shopping_bag", "menu_book", "link", "arrow_back", "favorite", "home", "groups", "group_add", "construction",
-	"account_balance", "celebration", "shield_person", "medical_services" }
+	"account_balance", "celebration", "shield_person", "medical_services", "view_column" }
 -- ...then the filled ones, for the icons that show an active state (ui-style.md §9.10).
 Assets.filledGlyphs = {
 	"home", "groups", "swords", "group_add", "construction", "account_balance", "celebration", "shield_person",
@@ -71,7 +71,7 @@ Assets.iconNames = {
 	download = "download", upload = "upload", bell = "notifications", flag = "flag", minus = "remove",
 	gem = "diamond", bag = "shopping_bag", book = "menu_book", link = "link", arrow_left = "arrow_back",
 	heart = "favorite", hammer = "construction", role_tank = "shield", role_damage = "swords",
-	role_healer = "medical_services" }
+	role_healer = "medical_services", columns = "view_column" }
 
 -- Fonts (docs/third-party.md). Orbitron ships whole (it declares a Reserved Font Name): it is used for the title only, in
 -- capitals, and has no middle dot or arrow. `fallback` is the game font used when SetFont fails or the player chose the

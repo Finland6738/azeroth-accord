@@ -97,11 +97,13 @@ local function buildToolbar(self, f)
 			View:Changed()
 		end })
 	end
-	bar.columns = Widgets.Button(bar, { text = L["COLUMNS"], style = "tonal", dense = true, onClick = function(b) View:ShowColumnMenu(b) end })
+	-- round buttons with an icon (owner, 2026-11-28); their names are in the tooltips
+	bar.columns = Widgets.IconButton(bar, { icon = "columns", dense = true, onClick = function(b) View:ShowColumnMenu(b) end })
 	Widgets.Tooltip.Attach(bar.columns, { L["COLUMNS"], L["COLUMNS_TIP"] }, "BOTTOM")
 	-- officers only (SPEC-12 §6): the export of the characters the table shows
-	bar.export = Widgets.Button(bar, { text = L["EXPORT_BUTTON"], style = "tonal", dense = true,
+	bar.export = Widgets.IconButton(bar, { icon = "download", dense = true, filled = true,
 		onClick = function() View:OpenExport() end })
+	Widgets.Tooltip.Attach(bar.export, { L["EXPORT_BUTTON"] }, "BOTTOM")
 	bar.count = Theme.NewText(bar, "Small", "text-3")
 	bar.count:SetJustifyH("RIGHT")
 	bar.count:SetPoint("TOPRIGHT", bar, "TOPRIGHT", -8, -13)

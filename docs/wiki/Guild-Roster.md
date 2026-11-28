@@ -130,7 +130,7 @@ All the observed changes of the guild, with filters by kind (joined, left, rank,
 
 ## Export (officers only)
 
-Officers and the Guild Master can copy what a page shows out of the game, to a spreadsheet or to Discord. The **Export** button is on the **Roster** view and on the **Inactive** and **Timeline** pages of the *Officers* tab. Members do not have it.
+Officers and the Guild Master can copy what a page shows out of the game, to a spreadsheet or to Discord. The **Export** button (on the Roster a round accent button with a download arrow; the round button beside it chooses the columns) is on the **Roster** view and on the **Inactive** and **Timeline** pages of the *Officers* tab. Members do not have it.
 
 - The export holds **what the page shows**, with its filters and the search. In the Roster view grouped *By account*, the alts of a closed account are included; a character outside the guild is not.
 - A box opens with the text **already selected**: press **Ctrl+C**, then paste. Above it: *This text leaves the game: share it only with your officers.* Choose **CSV** or **Discord** at the top right; the box remembers the choice until you log out.

@@ -129,7 +129,7 @@ Tutti i cambiamenti osservati della gilda, con filtri per tipo (entrati, usciti,
 
 ## Esportazione (solo ufficiali)
 
-Gli ufficiali e il Guild Master possono copiare fuori dal gioco ciò che una pagina mostra, in un foglio di calcolo o su Discord. Il pulsante **Esporta** è nella vista **Roster** e nelle pagine **Inattivi** e **Cronologia** della scheda *Ufficiali*. I membri non ce l'hanno.
+Gli ufficiali e il Guild Master possono copiare fuori dal gioco ciò che una pagina mostra, in un foglio di calcolo o su Discord. Il pulsante **Esporta** (nel Roster un pulsante tondo arancione con la freccia in giù; il pulsante tondo accanto sceglie le colonne) è nella vista **Roster** e nelle pagine **Inattivi** e **Cronologia** della scheda *Ufficiali*. I membri non ce l'hanno.
 
 - L'esportazione contiene **ciò che la pagina mostra**, con i suoi filtri e la ricerca. Nel Roster raggruppato *Per account*, gli alt di un account chiuso sono compresi; un personaggio fuori dalla gilda no.
 - Si apre una casella con il testo **già selezionato**: premi **Ctrl+C**, poi incolla. Sopra c'è scritto: *Questo testo esce dal gioco: condividilo solo con gli ufficiali.* In alto a destra scegli **CSV** o **Discord**; la casella ricorda la scelta finché non esci dal gioco.
